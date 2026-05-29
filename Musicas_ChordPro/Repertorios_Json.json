@@ -1,3 +1,16 @@
 {
-  "repertorios": []
+  "repertorios": [
+    {
+      "nome": "teste",
+      "musicas": [
+        {
+          "title": "O Girassol",
+          "tags": "Animação",
+          "songIndex": 0,
+          "transposition": 0,
+          "note": ""
+        }
+      ]
+    }
+  ]
 }
