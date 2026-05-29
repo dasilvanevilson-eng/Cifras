@@ -855,9 +855,14 @@ body.main-menu-open .menu-toggle {
 .search-suggestions {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-height: 340px;
+  gap: 0;
+  max-height: min(420px, 48dvh);
   overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(27, 16, 9, 0.96);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  -webkit-overflow-scrolling: touch;
 }
 
 .search-suggestion-item {
@@ -865,11 +870,15 @@ body.main-menu-open .menu-toggle {
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0.75rem;
+  min-height: 44px;
+  border-bottom: 1px solid var(--line);
+  padding: 0.62rem 0.75rem;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
+}
+
+.search-suggestion-item:last-child {
+  border-bottom: 0;
 }
 
 .search-suggestion-item:hover {

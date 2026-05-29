@@ -486,18 +486,15 @@ async function findSongByTitle(title) {
 }
 
 function filterSearchSongs(query) {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return [];
+  const normalized = normalizeSearchText(query);
 
-  return searchSongsCache.filter((song) => {
-    const title = (song.titulo || '').toLowerCase();
-    const tags = Array.isArray(song.tags) ? song.tags.join(' ').toLowerCase() : (song.tags || '').toLowerCase();
-    return title.includes(normalized) || tags.includes(normalized);
-  });
+  return searchSongsCache
+    .filter((song) => !normalized || normalizeSearchText(getSongTitle(song)).includes(normalized))
+    .sort(compareByTitle);
 }
 
 function renderSearchSuggestions(query) {
-  const matches = filterSearchSongs(query).slice(0, 8);
+  const matches = filterSearchSongs(query);
   if (!matches.length) {
     songSearchSuggestions.innerHTML = '<div class="search-suggestion-item">Nenhuma música encontrada.</div>';
     songSearchSuggestions.classList.remove('hidden');
@@ -520,9 +517,8 @@ async function openSearchModal() {
       return;
     }
     songSearchInput.value = '';
-    songSearchSuggestions.innerHTML = '';
-    songSearchSuggestions.classList.add('hidden');
     songSearchModal.classList.remove('hidden');
+    renderSearchSuggestions('');
     updateOverlayLock();
     songSearchInput.focus();
   } catch (error) {
@@ -1348,8 +1344,7 @@ songSearchInput.addEventListener('input', (event) => {
 });
 clearSongSearchBtn.addEventListener('click', () => {
   songSearchInput.value = '';
-  songSearchSuggestions.innerHTML = '';
-  songSearchSuggestions.classList.add('hidden');
+  renderSearchSuggestions('');
   songSearchInput.focus();
 });
 
