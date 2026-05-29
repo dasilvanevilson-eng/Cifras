@@ -714,8 +714,16 @@ function songMatchesCatalogSearch(song, query) {
 }
 
 function getSongByRepertoireItem(item) {
-  return storedSongsCache.find((song) => song.__index === item.songIndex) ||
-    storedSongsCache.find((song) => normalizeSearchText(getSongTitle(song)) === normalizeSearchText(item.title));
+  const normalizedTitle = normalizeSearchText(item?.title);
+  if (normalizedTitle) {
+    return storedSongsCache.find((song) => normalizeSearchText(getSongTitle(song)) === normalizedTitle);
+  }
+
+  return storedSongsCache.find((song) => song.__index === item?.songIndex);
+}
+
+function isDeletedRepertoireSong(item) {
+  return !getSongByRepertoireItem(item);
 }
 
 function getRepertoireName(item) {
@@ -869,8 +877,9 @@ function getRepertoireItemsByName(name) {
 
 function openRepertoireSequence(name, startIndex = 0) {
   const items = getRepertoireItemsByName(name);
-  const queue = items.map((item) => ({
+  const queue = items.map((item, itemPosition) => ({
     item,
+    itemPosition,
     itemIndex: repertoireItems.indexOf(item),
     song: getSongByRepertoireItem(item),
   })).filter((entry) => entry.song);
@@ -880,7 +889,10 @@ function openRepertoireSequence(name, startIndex = 0) {
   }
 
   activeRepertoireQueue = queue;
-  activeRepertoirePosition = Math.min(Math.max(startIndex, 0), queue.length - 1);
+  const requestedPosition = queue.findIndex((entry) => entry.itemPosition === startIndex);
+  activeRepertoirePosition = requestedPosition >= 0
+    ? requestedPosition
+    : Math.min(Math.max(startIndex, 0), queue.length - 1);
   fullscreenPrevSongBtn.classList.remove('hidden');
   fullscreenNextSongBtn.classList.remove('hidden');
   loadActiveRepertoireEntry();
@@ -1067,13 +1079,17 @@ function renderRepertoire() {
     .map(([repertoire, items]) => `
     <section class="repertoire-group">
       <h4>${escapeHtml(repertoire)}</h4>
-      ${items.sort(compareRepertoireItemsByTitle).map((item) => `
-        <div class="repertoire-item" draggable="true" data-index="${item.index}">
-          <button type="button" data-action="open-repertoire" data-index="${item.index}">${escapeHtml(item.title)}${Number(item.transposition || 0) ? ` (${Number(item.transposition) > 0 ? '+' : ''}${Number(item.transposition)})` : ''}</button>
+      ${items.sort(compareRepertoireItemsByTitle).map((item) => {
+        const isDeleted = isDeletedRepertoireSong(item);
+        const deletedLabel = isDeleted ? ' - música excluída' : '';
+        return `
+        <div class="repertoire-item ${isDeleted ? 'deleted-repertoire-song' : ''}" draggable="true" data-index="${item.index}" title="${isDeleted ? 'Música excluída do catálogo' : ''}">
+          <button type="button" data-action="open-repertoire" data-index="${item.index}" aria-label="${escapeAttribute(`${item.title}${deletedLabel}`)}">${escapeHtml(item.title)}${Number(item.transposition || 0) ? ` (${Number(item.transposition) > 0 ? '+' : ''}${Number(item.transposition)})` : ''}</button>
           <input class="repertoire-note-input" type="text" data-action="update-note" data-index="${item.index}" value="${escapeAttribute(item.note || '')}" placeholder="Observação" aria-label="Observação para ${escapeAttribute(item.title)}" />
           <button type="button" class="remove-repertoire-btn" data-action="remove-repertoire" data-index="${item.index}">-</button>
         </div>
-      `).join('')}
+      `;
+      }).join('')}
     </section>
   `).join('');
 }
@@ -1463,6 +1479,11 @@ repertoireList.addEventListener('click', async (event) => {
   }
 
   const item = repertoireItems[index];
+  if (isDeletedRepertoireSong(item)) {
+    alert('Esta música foi excluída do catálogo.');
+    return;
+  }
+
   const repertoireName = getRepertoireName(item);
   const sequenceIndex = getRepertoireItemsByName(repertoireName).findIndex((entry) => entry === item);
   openRepertoireSequence(repertoireName, sequenceIndex);

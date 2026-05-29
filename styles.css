@@ -675,6 +675,22 @@ body.main-menu-open .menu-toggle {
   opacity: 0.55;
 }
 
+.repertoire-item.deleted-repertoire-song {
+  border-radius: 8px;
+  background: rgba(184, 36, 36, 0.28);
+}
+
+.repertoire-item.deleted-repertoire-song button:first-child,
+.repertoire-item.deleted-repertoire-song .repertoire-note-input {
+  background: rgba(184, 36, 36, 0.55);
+  border-color: rgba(255, 126, 126, 0.7);
+  color: #ffffff;
+}
+
+.repertoire-item.deleted-repertoire-song button:first-child {
+  font-weight: 700;
+}
+
 .repertoire-item button:first-child {
   min-height: 36px;
   overflow: hidden;
