@@ -1329,12 +1329,12 @@ clearCatalogMomentBtn.addEventListener('mousedown', (event) => {
 });
 clearCatalogMomentBtn.addEventListener('click', () => {
   catalogMomentInput.value = '';
-  isRepertoireSearchOpen = true;
+  isRepertoireSearchOpen = false;
   isEditingRepertoire = false;
   updateRepertoireSearchLayout();
   renderRepertoireLibrary();
   renderRepertoire();
-  catalogMomentInput.focus();
+  catalogMomentInput.blur();
 });
 catalogMomentInput.addEventListener('focus', () => {
   clearMusicSearch();
