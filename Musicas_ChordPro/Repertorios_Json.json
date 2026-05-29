@@ -1,104 +1,19 @@
 {
   "repertorios": [
     {
-      "nome": "Primeiro",
+      "nome": "teste",
       "musicas": [
         {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 4,
-          "transposition": 2,
-          "note": "Entrada"
-        },
-        {
-          "title": "Cristo",
+          "title": "O Girassol",
           "tags": "Animação",
-          "songIndex": 3,
+          "songIndex": 0,
           "transposition": 0,
           "note": ""
         },
         {
-          "title": "Utopia 2",
+          "title": "teset",
           "tags": [],
-          "songIndex": 6,
-          "transposition": 0,
-          "note": ""
-        }
-      ]
-    },
-    {
-      "nome": "Quarto",
-      "musicas": [
-        {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 3,
-          "transposition": 0,
-          "note": ""
-        },
-        {
-          "title": "Cristo",
-          "tags": "Animação",
-          "songIndex": 2,
-          "transposition": 0,
-          "note": ""
-        },
-        {
-          "title": "teste 99",
-          "tags": "Animação",
-          "songIndex": 1,
-          "transposition": 0,
-          "note": ""
-        }
-      ]
-    },
-    {
-      "nome": "Segundo",
-      "musicas": [
-        {
-          "title": "Tua Família",
-          "tags": [],
-          "songIndex": 5,
-          "transposition": 1,
-          "note": ""
-        },
-        {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 4,
-          "transposition": 0,
-          "note": ""
-        }
-      ]
-    },
-    {
-      "nome": "Terceiro",
-      "musicas": [
-        {
-          "title": "Cristo",
-          "tags": "Animação",
-          "songIndex": 3,
-          "transposition": 0,
-          "note": ""
-        },
-        {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 4,
-          "transposition": 0,
-          "note": ""
-        },
-        {
-          "title": "Tua Família",
-          "tags": [],
-          "songIndex": 5,
-          "transposition": 0,
-          "note": ""
-        },
-        {
-          "title": "Cristo77",
-          "tags": "Adoração",
-          "songIndex": 1,
+          "songIndex": 0,
           "transposition": 0,
           "note": ""
         }
