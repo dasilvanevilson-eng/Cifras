@@ -4,13 +4,6 @@
       "nome": "Primeiro",
       "musicas": [
         {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 4,
-          "transposition": 2,
-          "note": "Entrada"
-        },
-        {
           "title": "Utopia 2",
           "tags": [],
           "songIndex": 6,
