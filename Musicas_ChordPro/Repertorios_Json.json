@@ -44,6 +44,18 @@
           "note": ""
         }
       ]
+    },
+    {
+      "nome": "Terceiro",
+      "musicas": [
+        {
+          "title": "Cristo",
+          "tags": "Animação",
+          "songIndex": 3,
+          "transposition": 0,
+          "note": ""
+        }
+      ]
     }
   ]
 }
