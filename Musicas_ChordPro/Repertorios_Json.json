@@ -4,13 +4,6 @@
       "nome": "Segundo",
       "musicas": [
         {
-          "title": "Tua Família",
-          "tags": [],
-          "songIndex": 5,
-          "transposition": 1,
-          "note": ""
-        },
-        {
           "title": "Utopia",
           "tags": "Hino",
           "songIndex": 4,
