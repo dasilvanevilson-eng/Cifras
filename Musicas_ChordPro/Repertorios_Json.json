@@ -1,16 +1,3 @@
 {
-  "repertorios": [
-    {
-      "nome": "Terceiro",
-      "musicas": [
-        {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 4,
-          "transposition": 0,
-          "note": ""
-        }
-      ]
-    }
-  ]
+  "repertorios": []
 }
