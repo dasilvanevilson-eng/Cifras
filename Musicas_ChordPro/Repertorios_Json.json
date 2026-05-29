@@ -1,18 +1,6 @@
 {
   "repertorios": [
     {
-      "nome": "Primeiro",
-      "musicas": [
-        {
-          "title": "Utopia 2",
-          "tags": [],
-          "songIndex": 6,
-          "transposition": 0,
-          "note": ""
-        }
-      ]
-    },
-    {
       "nome": "Quarto",
       "musicas": [
         {
