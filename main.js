@@ -183,6 +183,15 @@ function removeChordProTitle(text) {
     .replace(/^(?:\r?\n)+/, '');
 }
 
+function placeChordWithMinimumGap(chordLine, preferredPosition, chord, previousChordEnd = -2) {
+  const position = Math.max(preferredPosition, previousChordEnd + 2);
+  while (chordLine.length < position) chordLine.push(' ');
+  for (let j = 0; j < chord.length; j += 1) {
+    chordLine[position + j] = chord[j];
+  }
+  return position + chord.length - 1;
+}
+
 function convertChordProToPlainText(text) {
   const lines = removeChordProTitle(text).split('\n');
   const output = [];
@@ -196,6 +205,7 @@ function convertChordProToPlainText(text) {
     const chordLine = [];
     const lyricLine = [];
     let i = 0;
+    let previousChordEnd = -2;
 
     while (i < line.length) {
       if (line[i] === '[') {
@@ -208,10 +218,7 @@ function convertChordProToPlainText(text) {
 
         const chord = line.slice(i + 1, endBracket);
         const pos = lyricLine.length;
-        while (chordLine.length < pos) chordLine.push(' ');
-        for (let j = 0; j < chord.length; j += 1) {
-          chordLine[pos + j] = chord[j];
-        }
+        previousChordEnd = placeChordWithMinimumGap(chordLine, pos, chord, previousChordEnd);
         i = endBracket + 1;
       } else {
         lyricLine.push(line[i]);
@@ -304,6 +311,9 @@ function atualizarPreview() {
       const lyricEnd = nextChordIndex === -1 ? linha.length : nextChordIndex;
       const lyricPart = linha.substring(ultimoIndice, lyricEnd);
       lineHtml += `<span class="preview-chord-word"><span class="preview-chord">${escapeHtml(acorde)}</span><span>${escapeHtml(lyricPart || '\u00A0')}</span></span>`;
+      if (nextChordIndex !== -1 && lyricPart === '') {
+        lineHtml += ' ';
+      }
       ultimoIndice = lyricEnd;
     }
 
@@ -1180,6 +1190,7 @@ function renderChordAboveLyrics(text) {
     const chordLine = [];
     const lyricLine = [];
     let i = 0;
+    let previousChordEnd = -2;
 
     while (i < line.length) {
       if (line[i] === '[') {
@@ -1192,10 +1203,7 @@ function renderChordAboveLyrics(text) {
         }
         const chord = line.slice(i + 1, endBracket);
         const pos = lyricLine.length;
-        while (chordLine.length < pos) chordLine.push(' ');
-        for (let j = 0; j < chord.length; j += 1) {
-          chordLine[pos + j] = chord[j];
-        }
+        previousChordEnd = placeChordWithMinimumGap(chordLine, pos, chord, previousChordEnd);
         i = endBracket + 1;
       } else {
         lyricLine.push(line[i]);
@@ -1207,7 +1215,7 @@ function renderChordAboveLyrics(text) {
     }
 
     while (chordLine.length < lyricLine.length) chordLine.push(' ');
-    const chordHtml = chordLine.join('').replace(/([^\s]+)/g, '<span class="chord-span">$1</span>');
+    const chordHtml = escapeHtml(chordLine.join('')).replace(/([^\s]+)/g, '<span class="chord-span">$1</span>');
     output.push(chordHtml, escapeHtml(lyricLine.join('')));
   }
 
