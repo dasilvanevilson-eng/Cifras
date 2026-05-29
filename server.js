@@ -1,12 +1,10 @@
 const http = require('http');
 const fs = require('fs/promises');
 const path = require('path');
+const { readJson, writeJson } = require('./lib/githubJsonStore');
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT_DIR = __dirname;
-const DATA_DIR = path.join(ROOT_DIR, 'Musicas_ChordPro');
-const SONGS_FILE = path.join(DATA_DIR, 'Musicas_Json.json');
-const REPERTOIRE_FILE = path.join(DATA_DIR, 'Repertorios_Json.json');
 
 const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
@@ -29,17 +27,6 @@ function sendText(response, statusCode, text) {
   response.end(text);
 }
 
-async function readJsonFile(filePath, fallback) {
-  try {
-    const text = await fs.readFile(filePath, 'utf8');
-    if (!text.trim()) return fallback;
-    return JSON.parse(text);
-  } catch (error) {
-    if (error.code === 'ENOENT') return fallback;
-    throw error;
-  }
-}
-
 async function readRequestBody(request) {
   let body = '';
 
@@ -51,11 +38,6 @@ async function readRequestBody(request) {
   }
 
   return body;
-}
-
-async function writeJsonFile(filePath, data) {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
 
 function resolveStaticPath(urlPath) {
@@ -73,7 +55,7 @@ function resolveStaticPath(urlPath) {
 
 async function handleApi(request, response, pathname) {
   if (pathname === '/api/songs' && request.method === 'GET') {
-    const songs = await readJsonFile(SONGS_FILE, []);
+    const songs = await readJson('songs');
     sendJson(response, 200, Array.isArray(songs) ? songs : []);
     return true;
   }
@@ -84,13 +66,13 @@ async function handleApi(request, response, pathname) {
       sendJson(response, 400, { error: 'O catálogo de músicas deve ser uma lista.' });
       return true;
     }
-    await writeJsonFile(SONGS_FILE, data);
+    await writeJson('songs', data);
     sendJson(response, 200, { ok: true });
     return true;
   }
 
   if (pathname === '/api/repertoire' && request.method === 'GET') {
-    const repertoire = await readJsonFile(REPERTOIRE_FILE, { repertorios: [] });
+    const repertoire = await readJson('repertoire');
     sendJson(response, 200, repertoire && typeof repertoire === 'object' ? repertoire : { repertorios: [] });
     return true;
   }
@@ -101,7 +83,7 @@ async function handleApi(request, response, pathname) {
       sendJson(response, 400, { error: 'O repertório deve ter o formato { "repertorios": [] }.' });
       return true;
     }
-    await writeJsonFile(REPERTOIRE_FILE, data);
+    await writeJson('repertoire', data);
     sendJson(response, 200, { ok: true });
     return true;
   }

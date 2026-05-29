@@ -340,12 +340,13 @@ async function requestJson(path, fallback, errorMessage, options = {}) {
       ...options,
     });
     if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.error || `${response.status} ${response.statusText}`);
     }
     return response.status === 204 ? null : response.json();
   } catch (error) {
     if (fallback !== null) return fallback;
-    throw new Error(errorMessage);
+    throw new Error(`${errorMessage} ${error.message || ''}`.trim());
   }
 }
 
@@ -1210,7 +1211,7 @@ async function loadSongList() {
 
     filterRepertoireCatalogSongs();
   } catch (error) {
-    repertoireSongList.innerHTML = `<li>Não foi possível abrir ${STORAGE_FILE_NAME}. Execute o backend local com node server.js.</li>`;
+    repertoireSongList.innerHTML = `<li>Não foi possível abrir ${STORAGE_FILE_NAME}. Verifique a configuração da API.</li>`;
     storedSongsCache = [];
   }
 }
