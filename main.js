@@ -380,6 +380,17 @@ async function salvarJSON() {
 
   try {
     const songs = await readStorageSongs();
+    const duplicateTitle = songs.some((song, index) => (
+      index !== currentSongIndex &&
+      normalizeSearchText(getSongTitle(song)) === normalizeSearchText(titulo)
+    ));
+
+    if (duplicateTitle) {
+      alert('Já existe uma música cadastrada com esse título.');
+      musicaTitulo.focus();
+      return;
+    }
+
     let action = 'adicionada';
 
     if (currentSongIndex !== null && currentSongIndex >= 0 && currentSongIndex < songs.length) {
@@ -689,6 +700,10 @@ function normalizeSearchText(value) {
     .trim();
 }
 
+function compareByTitle(a, b) {
+  return getSongTitle(a).localeCompare(getSongTitle(b), 'pt-BR', { sensitivity: 'base' });
+}
+
 function songMatchesCatalogSearch(song, query) {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return true;
@@ -727,7 +742,7 @@ function getAllRepertoireNames() {
       names.push(name);
     }
   });
-  return names.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  return names.sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
 }
 
 function normalizeRepertoireData(data) {
@@ -1068,9 +1083,10 @@ function renderSongList(targetList, songs, includeRepertoireButton) {
   }
 
   const shouldShowRepertoireButton = includeRepertoireButton && !isRepertoireMusicSearchFocused();
+  const sortedSongs = [...songs].sort(compareByTitle);
 
   targetList.innerHTML = '';
-  songs.forEach((song) => {
+  sortedSongs.forEach((song) => {
     const item = document.createElement('li');
     const title = document.createElement('span');
     title.textContent = getSongTitle(song);
