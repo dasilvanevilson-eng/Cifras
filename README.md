@@ -1,6 +1,19 @@
 # Família EPC - Catálogo de músicas cifradas
 
-Aplicação web estática para editar músicas em formato ChordPro, organizar repertórios e visualizar cifras para execução.
+Aplicação web local para editar músicas em formato ChordPro, organizar repertórios e visualizar cifras para execução.
+
+## Como executar localmente
+
+1. Abra um terminal na pasta do projeto.
+2. Execute `npm start`.
+3. Acesse `http://localhost:3000`.
+
+Os salvamentos feitos pelo site sobrescrevem diretamente:
+
+- `Musicas_ChordPro/Musicas_Json.json`;
+- `Musicas_ChordPro/Repertorios_Json.json`.
+
+Depois de salvar no site, os arquivos ficam alterados no repositório local e prontos para `git add`, `git commit` e `git push`.
 
 ## Como publicar no GitHub Pages
 
@@ -14,11 +27,11 @@ O arquivo `index.html` está na raiz do projeto, então o GitHub Pages consegue 
 
 ## Funcionamento na nuvem
 
-No GitHub Pages, o app roda como página estática:
+No GitHub Pages, o app roda como página estática, então serve apenas para visualização:
 
 - o catálogo inicial é carregado de `Musicas_ChordPro/Musicas_Json.json`;
-- repertórios, tema e preferências ficam salvos no navegador do usuário;
-- alterações no arquivo de músicas exigem um navegador com File System Access API, como Chrome ou Edge, e a seleção da pasta local `Musicas_ChordPro`;
+- repertórios são carregados e salvos em `Musicas_ChordPro/Repertorios_Json.json`;
+- alterações nos arquivos JSON exigem o backend local deste projeto;
 - o GitHub Pages não grava alterações de volta no repositório automaticamente.
 
 ## Arquivos principais
@@ -26,9 +39,11 @@ No GitHub Pages, o app roda como página estática:
 - `index.html`: estrutura da aplicação.
 - `styles.css`: layout e identidade visual.
 - `main.js`: lógica do editor, catálogo, repertórios e visualização.
+- `server.js`: backend local que lê e sobrescreve os arquivos JSON.
 - `assets/guadalupe.jpg`: capa do menu principal.
 - `Musicas_ChordPro/Musicas_Json.json`: catálogo inicial publicado junto com o site.
+- `Musicas_ChordPro/Repertorios_Json.json`: repertórios salvos junto ao catálogo.
 
 ## Compatibilidade
 
-Para apenas visualizar o catálogo publicado, navegadores modernos devem funcionar. Para editar e salvar o JSON localmente, use Chrome ou Edge em ambiente seguro (`https://` ou `localhost`).
+Para editar e salvar os JSONs localmente, execute o backend com `npm start` e use o endereço `http://localhost:3000`.

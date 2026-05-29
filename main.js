@@ -63,16 +63,14 @@ let isEditingRepertoire = false;
 let isRepertoireSearchOpen = false;
 let isSyncingEditorFields = false;
 let pendingApprovedRepertoireName = '';
-let lastDirectoryHandle = null;
 
-const DB_NAME = 'cifras-epc-storage';
-const STORE_NAME = 'file-handles';
-const LAST_DIR_KEY = 'lastDirectory';
-const STORAGE_DIR_NAME = 'Musicas_ChordPro';
 const STORAGE_FILE_NAME = 'Musicas_Json.json';
-const STORAGE_FILE_PATH = `${STORAGE_DIR_NAME}/${STORAGE_FILE_NAME}`;
-const REPERTOIRE_STORAGE_KEY = 'cifras-epc-repertoire';
-const REPERTOIRE_NAMES_STORAGE_KEY = 'cifras-epc-repertoire-names';
+const REPERTOIRE_FILE_NAME = 'Repertorios_Json.json';
+const API_BASE_URL = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const API_PATHS = {
+  songs: '/api/songs',
+  repertoire: '/api/repertoire',
+};
 
 function showSection(section) {
   menuSection.classList.add('hidden');
@@ -112,10 +110,10 @@ function openEditor() {
   processarParaChordPro();
 }
 
-function openRepertoire() {
+async function openRepertoire() {
   showSection('repertoire');
-  refreshSongList();
-  renderRepertoire();
+  await refreshSongList();
+  await loadRepertoire();
 }
 
 function escapeHtml(texto) {
@@ -132,7 +130,7 @@ function isChordLine(line) {
   }
 
   const words = line.replace(/\t/g, '    ').trim().split(/\s+/);
-  const chordRegex = /^[A-G](#|b)?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:M|m|maj|min|dim|aug|sus|add|Â°|Âº)?[0-9]*(?:\([^\)]*\))?(?:\/[A-G](#|b)?)?$/i;
+  const chordRegex = /^[A-G](#|b)?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:M|m|maj|min|dim|aug|sus|add|°|º)?[0-9]*(?:\([^\)]*\))?(?:\/[A-G](#|b)?)?$/i;
   return words.every((word) => chordRegex.test(word));
 }
 
@@ -323,32 +321,31 @@ function fecharPreview(event) {
   }
 }
 
-async function getStorageFileHandle(create = true) {
-  if (!lastDirectoryHandle) {
-    await chooseDirectory();
-  }
-
-  if (!lastDirectoryHandle) {
-    throw new Error('Nenhuma pasta selecionada para salvar o arquivo.');
-  }
-
-  return lastDirectoryHandle.getFileHandle(STORAGE_FILE_NAME, { create });
+async function readStorageSongs() {
+  return requestJson(API_PATHS.songs, null, 'Não foi possível carregar o arquivo de músicas pelo backend.');
 }
 
-async function readStorageSongs() {
-  if (!lastDirectoryHandle) {
-    return readBundledSongs();
-  }
+async function writeStorageSongs(songs) {
+  await requestJson(API_PATHS.songs, null, 'Não foi possível salvar o arquivo de músicas pelo backend.', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(songs),
+  });
+}
 
+async function requestJson(path, fallback, errorMessage, options = {}) {
   try {
-    const fileHandle = await getStorageFileHandle(false);
-    const file = await fileHandle.getFile();
-    const text = await file.text();
-    if (!text.trim()) return [];
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed) ? parsed : [];
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      cache: 'no-store',
+      ...options,
+    });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    return response.status === 204 ? null : response.json();
   } catch (error) {
-    return [];
+    if (fallback !== null) return fallback;
+    throw new Error(errorMessage);
   }
 }
 
@@ -372,13 +369,10 @@ async function salvarJSON() {
       currentSongIndex = songs.length - 1;
     }
 
-    const fileHandle = await getStorageFileHandle(true);
-    const writable = await fileHandle.createWritable();
-    await writable.write(JSON.stringify(songs, null, 2));
-    await writable.close();
+    await writeStorageSongs(songs);
 
     loadSongData(dados, currentSongIndex);
-    alert(`Musica ${action} em ${STORAGE_FILE_NAME}.`);
+    alert(`Música ${action} em ${STORAGE_FILE_NAME}.`);
     await refreshSongList();
   } catch (err) {
     console.error(err);
@@ -398,32 +392,29 @@ function clearEditorData() {
 
 async function deleteSong() {
   if (currentSongIndex === null) {
-    alert('Nenhuma musica carregada para excluir.');
+    alert('Nenhuma música carregada para excluir.');
     return;
   }
 
-  const confirmed = window.confirm('Tem certeza que deseja excluir esta musica do arquivo?');
+  const confirmed = window.confirm('Tem certeza que deseja excluir esta música do arquivo?');
   if (!confirmed) return;
 
   try {
     const songs = await readStorageSongs();
     if (currentSongIndex < 0 || currentSongIndex >= songs.length) {
-      alert('Indice de musica invalido. Atualize a lista e tente novamente.');
+      alert('Índice de música inválido. Atualize a lista e tente novamente.');
       return;
     }
 
     songs.splice(currentSongIndex, 1);
-    const fileHandle = await getStorageFileHandle(true);
-    const writable = await fileHandle.createWritable();
-    await writable.write(JSON.stringify(songs, null, 2));
-    await writable.close();
+    await writeStorageSongs(songs);
 
     clearEditorData();
     await refreshSongList();
-    alert('Musica exclui­da com sucesso.');
+    alert('Música excluída com sucesso.');
   } catch (err) {
     console.error(err);
-    alert('Erro ao excluir a musica.');
+    alert('Erro ao excluir a música.');
   }
 }
 
@@ -448,13 +439,13 @@ function filterSearchSongs(query) {
 function renderSearchSuggestions(query) {
   const matches = filterSearchSongs(query).slice(0, 8);
   if (!matches.length) {
-    songSearchSuggestions.innerHTML = '<div class="search-suggestion-item">Nenhuma musica encontrada.</div>';
+    songSearchSuggestions.innerHTML = '<div class="search-suggestion-item">Nenhuma música encontrada.</div>';
     songSearchSuggestions.classList.remove('hidden');
     return;
   }
 
   songSearchSuggestions.innerHTML = matches.map((song) => {
-    const label = escapeHtml(song.titulo || 'Sem titulo');
+    const label = escapeHtml(song.titulo || 'Sem título');
     const tags = escapeHtml(Array.isArray(song.tags) ? song.tags.join(', ') : (song.tags || ''));
     return `<div class="search-suggestion-item" data-index="${song.__index}"><strong>${label}</strong><span>${tags}</span></div>`;
   }).join('');
@@ -463,10 +454,6 @@ function renderSearchSuggestions(query) {
 
 async function openSearchModal() {
   try {
-    if (!lastDirectoryHandle) {
-      await chooseDirectory();
-    }
-
     searchSongsCache = (await readStorageSongs()).map((song, index) => ({ ...song, __index: index }));
     if (!searchSongsCache.length) {
       alert(`Nenhuma música encontrada em ${STORAGE_FILE_NAME}.`);
@@ -479,7 +466,7 @@ async function openSearchModal() {
     songSearchInput.focus();
   } catch (error) {
     console.error(error);
-    alert('Nao foi possi­vel abrir a busca.');
+    alert('Não foi possível abrir a busca.');
   }
 }
 
@@ -508,66 +495,6 @@ async function carregarJSON() {
   await openSearchModal();
 }
 
-async function openDatabase() {
-  return new Promise((resolve, reject) => {
-    const request = window.indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-    };
-    request.onsuccess = (event) => resolve(event.target.result);
-    request.onerror = (event) => reject(event.target.error);
-  });
-}
-
-async function getStoredHandle(key) {
-  if (!window.indexedDB) return null;
-  const db = await openDatabase();
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORE_NAME, 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.get(key);
-    request.onsuccess = (event) => resolve(event.target.result);
-    request.onerror = (event) => reject(event.target.error);
-  });
-}
-
-async function storeHandle(key, value) {
-  if (!window.indexedDB) return;
-  const db = await openDatabase();
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORE_NAME, 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.put(value, key);
-    request.onsuccess = () => resolve();
-    request.onerror = (event) => reject(event.target.error);
-  });
-}
-
-async function requestDirectoryPermission(handle) {
-  if (!handle) return false;
-  const options = { mode: 'readwrite' };
-  if ((await handle.queryPermission(options)) === 'granted') return true;
-  if ((await handle.requestPermission(options)) === 'granted') return true;
-  return false;
-}
-
-async function restoreLastDirectory() {
-  if (!window.showDirectoryPicker || !window.indexedDB) return;
-  try {
-    const stored = await getStoredHandle(LAST_DIR_KEY);
-    if (stored && (await requestDirectoryPermission(stored))) {
-      lastDirectoryHandle = stored;
-    }
-  } catch (error) {
-    console.warn('Erro ao restaurar a ultima pasta', error);
-  }
-}
-
 function formatTitleForFilename(title) {
   const safe = title.trim().replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_');
   return safe === '' ? 'musica' : safe;
@@ -579,7 +506,7 @@ function normalizeLine(line) {
 
 function parseChordPositions(line) {
   const normalized = normalizeLine(line);
-  const regex = /([A-G](?:#|b)?(?:(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:M|m|maj|min|dim|aug|sus|add|Â°|Âº)?[0-9]*(?:\([^\)]*\))?|\+)?(?:\/[A-G](?:#|b)?)?)(?=[^A-Za-z0-9#b\/()]|$)/gi;
+  const regex = /([A-G](?:#|b)?(?:(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:M|m|maj|min|dim|aug|sus|add|°|º)?[0-9]*(?:\([^\)]*\))?|\+)?(?:\/[A-G](?:#|b)?)?)(?=[^A-Za-z0-9#b\/()]|$)/gi;
   const positions = [];
   let match;
 
@@ -594,7 +521,7 @@ function isChordToken(token) {
   const chord = token.trim();
   if (!chord) return false;
   const stripped = chord.replace(/[.,;:!?]+$/u, '');
-  const chordRegex = /^[A-G](#|b)?(?:(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:M|m|maj|min|dim|aug|sus|add|Â°|Âº)?[0-9]*(?:\([^\)]*\))?|\+)?(\/[A-G](#|b)?)?$/i;
+  const chordRegex = /^[A-G](#|b)?(?:(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:M|m|maj|min|dim|aug|sus|add|°|º)?[0-9]*(?:\([^\)]*\))?|\+)?(\/[A-G](#|b)?)?$/i;
   return chordRegex.test(stripped);
 }
 
@@ -691,7 +618,7 @@ function transposeChordProText(text, steps) {
 }
 
 function getSongTitle(songData) {
-  return songData?.titulo || songData?.title || 'Sem titulo';
+  return songData?.titulo || songData?.title || 'Sem título';
 }
 
 function getSongTags(songData) {
@@ -726,7 +653,7 @@ function getSongByRepertoireItem(item) {
 }
 
 function getRepertoireName(item) {
-  return item?.repertoire || item?.moment || 'Repertorio geral';
+  return item?.repertoire || item?.moment || 'Repertório geral';
 }
 
 function getExistingRepertoireName(name) {
@@ -738,6 +665,11 @@ function getExistingRepertoireName(name) {
 
 function getAllRepertoireNames() {
   const names = [];
+  repertoireNames.forEach((name) => {
+    if (name && !names.some((existing) => normalizeSearchText(existing) === normalizeSearchText(name))) {
+      names.push(name);
+    }
+  });
   repertoireItems.forEach((item) => {
     const name = getRepertoireName(item);
     if (!names.some((existing) => normalizeSearchText(existing) === normalizeSearchText(name))) {
@@ -747,8 +679,61 @@ function getAllRepertoireNames() {
   return names.sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
-function saveRepertoireNames() {
-  window.localStorage.setItem(REPERTOIRE_NAMES_STORAGE_KEY, JSON.stringify(getAllRepertoireNames()));
+function normalizeRepertoireData(data) {
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      names: data.map((item) => getRepertoireName(item)),
+    };
+  }
+
+  if (Array.isArray(data?.items)) {
+    return {
+      items: data.items,
+      names: Array.isArray(data.names) ? data.names : data.items.map((item) => getRepertoireName(item)),
+    };
+  }
+
+  if (Array.isArray(data?.repertorios)) {
+    const items = [];
+    const names = [];
+    data.repertorios.forEach((group) => {
+      const repertoire = group?.nome || group?.name || group?.repertoire || '';
+      if (!repertoire) return;
+      names.push(repertoire);
+      const songs = Array.isArray(group.musicas) ? group.musicas : [];
+      songs.forEach((song) => {
+        items.push({
+          repertoire,
+          title: song.title || song.titulo || '',
+          tags: song.tags || [],
+          songIndex: song.songIndex ?? song.indiceMusica ?? null,
+          transposition: Number(song.transposition ?? song.transposicao ?? 0),
+          note: song.note || song.observacao || '',
+        });
+      });
+    });
+    return { items, names };
+  }
+
+  return { items: [], names: [] };
+}
+
+function buildRepertoireFileData() {
+  return {
+    repertorios: getAllRepertoireNames().map((name) => ({
+      nome: name,
+      musicas: repertoireItems
+        .filter((item) => normalizeSearchText(getRepertoireName(item)) === normalizeSearchText(name))
+        .map((item) => ({
+          title: item.title || '',
+          tags: item.tags || [],
+          songIndex: item.songIndex ?? null,
+          transposition: Number(item.transposition || 0),
+          note: item.note || '',
+        })),
+    })),
+  };
 }
 
 function selectRepertoire(name) {
@@ -766,7 +751,7 @@ function editRepertoire(name) {
 function createRepertoire() {
   const name = catalogMomentInput.value.trim();
   if (!name) {
-    alert('Digite o nome do repertorio.');
+    alert('Digite o nome do repertório.');
     return;
   }
 
@@ -789,7 +774,7 @@ function askCreateTypedRepertoire() {
   if (normalizeSearchText(pendingApprovedRepertoireName) === normalizeSearchText(name)) return;
 
   const cursorPosition = catalogMomentInput.selectionStart ?? name.length;
-  const confirmed = window.confirm(`O repertorio "${name}" ainda nao existe. Deseja criar um novo repertorio?`);
+  const confirmed = window.confirm(`O repertório "${name}" ainda não existe. Deseja criar um novo repertório?`);
   if (confirmed) {
     pendingApprovedRepertoireName = name;
     createRepertoire();
@@ -824,7 +809,7 @@ function openRepertoireSequence(name, startIndex = 0) {
     song: getSongByRepertoireItem(item),
   })).filter((entry) => entry.song);
   if (!queue.length) {
-    alert('Este repertorio ainda nao tem musiicas disponiveis.');
+    alert('Este repertório ainda não tem músicas disponíveis.');
     return;
   }
 
@@ -853,56 +838,73 @@ function showRepertoireSong(offset) {
   loadActiveRepertoireEntry();
 }
 
-function loadRepertoire() {
+async function readBundledRepertoire() {
+  const data = await requestJson(API_PATHS.repertoire, null, 'Não foi possível carregar o arquivo de repertórios pelo backend.');
+  return normalizeRepertoireData(data);
+}
+
+async function readRepertoireFile() {
+  return readBundledRepertoire();
+}
+
+async function writeRepertoireFile() {
+  await requestJson(API_PATHS.repertoire, null, 'Não foi possível salvar o arquivo de repertórios pelo backend.', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(buildRepertoireFileData()),
+  });
+}
+
+async function loadRepertoire() {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(REPERTOIRE_STORAGE_KEY) || '[]');
-    repertoireItems = Array.isArray(parsed) ? parsed : [];
+    const data = await readRepertoireFile();
+    repertoireItems = Array.isArray(data.items) ? data.items : [];
+    repertoireNames = Array.isArray(data.names) ? data.names : [];
   } catch (error) {
+    console.error(error);
     repertoireItems = [];
-  }
-  try {
-    const parsedNames = JSON.parse(window.localStorage.getItem(REPERTOIRE_NAMES_STORAGE_KEY) || '[]');
-    repertoireNames = Array.isArray(parsedNames) ? parsedNames : [];
-  } catch (error) {
     repertoireNames = [];
   }
-  saveRepertoireNames();
   renderRepertoireLibrary();
   renderRepertoire();
 }
 
-function saveRepertoire() {
-  window.localStorage.setItem(REPERTOIRE_STORAGE_KEY, JSON.stringify(repertoireItems));
-  saveRepertoireNames();
+async function saveRepertoire() {
+  repertoireNames = getAllRepertoireNames();
+  try {
+    await writeRepertoireFile();
+  } catch (error) {
+    console.error(error);
+    alert(`Não foi possível salvar o repertório em ${REPERTOIRE_FILE_NAME}.`);
+  }
 }
 
-function saveActiveRepertoireTransposition() {
+async function saveActiveRepertoireTransposition() {
   if (activeRepertoireItemIndex === null) return;
   const item = repertoireItems[activeRepertoireItemIndex];
   if (!item) return;
   item.transposition = currentTransposition;
-  saveRepertoire();
+  await saveRepertoire();
   renderRepertoire();
 }
 
-function deleteRepertoireByName(name) {
+async function deleteRepertoireByName(name) {
   const normalizedName = normalizeSearchText(name);
   if (!normalizedName) return;
   repertoireItems = repertoireItems.filter((item) => normalizeSearchText(getRepertoireName(item)) !== normalizedName);
   repertoireNames = repertoireNames.filter((entry) => normalizeSearchText(entry) !== normalizedName);
-  saveRepertoire();
-  saveRepertoireNames();
+  await saveRepertoire();
 }
 
-function addSongToRepertoire(song) {
+async function addSongToRepertoire(song) {
   isEditingRepertoire = true;
-  const typedRepertoire = catalogMomentInput.value.trim() || 'Repertorio geral';
+  const typedRepertoire = catalogMomentInput.value.trim() || 'Repertório geral';
   const existingRepertoire = getExistingRepertoireName(typedRepertoire);
   const repertoire = existingRepertoire || typedRepertoire;
 
   if (!existingRepertoire) {
     const alreadyApproved = normalizeSearchText(pendingApprovedRepertoireName) === normalizeSearchText(repertoire);
-    const confirmed = alreadyApproved || window.confirm(`O repertorio "${repertoire}" ainda nao existe. Deseja criar um novo repertÃ³rio?`);
+    const confirmed = alreadyApproved || window.confirm(`O repertório "${repertoire}" ainda não existe. Deseja criar um novo repertório?`);
     if (!confirmed) return;
   }
 
@@ -923,7 +925,7 @@ function addSongToRepertoire(song) {
     transposition: 0,
     note: '',
   });
-  saveRepertoire();
+  await saveRepertoire();
   renderRepertoireLibrary();
   renderRepertoire();
 }
@@ -948,7 +950,7 @@ function renderRepertoireLibrary() {
   repertoireLibrary.innerHTML = names.map((name) => `
     <div class="repertoire-library-item ${normalizeSearchText(name) === normalizeSearchText(selected) ? 'active-repertoire' : ''}">
       <button type="button" data-action="edit-repertoire" data-repertoire-name="${escapeAttribute(name)}">${escapeHtml(name)}</button>
-      <button type="button" class="repertoire-run-btn" data-action="run-repertoire" data-repertoire-name="${escapeAttribute(name)}" aria-label="Executar ${escapeAttribute(name)}">â–¶</button>
+      <button type="button" class="repertoire-run-btn" data-action="run-repertoire" data-repertoire-name="${escapeAttribute(name)}" aria-label="Executar ${escapeAttribute(name)}">▶</button>
     </div>
   `).join('');
 }
@@ -1000,7 +1002,7 @@ function renderRepertoire() {
       ${items.map((item) => `
         <div class="repertoire-item" draggable="true" data-index="${item.index}">
           <button type="button" data-action="open-repertoire" data-index="${item.index}">${escapeHtml(item.title)}${Number(item.transposition || 0) ? ` (${Number(item.transposition) > 0 ? '+' : ''}${Number(item.transposition)})` : ''}</button>
-          <input class="repertoire-note-input" type="text" data-action="update-note" data-index="${item.index}" value="${escapeAttribute(item.note || '')}" placeholder="Observacao" aria-label="Observacao para ${escapeAttribute(item.title)}" />
+          <input class="repertoire-note-input" type="text" data-action="update-note" data-index="${item.index}" value="${escapeAttribute(item.note || '')}" placeholder="Observação" aria-label="Observação para ${escapeAttribute(item.title)}" />
           <button type="button" class="remove-repertoire-btn" data-action="remove-repertoire" data-index="${item.index}">-</button>
         </div>
       `).join('')}
@@ -1010,9 +1012,11 @@ function renderRepertoire() {
 
 function renderSongList(targetList, songs, includeRepertoireButton) {
   if (!songs.length) {
-    targetList.innerHTML = '<li>Nenhuma musica encontrada.</li>';
+    targetList.innerHTML = '<li>Nenhuma música encontrada.</li>';
     return;
   }
+
+  const shouldShowRepertoireButton = includeRepertoireButton && !isRepertoireMusicSearchFocused();
 
   targetList.innerHTML = '';
   songs.forEach((song) => {
@@ -1021,15 +1025,15 @@ function renderSongList(targetList, songs, includeRepertoireButton) {
     title.textContent = getSongTitle(song);
     item.append(title);
 
-    if (includeRepertoireButton) {
+    if (shouldShowRepertoireButton) {
       const addButton = document.createElement('button');
       addButton.type = 'button';
       addButton.className = 'add-repertoire-btn';
       addButton.textContent = '+';
-      addButton.setAttribute('aria-label', 'Adicionar ao repertorio');
-      addButton.addEventListener('click', (event) => {
+      addButton.setAttribute('aria-label', 'Adicionar ao repertório');
+      addButton.addEventListener('click', async (event) => {
         event.stopPropagation();
-        addSongToRepertoire(song);
+        await addSongToRepertoire(song);
       });
       item.append(addButton);
     }
@@ -1046,6 +1050,25 @@ function renderSongList(targetList, songs, includeRepertoireButton) {
 function filterRepertoireCatalogSongs() {
   const query = repertoireCatalogSearchInput.value;
   renderSongList(repertoireSongList, storedSongsCache.filter((song) => songMatchesCatalogSearch(song, query)), true);
+}
+
+function isRepertoireMusicSearchFocused() {
+  return document.activeElement === repertoireCatalogSearchInput;
+}
+
+function clearRepertoireSearch() {
+  if (!catalogMomentInput.value) return;
+  catalogMomentInput.value = '';
+  isRepertoireSearchOpen = false;
+  isEditingRepertoire = false;
+  renderRepertoireLibrary();
+  renderRepertoire();
+}
+
+function clearMusicSearch() {
+  if (!repertoireCatalogSearchInput.value) return;
+  repertoireCatalogSearchInput.value = '';
+  filterRepertoireCatalogSongs();
 }
 
 function updateRepertoireSearchLayout(activeInput = null) {
@@ -1108,7 +1131,7 @@ function renderChordAboveLyrics(text) {
 
 function renderSongViewer() {
   if (!currentSongData) {
-    fullscreenTitle.textContent = 'Visualizacao em tela inteira';
+    fullscreenTitle.textContent = 'Visualização em tela inteira';
     fullscreenViewerText.innerHTML = '';
     return;
   }
@@ -1116,13 +1139,13 @@ function renderSongViewer() {
   const transposed = transposeChordProText(currentSongData.chordpro || '', currentTransposition);
   const rendered = renderChordAboveLyrics(transposed);
   const activeNote = activeRepertoireItemIndex !== null ? (repertoireItems[activeRepertoireItemIndex]?.note || '').trim() : '';
-  fullscreenTitle.textContent = `${currentSongData.title || 'Sem titulo'}${activeNote ? ` - ${activeNote}` : ''}`;
+  fullscreenTitle.textContent = `${currentSongData.title || 'Sem título'}${activeNote ? ` - ${activeNote}` : ''}`;
   fullscreenViewerText.innerHTML = rendered;
 }
 
 function updateScrollButton() {
   const label = scrollInterval ? 'Parar rolagem' : 'Iniciar rolagem';
-  fullscreenToggleScrollBtn.textContent = scrollInterval ? 'â…¡' : 'â–¶';
+  fullscreenToggleScrollBtn.textContent = scrollInterval ? 'Ⅱ' : '▶';
   fullscreenToggleScrollBtn.setAttribute('aria-label', label);
   fullscreenToggleScrollBtn.title = label;
 }
@@ -1153,12 +1176,11 @@ function toggleTheme() {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.body.classList.toggle('light', currentTheme === 'light');
   updateThemeButtons();
-  window.localStorage.setItem('cifras-theme', currentTheme);
 }
 
 function updateThemeButtons() {
   const label = currentTheme === 'light' ? 'Modo Escuro' : 'Modo Claro';
-  fullscreenToggleThemeBtn.textContent = currentTheme === 'light' ? 'â—‘' : 'â—';
+  fullscreenToggleThemeBtn.textContent = currentTheme === 'light' ? '◑' : '●';
   fullscreenToggleThemeBtn.setAttribute('aria-label', label);
   fullscreenToggleThemeBtn.title = label;
 }
@@ -1174,62 +1196,27 @@ function closeFullscreenViewer() {
   activeRepertoireItemIndex = null;
 }
 
-async function chooseDirectory() {
-  if (!window.showDirectoryPicker) return null;
-  try {
-    const dirHandle = await window.showDirectoryPicker();
-    if (dirHandle && (await requestDirectoryPermission(dirHandle))) {
-      lastDirectoryHandle = dirHandle;
-      await storeHandle(LAST_DIR_KEY, dirHandle);
-      return dirHandle;
-    }
-  } catch (error) {
-    return null;
-  }
-  return null;
-}
-
 async function loadSongList() {
-  if (!lastDirectoryHandle) {
-    repertoireSongList.innerHTML = '<li>Carregando catálogo publicado...</li>';
-    const bundledSongs = await readBundledSongs();
-    storedSongsCache = bundledSongs.map((song, index) => ({ ...song, __index: index }));
+  repertoireSongList.innerHTML = '<li>Carregando...</li>';
+
+  try {
+    const songs = await readStorageSongs();
+    storedSongsCache = songs.map((song, index) => ({ ...song, __index: index }));
+
     if (!storedSongsCache.length) {
       repertoireSongList.innerHTML = `<li>Nenhuma música encontrada em ${STORAGE_FILE_NAME}.</li>`;
       return;
     }
-    filterRepertoireCatalogSongs();
-    return;
-  }
-
-  repertoireSongList.innerHTML = '<li>Carregando...</li>';
-
-  try {
-    const globalFileHandle = await lastDirectoryHandle.getFileHandle(STORAGE_FILE_NAME, { create: false });
-    const songs = await readSongsFile(globalFileHandle);
-    storedSongsCache = songs.map((song, index) => ({ ...song, __index: index }));
-
-    if (!storedSongsCache.length) {
-      repertoireSongList.innerHTML = `<li>Nenhuma musica encontrada em ${STORAGE_FILE_NAME}.</li>`;
-      return;
-    }
 
     filterRepertoireCatalogSongs();
   } catch (error) {
-    repertoireSongList.innerHTML = `<li>Nao foi possivel abrir ${STORAGE_FILE_NAME} no diretorio selecionado.</li>`;
+    repertoireSongList.innerHTML = `<li>Não foi possível abrir ${STORAGE_FILE_NAME}. Execute o backend local com node server.js.</li>`;
     storedSongsCache = [];
   }
 }
 
 async function readBundledSongs() {
-  try {
-    const response = await fetch(STORAGE_FILE_PATH, { cache: 'no-store' });
-    if (!response.ok) return [];
-    const parsed = await response.json();
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    return [];
-  }
+  return readStorageSongs();
 }
 
 function loadSongData(songData, index = null) {
@@ -1244,42 +1231,6 @@ function loadSongData(songData, index = null) {
   renderSongViewer();
 }
 
-async function readSongsFile(fileHandle) {
-  try {
-    const file = await fileHandle.getFile();
-    const text = await file.text();
-    if (!text.trim()) return [];
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-async function writeSongsFile(fileHandle, songs) {
-  const writable = await fileHandle.createWritable();
-  await writable.write(JSON.stringify(songs, null, 2));
-  await writable.close();
-}
-
-async function loadSongFile(fileHandle) {
-  try {
-    const file = await fileHandle.getFile();
-    const json = await file.text();
-    const data = JSON.parse(json);
-    currentSongData = {
-      ...data,
-      title: getSongTitle(data),
-      tags: Array.isArray(data.tags) ? data.tags : (data.tags ? [data.tags] : []),
-      chordpro: getSongChordPro(data),
-    };
-    currentTransposition = 0;
-    renderSongViewer();
-  } catch (error) {
-    console.error('loadSongFile', error);
-  }
-}
-
 async function refreshSongList() {
   await loadSongList();
 }
@@ -1289,7 +1240,7 @@ function transposeChordProText(text, steps) {
 }
 
 function loadTheme() {
-  currentTheme = window.localStorage.getItem('cifras-theme') || 'dark';
+  currentTheme = 'dark';
   document.body.classList.toggle('light', currentTheme === 'light');
   updateThemeButtons();
 }
@@ -1337,7 +1288,12 @@ repertoireCatalogSearchInput.addEventListener('input', () => {
   filterRepertoireCatalogSongs();
 });
 repertoireCatalogSearchInput.addEventListener('focus', () => {
+  clearRepertoireSearch();
   updateRepertoireSearchLayout(repertoireCatalogSearchInput);
+  filterRepertoireCatalogSongs();
+});
+repertoireCatalogSearchInput.addEventListener('blur', () => {
+  filterRepertoireCatalogSongs();
 });
 clearRepertoireCatalogSearchBtn.addEventListener('click', () => {
   repertoireCatalogSearchInput.value = '';
@@ -1370,6 +1326,7 @@ clearCatalogMomentBtn.addEventListener('click', () => {
   catalogMomentInput.focus();
 });
 catalogMomentInput.addEventListener('focus', () => {
+  clearMusicSearch();
   isRepertoireSearchOpen = true;
   updateRepertoireSearchLayout(catalogMomentInput);
   renderRepertoireLibrary();
@@ -1404,7 +1361,7 @@ repertoireLibrary.addEventListener('click', (event) => {
   }
   editRepertoire(name);
 });
-repertoireList.addEventListener('click', (event) => {
+repertoireList.addEventListener('click', async (event) => {
   const button = event.target.closest('button[data-action]');
   if (!button) return;
 
@@ -1416,11 +1373,11 @@ repertoireList.addEventListener('click', (event) => {
     repertoireItems.splice(index, 1);
     const hasRemainingItems = getRepertoireItemsByName(repertoireName).length > 0;
     if (!hasRemainingItems) {
-      deleteRepertoireByName(repertoireName);
+      await deleteRepertoireByName(repertoireName);
       catalogMomentInput.value = '';
       isEditingRepertoire = false;
     } else {
-      saveRepertoire();
+      await saveRepertoire();
     }
     renderRepertoireLibrary();
     renderRepertoire();
@@ -1432,13 +1389,13 @@ repertoireList.addEventListener('click', (event) => {
   const sequenceIndex = getRepertoireItemsByName(repertoireName).findIndex((entry) => entry === item);
   openRepertoireSequence(repertoireName, sequenceIndex);
 });
-repertoireList.addEventListener('input', (event) => {
+repertoireList.addEventListener('input', async (event) => {
   const input = event.target.closest('input[data-action="update-note"]');
   if (!input) return;
   const index = Number(input.dataset.index);
   if (!repertoireItems[index]) return;
   repertoireItems[index].note = input.value;
-  saveRepertoire();
+  await saveRepertoire();
 });
 repertoireList.addEventListener('dragstart', (event) => {
   const item = event.target.closest('.repertoire-item');
@@ -1454,7 +1411,7 @@ repertoireList.addEventListener('dragover', (event) => {
   if (draggedRepertoireIndex === null) return;
   event.preventDefault();
 });
-repertoireList.addEventListener('drop', (event) => {
+repertoireList.addEventListener('drop', async (event) => {
   const target = event.target.closest('.repertoire-item');
   if (!target || draggedRepertoireIndex === null) return;
   event.preventDefault();
@@ -1470,11 +1427,12 @@ repertoireList.addEventListener('drop', (event) => {
   isEditingRepertoire = true;
   const insertIndex = repertoireItems.indexOf(targetItem);
   repertoireItems.splice(insertIndex, 0, draggedItem);
-  saveRepertoire();
+  await saveRepertoire();
   renderRepertoire();
 });
 refreshRepertoireListBtn.addEventListener('click', async () => {
   await refreshSongList();
+  await loadRepertoire();
 });
 fullscreenTransposeDownBtn.addEventListener('click', () => {
   currentTransposition -= 1;
@@ -1506,6 +1464,5 @@ fullscreenScrollSpeedInput.addEventListener('input', () => {
 window.addEventListener('DOMContentLoaded', async () => {
   showSection('menu');
   loadTheme();
-  loadRepertoire();
-  await restoreLastDirectory();
+  await loadRepertoire();
 });
