@@ -4,13 +4,6 @@
       "nome": "Terceiro",
       "musicas": [
         {
-          "title": "Cristo",
-          "tags": "Animação",
-          "songIndex": 3,
-          "transposition": 0,
-          "note": ""
-        },
-        {
           "title": "Utopia",
           "tags": "Hino",
           "songIndex": 4,
