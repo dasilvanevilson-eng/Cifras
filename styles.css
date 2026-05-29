@@ -402,11 +402,11 @@ body.main-menu-open .menu-toggle {
 }
 
 .repertoire-builder.is-repertoire-active {
-  grid-template-columns: minmax(0, 9fr) minmax(56px, 1fr);
+  grid-template-columns: minmax(0, 4fr) minmax(56px, 1fr);
 }
 
 .repertoire-builder.is-music-active {
-  grid-template-columns: minmax(56px, 1fr) minmax(0, 9fr);
+  grid-template-columns: minmax(56px, 1fr) minmax(0, 4fr);
 }
 
 .repertoire-builder .catalog-search {
@@ -1207,13 +1207,31 @@ body.light .menu-actions button {
   }
 
   .repertoire-builder {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     flex: 0 0 auto;
   }
 
-  .repertoire-builder.is-repertoire-active,
+  .repertoire-builder.is-repertoire-active {
+    grid-template-columns: minmax(0, 4fr) minmax(56px, 1fr);
+  }
+
   .repertoire-builder.is-music-active {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(56px, 1fr) minmax(0, 4fr);
+  }
+
+  .repertoire-builder .catalog-search {
+    font-size: 0.92rem;
+    padding-left: 0.68rem;
+    padding-right: 2.25rem;
+    text-overflow: ellipsis;
+  }
+
+  .repertoire-builder .clear-repertoire-search,
+  .repertoire-builder .clear-search-btn {
+    right: 4px;
+    width: 30px;
+    min-width: 30px;
+    min-height: 30px;
   }
 
   .repertoire-library {
@@ -1384,6 +1402,26 @@ body.light .menu-actions button {
   .repertoire-title-row h3 {
     justify-self: end;
     font-size: 0.75rem;
+  }
+
+  .repertoire-builder {
+    gap: 0.35rem;
+  }
+
+  .repertoire-builder .catalog-search {
+    min-height: 40px;
+    font-size: 0.86rem;
+    padding-left: 0.55rem;
+    padding-right: 2rem;
+  }
+
+  .repertoire-builder .clear-repertoire-search,
+  .repertoire-builder .clear-search-btn {
+    top: 5px;
+    right: 3px;
+    width: 28px;
+    min-width: 28px;
+    min-height: 28px;
   }
 
   .fullscreen-controls #fullscreenScrollSpeed {
