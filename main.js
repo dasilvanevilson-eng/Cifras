@@ -378,7 +378,7 @@ async function salvarJSON() {
     await writable.close();
 
     loadSongData(dados, currentSongIndex);
-    alert(`MÃºsica ${action} em ${STORAGE_FILE_NAME}.`);
+    alert(`Musica ${action} em ${STORAGE_FILE_NAME}.`);
     await refreshSongList();
   } catch (err) {
     console.error(err);
@@ -398,17 +398,17 @@ function clearEditorData() {
 
 async function deleteSong() {
   if (currentSongIndex === null) {
-    alert('Nenhuma mÃºsica carregada para excluir.');
+    alert('Nenhuma musica carregada para excluir.');
     return;
   }
 
-  const confirmed = window.confirm('Tem certeza que deseja excluir esta mÃºsica do arquivo?');
+  const confirmed = window.confirm('Tem certeza que deseja excluir esta musica do arquivo?');
   if (!confirmed) return;
 
   try {
     const songs = await readStorageSongs();
     if (currentSongIndex < 0 || currentSongIndex >= songs.length) {
-      alert('Ãndice de mÃºsica invÃ¡lido. Atualize a lista e tente novamente.');
+      alert('Indice de musica invalido. Atualize a lista e tente novamente.');
       return;
     }
 
@@ -420,7 +420,7 @@ async function deleteSong() {
 
     clearEditorData();
     await refreshSongList();
-    alert('Musica excluÃ­da com sucesso.');
+    alert('Musica exclui­da com sucesso.');
   } catch (err) {
     console.error(err);
     alert('Erro ao excluir a musica.');
@@ -454,7 +454,7 @@ function renderSearchSuggestions(query) {
   }
 
   songSearchSuggestions.innerHTML = matches.map((song) => {
-    const label = escapeHtml(song.titulo || 'Sem tÃ­tulo');
+    const label = escapeHtml(song.titulo || 'Sem titulo');
     const tags = escapeHtml(Array.isArray(song.tags) ? song.tags.join(', ') : (song.tags || ''));
     return `<div class="search-suggestion-item" data-index="${song.__index}"><strong>${label}</strong><span>${tags}</span></div>`;
   }).join('');
@@ -479,7 +479,7 @@ async function openSearchModal() {
     songSearchInput.focus();
   } catch (error) {
     console.error(error);
-    alert('NÃ£o foi possÃ­vel abrir a busca.');
+    alert('Nao foi possi­vel abrir a busca.');
   }
 }
 
@@ -564,7 +564,7 @@ async function restoreLastDirectory() {
       lastDirectoryHandle = stored;
     }
   } catch (error) {
-    console.warn('Erro ao restaurar Ãºltima pasta', error);
+    console.warn('Erro ao restaurar a ultima pasta', error);
   }
 }
 
@@ -766,7 +766,7 @@ function editRepertoire(name) {
 function createRepertoire() {
   const name = catalogMomentInput.value.trim();
   if (!name) {
-    alert('Digite o nome do repertÃ³rio.');
+    alert('Digite o nome do repertorio.');
     return;
   }
 
@@ -789,7 +789,7 @@ function askCreateTypedRepertoire() {
   if (normalizeSearchText(pendingApprovedRepertoireName) === normalizeSearchText(name)) return;
 
   const cursorPosition = catalogMomentInput.selectionStart ?? name.length;
-  const confirmed = window.confirm(`O repertÃ³rio "${name}" ainda nÃ£o existe. Deseja criar um novo repertÃ³rio?`);
+  const confirmed = window.confirm(`O repertorio "${name}" ainda nao existe. Deseja criar um novo repertorio?`);
   if (confirmed) {
     pendingApprovedRepertoireName = name;
     createRepertoire();
@@ -824,7 +824,7 @@ function openRepertoireSequence(name, startIndex = 0) {
     song: getSongByRepertoireItem(item),
   })).filter((entry) => entry.song);
   if (!queue.length) {
-    alert('Este repertÃ³rio ainda nÃ£o tem mÃºsicas disponÃ­veis.');
+    alert('Este repertorio ainda nao tem musiicas disponiveis.');
     return;
   }
 
@@ -896,13 +896,13 @@ function deleteRepertoireByName(name) {
 
 function addSongToRepertoire(song) {
   isEditingRepertoire = true;
-  const typedRepertoire = catalogMomentInput.value.trim() || 'RepertÃ³rio geral';
+  const typedRepertoire = catalogMomentInput.value.trim() || 'Repertorio geral';
   const existingRepertoire = getExistingRepertoireName(typedRepertoire);
   const repertoire = existingRepertoire || typedRepertoire;
 
   if (!existingRepertoire) {
     const alreadyApproved = normalizeSearchText(pendingApprovedRepertoireName) === normalizeSearchText(repertoire);
-    const confirmed = alreadyApproved || window.confirm(`O repertÃ³rio "${repertoire}" ainda nÃ£o existe. Deseja criar um novo repertÃ³rio?`);
+    const confirmed = alreadyApproved || window.confirm(`O repertorio "${repertoire}" ainda nao existe. Deseja criar um novo repertÃ³rio?`);
     if (!confirmed) return;
   }
 
@@ -1000,8 +1000,8 @@ function renderRepertoire() {
       ${items.map((item) => `
         <div class="repertoire-item" draggable="true" data-index="${item.index}">
           <button type="button" data-action="open-repertoire" data-index="${item.index}">${escapeHtml(item.title)}${Number(item.transposition || 0) ? ` (${Number(item.transposition) > 0 ? '+' : ''}${Number(item.transposition)})` : ''}</button>
-          <input class="repertoire-note-input" type="text" data-action="update-note" data-index="${item.index}" value="${escapeAttribute(item.note || '')}" placeholder="ObservaÃ§Ã£o" aria-label="ObservaÃ§Ã£o para ${escapeAttribute(item.title)}" />
-          <button type="button" class="remove-repertoire-btn" data-action="remove-repertoire" data-index="${item.index}">Ã—</button>
+          <input class="repertoire-note-input" type="text" data-action="update-note" data-index="${item.index}" value="${escapeAttribute(item.note || '')}" placeholder="Observacao" aria-label="Observacao para ${escapeAttribute(item.title)}" />
+          <button type="button" class="remove-repertoire-btn" data-action="remove-repertoire" data-index="${item.index}">-</button>
         </div>
       `).join('')}
     </section>
@@ -1010,7 +1010,7 @@ function renderRepertoire() {
 
 function renderSongList(targetList, songs, includeRepertoireButton) {
   if (!songs.length) {
-    targetList.innerHTML = '<li>Nenhuma mÃºsica encontrada.</li>';
+    targetList.innerHTML = '<li>Nenhuma musica encontrada.</li>';
     return;
   }
 
@@ -1026,7 +1026,7 @@ function renderSongList(targetList, songs, includeRepertoireButton) {
       addButton.type = 'button';
       addButton.className = 'add-repertoire-btn';
       addButton.textContent = '+';
-      addButton.setAttribute('aria-label', 'Adicionar ao repertÃ³rio');
+      addButton.setAttribute('aria-label', 'Adicionar ao repertorio');
       addButton.addEventListener('click', (event) => {
         event.stopPropagation();
         addSongToRepertoire(song);
@@ -1108,7 +1108,7 @@ function renderChordAboveLyrics(text) {
 
 function renderSongViewer() {
   if (!currentSongData) {
-    fullscreenTitle.textContent = 'VisualizaÃ§Ã£o em tela inteira';
+    fullscreenTitle.textContent = 'Visualizacao em tela inteira';
     fullscreenViewerText.innerHTML = '';
     return;
   }
@@ -1116,7 +1116,7 @@ function renderSongViewer() {
   const transposed = transposeChordProText(currentSongData.chordpro || '', currentTransposition);
   const rendered = renderChordAboveLyrics(transposed);
   const activeNote = activeRepertoireItemIndex !== null ? (repertoireItems[activeRepertoireItemIndex]?.note || '').trim() : '';
-  fullscreenTitle.textContent = `${currentSongData.title || 'Sem tÃ­tulo'}${activeNote ? ` - ${activeNote}` : ''}`;
+  fullscreenTitle.textContent = `${currentSongData.title || 'Sem titulo'}${activeNote ? ` - ${activeNote}` : ''}`;
   fullscreenViewerText.innerHTML = rendered;
 }
 
@@ -1210,13 +1210,13 @@ async function loadSongList() {
     storedSongsCache = songs.map((song, index) => ({ ...song, __index: index }));
 
     if (!storedSongsCache.length) {
-      repertoireSongList.innerHTML = `<li>Nenhuma mÃºsica encontrada em ${STORAGE_FILE_NAME}.</li>`;
+      repertoireSongList.innerHTML = `<li>Nenhuma musica encontrada em ${STORAGE_FILE_NAME}.</li>`;
       return;
     }
 
     filterRepertoireCatalogSongs();
   } catch (error) {
-    repertoireSongList.innerHTML = `<li>NÃ£o foi possÃ­vel abrir ${STORAGE_FILE_NAME} no diretÃ³rio selecionado.</li>`;
+    repertoireSongList.innerHTML = `<li>Nao foi possivel abrir ${STORAGE_FILE_NAME} no diretorio selecionado.</li>`;
     storedSongsCache = [];
   }
 }
