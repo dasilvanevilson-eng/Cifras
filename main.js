@@ -420,10 +420,10 @@ async function deleteSong() {
 
     clearEditorData();
     await refreshSongList();
-    alert('MÃºsica excluÃ­da com sucesso.');
+    alert('Musica excluÃ­da com sucesso.');
   } catch (err) {
     console.error(err);
-    alert('Erro ao excluir a mÃºsica.');
+    alert('Erro ao excluir a musica.');
   }
 }
 
@@ -448,7 +448,7 @@ function filterSearchSongs(query) {
 function renderSearchSuggestions(query) {
   const matches = filterSearchSongs(query).slice(0, 8);
   if (!matches.length) {
-    songSearchSuggestions.innerHTML = '<div class="search-suggestion-item">Nenhuma mÃºsica encontrada.</div>';
+    songSearchSuggestions.innerHTML = '<div class="search-suggestion-item">Nenhuma musica encontrada.</div>';
     songSearchSuggestions.classList.remove('hidden');
     return;
   }
@@ -691,7 +691,7 @@ function transposeChordProText(text, steps) {
 }
 
 function getSongTitle(songData) {
-  return songData?.titulo || songData?.title || 'Sem tÃ­tulo';
+  return songData?.titulo || songData?.title || 'Sem titulo';
 }
 
 function getSongTags(songData) {
@@ -726,7 +726,7 @@ function getSongByRepertoireItem(item) {
 }
 
 function getRepertoireName(item) {
-  return item?.repertoire || item?.moment || 'RepertÃ³rio geral';
+  return item?.repertoire || item?.moment || 'Repertorio geral';
 }
 
 function getExistingRepertoireName(name) {
