@@ -16,6 +16,7 @@
   --danger: #b84c3e;
   --warning: #f1c168;
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --song-display-font: "Courier Prime", "Nimbus Mono PS", "Courier New", Courier, monospace;
 }
 
 * {
@@ -734,7 +735,7 @@ body.main-menu-open .menu-toggle {
   padding: 0.8rem;
   background: #1b1009;
   color: var(--text);
-  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--song-display-font);
   font-size: 14px;
   line-height: 1.34;
   white-space: pre;
@@ -825,7 +826,7 @@ body.main-menu-open .menu-toggle {
 }
 
 .preview-cifra {
-  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--song-display-font);
   line-height: 1.45;
   white-space: pre-wrap;
 }
