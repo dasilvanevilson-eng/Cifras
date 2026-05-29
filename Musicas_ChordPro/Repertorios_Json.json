@@ -1,18 +1,6 @@
 {
   "repertorios": [
     {
-      "nome": "Segundo",
-      "musicas": [
-        {
-          "title": "Utopia",
-          "tags": "Hino",
-          "songIndex": 4,
-          "transposition": 0,
-          "note": ""
-        }
-      ]
-    },
-    {
       "nome": "Terceiro",
       "musicas": [
         {
