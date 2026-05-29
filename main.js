@@ -17,6 +17,9 @@ const previewMusica = document.getElementById('previewMusica');
 const carregarJSONBtn = document.getElementById('carregarJSONBtn');
 const deleteSongBtn = document.getElementById('deleteSongBtn');
 const previewBtn = document.getElementById('previewBtn');
+const clearEditorBtn = document.getElementById('clearEditorBtn');
+const transposeEditorDownBtn = document.getElementById('transposeEditorDownBtn');
+const transposeEditorUpBtn = document.getElementById('transposeEditorUpBtn');
 const salvarJSONBtn = document.getElementById('salvarJSONBtn');
 const songSearchModal = document.getElementById('searchModal');
 const songSearchInput = document.getElementById('songSearchInput');
@@ -352,9 +355,25 @@ async function requestJson(path, fallback, errorMessage, options = {}) {
 }
 
 async function salvarJSON() {
+  const titulo = musicaTitulo.value.trim();
+  const cifraOriginal = inputText.value.trim();
+  const chordPro = outputChordPro.value.trim();
+
+  if (!titulo) {
+    alert('Informe o título da música antes de salvar.');
+    musicaTitulo.focus();
+    return;
+  }
+
+  if (!cifraOriginal && !chordPro) {
+    alert('Cole a cifra ou preencha o texto em formato ChordPro antes de salvar.');
+    inputText.focus();
+    return;
+  }
+
   const dados = {
-    titulo: musicaTitulo.value,
-    tags: musicaTags.value,
+    titulo,
+    tags: musicaTags.value.trim(),
     cifraOriginal: inputText.value,
     chordPro: outputChordPro.value,
   };
@@ -373,8 +392,8 @@ async function salvarJSON() {
 
     await writeStorageSongs(songs);
 
-    loadSongData(dados, currentSongIndex);
     alert(`Música ${action} em ${STORAGE_FILE_NAME}.`);
+    clearEditorData();
     await refreshSongList();
   } catch (err) {
     console.error(err);
@@ -390,6 +409,34 @@ function clearEditorData() {
   inputText.value = '';
   outputChordPro.value = '';
   processarParaChordPro();
+}
+
+function clearEditorFields() {
+  const hasContent = musicaTitulo.value.trim() ||
+    musicaTags.value.trim() ||
+    inputText.value.trim() ||
+    outputChordPro.value.trim();
+
+  if (hasContent && !window.confirm('Limpar todos os campos do editor?')) return;
+  clearEditorData();
+  musicaTitulo.focus();
+}
+
+function transposeEditorSong(steps) {
+  if (!inputText.value.trim() && !outputChordPro.value.trim()) {
+    alert('Cole a cifra ou preencha o texto em formato ChordPro para transpor.');
+    inputText.focus();
+    return;
+  }
+
+  if (!outputChordPro.value.trim()) {
+    processarParaChordPro();
+  }
+
+  isSyncingEditorFields = true;
+  outputChordPro.value = transposeChordProText(outputChordPro.value, steps);
+  isSyncingEditorFields = false;
+  processarParaTextoNormal();
 }
 
 async function deleteSong() {
@@ -1268,6 +1315,9 @@ outputChordPro.addEventListener('input', processarParaTextoNormal);
 carregarJSONBtn.addEventListener('click', carregarJSON);
 deleteSongBtn.addEventListener('click', deleteSong);
 previewBtn.addEventListener('click', togglePreview);
+clearEditorBtn.addEventListener('click', clearEditorFields);
+transposeEditorDownBtn.addEventListener('click', () => transposeEditorSong(-1));
+transposeEditorUpBtn.addEventListener('click', () => transposeEditorSong(1));
 salvarJSONBtn.addEventListener('click', salvarJSON);
 searchSongsCache = [];
 
