@@ -313,6 +313,7 @@ function atualizarPreview() {
 
 function togglePreview() {
   previewModal.classList.toggle('hidden');
+  updateOverlayLock();
 }
 
 function fecharPreview(event) {
@@ -464,6 +465,7 @@ async function openSearchModal() {
     songSearchSuggestions.innerHTML = '';
     songSearchSuggestions.classList.add('hidden');
     songSearchModal.classList.remove('hidden');
+    updateOverlayLock();
     songSearchInput.focus();
   } catch (error) {
     console.error(error);
@@ -473,6 +475,7 @@ async function openSearchModal() {
 
 function closeSearchModal() {
   songSearchModal.classList.add('hidden');
+  updateOverlayLock();
 }
 
 function fecharSearchModal(event) {
@@ -1188,13 +1191,20 @@ function updateThemeButtons() {
 
 function openFullscreenViewer() {
   fullscreenOverlay.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+  updateOverlayLock();
 }
 
 function closeFullscreenViewer() {
   fullscreenOverlay.classList.add('hidden');
-  document.body.style.overflow = '';
   activeRepertoireItemIndex = null;
+  updateOverlayLock();
+}
+
+function updateOverlayLock() {
+  const hasOpenOverlay = !previewModal.classList.contains('hidden') ||
+    !songSearchModal.classList.contains('hidden') ||
+    !fullscreenOverlay.classList.contains('hidden');
+  document.body.classList.toggle('overlay-open', hasOpenOverlay);
 }
 
 async function loadSongList() {

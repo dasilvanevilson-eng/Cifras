@@ -25,10 +25,16 @@
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
   background:
     linear-gradient(180deg, rgba(196, 143, 63, 0.16), transparent 340px),
     radial-gradient(circle at top right, rgba(17, 87, 88, 0.2), transparent 300px),
     var(--bg);
+}
+
+body.overlay-open {
+  overflow: hidden;
 }
 
 button,
@@ -70,6 +76,7 @@ textarea:focus-visible {
 .app-shell {
   width: min(1480px, 100%);
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: 1.25rem;
 }
@@ -77,6 +84,7 @@ textarea:focus-visible {
 .menu-section {
   position: relative;
   min-height: calc(100vh - 2.5rem);
+  min-height: calc(100dvh - 2.5rem);
   overflow: hidden;
   border: 1px solid rgba(218, 170, 82, 0.34);
   border-radius: 8px;
@@ -184,6 +192,7 @@ body.main-menu-open .menu-toggle {
   flex-direction: column;
   gap: 1rem;
   min-height: calc(100vh - 2.5rem);
+  min-height: calc(100dvh - 2.5rem);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -343,6 +352,7 @@ body.main-menu-open .menu-toggle {
   justify-self: center;
   width: min(720px, 100%);
   min-height: calc(100vh - 132px);
+  min-height: calc(100dvh - 132px);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -698,18 +708,23 @@ body.main-menu-open .menu-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   background: rgba(4, 7, 12, 0.74);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .phone-frame {
   width: min(430px, 94vw);
-  min-height: min(760px, 92vh);
+  height: min(760px, calc(100dvh - 2rem));
+  min-height: 0;
   border: 10px solid #05070a;
   border-radius: 34px;
   background: #05070a;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .phone-notch {
@@ -721,7 +736,8 @@ body.main-menu-open .menu-toggle {
 }
 
 .phone-screen {
-  height: calc(min(760px, 92vh) - 34px);
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   border-radius: 24px;
@@ -748,8 +764,10 @@ body.main-menu-open .menu-toggle {
 
 .preview-scroll {
   flex: 1;
+  min-height: 0;
   overflow: auto;
   padding: 1rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .preview-cifra {
@@ -779,8 +797,11 @@ body.main-menu-open .menu-toggle {
 
 .search-dialog {
   width: min(620px, 94vw);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
   border-radius: 8px;
   padding: 1rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .search-dialog-header {
@@ -834,7 +855,9 @@ body.main-menu-open .menu-toggle {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
+  min-height: 100dvh;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  overflow: hidden;
   background:
     linear-gradient(180deg, rgba(196, 143, 63, 0.12), transparent 260px),
     radial-gradient(circle at top right, rgba(15, 80, 84, 0.22), transparent 300px),
@@ -847,17 +870,19 @@ body.main-menu-open .menu-toggle {
   z-index: 1;
   display: flex;
   justify-content: center;
-  margin: 0;
+  margin: 0.15rem 0 0;
   pointer-events: none;
-  transform: translateY(50%);
 }
 
 .fullscreen-header strong {
   display: block;
   max-width: min(360px, 78vw);
   overflow: hidden;
-  padding: 0 0.65rem;
-  background: var(--bg);
+  padding: 0.25rem 0.65rem 0.35rem;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: #1b1009;
   color: var(--warning);
   font-size: 0.95rem;
   line-height: 1.25;
@@ -873,6 +898,8 @@ body.main-menu-open .menu-toggle {
   overflow-x: auto;
   margin-bottom: 0;
   padding-bottom: 0.1rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .fullscreen-controls button {
@@ -913,7 +940,7 @@ body.main-menu-open .menu-toggle {
   min-height: 0;
   max-height: none;
   flex: 1;
-  padding-top: 1.35rem;
+  padding-top: 0.9rem;
   border-color: var(--line-strong);
   box-shadow: var(--shadow);
   line-height: 1.42;
@@ -1016,6 +1043,10 @@ body.light .repertoire-library {
   background: rgba(255, 248, 232, 0.98);
 }
 
+body.light .fullscreen-header strong {
+  background: #fffaf0;
+}
+
 body.light .repertoire-builder .clear-repertoire-search {
   background: transparent;
   color: var(--muted);
@@ -1072,6 +1103,8 @@ body.light .menu-actions button {
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 0.15rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   .editor-toolbar button {
@@ -1080,6 +1113,7 @@ body.light .menu-actions button {
 
   .song-list-panel {
     min-height: auto;
+    max-height: none;
   }
 
   .input-group textarea,
@@ -1095,6 +1129,31 @@ body.light .menu-actions button {
 
   .app-shell {
     padding: 0.5rem;
+  }
+
+  .menu-section {
+    min-height: calc(100dvh - 1rem);
+    background-size: cover;
+  }
+
+  .menu-actions-wrap {
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .editor-container {
+    min-height: calc(100dvh - 1rem);
+    padding: 0.75rem;
+  }
+
+  .editor-container h1 {
+    font-size: 1.25rem;
+  }
+
+  .input-group textarea {
+    min-height: 28dvh;
+    max-height: 42dvh;
+    white-space: pre-wrap;
   }
 
   .player-header {
@@ -1135,8 +1194,12 @@ body.light .menu-actions button {
 
   .song-list-panel {
     width: 100%;
-    min-height: calc(100dvh - 118px);
+    min-height: calc(100dvh - 1rem);
+    max-height: none;
     padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
   }
 
   .song-list-panel h3 {
@@ -1145,6 +1208,7 @@ body.light .menu-actions button {
 
   .repertoire-builder {
     grid-template-columns: 1fr;
+    flex: 0 0 auto;
   }
 
   .repertoire-builder.is-repertoire-active,
@@ -1152,11 +1216,23 @@ body.light .menu-actions button {
     grid-template-columns: 1fr;
   }
 
+  .repertoire-library {
+    position: static;
+    max-height: min(240px, 32dvh);
+    margin-top: 0.35rem;
+    box-shadow: none;
+  }
+
   .song-list {
     flex-direction: column;
     gap: 0.18rem;
-    max-height: calc(100dvh - 176px);
+    max-height: min(42dvh, 320px);
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #repertoireSongList {
+    max-height: min(42dvh, 320px);
   }
 
   .song-list li {
@@ -1171,6 +1247,14 @@ body.light .menu-actions button {
 
   .repertoire-item {
     grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .repertoire-list {
+    max-height: 38dvh;
+    overflow: auto;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
   }
 
   .repertoire-note-input {
@@ -1182,6 +1266,7 @@ body.light .menu-actions button {
     flex-wrap: nowrap;
     gap: 0.32rem;
     overflow-x: auto;
+    scrollbar-width: thin;
   }
 
   .speed-label {
@@ -1201,7 +1286,7 @@ body.light .menu-actions button {
   }
 
   .fullscreen-overlay {
-    padding: max(0.65rem, env(safe-area-inset-top)) max(0.65rem, env(safe-area-inset-right)) max(0.65rem, env(safe-area-inset-bottom)) max(0.65rem, env(safe-area-inset-left));
+    padding: max(0.55rem, env(safe-area-inset-top)) max(0.55rem, env(safe-area-inset-right)) max(0.55rem, env(safe-area-inset-bottom)) max(0.55rem, env(safe-area-inset-left));
   }
 
   .fullscreen-header {
@@ -1209,15 +1294,66 @@ body.light .menu-actions button {
   }
 
   .fullscreen-header strong {
-    max-width: 72vw;
+    max-width: min(360px, 88vw);
     font-size: 0.88rem;
   }
 
   .fullscreen-overlay .viewer-text {
     min-height: 0;
+    width: 100%;
     padding: 0.7rem;
     font-size: 15px;
     line-height: 1.38;
+  }
+
+  .phone-frame {
+    width: min(430px, 96vw);
+    height: calc(100dvh - 1.2rem);
+    border-width: 7px;
+    border-radius: 26px;
+  }
+
+  .phone-notch {
+    width: 86px;
+    height: 14px;
+    margin-top: 0.35rem;
+  }
+
+  .phone-screen {
+    border-radius: 19px;
+  }
+
+  .preview-header,
+  .search-dialog-header {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .preview-title,
+  .search-dialog-header strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .search-modal {
+    align-items: flex-start;
+  }
+
+  .search-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 1rem);
+    padding: 0.75rem;
+  }
+
+  .search-suggestions {
+    max-height: calc(100dvh - 190px);
+  }
+
+  .search-suggestion-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1235,5 +1371,23 @@ body.light .menu-actions button {
   .fullscreen-overlay .viewer-text {
     font-size: 14px;
     line-height: 1.35;
+  }
+
+  .editor-toolbar button {
+    padding-inline: 0.75rem;
+  }
+
+  .repertoire-title-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .repertoire-title-row h3 {
+    justify-self: end;
+    font-size: 0.75rem;
+  }
+
+  .fullscreen-controls #fullscreenScrollSpeed {
+    width: 58px;
+    min-width: 58px;
   }
 }
