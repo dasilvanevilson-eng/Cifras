@@ -704,6 +704,10 @@ function compareByTitle(a, b) {
   return getSongTitle(a).localeCompare(getSongTitle(b), 'pt-BR', { sensitivity: 'base' });
 }
 
+function compareRepertoireItemsByTitle(a, b) {
+  return String(a?.title || '').localeCompare(String(b?.title || ''), 'pt-BR', { sensitivity: 'base' });
+}
+
 function songMatchesCatalogSearch(song, query) {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return true;
@@ -1062,10 +1066,12 @@ function renderRepertoire() {
     return acc;
   }, {});
 
-  repertoireList.innerHTML = Object.entries(groups).map(([repertoire, items]) => `
+  repertoireList.innerHTML = Object.entries(groups)
+    .sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }))
+    .map(([repertoire, items]) => `
     <section class="repertoire-group">
       <h4>${escapeHtml(repertoire)}</h4>
-      ${items.map((item) => `
+      ${items.sort(compareRepertoireItemsByTitle).map((item) => `
         <div class="repertoire-item" draggable="true" data-index="${item.index}">
           <button type="button" data-action="open-repertoire" data-index="${item.index}">${escapeHtml(item.title)}${Number(item.transposition || 0) ? ` (${Number(item.transposition) > 0 ? '+' : ''}${Number(item.transposition)})` : ''}</button>
           <input class="repertoire-note-input" type="text" data-action="update-note" data-index="${item.index}" value="${escapeAttribute(item.note || '')}" placeholder="Observação" aria-label="Observação para ${escapeAttribute(item.title)}" />
