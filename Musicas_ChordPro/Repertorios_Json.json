@@ -11,6 +11,13 @@
           "note": ""
         },
         {
+          "title": "O Girassol",
+          "tags": "Animação",
+          "songIndex": 1,
+          "transposition": 0,
+          "note": ""
+        },
+        {
           "title": "Cheiro de rosas",
           "tags": "Maria",
           "songIndex": 10,
@@ -28,13 +35,6 @@
           "title": "Amar como Jesus Amou",
           "tags": "Hino, Animação",
           "songIndex": 6,
-          "transposition": 0,
-          "note": ""
-        },
-        {
-          "title": "O Girassol",
-          "tags": "Animação",
-          "songIndex": 1,
           "transposition": 0,
           "note": ""
         }
