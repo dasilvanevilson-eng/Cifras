@@ -623,10 +623,10 @@ function insertChordsInLine(chordLine, lyricLine) {
   const output = [...normalizedLyricLine];
 
   positions.slice().sort((a, b) => b.index - a.index).forEach(({ index, chord }) => {
-    const insertPos = Math.min(index, output.length);
     while (output.length < index) {
       output.push(' ');
     }
+    const insertPos = Math.min(index, output.length);
     const chordText = `[${chord}]`;
     output.splice(insertPos, 0, ...chordText);
   });
