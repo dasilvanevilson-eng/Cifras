@@ -107,12 +107,13 @@ textarea:focus-visible {
 .menu-actions-wrap {
   position: absolute;
   right: clamp(1rem, 3vw, 2rem);
-  bottom: clamp(1rem, 3vw, 2rem);
+  top: 50%;
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.65rem;
+  transform: translateY(-50%);
 }
 
 .menu-toggle {
@@ -402,11 +403,11 @@ body.main-menu-open .menu-toggle {
 }
 
 .repertoire-builder.is-repertoire-active {
-  grid-template-columns: minmax(0, 4fr) minmax(56px, 1fr);
+  grid-template-columns: minmax(56px, 1fr) minmax(0, 4fr);
 }
 
 .repertoire-builder.is-music-active {
-  grid-template-columns: minmax(56px, 1fr) minmax(0, 4fr);
+  grid-template-columns: minmax(0, 4fr) minmax(56px, 1fr);
 }
 
 .repertoire-builder .catalog-search {
@@ -1080,9 +1081,27 @@ body.light .menu-actions button {
   }
 }
 
+@media (max-width: 1024px) {
+  .menu-section {
+    min-height: 100dvh;
+    margin: -1.25rem;
+    border: 0;
+    border-radius: 0;
+    background-size: auto, cover, auto, auto;
+  }
+}
+
 @media (max-width: 900px) {
   .app-shell {
     padding: 0.85rem;
+  }
+
+  .menu-section {
+    min-height: 100dvh;
+    margin: -0.85rem;
+    border: 0;
+    border-radius: 0;
+    background-size: auto, cover, auto, auto;
   }
 
   .menu-actions,
@@ -1132,13 +1151,13 @@ body.light .menu-actions button {
   }
 
   .menu-section {
-    min-height: calc(100dvh - 1rem);
-    background-size: cover;
+    min-height: 100dvh;
+    margin: -0.5rem;
+    background-size: auto, cover, auto, auto;
   }
 
   .menu-actions-wrap {
     right: max(0.75rem, env(safe-area-inset-right));
-    bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
   .editor-container {
@@ -1212,11 +1231,11 @@ body.light .menu-actions button {
   }
 
   .repertoire-builder.is-repertoire-active {
-    grid-template-columns: minmax(0, 4fr) minmax(56px, 1fr);
+    grid-template-columns: minmax(56px, 1fr) minmax(0, 4fr);
   }
 
   .repertoire-builder.is-music-active {
-    grid-template-columns: minmax(56px, 1fr) minmax(0, 4fr);
+    grid-template-columns: minmax(0, 4fr) minmax(56px, 1fr);
   }
 
   .repertoire-builder .catalog-search {
