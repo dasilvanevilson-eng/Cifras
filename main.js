@@ -1226,6 +1226,7 @@ function renderSongViewer() {
   if (!currentSongData) {
     fullscreenTitle.textContent = 'Visualização em tela inteira';
     fullscreenViewerText.innerHTML = '';
+    fitFullscreenViewerToWidth();
     return;
   }
 
@@ -1234,6 +1235,32 @@ function renderSongViewer() {
   const activeNote = activeRepertoireItemIndex !== null ? (repertoireItems[activeRepertoireItemIndex]?.note || '').trim() : '';
   fullscreenTitle.textContent = `${currentSongData.title || 'Sem título'}${activeNote ? ` - ${activeNote}` : ''}`;
   fullscreenViewerText.innerHTML = rendered;
+  fitFullscreenViewerToWidth();
+}
+
+function fitFullscreenViewerToWidth() {
+  fullscreenViewerText.style.fontSize = '';
+
+  window.requestAnimationFrame(() => {
+    if (fullscreenOverlay.classList.contains('hidden') || fullscreenViewerText.clientWidth <= 0) return;
+
+    const computedStyle = window.getComputedStyle(fullscreenViewerText);
+    const baseFontSize = Number.parseFloat(computedStyle.fontSize) || 14;
+    const minimumFontSize = window.matchMedia('(max-width: 420px)').matches ? 8 : 9;
+    let fontSize = baseFontSize;
+
+    fullscreenViewerText.style.fontSize = `${fontSize}px`;
+
+    while (fullscreenViewerText.scrollWidth > fullscreenViewerText.clientWidth + 1 && fontSize > minimumFontSize) {
+      fontSize -= 0.5;
+      fullscreenViewerText.style.fontSize = `${fontSize}px`;
+    }
+
+    if (fullscreenViewerText.scrollWidth > fullscreenViewerText.clientWidth + 1) {
+      const fittedSize = Math.max(5, fontSize * (fullscreenViewerText.clientWidth / fullscreenViewerText.scrollWidth));
+      fullscreenViewerText.style.fontSize = `${fittedSize}px`;
+    }
+  });
 }
 
 function updateScrollButton() {
@@ -1281,6 +1308,7 @@ function updateThemeButtons() {
 function openFullscreenViewer() {
   fullscreenOverlay.classList.remove('hidden');
   updateOverlayLock();
+  fitFullscreenViewerToWidth();
 }
 
 function closeFullscreenViewer() {
@@ -1347,6 +1375,8 @@ function loadTheme() {
 
 menuToggleBtn.addEventListener('click', toggleMainMenu);
 document.addEventListener('click', closeMainMenuOnOutsideClick);
+window.addEventListener('resize', fitFullscreenViewerToWidth);
+window.addEventListener('orientationchange', fitFullscreenViewerToWidth);
 openEditorMenuBtn.addEventListener('click', openEditor);
 openRepertoireMenuBtn.addEventListener('click', openRepertoire);
 backToMenuFromEditor.addEventListener('click', () => showSection('menu'));
