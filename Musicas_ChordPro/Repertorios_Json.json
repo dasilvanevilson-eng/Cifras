@@ -1,3 +1,44 @@
 {
-  "repertorios": []
+  "repertorios": [
+    {
+      "nome": "Onda",
+      "musicas": [
+        {
+          "title": "Utopia",
+          "tags": "Hino",
+          "songIndex": 8,
+          "transposition": -2,
+          "note": ""
+        },
+        {
+          "title": "O Girassol",
+          "tags": "Animação",
+          "songIndex": 1,
+          "transposition": 0,
+          "note": ""
+        },
+        {
+          "title": "Cheiro de rosas",
+          "tags": "Maria",
+          "songIndex": 10,
+          "transposition": 0,
+          "note": ""
+        },
+        {
+          "title": "Pescador de Cristo",
+          "tags": [],
+          "songIndex": 3,
+          "transposition": 0,
+          "note": ""
+        },
+        {
+          "title": "Amar como Jesus Amou",
+          "tags": "Hino, Animação",
+          "songIndex": 6,
+          "transposition": 0,
+          "note": "entrada"
+        }
+      ]
+    }
+  ]
 }
