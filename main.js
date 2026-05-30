@@ -822,9 +822,11 @@ function buildRepertoireFileData() {
 
 function selectRepertoire(name) {
   catalogMomentInput.value = name;
-  isRepertoireSearchOpen = true;
+  isRepertoireSearchOpen = false;
+  updateRepertoireSearchLayout();
   renderRepertoireLibrary();
   renderRepertoire();
+  catalogMomentInput.blur();
 }
 
 function editRepertoire(name) {
@@ -1022,7 +1024,7 @@ function renderRepertoireLibrary() {
   if (!repertoireLibrary) return;
 
   const query = normalizeSearchText(catalogMomentInput.value);
-  if (!query && !isRepertoireSearchOpen) {
+  if (!isRepertoireSearchOpen) {
     repertoireLibrary.innerHTML = '';
     return;
   }
@@ -1110,7 +1112,7 @@ function renderSongList(targetList, songs, includeRepertoireButton) {
     return;
   }
 
-  const shouldShowRepertoireButton = includeRepertoireButton && !isRepertoireMusicSearchFocused();
+  const shouldShowRepertoireButton = includeRepertoireButton;
   const sortedSongs = [...songs].sort(compareByTitle);
 
   targetList.innerHTML = '';
@@ -1145,10 +1147,6 @@ function renderSongList(targetList, songs, includeRepertoireButton) {
 function filterRepertoireCatalogSongs() {
   const query = repertoireCatalogSearchInput.value;
   renderSongList(repertoireSongList, storedSongsCache.filter((song) => songMatchesCatalogSearch(song, query)), true);
-}
-
-function isRepertoireMusicSearchFocused() {
-  return document.activeElement === repertoireCatalogSearchInput;
 }
 
 function clearRepertoireSearch() {
@@ -1294,7 +1292,7 @@ function stopAutoScroll() {
 
 function toggleTheme() {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  document.body.classList.toggle('light', currentTheme === 'light');
+  fullscreenOverlay.classList.toggle('light', currentTheme === 'light');
   updateThemeButtons();
 }
 
@@ -1369,7 +1367,8 @@ function transposeChordProText(text, steps) {
 
 function loadTheme() {
   currentTheme = 'dark';
-  document.body.classList.toggle('light', currentTheme === 'light');
+  document.body.classList.remove('light');
+  fullscreenOverlay.classList.toggle('light', currentTheme === 'light');
   updateThemeButtons();
 }
 
