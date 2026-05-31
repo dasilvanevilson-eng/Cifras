@@ -2,16 +2,19 @@ export function MainNav(options = {}) {
   const nav = document.createElement('nav');
   nav.className = 'main-nav';
   nav.innerHTML = `
-    <div class="main-nav-links">
-      <a href="/musicas">Musicas</a>
-      <a href="/repertorios">Repertorios</a>
-    </div>
+    <div class="main-nav-links"></div>
     <div class="main-nav-user"></div>
   `;
 
+  const linksArea = nav.querySelector('.main-nav-links');
   const userArea = nav.querySelector('.main-nav-user');
 
   if (options.user) {
+    linksArea.innerHTML = `
+      <a href="/musicas">Musicas</a>
+      <a href="/repertorios">Repertorios</a>
+    `;
+
     const email = document.createElement('span');
     email.className = 'user-email';
     email.textContent = options.user.email;

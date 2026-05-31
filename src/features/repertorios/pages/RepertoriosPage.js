@@ -1,7 +1,9 @@
 import { RepertorioForm } from '../components/RepertorioForm.js';
 import { createRepertorio, listRepertorios } from '../../../services/repertoriosService.js';
+import { canEditContent } from '../../auth/roles.js';
 
-export async function RepertoriosPage() {
+export async function RepertoriosPage({ session } = {}) {
+  const canEdit = canEditContent(session?.profile?.papel);
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = `
@@ -24,17 +26,21 @@ export async function RepertoriosPage() {
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
 
-  formSlot.append(RepertorioForm({
-    onSubmit: async (repertorio) => {
-      const { error } = await createRepertorio(repertorio);
+  if (canEdit) {
+    formSlot.append(RepertorioForm({
+      onSubmit: async (repertorio) => {
+        const { error } = await createRepertorio(repertorio);
 
-      if (error) {
-        throw error;
-      }
+        if (error) {
+          throw error;
+        }
 
-      window.location.reload();
-    },
-  }));
+        window.location.reload();
+      },
+    }));
+  } else {
+    formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar repertorios, mas nao cadastrar ou editar.'));
+  }
 
   try {
     const { data, error } = await listRepertorios();
@@ -55,6 +61,13 @@ export async function RepertoriosPage() {
   }
 
   return page;
+}
+
+function createReadOnlyNotice(text) {
+  const notice = document.createElement('p');
+  notice.className = 'page-status';
+  notice.textContent = text;
+  return notice;
 }
 
 function createRepertoriosTable(repertorios) {

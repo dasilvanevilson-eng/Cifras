@@ -16,11 +16,25 @@ const routes = {
   '/repertorios/execucao': RepertorioExecucaoPage,
 };
 
+const publicRoutes = new Set(['/login']);
+
 export function createRouter() {
   return {
-    async currentPage() {
+    async currentPage(session = {}) {
+      const path = window.location.pathname;
+      const isPublicRoute = publicRoutes.has(path);
+
+      if (!session.user && !isPublicRoute) {
+        window.history.replaceState(null, '', '/login');
+        return LoginPage({ session });
+      }
+
+      if (session.user && path === '/login') {
+        window.history.replaceState(null, '', '/musicas');
+      }
+
       const Page = routes[window.location.pathname] || MusicasPage;
-      return Page();
+      return Page({ session });
     },
   };
 }

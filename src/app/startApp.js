@@ -12,7 +12,7 @@ export async function startApp() {
 
   const session = await loadSession();
   const router = createRouter();
-  const page = await router.currentPage();
+  const page = await router.currentPage(session);
 
   root.replaceChildren(AppLayout(page, {
     user: session.user,

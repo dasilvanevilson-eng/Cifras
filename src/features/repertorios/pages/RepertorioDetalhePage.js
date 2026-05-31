@@ -6,8 +6,9 @@ import {
   removeMusicaDoRepertorio,
   updateOrdemMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
+import { canEditContent } from '../../auth/roles.js';
 
-export async function RepertorioDetalhePage() {
+export async function RepertorioDetalhePage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = '<div class="page-status">Carregando repertorio...</div>';
@@ -35,6 +36,7 @@ export async function RepertorioDetalhePage() {
       repertorio,
       musicasAssociadas,
       musicas: musicas || [],
+      canEdit: canEditContent(session?.profile?.papel),
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -54,7 +56,7 @@ async function loadMusicasDoRepertorio(repertorioId) {
   return data || [];
 }
 
-function createRepertorioView({ repertorio, musicasAssociadas, musicas }) {
+function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit }) {
   const wrapper = document.createElement('section');
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
@@ -69,7 +71,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas }) {
       <p>Data: ${escapeHtml(data)}</p>
     </header>
     <div class="page-grid">
-      <section>
+      <section class="editor-panel">
         <h2>Adicionar musica</h2>
         <div class="form-slot"></div>
       </section>
@@ -82,14 +84,19 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas }) {
 
   const formSlot = wrapper.querySelector('.form-slot');
   const listSlot = wrapper.querySelector('.list-slot');
+  const editorPanel = wrapper.querySelector('.editor-panel');
 
-  formSlot.append(createAddMusicaForm({
-    repertorioId: repertorio.id,
-    musicas,
-    proximaOrdem: musicasAssociadas.length + 1,
-  }));
+  if (canEdit) {
+    formSlot.append(createAddMusicaForm({
+      repertorioId: repertorio.id,
+      musicas,
+      proximaOrdem: musicasAssociadas.length + 1,
+    }));
+  } else {
+    editorPanel.remove();
+  }
 
-  listSlot.append(createMusicasList(normalizeOrder(musicasAssociadas)));
+  listSlot.append(createMusicasList(normalizeOrder(musicasAssociadas), { canEdit }));
 
   return wrapper;
 }
@@ -147,7 +154,7 @@ function createAddMusicaForm({ repertorioId, musicas, proximaOrdem }) {
   return form;
 }
 
-function createMusicasList(items) {
+function createMusicasList(items, options = {}) {
   if (!items.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
@@ -163,7 +170,7 @@ function createMusicasList(items) {
         <th>Ordem</th>
         <th>Musica</th>
         <th>Tom</th>
-        <th>Acoes</th>
+        ${options.canEdit ? '<th>Acoes</th>' : ''}
       </tr>
     </thead>
     <tbody></tbody>
@@ -178,13 +185,17 @@ function createMusicasList(items) {
       <td>${escapeHtml(item.ordem || '-')}</td>
       <td><a href="/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}">${escapeHtml(formatMusicaName(musica))}</a></td>
       <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
-      <td></td>
+      ${options.canEdit ? '<td></td>' : ''}
     `;
-    const actionsCell = row.querySelector('td:last-child');
-    actionsCell.className = 'table-actions';
-    actionsCell.append(createMoveButton('Subir', items, index, -1));
-    actionsCell.append(createMoveButton('Descer', items, index, 1));
-    actionsCell.append(createRemoveButton(item.id));
+
+    if (options.canEdit) {
+      const actionsCell = row.querySelector('td:last-child');
+      actionsCell.className = 'table-actions';
+      actionsCell.append(createMoveButton('Subir', items, index, -1));
+      actionsCell.append(createMoveButton('Descer', items, index, 1));
+      actionsCell.append(createRemoveButton(item.id));
+    }
+
     body.append(row);
   });
 

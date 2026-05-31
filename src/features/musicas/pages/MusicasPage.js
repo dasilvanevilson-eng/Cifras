@@ -1,8 +1,10 @@
 import { MusicaForm } from '../components/MusicaForm.js';
 import { createMusica, listMusicas } from '../../../services/musicasService.js';
 import { convertToChordPro } from '../../../utils/chordpro.js';
+import { canEditContent } from '../../auth/roles.js';
 
-export async function MusicasPage() {
+export async function MusicasPage({ session } = {}) {
+  const canEdit = canEditContent(session?.profile?.papel);
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = `
@@ -25,22 +27,26 @@ export async function MusicasPage() {
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
 
-  formSlot.append(MusicaForm({
-    onSubmit: async (musica) => {
-      const payload = {
-        ...musica,
-        cifra_chordpro: convertToChordPro(musica.cifra_original),
-      };
+  if (canEdit) {
+    formSlot.append(MusicaForm({
+      onSubmit: async (musica) => {
+        const payload = {
+          ...musica,
+          cifra_chordpro: convertToChordPro(musica.cifra_original),
+        };
 
-      const { error } = await createMusica(payload);
+        const { error } = await createMusica(payload);
 
-      if (error) {
-        throw error;
-      }
+        if (error) {
+          throw error;
+        }
 
-      window.location.reload();
-    },
-  }));
+        window.location.reload();
+      },
+    }));
+  } else {
+    formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas, mas nao cadastrar ou editar.'));
+  }
 
   try {
     const { data, error } = await listMusicas();
@@ -61,6 +67,13 @@ export async function MusicasPage() {
   }
 
   return page;
+}
+
+function createReadOnlyNotice(text) {
+  const notice = document.createElement('p');
+  notice.className = 'page-status';
+  notice.textContent = text;
+  return notice;
 }
 
 function createMusicasTable(musicas) {

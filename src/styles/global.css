@@ -120,6 +120,10 @@ a {
   margin-bottom: 20px;
 }
 
+.page-actions:empty {
+  display: none;
+}
+
 .button-link {
   display: inline-block;
   padding: 10px 14px;

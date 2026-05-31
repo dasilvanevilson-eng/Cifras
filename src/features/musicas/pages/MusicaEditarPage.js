@@ -1,8 +1,9 @@
 import { MusicaForm } from '../components/MusicaForm.js';
 import { getMusicaById, updateMusica } from '../../../services/musicasService.js';
 import { convertToChordPro } from '../../../utils/chordpro.js';
+import { canEditContent } from '../../auth/roles.js';
 
-export async function MusicaEditarPage() {
+export async function MusicaEditarPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = '<div class="page-status">Carregando musica...</div>';
@@ -13,6 +14,12 @@ export async function MusicaEditarPage() {
   if (!id) {
     status.className = 'page-status error';
     status.textContent = 'Musica nao informada.';
+    return page;
+  }
+
+  if (!canEditContent(session?.profile?.papel)) {
+    status.className = 'page-status error';
+    status.textContent = 'Seu perfil nao tem permissao para editar musicas.';
     return page;
   }
 
