@@ -31,11 +31,6 @@ export async function duplicateRepertorio(repertorio, musicasAssociadas = []) {
   const { data: novoRepertorio, error: repertorioError } = await createRepertorio({
     nome: `${repertorio.nome || 'Repertorio'} - copia`,
     data: repertorio.data || null,
-    tipo: repertorio.tipo || null,
-    horario: repertorio.horario || null,
-    local: repertorio.local || null,
-    responsavel: repertorio.responsavel || null,
-    observacoes: repertorio.observacoes || null,
   });
 
   if (repertorioError) {

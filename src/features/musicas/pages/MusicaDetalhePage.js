@@ -51,7 +51,7 @@ function createMusicaView(musica, options = {}) {
   const cifraOriginal = getField(musica, ['cifra_original']);
 
   wrapper.innerHTML = `
-    <a class="back-link" href="/musicas">Voltar para musicas</a>
+    <a class="back-link" href="/musicas">Voltar para musicas cifradas</a>
     <div class="page-actions"></div>
     <header class="song-header">
       <h1>${escapeHtml(title)}</h1>

@@ -49,7 +49,6 @@ function createPerformanceView({ repertorio, musicasAssociadas }) {
     <header class="performance-header">
       <h1>${escapeHtml(nome)}</h1>
       <p>${escapeHtml(data)}</p>
-      <p>${escapeHtml(formatPerformanceMetadata(repertorio))}</p>
     </header>
     <div class="performance-toolbar">
       <button class="nav-button" type="button" data-action="theme">Tema escuro</button>
@@ -322,36 +321,6 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = value.split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
-}
-
-function formatPerformanceMetadata(repertorio) {
-  const items = [
-    formatTipo(getField(repertorio, ['tipo'])),
-    formatTime(getField(repertorio, ['horario'])),
-    getField(repertorio, ['local']),
-    getField(repertorio, ['responsavel']),
-  ].filter((value) => value && value !== '-');
-
-  return items.join(' | ');
-}
-
-function formatTipo(value) {
-  if (!value || value === '-') return '-';
-
-  const labels = {
-    culto: 'Culto',
-    ensaio: 'Ensaio',
-    celula: 'Celula',
-    conferencia: 'Conferencia',
-    outro: 'Outro',
-  };
-
-  return labels[value] || value;
-}
-
-function formatTime(value) {
-  if (!value || value === '-') return '-';
-  return String(value).slice(0, 5);
 }
 
 function escapeHtml(value) {

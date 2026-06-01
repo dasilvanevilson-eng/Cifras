@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   convertCifraOriginalToNumbers,
   convertToChordPro,
+  extractLyricsFromCifraOriginal,
   transposeCifraOriginal,
   transposeChordPro,
   transposeKey,
@@ -51,6 +52,11 @@ assert.equal(
 assert.equal(
   convertCifraOriginalToNumbers('D  A/C#  Bm7  G', 'D'),
   '1  5/7  6m7  4',
+);
+
+assert.equal(
+  extractLyricsFromCifraOriginal(['G      D/F#', 'Grande es Tu', '', 'Em7   C9', 'Santo Senhor'].join('\n')),
+  ['Grande es Tu', '', 'Santo Senhor'].join('\n'),
 );
 
 console.log('chordpro tests passed');

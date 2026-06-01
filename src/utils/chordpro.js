@@ -53,6 +53,18 @@ export function convertCifraOriginalToNumbers(input, key) {
     .join('\n');
 }
 
+export function extractLyricsFromCifraOriginal(input) {
+  if (!input) return '';
+
+  return normalizeTabs(input)
+    .split('\n')
+    .filter((line) => !isChordLine(line))
+    .map((line) => line.replace(/\[[^\]]+\]/g, '').trimEnd())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function mergeChordLineWithLyrics(chordLine, lyricLine) {
   const chords = findChords(chordLine);
   let result = lyricLine;

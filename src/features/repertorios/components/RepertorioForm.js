@@ -13,33 +13,6 @@ export function RepertorioForm(options = {}) {
       <input name="data" type="date" value="${escapeHtml(initialValues.data || '')}">
     </label>
 
-    <label>
-      Tipo
-      <select name="tipo">
-        ${createTipoOptions(initialValues.tipo || '')}
-      </select>
-    </label>
-
-    <label>
-      Horario
-      <input name="horario" type="time" value="${escapeHtml(formatTimeValue(initialValues.horario || ''))}">
-    </label>
-
-    <label>
-      Local
-      <input name="local" type="text" value="${escapeHtml(initialValues.local || '')}">
-    </label>
-
-    <label>
-      Responsavel
-      <input name="responsavel" type="text" value="${escapeHtml(initialValues.responsavel || '')}">
-    </label>
-
-    <label>
-      Observacoes
-      <textarea name="observacoes" rows="4">${escapeHtml(initialValues.observacoes || '')}</textarea>
-    </label>
-
     <button class="button" type="submit">${options.submitLabel || 'Salvar repertorio'}</button>
     <p class="form-message" aria-live="polite"></p>
   `;
@@ -61,11 +34,6 @@ export function RepertorioForm(options = {}) {
       await options.onSubmit({
         nome: String(formData.get('nome') || '').trim(),
         data: String(formData.get('data') || '') || null,
-        tipo: String(formData.get('tipo') || '').trim() || null,
-        horario: String(formData.get('horario') || '') || null,
-        local: String(formData.get('local') || '').trim() || null,
-        responsavel: String(formData.get('responsavel') || '').trim() || null,
-        observacoes: String(formData.get('observacoes') || '').trim() || null,
       });
 
       if (!options.keepValuesAfterSubmit) {
@@ -82,26 +50,6 @@ export function RepertorioForm(options = {}) {
   });
 
   return form;
-}
-
-function createTipoOptions(currentValue) {
-  const options = [
-    ['', 'Selecione'],
-    ['culto', 'Culto'],
-    ['ensaio', 'Ensaio'],
-    ['celula', 'Celula'],
-    ['conferencia', 'Conferencia'],
-    ['outro', 'Outro'],
-  ];
-
-  return options.map(([value, label]) => {
-    const selected = value === currentValue ? ' selected' : '';
-    return `<option value="${escapeHtml(value)}"${selected}>${escapeHtml(label)}</option>`;
-  }).join('');
-}
-
-function formatTimeValue(value) {
-  return String(value || '').slice(0, 5);
 }
 
 function escapeHtml(value) {

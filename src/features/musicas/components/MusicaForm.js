@@ -4,7 +4,7 @@ export function MusicaForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
   const initialChordPro = initialValues.cifra_chordpro || convertToChordPro(initialValues.cifra_original || '');
-  form.className = 'form';
+  form.className = 'form musica-form';
   form.innerHTML = `
     <label>
       Titulo

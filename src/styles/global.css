@@ -63,6 +63,22 @@ a {
   padding: 32px 24px;
 }
 
+.musicas-page {
+  max-width: none;
+}
+
+.musicas-page .page-grid {
+  grid-template-columns: 1fr;
+}
+
+.music-search-panel {
+  margin-bottom: 24px;
+}
+
+.music-search-panel h2 {
+  margin-bottom: 12px;
+}
+
 .page h2 {
   margin-top: 0;
   font-size: 20px;
@@ -84,6 +100,7 @@ a {
 }
 
 .list-browser {
+  position: relative;
   display: grid;
   gap: 12px;
 }
@@ -113,6 +130,23 @@ a {
   margin: 0;
   color: #5f594f;
   font-size: 14px;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  z-index: 10;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #ddd6c8;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
+}
+
+.search-results[hidden] {
+  display: none;
 }
 
 .data-table {
@@ -181,29 +215,6 @@ a {
 .song-header p {
   margin: 0;
   color: #5f594f;
-}
-
-.metadata-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin: 0 0 24px;
-}
-
-.metadata-list div {
-  border: 1px solid #ddd6c8;
-  padding: 10px 12px;
-  background: #ffffff;
-}
-
-.metadata-list dt {
-  color: #5f594f;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.metadata-list dd {
-  margin: 4px 0 0;
 }
 
 .transpose-toolbar {
@@ -385,6 +396,10 @@ a {
   max-width: 420px;
 }
 
+.musica-form {
+  max-width: none;
+}
+
 .form label {
   display: grid;
   gap: 6px;
@@ -410,8 +425,19 @@ a {
 
 .cifra-editor-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
   gap: 16px;
+  width: 100%;
+}
+
+.cifra-editor-grid label {
+  min-width: 0;
+}
+
+.cifra-editor-grid textarea {
+  width: 100%;
+  min-height: 62vh;
+  resize: vertical;
 }
 
 .form-message {

@@ -1,7 +1,9 @@
 import { LoginPage } from '../features/auth/pages/LoginPage.js';
 import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.js';
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
+import { MusicaLetraDetalhePage } from '../features/musicas/pages/MusicaLetraDetalhePage.js';
 import { MusicasPage } from '../features/musicas/pages/MusicasPage.js';
+import { MusicasLetrasPage } from '../features/musicas/pages/MusicasLetrasPage.js';
 import { RepertorioDetalhePage } from '../features/repertorios/pages/RepertorioDetalhePage.js';
 import { RepertorioEditarPage } from '../features/repertorios/pages/RepertorioEditarPage.js';
 import { RepertorioExecucaoPage } from '../features/repertorios/pages/RepertorioExecucaoPage.js';
@@ -12,6 +14,8 @@ const routes = {
   '/musicas': MusicasPage,
   '/musicas/detalhe': MusicaDetalhePage,
   '/musicas/editar': MusicaEditarPage,
+  '/musicas-letras': MusicasLetrasPage,
+  '/musicas-letras/detalhe': MusicaLetraDetalhePage,
   '/repertorios': RepertoriosPage,
   '/repertorios/detalhe': RepertorioDetalhePage,
   '/repertorios/editar': RepertorioEditarPage,

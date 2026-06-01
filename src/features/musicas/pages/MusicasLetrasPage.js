@@ -1,45 +1,21 @@
-import { MusicaForm } from '../components/MusicaForm.js';
-import { createMusica, listMusicas } from '../../../services/musicasService.js';
-import { canEditContent } from '../../auth/roles.js';
+import { listMusicas } from '../../../services/musicasService.js';
+import { extractLyricsFromCifraOriginal } from '../../../utils/chordpro.js';
 
-export async function MusicasPage({ session } = {}) {
-  const canEdit = canEditContent(session?.profile?.papel);
+export async function MusicasLetrasPage() {
   const page = document.createElement('section');
-  page.className = 'page musicas-page';
+  page.className = 'page';
   page.innerHTML = `
-    <h1>Musicas Cifradas</h1>
-    <section class="music-search-panel">
-      <h2>Musicas cifradas cadastradas</h2>
+    <h1>Musicas Letras</h1>
+    <section>
+      <h2>Consultar letras</h2>
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>
       </div>
     </section>
-    <div class="page-grid">
-      <section>
-        <div class="form-slot"></div>
-      </section>
-    </div>
   `;
 
-  const formSlot = page.querySelector('.form-slot');
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
-
-  if (canEdit) {
-    formSlot.append(MusicaForm({
-      onSubmit: async (musica) => {
-        const { error } = await createMusica(musica);
-
-        if (error) {
-          throw error;
-        }
-
-        window.location.reload();
-      },
-    }));
-  } else {
-    formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas cifradas, mas nao cadastrar ou editar.'));
-  }
 
   try {
     const { data, error } = await listMusicas();
@@ -53,7 +29,7 @@ export async function MusicasPage({ session } = {}) {
       return page;
     }
 
-    listSlot.replaceChildren(createMusicasBrowser(data));
+    listSlot.replaceChildren(createLetrasBrowser(data));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar as musicas.';
@@ -62,21 +38,14 @@ export async function MusicasPage({ session } = {}) {
   return page;
 }
 
-function createReadOnlyNotice(text) {
-  const notice = document.createElement('p');
-  notice.className = 'page-status';
-  notice.textContent = text;
-  return notice;
-}
-
-function createMusicasBrowser(musicas) {
+function createLetrasBrowser(musicas) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser';
   wrapper.innerHTML = `
     <div class="list-toolbar">
       <label>
         Buscar
-        <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da cifra">
+        <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da letra">
       </label>
       <label>
         Ordenar
@@ -88,14 +57,13 @@ function createMusicasBrowser(musicas) {
       </label>
     </div>
     <p class="list-summary"></p>
-    <div class="table-slot search-results" hidden></div>
+    <div class="table-slot"></div>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
   const sortSelect = wrapper.querySelector('.sort-select');
   const summary = wrapper.querySelector('.list-summary');
   const tableSlot = wrapper.querySelector('.table-slot');
-  let isPointerInsideResults = false;
 
   function render() {
     const query = normalizeText(searchInput.value);
@@ -108,43 +76,22 @@ function createMusicasBrowser(musicas) {
     if (!filtered.length) {
       const empty = document.createElement('p');
       empty.className = 'page-status';
-      empty.textContent = 'Nenhuma musica encontrada para esta busca.';
+      empty.textContent = 'Nenhuma letra encontrada para esta busca.';
       tableSlot.replaceChildren(empty);
       return;
     }
 
-    tableSlot.replaceChildren(createMusicasTable(filtered));
+    tableSlot.replaceChildren(createLetrasTable(filtered));
   }
 
   searchInput.addEventListener('input', render);
-  searchInput.addEventListener('focus', () => {
-    tableSlot.hidden = false;
-  });
-  searchInput.addEventListener('blur', () => {
-    window.setTimeout(() => {
-      if (!isPointerInsideResults) {
-        tableSlot.hidden = true;
-      }
-    }, 120);
-  });
-  tableSlot.addEventListener('mouseenter', () => {
-    isPointerInsideResults = true;
-    tableSlot.hidden = false;
-  });
-  tableSlot.addEventListener('mouseleave', () => {
-    isPointerInsideResults = false;
-
-    if (document.activeElement !== searchInput) {
-      tableSlot.hidden = true;
-    }
-  });
   sortSelect.addEventListener('change', render);
   render();
 
   return wrapper;
 }
 
-function createMusicasTable(musicas) {
+function createLetrasTable(musicas) {
   const table = document.createElement('table');
   table.className = 'data-table';
   table.innerHTML = `
@@ -152,7 +99,6 @@ function createMusicasTable(musicas) {
       <tr>
         <th>Titulo</th>
         <th>Artista</th>
-        <th>Tom</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -166,9 +112,8 @@ function createMusicasTable(musicas) {
     const title = getField(musica, ['titulo', 'nome', 'title']);
 
     row.innerHTML = `
-      <td><a href="/musicas/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(title)}</a></td>
+      <td><a href="/musicas-letras/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(title)}</a></td>
       <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
-      <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
     `;
     body.append(row);
   });
@@ -182,8 +127,7 @@ function matchesSearch(musica, query) {
   const searchableText = [
     getField(musica, ['titulo', 'nome', 'title']),
     getField(musica, ['artista', 'autor', 'artist']),
-    getField(musica, ['cifra_original']),
-    getField(musica, ['cifra_chordpro', 'chordpro', 'conteudo_chordpro']),
+    extractLyricsFromCifraOriginal(getField(musica, ['cifra_original'])),
   ].join(' ');
 
   return normalizeText(searchableText).includes(query);
@@ -218,7 +162,7 @@ function formatSummary(filteredCount, totalCount) {
     return `${totalCount} musica${totalCount === 1 ? '' : 's'} cadastrada${totalCount === 1 ? '' : 's'}.`;
   }
 
-  return `${filteredCount} de ${totalCount} musica${totalCount === 1 ? '' : 's'} encontrada${filteredCount === 1 ? '' : 's'}.`;
+  return `${filteredCount} de ${totalCount} letra${totalCount === 1 ? '' : 's'} encontrada${filteredCount === 1 ? '' : 's'}.`;
 }
 
 function normalizeText(value) {

@@ -11,7 +11,8 @@ export function MainNav(options = {}) {
 
   if (options.user) {
     linksArea.innerHTML = `
-      <a href="/musicas">Musicas</a>
+      <a href="/musicas">Musicas Cifradas</a>
+      <a href="/musicas-letras">Musicas Letras</a>
       <a href="/repertorios">Repertorios</a>
     `;
 
