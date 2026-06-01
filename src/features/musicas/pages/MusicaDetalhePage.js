@@ -1,4 +1,11 @@
-import { getMusicaById } from '../../../services/musicasService.js';
+import {
+  countMusicasNoRepertorio,
+  deleteMusica,
+  deleteRepertorios,
+  getMusicaById,
+  listRepertoriosComMusica,
+  removeMusicaDeTodosRepertorios,
+} from '../../../services/musicasService.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
@@ -55,14 +62,162 @@ function createMusicaView(musica, options = {}) {
   if (options.canEdit) {
     const actions = wrapper.querySelector('.page-actions');
     actions.innerHTML = `<a class="button-link" href="/musicas/editar?id=${encodeURIComponent(musica.id)}">Editar</a>`;
+    actions.append(createDeleteButton(musica.id, title));
   }
 
   return wrapper;
 }
 
+function createDeleteButton(musicaId, title) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'danger-button';
+  button.textContent = 'Excluir';
+
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    button.textContent = 'Verificando...';
+
+    const { data: vinculos, error: vinculosError } = await listRepertoriosComMusica(musicaId);
+
+    if (vinculosError) {
+      button.disabled = false;
+      button.textContent = 'Excluir';
+      window.alert(vinculosError.message || 'Nao foi possivel verificar se a musica esta em repertorios.');
+      return;
+    }
+
+    let repertorios = [];
+
+    try {
+      repertorios = await loadRepertoriosAfetados(vinculos || []);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = 'Excluir';
+      window.alert(error.message || 'Nao foi possivel verificar se algum repertorio ficara vazio.');
+      return;
+    }
+
+    const repertoriosParaExcluir = repertorios.filter((repertorio) => repertorio.ficaraVazio);
+    const confirmed = window.confirm(createDeleteConfirmationMessage(title, repertorios));
+    if (!confirmed) {
+      button.disabled = false;
+      button.textContent = 'Excluir';
+      return;
+    }
+
+    button.textContent = repertorios.length ? 'Removendo vinculos...' : 'Excluindo...';
+
+    if (repertorios.length) {
+      const { error: removeError } = await removeMusicaDeTodosRepertorios(musicaId);
+
+      if (removeError) {
+        button.disabled = false;
+        button.textContent = 'Excluir';
+        window.alert(removeError.message || 'Nao foi possivel remover a musica dos repertorios.');
+        return;
+      }
+    }
+
+    if (repertoriosParaExcluir.length) {
+      button.textContent = 'Excluindo repertorios vazios...';
+
+      const { error: repertoriosError } = await deleteRepertorios(repertoriosParaExcluir.map((repertorio) => repertorio.id));
+
+      if (repertoriosError) {
+        button.disabled = false;
+        button.textContent = 'Excluir';
+        window.alert(repertoriosError.message || 'A musica foi removida dos repertorios, mas nao foi possivel excluir repertorios vazios.');
+        return;
+      }
+    }
+
+    button.textContent = 'Excluindo...';
+
+    const { error } = await deleteMusica(musicaId);
+
+    if (error) {
+      button.disabled = false;
+      button.textContent = 'Excluir';
+      window.alert(getDeleteErrorMessage(error));
+      return;
+    }
+
+    window.location.href = '/musicas';
+  });
+
+  return button;
+}
+
+async function loadRepertoriosAfetados(vinculos) {
+  const repertorios = vinculos
+    .map((vinculo) => vinculo.repertorios)
+    .filter(Boolean)
+    .map((repertorio) => ({
+      id: repertorio.id,
+      nome: getField(repertorio, ['nome', 'titulo', 'name']),
+      data: formatDate(getField(repertorio, ['data', 'date'])),
+    }));
+
+  const repertoriosComContagem = await Promise.all(repertorios.map(async (repertorio) => {
+    const { count, error } = await countMusicasNoRepertorio(repertorio.id);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      ...repertorio,
+      totalMusicas: Number(count || 0),
+      ficaraVazio: Number(count || 0) <= 1,
+    };
+  }));
+
+  return repertoriosComContagem;
+}
+
+function createDeleteConfirmationMessage(title, repertorios) {
+  if (!repertorios.length) {
+    return `Excluir a musica "${title}"? Esta acao nao pode ser desfeita.`;
+  }
+
+  const repertoriosList = repertorios
+    .map((repertorio) => {
+      const data = repertorio.data !== '-' ? ` (${repertorio.data})` : '';
+      const vazio = repertorio.ficaraVazio ? ' - sera excluido porque ficara sem musicas' : '';
+      return `- ${repertorio.nome}${data}${vazio}`;
+    })
+    .join('\n');
+
+  return [
+    `A musica "${title}" esta presente nos seguintes repertorios:`,
+    '',
+    repertoriosList,
+    '',
+    'Se confirmar, a musica sera removida desses repertorios e excluida definitivamente.',
+    'Repertorios que ficarem sem nenhuma musica tambem serao excluidos.',
+    '',
+    'Confirma a exclusao?',
+  ].join('\n');
+}
+
+function getDeleteErrorMessage(error) {
+  if (error?.code === '23503') {
+    return 'Esta musica ainda esta vinculada a um ou mais repertorios. Tente novamente ou remova manualmente antes de excluir.';
+  }
+
+  return error?.message || 'Nao foi possivel excluir a musica.';
+}
+
 function getField(record, names) {
   const fieldName = names.find((name) => record[name]);
   return fieldName ? String(record[fieldName]) : '-';
+}
+
+function formatDate(value) {
+  if (!value || value === '-') return '-';
+  const [year, month, day] = value.split('-');
+  return day && month && year ? `${day}/${month}/${year}` : value;
 }
 
 function escapeHtml(value) {

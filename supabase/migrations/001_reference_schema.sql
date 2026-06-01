@@ -33,6 +33,31 @@ to authenticated
 using (auth.uid() = id or public.current_user_role() = 'admin')
 with check (auth.uid() = id or public.current_user_role() = 'admin');
 
+create or replace function public.prevent_profile_role_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if old.papel is distinct from new.papel
+    and coalesce(auth.role(), '') <> 'service_role'
+    and coalesce(public.current_user_role(), '') <> 'admin'
+  then
+    raise exception 'Apenas administradores podem alterar o papel de um perfil.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_profile_role_escalation on profiles;
+
+create trigger prevent_profile_role_escalation
+before update on profiles
+for each row
+execute function public.prevent_profile_role_escalation();
+
 create policy "Admin cadastra perfis"
 on profiles for insert
 to authenticated
@@ -115,6 +140,32 @@ create table if not exists repertorio_musicas (
   created_at timestamptz not null default now(),
   unique (repertorio_id, musica_id)
 );
+
+create or replace function public.prevent_delete_musica_em_repertorio()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (
+    select 1
+    from public.repertorio_musicas
+    where musica_id = old.id
+  ) then
+    raise exception 'Remova a musica dos repertorios antes de exclui-la.';
+  end if;
+
+  return old;
+end;
+$$;
+
+drop trigger if exists prevent_delete_musica_em_repertorio on musicas;
+
+create trigger prevent_delete_musica_em_repertorio
+before delete on musicas
+for each row
+execute function public.prevent_delete_musica_em_repertorio();
 
 alter table repertorio_musicas enable row level security;
 

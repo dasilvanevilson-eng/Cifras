@@ -1,6 +1,7 @@
 import { listMusicas } from '../../../services/musicasService.js';
 import {
   addMusicaToRepertorio,
+  deleteRepertorio,
   getRepertorioById,
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
@@ -85,11 +86,15 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit 
   const formSlot = wrapper.querySelector('.form-slot');
   const listSlot = wrapper.querySelector('.list-slot');
   const editorPanel = wrapper.querySelector('.editor-panel');
+  const actions = wrapper.querySelector('.page-actions');
 
   if (canEdit) {
+    actions.append(createEditLink(repertorio.id));
+    actions.append(createDeleteButton(repertorio.id, nome));
     formSlot.append(createAddMusicaForm({
       repertorioId: repertorio.id,
       musicas,
+      musicasAssociadas,
       proximaOrdem: musicasAssociadas.length + 1,
     }));
   } else {
@@ -101,7 +106,43 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit 
   return wrapper;
 }
 
-function createAddMusicaForm({ repertorioId, musicas, proximaOrdem }) {
+function createEditLink(repertorioId) {
+  const link = document.createElement('a');
+  link.className = 'button-link secondary';
+  link.href = `/repertorios/editar?id=${encodeURIComponent(repertorioId)}`;
+  link.textContent = 'Editar';
+  return link;
+}
+
+function createDeleteButton(repertorioId, nome) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'danger-button';
+  button.textContent = 'Excluir';
+
+  button.addEventListener('click', async () => {
+    const confirmed = window.confirm(`Excluir o repertorio "${nome}"? Esta acao tambem remove as associacoes de musicas deste repertorio.`);
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = 'Excluindo...';
+
+    const { error } = await deleteRepertorio(repertorioId);
+
+    if (error) {
+      button.disabled = false;
+      button.textContent = 'Excluir';
+      window.alert(error.message || 'Nao foi possivel excluir o repertorio.');
+      return;
+    }
+
+    window.location.href = '/repertorios';
+  });
+
+  return button;
+}
+
+function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proximaOrdem }) {
   const form = document.createElement('form');
   form.className = 'form';
   form.innerHTML = `
@@ -118,11 +159,13 @@ function createAddMusicaForm({ repertorioId, musicas, proximaOrdem }) {
   const select = form.querySelector('select');
   const message = form.querySelector('.form-message');
   const button = form.querySelector('button');
+  const musicasAdicionadas = new Set(musicasAssociadas.map((item) => item.musica_id));
 
   musicas.forEach((musica) => {
     const option = document.createElement('option');
     option.value = musica.id;
     option.textContent = formatMusicaName(musica);
+    option.disabled = musicasAdicionadas.has(musica.id);
     select.append(option);
   });
 
@@ -131,6 +174,12 @@ function createAddMusicaForm({ repertorioId, musicas, proximaOrdem }) {
 
     const formData = new FormData(form);
     const musicaId = String(formData.get('musica_id') || '');
+
+    if (musicasAdicionadas.has(musicaId)) {
+      message.className = 'form-message error';
+      message.textContent = 'Esta musica ja esta no repertorio.';
+      return;
+    }
 
     button.disabled = true;
     message.className = 'form-message';

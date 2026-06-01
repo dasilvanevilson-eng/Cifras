@@ -1,18 +1,19 @@
 export function RepertorioForm(options = {}) {
   const form = document.createElement('form');
+  const initialValues = options.initialValues || {};
   form.className = 'form';
   form.innerHTML = `
     <label>
       Nome
-      <input name="nome" type="text" required>
+      <input name="nome" type="text" required value="${escapeHtml(initialValues.nome || '')}">
     </label>
 
     <label>
       Data
-      <input name="data" type="date">
+      <input name="data" type="date" value="${escapeHtml(initialValues.data || '')}">
     </label>
 
-    <button class="button" type="submit">Salvar repertorio</button>
+    <button class="button" type="submit">${options.submitLabel || 'Salvar repertorio'}</button>
     <p class="form-message" aria-live="polite"></p>
   `;
 
@@ -35,7 +36,9 @@ export function RepertorioForm(options = {}) {
         data: String(formData.get('data') || '') || null,
       });
 
-      form.reset();
+      if (!options.keepValuesAfterSubmit) {
+        form.reset();
+      }
       message.className = 'form-message success';
       message.textContent = 'Repertorio salvo com sucesso.';
     } catch (error) {
@@ -47,4 +50,13 @@ export function RepertorioForm(options = {}) {
   });
 
   return form;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }

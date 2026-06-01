@@ -3,6 +3,7 @@ import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.j
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
 import { MusicasPage } from '../features/musicas/pages/MusicasPage.js';
 import { RepertorioDetalhePage } from '../features/repertorios/pages/RepertorioDetalhePage.js';
+import { RepertorioEditarPage } from '../features/repertorios/pages/RepertorioEditarPage.js';
 import { RepertorioExecucaoPage } from '../features/repertorios/pages/RepertorioExecucaoPage.js';
 import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.js';
 
@@ -13,6 +14,7 @@ const routes = {
   '/musicas/editar': MusicaEditarPage,
   '/repertorios': RepertoriosPage,
   '/repertorios/detalhe': RepertorioDetalhePage,
+  '/repertorios/editar': RepertorioEditarPage,
   '/repertorios/execucao': RepertorioExecucaoPage,
 };
 

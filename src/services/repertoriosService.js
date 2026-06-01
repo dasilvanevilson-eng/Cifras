@@ -20,6 +20,11 @@ export async function updateRepertorio(id, repertorio) {
   return supabase.from('repertorios').update(repertorio).eq('id', id).select().single();
 }
 
+export async function deleteRepertorio(id) {
+  assertSupabaseConfig();
+  return supabase.from('repertorios').delete().eq('id', id);
+}
+
 export async function listMusicasDoRepertorio(repertorioId) {
   assertSupabaseConfig();
   return supabase

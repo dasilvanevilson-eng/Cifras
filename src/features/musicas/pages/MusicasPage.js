@@ -60,7 +60,7 @@ export async function MusicasPage({ session } = {}) {
       return page;
     }
 
-    listSlot.replaceChildren(createMusicasTable(data));
+    listSlot.replaceChildren(createMusicasBrowser(data));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar as musicas.';
@@ -74,6 +74,60 @@ function createReadOnlyNotice(text) {
   notice.className = 'page-status';
   notice.textContent = text;
   return notice;
+}
+
+function createMusicasBrowser(musicas) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'list-browser';
+  wrapper.innerHTML = `
+    <div class="list-toolbar">
+      <label>
+        Buscar
+        <input class="search-input" type="search" placeholder="Titulo, artista, tom ou trecho da cifra">
+      </label>
+      <label>
+        Ordenar
+        <select class="sort-select">
+          <option value="titulo">Titulo</option>
+          <option value="artista">Artista</option>
+          <option value="tom">Tom</option>
+          <option value="recentes">Mais recentes</option>
+        </select>
+      </label>
+    </div>
+    <p class="list-summary"></p>
+    <div class="table-slot"></div>
+  `;
+
+  const searchInput = wrapper.querySelector('.search-input');
+  const sortSelect = wrapper.querySelector('.sort-select');
+  const summary = wrapper.querySelector('.list-summary');
+  const tableSlot = wrapper.querySelector('.table-slot');
+
+  function render() {
+    const query = normalizeText(searchInput.value);
+    const filtered = musicas
+      .filter((musica) => matchesSearch(musica, query))
+      .sort((a, b) => compareMusicas(a, b, sortSelect.value));
+
+    summary.textContent = formatSummary(filtered.length, musicas.length);
+
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.className = 'page-status';
+      empty.textContent = 'Nenhuma musica encontrada para esta busca.';
+      tableSlot.replaceChildren(empty);
+      return;
+    }
+
+    tableSlot.replaceChildren(createMusicasTable(filtered));
+  }
+
+  searchInput.addEventListener('input', render);
+  sortSelect.addEventListener('change', render);
+  render();
+
+  return wrapper;
 }
 
 function createMusicasTable(musicas) {
@@ -108,8 +162,63 @@ function createMusicasTable(musicas) {
   return table;
 }
 
+function matchesSearch(musica, query) {
+  if (!query) return true;
+
+  const searchableText = [
+    getField(musica, ['titulo', 'nome', 'title']),
+    getField(musica, ['artista', 'autor', 'artist']),
+    getField(musica, ['tom', 'key']),
+    getField(musica, ['cifra_original']),
+    getField(musica, ['cifra_chordpro', 'chordpro', 'conteudo_chordpro']),
+  ].join(' ');
+
+  return normalizeText(searchableText).includes(query);
+}
+
+function compareMusicas(a, b, sortBy) {
+  if (sortBy === 'recentes') {
+    return compareText(getField(b, ['created_at']), getField(a, ['created_at']));
+  }
+
+  return compareText(
+    getField(a, getSortFieldNames(sortBy)),
+    getField(b, getSortFieldNames(sortBy)),
+  );
+}
+
+function getSortFieldNames(sortBy) {
+  const fields = {
+    artista: ['artista', 'autor', 'artist'],
+    tom: ['tom', 'key'],
+    titulo: ['titulo', 'nome', 'title'],
+  };
+
+  return fields[sortBy] || fields.titulo;
+}
+
+function compareText(a, b) {
+  return String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' });
+}
+
+function formatSummary(filteredCount, totalCount) {
+  if (filteredCount === totalCount) {
+    return `${totalCount} musica${totalCount === 1 ? '' : 's'} cadastrada${totalCount === 1 ? '' : 's'}.`;
+  }
+
+  return `${filteredCount} de ${totalCount} musica${totalCount === 1 ? '' : 's'} encontrada${filteredCount === 1 ? '' : 's'}.`;
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 function getField(record, names) {
-  const fieldName = names.find((name) => record[name]);
+  const fieldName = names.find((name) => record?.[name]);
   return fieldName ? record[fieldName] : '-';
 }
 

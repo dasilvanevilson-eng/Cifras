@@ -1,0 +1,410 @@
+RELATORIO DE AVALIACAO DO PROJETO - MASTER CIFRAS
+Data da avaliacao: 2026-05-31
+Projeto: c:\Users\admin\Desktop\cifras_epc
+
+======================================================================
+1. RESUMO EXECUTIVO
+======================================================================
+
+O Master Cifras ja tem uma base funcional inicial: Vite, JavaScript
+modular, Supabase, login, perfis por papel, cadastro/listagem/edicao de
+musicas, cadastro/listagem de repertorios, associacao de musicas a
+repertorios, ordenacao simples e modo execucao para tocar o repertorio.
+
+O projeto ainda esta em fase MVP. A fundacao esta correta para evoluir,
+mas ainda falta acabamento profissional em produto, UX, responsividade,
+seguranca, fluxo de usuario, ferramentas musicais, qualidade de cifra,
+testes, tratamento de erros, deploy e documentacao operacional.
+
+Validacao tecnica feita:
+- `npm run build` executou com sucesso.
+- Build gerado em `dist/`.
+- Bundle principal atual: cerca de 233.85 kB, gzip cerca de 60.08 kB.
+- Nao foi feito teste real contra Supabase em producao nesta avaliacao.
+
+Estado Git observado:
+- Historico recente tem commits como "final do dia", "inicio",
+  "ajustes pequenos" e varias entradas de "Atualiza repertorios".
+- Ha um arquivo nao rastreado chamado `toggle` na raiz. Ele parece
+  acidental e deve ser analisado/removido quando for seguro.
+
+======================================================================
+2. STACK E ESTRUTURA ATUAL
+======================================================================
+
+Stack:
+- Vite 5.
+- JavaScript ES modules.
+- Supabase JS 2.
+- CSS global simples.
+- Sem framework de UI.
+- Sem biblioteca de roteamento.
+- Sem testes automatizados configurados.
+
+Estrutura principal:
+- `src/app`: roteamento e inicializacao.
+- `src/components`: layout e componentes UI simples.
+- `src/features/auth`: login e papeis.
+- `src/features/musicas`: paginas e formulario de musicas.
+- `src/features/repertorios`: paginas e formulario de repertorios.
+- `src/lib/supabase`: cliente Supabase.
+- `src/services`: camada de acesso ao Supabase.
+- `src/utils`: conversor simples de cifra para ChordPro.
+- `supabase/migrations`: schema de referencia com RLS.
+- `docs`: arquitetura e roadmap.
+- `dist`: build estatico gerado.
+
+======================================================================
+3. O QUE JA FOI FEITO
+======================================================================
+
+Base do projeto:
+- Estrutura de pastas organizada por app, components, features, lib,
+  services, utils, styles, docs e supabase.
+- Configuracao Vite funcionando.
+- `index.html` base.
+- Scripts `dev`, `build` e `preview`.
+- Documentos iniciais: README, ARQUITETURA e ROADMAP.
+
+Supabase:
+- Cliente Supabase configurado por variaveis:
+  `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+- Erro amigavel quando as variaveis nao estao configuradas.
+- Migration de referencia com tabelas:
+  `profiles`, `musicas`, `repertorios`, `repertorio_musicas`.
+- RLS ativado nas tabelas principais.
+- Policies para leitura autenticada e escrita por admin/editor.
+
+Autenticacao e permissoes:
+- Tela de login por email e senha.
+- Logout.
+- Busca do usuario atual.
+- Busca do perfil do usuario.
+- Fallback para perfil padrao `musico`.
+- Papeis previstos: `admin`, `editor`, `musico`.
+- Controle simples de edicao via `canEditContent`.
+
+Musicas:
+- Cadastro de musica com titulo, artista, tom e cifra original.
+- Conversao automatica basica para ChordPro.
+- Listagem de musicas.
+- Pagina de detalhe da musica.
+- Edicao de musica para admin/editor.
+- Visualizacao da cifra em fonte monoespacada.
+- Sanitizacao basica de HTML ao renderizar dados.
+
+Repertorios:
+- Cadastro de repertorio com nome e data.
+- Listagem de repertorios.
+- Pagina de detalhe do repertorio.
+- Adicao de musicas ao repertorio.
+- Listagem das musicas do repertorio.
+- Reordenacao por botoes "Subir" e "Descer".
+- Remocao de musica do repertorio.
+- Modo execucao com repertorio completo em sequencia.
+
+Interface:
+- Navegacao principal com links para Musicas e Repertorios.
+- Exibicao do email do usuario e papel.
+- Layout simples em grid.
+- Estados de carregamento, sucesso e erro basicos.
+- Responsividade minima para grid em telas menores.
+
+======================================================================
+4. LACUNAS E RISCOS ATUAIS
+======================================================================
+
+Produto e UX:
+- A tela inicial autenticada cai em musicas, mas nao ha dashboard.
+- Nao ha busca, filtros ou ordenacao nas listas.
+- Nao ha favoritos, recentes, historico ou categorias.
+- Formularios sao simples e sem validacoes musicais.
+- Nao ha confirmacao visual robusta apos acoes importantes.
+- Varias acoes recarregam a pagina inteira com `window.location.reload`.
+- Botoes e links usam textos simples; falta linguagem visual mais
+  profissional.
+- Nao ha modo escuro, ajustes de fonte ou preferencias de leitura.
+- Nao ha experiencia otimizada para palco/tablet/celular.
+
+Funcionalidades musicais:
+- Conversor ChordPro e regex de acordes sao bem basicos.
+- A regex nao cobre muitos acordes comuns, como C7M, C9, C/E com bemol
+  Unicode, acordes com parenteses, alteracoes complexas, baixo com
+  sustenido/bemol estendido, cifras latinas etc.
+- Nao ha transposicao de tom.
+- Nao ha capotraste.
+- Nao ha autoscroll.
+- Nao ha controle de tamanho de fonte no modo execucao.
+- Nao ha diagramas de acordes.
+- Nao ha metronomo, afinador, audio de referencia ou links de video.
+- Nao ha suporte real a tablaturas, partituras, anexos ou PDF.
+- Nao ha versoes de uma musica por tom, arranjo ou ministerio.
+
+Repertorios:
+- Nao ha edicao do nome/data do repertorio na interface.
+- Service tem `updateRepertorio`, mas nao ha pagina/fluxo usando isso.
+- Nao ha exclusao de repertorio na interface.
+- Nao ha prevencao visual para adicionar musica duplicada; o banco barra
+  por unique, mas a UX pode melhorar.
+- Ordenacao depende de troca de numeros e reload, sem drag and drop.
+- Nao ha informacoes de culto/evento, observacoes, responsavel, equipe,
+  BPM, tempo estimado ou ordem liturgica.
+- Nao ha compartilhamento por link, exportacao ou impressao.
+
+Usuarios e permissao:
+- `canManageUsers` existe, mas nao ha area de administracao de usuarios.
+- Nao ha criacao/edicao de perfis pela interface.
+- Nao ha protecao de rota por papel alem de esconder/bloquear edicao no
+  front-end; a seguranca real depende das policies do Supabase.
+- A policy "Usuario atualiza o proprio perfil" permite o usuario alterar
+  o proprio perfil inteiro, inclusive `papel`, caso o update seja feito
+  diretamente. Isso e um risco importante: um musico poderia tentar virar
+  editor/admin se a policy permanecer assim. Recomendacao: separar campos
+  editaveis pelo usuario e impedir alteracao propria de `papel`, deixando
+  papel apenas para admin.
+
+Arquitetura:
+- Roteamento manual depende de `window.location.pathname` e links normais.
+- Nao ha interceptacao de navegacao SPA; cada link pode recarregar a app.
+- Componentes repetem funcoes como `escapeHtml`, `getField` e `formatDate`.
+- Nao ha camada padronizada de erros, notificacoes ou loading.
+- Nao ha separacao clara entre componentes de apresentacao e containers.
+- Sem TypeScript, o que aumenta risco conforme o app crescer.
+- Sem lint/format configurados.
+
+Banco e dados:
+- Tabelas ainda sao basicas.
+- Falta `updated_at`.
+- Falta `created_by` e `updated_by` para auditoria.
+- Falta soft delete ou historico de edicoes.
+- Falta tabela de favoritos, tags, categorias, anexos, versoes,
+  comentarios, escalas/equipes e preferencias de usuario.
+- Falta indice e estrategia de busca textual.
+- Falta trigger para criar profile automaticamente apos cadastro no Auth.
+
+Qualidade e operacao:
+- Sem testes unitarios para conversao ChordPro.
+- Sem testes de integracao para services.
+- Sem testes E2E para login, cadastro, edicao e repertorio.
+- Sem pipeline de CI.
+- Sem checklist de deploy.
+- Sem monitoramento/logging.
+- Sem pagina de erro 404/sem permissao.
+- Sem estrategia offline/PWA.
+- Sem politica clara sobre direitos autorais de cifras.
+
+======================================================================
+5. FUNCIONALIDADES DE OUTROS SITES QUE PODEM INSPIRAR O MASTER CIFRAS
+======================================================================
+
+Referencias consultadas:
+- Cifra Club: https://www.cifraclub.com.br/
+- Padrao de cifragem Cifra Club:
+  https://suporte.cifraclub.com.br/pt-BR/support/solutions/articles/64000308284-conheca-o-padr%C3%A3o-de-cifragem-de-acordes-do-cifra-club
+- Padrao de tablaturas Cifra Club:
+  https://suporte.cifraclub.com.br/pt-BR/support/solutions/articles/64000308285-conheca-o-padr%C3%A3o-de-tablaturas-do-cifra-club
+- Ultimate Guitar app/features:
+  https://apps.apple.com/us/app/ultimate-guitar-chords-tabs/id357828853
+- Ultimate Guitar / Muse Group:
+  https://www.mu.se/ultimate-guitar
+- SongSelect CCLI:
+  https://fr.ccli.com/songselect/?lang=en
+
+Ideias observadas no Cifra Club:
+- Busca principal forte: "O que voce quer tocar?"
+- Musicas em alta.
+- Estilos musicais.
+- Filtros por tipo de conteudo: cifra, letra, Guitar Pro, tabs de baixo,
+  partituras.
+- Paginas por artista.
+- Favoritar.
+- Compartilhar.
+- Enviar cifra.
+- Tom exibido nas listagens.
+- Ferramentas como afinador e metronomo.
+- Padroes editoriais para cifragem e tablatura.
+
+Ideias observadas no Ultimate Guitar:
+- Catalogo grande com acordes, tabs e letras.
+- Playlists/colecoes.
+- Abas pessoais para editar acordes/letras.
+- Modo canhoto.
+- Ajuste de fonte e tamanho.
+- Acesso offline a favoritos.
+- Modo escuro para tocar.
+- Tabs interativas.
+- Variacoes de acordes.
+- Simplificacao de musicas dificeis.
+- Backing tracks e letras sincronizadas.
+- Metronomo, afinador, transposicao, autoscroll.
+- Compartilhar, imprimir e exportar.
+- Diagramas de acordes e padroes de batida.
+
+Ideias observadas no SongSelect/CCLI:
+- Foco em igrejas/equipes de louvor.
+- Letras, chord sheets, lead sheets e vocal sheets.
+- Transposicao automatica.
+- Sistema numerico de acordes.
+- Previews de audio.
+- Exportacao em PDF e ChordPro.
+- Compartilhamento com equipe.
+- Importacao para softwares de planejamento.
+
+Ideias mais adequadas para o Master Cifras:
+- Busca por titulo, artista, trecho da letra/cifra e tom.
+- Transposicao de tom diretamente na musica e no repertorio.
+- Modo execucao com autoscroll, tamanho de fonte, tema escuro e tela cheia.
+- Favoritos e repertorios recentes.
+- Compartilhamento/exportacao de repertorio em PDF/ChordPro.
+- Metadados de culto/evento: data, horario, local, dirigente, ministrante,
+  observacoes e equipe.
+- Versoes por arranjo: original, simplificada, acustica, banda completa,
+  tom feminino/masculino.
+- Sistema numerico para facilitar mudanca de tom.
+- Padrao editorial interno de cifras.
+- Area de administracao de usuarios e permissoes.
+
+======================================================================
+6. ALTERACOES E IMPLEMENTACOES PARA TORNAR O SITE PROFISSIONAL
+======================================================================
+
+Prioridade P0 - corrigir riscos e completar MVP
+- Corrigir policy de `profiles` para impedir usuario comum de alterar o
+  proprio `papel`.
+- Criar trigger no Supabase para gerar profile automaticamente no cadastro.
+- Adicionar campos `created_by`, `updated_by`, `updated_at` nas tabelas.
+- Criar pagina/fluxo de edicao de repertorio.
+- Criar exclusao de musica e repertorio com confirmacao.
+- Evitar adicionar musica duplicada ao repertorio na UI.
+- Melhorar mensagens de erro do Supabase para textos compreensiveis.
+- Remover ou decidir sobre o arquivo nao rastreado `toggle`.
+- Criar pagina 404 e pagina "sem permissao".
+- Adicionar README com passos reais de setup do Supabase e env.
+- Documentar como aplicar migrations.
+
+Prioridade P1 - experiencia principal de uso
+- Criar dashboard inicial com atalhos, repertorios proximos, musicas
+  recentes e favoritos.
+- Implementar busca de musicas por titulo, artista, tom e conteudo.
+- Implementar filtros e ordenacao nas listas.
+- Melhorar layout responsivo para celular e tablet.
+- Criar navegacao SPA sem reload desnecessario.
+- Trocar reloads por atualizacao local de estado/lista.
+- Criar sistema de notificacoes/toasts.
+- Criar loading skeleton ou estados visuais mais refinados.
+- Adicionar tema escuro, especialmente no modo execucao.
+- Adicionar controle de tamanho de fonte no modo execucao.
+- Adicionar tela cheia no modo execucao.
+- Adicionar autoscroll com velocidade configuravel.
+- Adicionar botoes de proxima/anterior musica no repertorio.
+- Adicionar opcao de esconder/mostrar acordes.
+- Adicionar impressao limpa de musica e repertorio.
+- Exportar musica/repertorio em PDF.
+- Exportar/importar ChordPro.
+
+Prioridade P2 - ferramentas musicais
+- Implementar transposicao de acordes.
+- Implementar capotraste.
+- Implementar sistema numerico de acordes.
+- Melhorar parser/conversor ChordPro com cobertura de acordes reais.
+- Criar validacao/preview ao digitar cifra.
+- Adicionar dicionario/diagrama de acordes.
+- Adicionar metronomo.
+- Adicionar campo BPM, compasso e andamento.
+- Adicionar links de video/audio de referencia.
+- Adicionar suporte a tablaturas em fonte monoespacada com padrao definido.
+- Criar versoes de musica por tom/arranjo.
+- Criar simplificacao de acordes ou versao simplificada manual.
+
+Prioridade P3 - repertorio profissional para igrejas/equipes
+- Adicionar tipo de evento: culto, ensaio, celula, conferencia etc.
+- Adicionar horario, local, observacoes e responsavel.
+- Adicionar equipe/escalados por funcao: vocal, violao, guitarra, baixo,
+  bateria, teclado, ministro, som, midia.
+- Adicionar status do repertorio: rascunho, em revisao, aprovado,
+  executado.
+- Adicionar comentarios internos por musica/repertorio.
+- Adicionar anexos por musica: PDF, partitura, guia vocal, audio.
+- Adicionar compartilhamento por link privado.
+- Adicionar convite/visao somente leitura para musicos.
+- Adicionar confirmacao de disponibilidade dos integrantes.
+- Adicionar historico de repertorios por data.
+- Adicionar duplicar repertorio.
+- Adicionar modelos de repertorio.
+
+Prioridade P4 - area administrativa
+- Criar pagina de usuarios.
+- Admin altera papel de usuario.
+- Admin ativa/desativa usuarios.
+- Criar auditoria de alteracoes.
+- Criar configuracoes globais do sistema.
+- Criar categorias/tags oficiais.
+- Criar backup/exportacao de dados.
+- Criar importacao em lote de musicas.
+
+Prioridade P5 - qualidade tecnica
+- Adicionar TypeScript ou JSDoc rigoroso.
+- Adicionar ESLint e Prettier.
+- Adicionar Vitest para unit tests.
+- Testar `convertToChordPro` com muitos acordes reais.
+- Adicionar Playwright para fluxos principais.
+- Criar mocks de Supabase para testes.
+- Criar CI para build/test/lint.
+- Criar camada central de erros.
+- Criar helpers compartilhados para escape, datas, campos e DOM.
+- Criar componentes UI consistentes: Button, Input, Select, Table, Modal,
+  Toast, EmptyState.
+- Melhorar acessibilidade: labels, foco visivel, aria, contraste,
+  navegacao por teclado.
+- Revisar seguranca contra XSS em todos os pontos com `innerHTML`.
+- Definir politica de performance e bundle.
+
+Prioridade P6 - identidade visual e profissionalismo
+- Criar identidade visual: logo, paleta, tipografia e espacamento.
+- Criar layout com barra lateral ou topbar mais robusta.
+- Melhorar pagina de login com marca e estados claros.
+- Criar componentes visuais consistentes com raio, borda, sombra e estados.
+- Criar empty states melhores para listas vazias.
+- Criar estados de erro com acao de recuperacao.
+- Criar favicon e metadados.
+- Criar design responsivo para uso em palco.
+- Criar pagina publica opcional de apresentacao do projeto, se necessario.
+
+Prioridade P7 - deploy e operacao
+- Configurar ambiente de producao.
+- Escolher hospedagem: Vercel, Netlify ou similar.
+- Definir variaveis de ambiente por ambiente.
+- Criar checklist de deploy.
+- Configurar dominio.
+- Configurar logs/monitoramento de erros.
+- Criar rotina de backup do Supabase.
+- Criar documentacao para restaurar o projeto do zero.
+
+======================================================================
+7. SUGESTAO DE ORDEM PARA RECOMECAR O TRABALHO
+======================================================================
+
+1. Corrigir seguranca de `profiles.papel` no Supabase.
+2. Limpar arquivo `toggle` se for acidental.
+3. Completar CRUD de repertorios e exclusoes.
+4. Implementar busca e filtros nas musicas.
+5. Melhorar modo execucao: tela cheia, fonte, tema escuro e autoscroll.
+6. Implementar transposicao de acordes.
+7. Melhorar design geral com componentes UI consistentes.
+8. Criar testes para conversor ChordPro e fluxos principais.
+9. Criar area admin de usuarios.
+10. Preparar deploy profissional.
+
+======================================================================
+8. OBSERVACOES FINAIS
+======================================================================
+
+O projeto esta no caminho certo para um MVP de cifras e repertorios. A
+melhor proxima decisao e nao tentar adicionar tudo de uma vez. O ganho
+mais alto agora esta em fechar a base profissional: seguranca de papeis,
+CRUD completo, busca, modo execucao forte e uma UI consistente.
+
+Depois disso, as funcionalidades musicais como transposicao, autoscroll,
+capotraste, diagramas e exportacao vao transformar o sistema de "cadastro
+de cifras" para uma ferramenta realmente util em ensaio, culto e palco.
+
