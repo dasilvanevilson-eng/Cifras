@@ -79,6 +79,79 @@ a {
   margin-bottom: 12px;
 }
 
+.dashboard-page {
+  max-width: 1180px;
+}
+
+.dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.dashboard-list {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-search {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.dashboard-search input {
+  width: 100%;
+  border: 1px solid #cfc7b8;
+  padding: 10px 12px;
+  font: inherit;
+  background: #ffffff;
+}
+
+.dashboard-list-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ddd6c8;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.dashboard-list-item h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.dashboard-list-item p {
+  margin: 0;
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.dashboard-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashboard-item-actions a {
+  color: #1d4f45;
+}
+
 .page h2 {
   margin-top: 0;
   font-size: 20px;
@@ -174,6 +247,21 @@ a {
   gap: 8px;
 }
 
+.inline-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.inline-edit input {
+  width: 90px;
+  border: 1px solid #cfc7b8;
+  padding: 8px 10px;
+  font: inherit;
+  background: #ffffff;
+}
+
 .back-link {
   display: inline-block;
   margin-bottom: 24px;
@@ -215,6 +303,21 @@ a {
 .song-header p {
   margin: 0;
   color: #5f594f;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tag-list span {
+  border: 1px solid #ddd6c8;
+  padding: 4px 8px;
+  background: #ffffff;
+  color: #5f594f;
+  font-size: 13px;
 }
 
 .transpose-toolbar {
@@ -423,6 +526,17 @@ a {
   white-space: pre;
 }
 
+.field-with-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.field-action-link {
+  color: #1d4f45;
+}
+
 .cifra-editor-grid {
   display: grid;
   grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
@@ -486,6 +600,15 @@ a {
 
   .list-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-list-item {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .cifra-editor-grid {

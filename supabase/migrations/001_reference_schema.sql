@@ -74,6 +74,8 @@ create table if not exists musicas (
   titulo text not null,
   artista text,
   tom text,
+  tags text,
+  musica_link text,
   cifra_original text not null,
   cifra_chordpro text not null,
   created_at timestamptz not null default now()
@@ -137,6 +139,7 @@ create table if not exists repertorio_musicas (
   repertorio_id uuid not null references repertorios(id) on delete cascade,
   musica_id uuid not null references musicas(id) on delete restrict,
   ordem integer not null default 1,
+  tom text,
   created_at timestamptz not null default now(),
   unique (repertorio_id, musica_id)
 );

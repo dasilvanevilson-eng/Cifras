@@ -1,6 +1,7 @@
 import { getMusicaById } from '../../../services/musicasService.js';
 import { extractLyricsFromCifraOriginal } from '../../../utils/chordpro.js';
 import { downloadTextFile, slugifyFilename } from '../../../utils/download.js';
+import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function MusicaLetraDetalhePage() {
   const page = document.createElement('section');
@@ -22,6 +23,13 @@ export async function MusicaLetraDetalhePage() {
     if (error) {
       throw error;
     }
+
+    addRecentItem({
+      type: 'letra',
+      label: getField(musica, ['titulo', 'nome', 'title']),
+      detail: getField(musica, ['artista', 'autor', 'artist']),
+      url: `/musicas-letras/detalhe?id=${encodeURIComponent(id)}`,
+    });
 
     page.replaceChildren(createLetraView(musica));
   } catch (error) {

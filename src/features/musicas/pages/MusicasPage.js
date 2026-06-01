@@ -9,7 +9,6 @@ export async function MusicasPage({ session } = {}) {
   page.innerHTML = `
     <h1>Musicas Cifradas</h1>
     <section class="music-search-panel">
-      <h2>Musicas cifradas cadastradas</h2>
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>
       </div>
@@ -153,6 +152,7 @@ function createMusicasTable(musicas) {
         <th>Titulo</th>
         <th>Artista</th>
         <th>Tom</th>
+        <th>Tags</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -169,6 +169,7 @@ function createMusicasTable(musicas) {
       <td><a href="/musicas/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(title)}</a></td>
       <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
       <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
+      <td>${escapeHtml(formatTags(getField(musica, ['tags'])))}</td>
     `;
     body.append(row);
   });
@@ -182,11 +183,19 @@ function matchesSearch(musica, query) {
   const searchableText = [
     getField(musica, ['titulo', 'nome', 'title']),
     getField(musica, ['artista', 'autor', 'artist']),
+    getField(musica, ['tags']),
+    getField(musica, ['musica_link']),
     getField(musica, ['cifra_original']),
     getField(musica, ['cifra_chordpro', 'chordpro', 'conteudo_chordpro']),
   ].join(' ');
 
   return normalizeText(searchableText).includes(query);
+}
+
+function formatTags(value) {
+  if (!value || value === '-') return '-';
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value);
 }
 
 function compareMusicas(a, b, sortBy) {

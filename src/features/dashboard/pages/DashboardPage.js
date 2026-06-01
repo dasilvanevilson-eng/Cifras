@@ -1,6 +1,5 @@
 import { listMusicas } from '../../../services/musicasService.js';
 import { listRepertorios } from '../../../services/repertoriosService.js';
-import { canEditContent } from '../../auth/roles.js';
 
 export async function DashboardPage({ session } = {}) {
   const page = document.createElement('section');
@@ -21,7 +20,6 @@ export async function DashboardPage({ session } = {}) {
     page.replaceChildren(createDashboardView({
       musicas: musicas || [],
       repertorios: repertorios || [],
-      canEdit: canEditContent(session?.profile?.papel),
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -31,7 +29,7 @@ export async function DashboardPage({ session } = {}) {
   return page;
 }
 
-function createDashboardView({ musicas, repertorios, canEdit }) {
+function createDashboardView({ musicas, repertorios }) {
   const wrapper = document.createElement('section');
   const proximosRepertorios = getProximosRepertorios(repertorios).slice(0, 5);
   const musicasRecentes = getMusicasRecentes(musicas).slice(0, 5);
@@ -39,42 +37,70 @@ function createDashboardView({ musicas, repertorios, canEdit }) {
   wrapper.innerHTML = `
     <header class="dashboard-header">
       <h1>Painel</h1>
-      <div class="dashboard-actions">
-        ${canEdit ? '<a class="button-link" href="/musicas">Nova musica cifrada</a>' : ''}
-        <a class="button-link secondary" href="/musicas-letras">Consultar letras</a>
-        <a class="button-link secondary" href="/repertorios">Repertorios</a>
-      </div>
     </header>
-    <section class="summary-grid">
-      ${createSummaryCard('Musicas cifradas', musicas.length)}
-      ${createSummaryCard('Repertorios', repertorios.length)}
-      ${createSummaryCard('Proximos repertorios', getProximosRepertorios(repertorios).length)}
-    </section>
     <div class="dashboard-grid">
       <section>
-        <h2>Repertorios proximos</h2>
+        <h2>Repertorios</h2>
+        <label class="dashboard-search">
+          Buscar
+          <input type="search" data-search="repertorios" placeholder="Nome ou data">
+        </label>
         <div class="dashboard-list-slot" data-slot="repertorios"></div>
       </section>
       <section>
-        <h2>Musicas recentes</h2>
+        <h2>Musicas</h2>
+        <label class="dashboard-search">
+          Buscar
+          <input type="search" data-search="musicas" placeholder="Titulo ou artista">
+        </label>
         <div class="dashboard-list-slot" data-slot="musicas"></div>
       </section>
     </div>
   `;
 
-  wrapper.querySelector('[data-slot="repertorios"]').append(createRepertoriosList(proximosRepertorios));
-  wrapper.querySelector('[data-slot="musicas"]').append(createMusicasList(musicasRecentes));
+  setupDashboardSearch({
+    input: wrapper.querySelector('[data-search="repertorios"]'),
+    slot: wrapper.querySelector('[data-slot="repertorios"]'),
+    items: proximosRepertorios,
+    render: createRepertoriosList,
+    getUrl: getRepertorioUrl,
+  });
+  setupDashboardSearch({
+    input: wrapper.querySelector('[data-search="musicas"]'),
+    slot: wrapper.querySelector('[data-slot="musicas"]'),
+    items: musicasRecentes,
+    render: createMusicasList,
+    getUrl: getMusicaUrl,
+  });
 
   return wrapper;
 }
 
-function createSummaryCard(label, value) {
-  return `
-    <article class="summary-card">
-      <strong>${value}</strong>
-      <span>${label}</span>
-    </article>
-  `;
+function setupDashboardSearch({ input, slot, items, render, getUrl }) {
+  let currentItems = items;
+
+  function update() {
+    const query = normalizeText(input.value);
+    currentItems = query
+      ? items.filter((item) => normalizeText([
+        getField(item, ['nome', 'titulo', 'name', 'title']),
+        getField(item, ['artista', 'autor', 'artist']),
+        getField(item, ['tags']),
+        formatDate(getField(item, ['data', 'date'])),
+      ].join(' ')).includes(query))
+      : items;
+
+    slot.replaceChildren(render(currentItems));
+  }
+
+  input.addEventListener('input', update);
+  input.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || !currentItems.length) return;
+
+    event.preventDefault();
+    window.location.href = getUrl(currentItems[0]);
+  });
+  update();
 }
 
 function createRepertoriosList(repertorios) {
@@ -88,16 +114,24 @@ function createRepertoriosList(repertorios) {
   repertorios.forEach((repertorio) => {
     const item = document.createElement('article');
     item.className = 'dashboard-list-item';
+    item.tabIndex = 0;
     item.innerHTML = `
       <div>
         <h3>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</h3>
         <p>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a href="/repertorios/detalhe?id=${encodeURIComponent(repertorio.id)}">Abrir</a>
-        <a href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Executar</a>
+        <a href="${escapeHtml(getRepertorioUrl(repertorio))}">Visualizar</a>
       </div>
     `;
+    item.addEventListener('click', (event) => {
+      if (event.target.closest('a')) return;
+      window.location.href = getRepertorioUrl(repertorio);
+    });
+    item.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      window.location.href = getRepertorioUrl(repertorio);
+    });
     list.append(item);
   });
 
@@ -115,16 +149,24 @@ function createMusicasList(musicas) {
   musicas.forEach((musica) => {
     const item = document.createElement('article');
     item.className = 'dashboard-list-item';
+    item.tabIndex = 0;
     item.innerHTML = `
       <div>
         <h3>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</h3>
         <p>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a href="/musicas/detalhe?id=${encodeURIComponent(musica.id)}">Cifra</a>
-        <a href="/musicas-letras/detalhe?id=${encodeURIComponent(musica.id)}">Letra</a>
+        <a href="${escapeHtml(getMusicaUrl(musica))}">Visualizar</a>
       </div>
     `;
+    item.addEventListener('click', (event) => {
+      if (event.target.closest('a')) return;
+      window.location.href = getMusicaUrl(musica);
+    });
+    item.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      window.location.href = getMusicaUrl(musica);
+    });
     list.append(item);
   });
 
@@ -136,6 +178,14 @@ function createEmptyState(text) {
   empty.className = 'page-status';
   empty.textContent = text;
   return empty;
+}
+
+function getRepertorioUrl(repertorio) {
+  return `/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}&returnTo=/dashboard`;
+}
+
+function getMusicaUrl(musica) {
+  return `/musicas/execucao?id=${encodeURIComponent(musica.id)}&returnTo=/dashboard`;
 }
 
 function getProximosRepertorios(repertorios) {
@@ -157,6 +207,14 @@ function getMusicasRecentes(musicas) {
 
 function compareText(a, b) {
   return String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' });
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function getField(record, names) {

@@ -52,6 +52,8 @@ function createEditView(id, musica) {
       titulo: musica.titulo || '',
       artista: musica.artista || '',
       tom: musica.tom || '',
+      tags: musica.tags || '',
+      musica_link: musica.musica_link || '',
       cifra_original: musica.cifra_original || '',
       cifra_chordpro: musica.cifra_chordpro || '',
     },

@@ -1,65 +1,52 @@
-import {
-  getRepertorioById,
-  listMusicasDoRepertorio,
-} from '../../../services/repertoriosService.js';
+import { getMusicaById } from '../../../services/musicasService.js';
 import { convertCifraOriginalToNumbers, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
-import { addRecentItem } from '../../../utils/recentItems.js';
 
-export async function RepertorioExecucaoPage() {
+export async function MusicaExecucaoPage() {
   const page = document.createElement('section');
   page.className = 'performance-page';
-  page.innerHTML = '<div class="page-status">Carregando repertorio...</div>';
+  page.innerHTML = '<div class="page-status">Carregando musica...</div>';
 
   const status = page.querySelector('.page-status');
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
-  const returnTo = params.get('returnTo') || '/repertorios/detalhe';
+  const returnTo = params.get('returnTo') || '/musicas';
 
   if (!id) {
     status.className = 'page-status error';
-    status.textContent = 'Repertorio nao informado.';
+    status.textContent = 'Musica nao informada.';
     return page;
   }
 
   try {
-    const [{ data: repertorio, error: repertorioError }, { data: musicasAssociadas, error: musicasError }] = await Promise.all([
-      getRepertorioById(id),
-      listMusicasDoRepertorio(id),
-    ]);
+    const { data: musica, error } = await getMusicaById(id);
 
-    if (repertorioError) throw repertorioError;
-    if (musicasError) throw musicasError;
+    if (error) {
+      throw error;
+    }
 
-    addRecentItem({
-      type: 'execucao',
-      label: getField(repertorio, ['nome', 'titulo', 'name']),
-      detail: formatDate(getField(repertorio, ['data', 'date'])),
-      url: `/repertorios/execucao?id=${encodeURIComponent(id)}`,
-    });
-
-    page.replaceChildren(createPerformanceView({
-      repertorio,
-      musicasAssociadas: normalizeOrder(musicasAssociadas || []),
-      returnTo,
-    }));
+    page.replaceChildren(createPerformanceView({ musica, returnTo }));
   } catch (error) {
     status.className = 'page-status error';
-    status.textContent = error.message || 'Nao foi possivel carregar o repertorio.';
+    status.textContent = error.message || 'Nao foi possivel carregar a musica.';
   }
 
   return page;
 }
 
-function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
+function createPerformanceView({ musica, returnTo }) {
   const wrapper = document.createElement('article');
-  const nome = getField(repertorio, ['nome', 'titulo', 'name']);
-  const data = formatDate(getField(repertorio, ['data', 'date']));
+  const title = getField(musica, ['titulo', 'nome', 'title']);
+  const artist = getField(musica, ['artista', 'autor', 'artist']);
+  const key = getField(musica, ['tom', 'key']);
+  const link = getField(musica, ['musica_link']);
+  const cifraOriginal = getField(musica, ['cifra_original']);
 
   wrapper.innerHTML = `
-    <a class="back-link" href="${escapeHtml(getBackUrl(returnTo, repertorio.id))}">Voltar</a>
+    <a class="back-link" href="${escapeHtml(returnTo)}">Voltar</a>
     <header class="performance-header">
-      <h1>${escapeHtml(nome)}</h1>
-      <p>${escapeHtml(data)}</p>
+      <h1>${escapeHtml(title)}</h1>
+      <p>${escapeHtml(artist)} - Tom: <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span></p>
+      ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
     <div class="performance-toolbar">
       <button class="nav-button" type="button" data-action="theme">Tema escuro</button>
@@ -72,8 +59,6 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
         Velocidade
         <input type="range" min="1" max="8" value="3" data-action="speed">
       </label>
-      <button class="nav-button" type="button" data-action="previous-song">Anterior</button>
-      <button class="nav-button" type="button" data-action="next-song">Proxima</button>
       <button class="nav-button" type="button" data-action="fullscreen">Tela cheia</button>
       <button class="nav-button" type="button" data-action="print">Imprimir</button>
       <button class="nav-button" type="button" data-action="transpose-down">-1</button>
@@ -88,51 +73,11 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
         </select>
       </label>
     </div>
-    <div class="performance-list"></div>
-  `;
-
-  const list = wrapper.querySelector('.performance-list');
-
-  if (!musicasAssociadas.length) {
-    const empty = document.createElement('p');
-    empty.className = 'page-status';
-    empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
-    list.append(empty);
-    setupPerformanceControls(wrapper);
-    return wrapper;
-  }
-
-  musicasAssociadas.forEach((item, index) => {
-    list.append(createSongBlock(item, index + 1));
-  });
-
-  setupPerformanceControls(wrapper);
-  return wrapper;
-}
-
-function createSongBlock(item, number) {
-  const musica = item.musicas || {};
-  const title = getField(musica, ['titulo', 'nome', 'title']);
-  const artist = getField(musica, ['artista', 'autor', 'artist']);
-  const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
-  const cifraOriginal = getField(musica, ['cifra_original']);
-
-  const block = document.createElement('section');
-  block.className = 'performance-song';
-  block.id = `musica-${number}`;
-  block.tabIndex = -1;
-  block.innerHTML = `
-    <header>
-      <span>${number}</span>
-      <div>
-        <h2>${escapeHtml(title)}</h2>
-        <p>${escapeHtml(artist)} - Tom: <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span></p>
-      </div>
-    </header>
     <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${escapeHtml(cifraOriginal)}</pre>
   `;
 
-  return block;
+  setupPerformanceControls(wrapper);
+  return wrapper;
 }
 
 function setupPerformanceControls(wrapper) {
@@ -140,8 +85,6 @@ function setupPerformanceControls(wrapper) {
   const fontSizeInput = wrapper.querySelector('[data-action="font-size"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
   const speedInput = wrapper.querySelector('[data-action="speed"]');
-  const previousSongButton = wrapper.querySelector('[data-action="previous-song"]');
-  const nextSongButton = wrapper.querySelector('[data-action="next-song"]');
   const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
   const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
@@ -150,9 +93,7 @@ function setupPerformanceControls(wrapper) {
   const numbersButton = wrapper.querySelector('[data-action="numbers"]');
   const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
-  const songs = [...wrapper.querySelectorAll('.performance-song')];
   let scrollTimer = null;
-  let currentSongIndex = 0;
   let semitones = 0;
   let showNumbers = false;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
@@ -166,7 +107,7 @@ function setupPerformanceControls(wrapper) {
   capoSelect.value = String(capo);
   setPerformanceTheme(wrapper, themeButton, savedTheme);
   setPerformanceFontSize(wrapper, savedFontSize);
-  renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+  renderPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
 
   themeButton.addEventListener('click', () => {
     const nextTheme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -197,19 +138,6 @@ function setupPerformanceControls(wrapper) {
     }, 80);
   });
 
-  previousSongButton.disabled = songs.length <= 1;
-  nextSongButton.disabled = songs.length <= 1;
-
-  previousSongButton.addEventListener('click', () => {
-    currentSongIndex = Math.max(0, getCurrentSongIndex(songs) - 1);
-    scrollToSong(songs, currentSongIndex);
-  });
-
-  nextSongButton.addEventListener('click', () => {
-    currentSongIndex = Math.min(songs.length - 1, getCurrentSongIndex(songs) + 1);
-    scrollToSong(songs, currentSongIndex);
-  });
-
   fullscreenButton.addEventListener('click', async () => {
     try {
       if (document.fullscreenElement) {
@@ -232,29 +160,41 @@ function setupPerformanceControls(wrapper) {
 
   transposeDownButton.addEventListener('click', () => {
     semitones -= 1;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    renderPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   transposeUpButton.addEventListener('click', () => {
     semitones += 1;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    renderPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   transposeResetButton.addEventListener('click', () => {
     semitones = 0;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    renderPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   numbersButton.addEventListener('click', () => {
     showNumbers = !showNumbers;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    renderPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   capoSelect.addEventListener('change', () => {
     capo = Number(capoSelect.value || 0);
     window.localStorage.setItem('masterCifras.performanceCapo', String(capo));
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    renderPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
+}
+
+function renderPerformance(wrapper, semitones, capo, showNumbers, status, numbersButton) {
+  const view = wrapper.querySelector('.chordpro-view');
+  const key = wrapper.querySelector('.current-key');
+  const displayedKey = transposeKey(key.dataset.originalKey || '-', semitones);
+  const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+
+  view.textContent = showNumbers ? convertCifraOriginalToNumbers(displayedCifra, displayedKey) : displayedCifra;
+  key.textContent = displayedKey;
+  status.textContent = formatTransposeStatus(semitones, capo);
+  numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
 }
 
 function setPerformanceTheme(wrapper, button, theme) {
@@ -264,45 +204,6 @@ function setPerformanceTheme(wrapper, button, theme) {
 
 function setPerformanceFontSize(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
-}
-
-function getCurrentSongIndex(songs) {
-  if (!songs.length) return 0;
-
-  const toolbarOffset = 96;
-
-  for (let index = songs.length - 1; index >= 0; index -= 1) {
-    if (songs[index].getBoundingClientRect().top <= toolbarOffset) {
-      return index;
-    }
-  }
-
-  return 0;
-}
-
-function scrollToSong(songs, index) {
-  const song = songs[index];
-
-  if (!song) return;
-
-  song.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  song.focus({ preventScroll: true });
-}
-
-function renderTransposedPerformance(wrapper, semitones, capo, showNumbers, status, numbersButton) {
-  wrapper.querySelectorAll('.chordpro-view').forEach((view) => {
-    const keyElement = view.closest('.performance-song')?.querySelector('.current-key');
-    const displayedKey = transposeKey(keyElement?.dataset.originalKey || '-', semitones);
-    const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
-    view.textContent = showNumbers ? convertCifraOriginalToNumbers(displayedCifra, displayedKey) : displayedCifra;
-  });
-
-  wrapper.querySelectorAll('.current-key').forEach((key) => {
-    key.textContent = transposeKey(key.dataset.originalKey || '-', semitones);
-  });
-
-  status.textContent = formatTransposeStatus(semitones, capo);
-  numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
 }
 
 function createCapoOptions() {
@@ -319,27 +220,9 @@ function formatTransposeStatus(semitones, capo) {
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
 
-function normalizeOrder(items) {
-  return [...items].sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
-}
-
 function getField(record, names) {
   const fieldName = names.find((name) => record?.[name]);
   return fieldName ? String(record[fieldName]) : '-';
-}
-
-function formatDate(value) {
-  if (!value || value === '-') return '-';
-  const [year, month, day] = value.split('-');
-  return day && month && year ? `${day}/${month}/${year}` : value;
-}
-
-function getBackUrl(returnTo, repertorioId) {
-  if (returnTo === '/dashboard') {
-    return returnTo;
-  }
-
-  return `/repertorios/detalhe?id=${encodeURIComponent(repertorioId)}`;
 }
 
 function escapeHtml(value) {

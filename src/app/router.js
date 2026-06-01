@@ -1,6 +1,8 @@
 import { LoginPage } from '../features/auth/pages/LoginPage.js';
+import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.js';
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
+import { MusicaExecucaoPage } from '../features/musicas/pages/MusicaExecucaoPage.js';
 import { MusicaLetraDetalhePage } from '../features/musicas/pages/MusicaLetraDetalhePage.js';
 import { MusicasPage } from '../features/musicas/pages/MusicasPage.js';
 import { MusicasLetrasPage } from '../features/musicas/pages/MusicasLetrasPage.js';
@@ -11,9 +13,11 @@ import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.j
 
 const routes = {
   '/login': LoginPage,
+  '/dashboard': DashboardPage,
   '/musicas': MusicasPage,
   '/musicas/detalhe': MusicaDetalhePage,
   '/musicas/editar': MusicaEditarPage,
+  '/musicas/execucao': MusicaExecucaoPage,
   '/musicas-letras': MusicasLetrasPage,
   '/musicas-letras/detalhe': MusicaLetraDetalhePage,
   '/repertorios': RepertoriosPage,
@@ -36,10 +40,10 @@ export function createRouter() {
       }
 
       if (session.user && path === '/login') {
-        window.history.replaceState(null, '', '/musicas');
+        window.history.replaceState(null, '', '/dashboard');
       }
 
-      const Page = routes[window.location.pathname] || MusicasPage;
+      const Page = routes[window.location.pathname] || DashboardPage;
       return Page({ session });
     },
   };

@@ -7,8 +7,10 @@ import {
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
   updateOrdemMusicaRepertorio,
+  updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
+import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function RepertorioDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -16,7 +18,9 @@ export async function RepertorioDetalhePage({ session } = {}) {
   page.innerHTML = '<div class="page-status">Carregando repertorio...</div>';
 
   const status = page.querySelector('.page-status');
-  const id = new URLSearchParams(window.location.search).get('id');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const returnTo = params.get('returnTo') || '/repertorios';
 
   if (!id) {
     status.className = 'page-status error';
@@ -34,11 +38,19 @@ export async function RepertorioDetalhePage({ session } = {}) {
     if (repertorioError) throw repertorioError;
     if (musicasError) throw musicasError;
 
+    addRecentItem({
+      type: 'repertorio',
+      label: getField(repertorio, ['nome', 'titulo', 'name']),
+      detail: formatDate(getField(repertorio, ['data', 'date'])),
+      url: `/repertorios/detalhe?id=${encodeURIComponent(id)}`,
+    });
+
     page.replaceChildren(createRepertorioView({
       repertorio,
       musicasAssociadas,
       musicas: musicas || [],
       canEdit: canEditContent(session?.profile?.papel),
+      returnTo,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -58,13 +70,13 @@ async function loadMusicasDoRepertorio(repertorioId) {
   return data || [];
 }
 
-function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit }) {
+function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit, returnTo }) {
   const wrapper = document.createElement('section');
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
 
   wrapper.innerHTML = `
-    <a class="back-link" href="/repertorios">Voltar para repertorios</a>
+    <a class="back-link" href="${escapeHtml(returnTo || '/repertorios')}">Voltar</a>
     <div class="page-actions">
       <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Modo execucao</a>
     </div>
@@ -204,6 +216,8 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
 
     const formData = new FormData(form);
     const musicaId = String(formData.get('musica_id') || '');
+    const musicaSelecionada = musicas.find((musica) => musica.id === musicaId);
+    const tom = getField(musicaSelecionada || {}, ['tom', 'key']);
 
     if (musicasAdicionadas.has(musicaId)) {
       message.className = 'form-message error';
@@ -216,7 +230,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
     message.textContent = 'Adicionando...';
 
     try {
-      const { error } = await addMusicaToRepertorio(repertorioId, musicaId, proximaOrdem);
+      const { error } = await addMusicaToRepertorio(repertorioId, musicaId, proximaOrdem, tom !== '-' ? tom : null);
 
       if (error) {
         throw error;
@@ -263,9 +277,18 @@ function createMusicasList(items, options = {}) {
     row.innerHTML = `
       <td>${escapeHtml(item.ordem || '-')}</td>
       <td><a href="/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}">${escapeHtml(formatMusicaName(musica))}</a></td>
-      <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
+      <td></td>
       ${options.canEdit ? '<td></td>' : ''}
     `;
+
+    const tomCell = row.querySelector('td:nth-child(3)');
+    const tom = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
+
+    if (options.canEdit) {
+      tomCell.append(createTomInput(item.id, tom));
+    } else {
+      tomCell.textContent = tom;
+    }
 
     if (options.canEdit) {
       const actionsCell = row.querySelector('td:last-child');
@@ -279,6 +302,40 @@ function createMusicasList(items, options = {}) {
   });
 
   return table;
+}
+
+function createTomInput(associationId, initialValue) {
+  const wrapper = document.createElement('span');
+  wrapper.className = 'inline-edit';
+  wrapper.innerHTML = `
+    <input type="text" value="${escapeHtml(initialValue !== '-' ? initialValue : '')}" aria-label="Tom da musica no repertorio">
+    <button class="nav-button" type="button">Salvar</button>
+  `;
+
+  const input = wrapper.querySelector('input');
+  const button = wrapper.querySelector('button');
+
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    button.textContent = 'Salvando...';
+
+    const { error } = await updateTomMusicaRepertorio(associationId, input.value.trim() || null);
+
+    if (error) {
+      button.disabled = false;
+      button.textContent = 'Salvar';
+      window.alert(error.message || 'Nao foi possivel salvar o tom.');
+      return;
+    }
+
+    button.disabled = false;
+    button.textContent = 'Salvo';
+    window.setTimeout(() => {
+      button.textContent = 'Salvar';
+    }, 1200);
+  });
+
+  return wrapper;
 }
 
 function normalizeOrder(items) {

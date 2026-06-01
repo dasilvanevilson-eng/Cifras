@@ -127,6 +127,7 @@ function matchesSearch(musica, query) {
   const searchableText = [
     getField(musica, ['titulo', 'nome', 'title']),
     getField(musica, ['artista', 'autor', 'artist']),
+    getField(musica, ['tags']),
     extractLyricsFromCifraOriginal(getField(musica, ['cifra_original'])),
   ].join(' ');
 

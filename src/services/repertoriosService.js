@@ -41,6 +41,7 @@ export async function duplicateRepertorio(repertorio, musicasAssociadas = []) {
     repertorio_id: novoRepertorio.id,
     musica_id: item.musica_id,
     ordem: item.ordem || index + 1,
+    tom: item.tom || item.musicas?.tom || null,
   }));
 
   if (!associacoes.length) {
@@ -65,18 +66,20 @@ export async function listMusicasDoRepertorio(repertorioId) {
       id,
       ordem,
       musica_id,
+      tom,
       musicas (*)
     `)
     .eq('repertorio_id', repertorioId)
     .order('ordem');
 }
 
-export async function addMusicaToRepertorio(repertorioId, musicaId, ordem) {
+export async function addMusicaToRepertorio(repertorioId, musicaId, ordem, tom = null) {
   assertSupabaseConfig();
   return supabase.from('repertorio_musicas').insert({
     repertorio_id: repertorioId,
     musica_id: musicaId,
     ordem,
+    tom,
   });
 }
 
@@ -88,4 +91,9 @@ export async function removeMusicaDoRepertorio(id) {
 export async function updateOrdemMusicaRepertorio(id, ordem) {
   assertSupabaseConfig();
   return supabase.from('repertorio_musicas').update({ ordem }).eq('id', id);
+}
+
+export async function updateTomMusicaRepertorio(id, tom) {
+  assertSupabaseConfig();
+  return supabase.from('repertorio_musicas').update({ tom }).eq('id', id);
 }

@@ -8,6 +8,7 @@ import {
 } from '../../../services/musicasService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { convertCifraOriginalToNumbers, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -15,7 +16,9 @@ export async function MusicaDetalhePage({ session } = {}) {
   page.innerHTML = '<div class="page-status">Carregando musica...</div>';
 
   const status = page.querySelector('.page-status');
-  const id = new URLSearchParams(window.location.search).get('id');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const returnTo = params.get('returnTo') || '/musicas';
 
   if (!id) {
     status.className = 'page-status error';
@@ -30,8 +33,16 @@ export async function MusicaDetalhePage({ session } = {}) {
       throw error;
     }
 
+    addRecentItem({
+      type: 'musica',
+      label: getField(musica, ['titulo', 'nome', 'title']),
+      detail: getField(musica, ['artista', 'autor', 'artist']),
+      url: `/musicas/detalhe?id=${encodeURIComponent(id)}`,
+    });
+
     page.replaceChildren(createMusicaView(musica, {
       canEdit: canEditContent(session?.profile?.papel),
+      returnTo,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -48,14 +59,18 @@ function createMusicaView(musica, options = {}) {
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const artist = getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(musica, ['tom', 'key']);
+  const tags = normalizeTags(getField(musica, ['tags']));
+  const link = getField(musica, ['musica_link']);
   const cifraOriginal = getField(musica, ['cifra_original']);
 
   wrapper.innerHTML = `
-    <a class="back-link" href="/musicas">Voltar para musicas cifradas</a>
+    <a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}">Voltar</a>
     <div class="page-actions"></div>
     <header class="song-header">
       <h1>${escapeHtml(title)}</h1>
       <p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>
+      ${tags.length ? `<div class="tag-list">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+      ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
     <div class="transpose-toolbar">
       <button class="nav-button" type="button" data-action="transpose-down">-1 semitom</button>
@@ -83,6 +98,16 @@ function createMusicaView(musica, options = {}) {
   }
 
   return wrapper;
+}
+
+function normalizeTags(value) {
+  if (!value || value === '-') return [];
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+
+  return String(value)
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
 }
 
 function setupTransposeControls(wrapper, { cifraOriginal, key }) {
