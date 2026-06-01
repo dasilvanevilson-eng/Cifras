@@ -222,3 +222,217 @@ Proximo passo recomendado:
 - Testar busca por titulo, artista, tom e trecho da cifra.
 - Testar ordenacao por titulo, artista, tom e mais recentes.
 - Depois seguir para melhorias do modo execucao: tema escuro, tamanho de fonte e autoscroll.
+
+## Registro de continuidade - ajuste da busca e modo execucao
+
+Data: 2026-06-01
+
+O usuario confirmou que a busca estava funcionando, informou que busca por tom era desnecessaria e pediu para ajustar e seguir para a proxima etapa.
+
+Alteracoes feitas:
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- Removida busca por tom.
+- Removida ordenacao por tom.
+- O tom continua visivel na tabela de musicas.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- Adicionada toolbar no modo execucao.
+- Adicionado botao de tema escuro/claro.
+- Adicionado controle de tamanho de fonte.
+- Adicionado autoscroll com iniciar/pausar.
+- Adicionado controle de velocidade do autoscroll.
+- Preferencias de tema, fonte e velocidade sao salvas no `localStorage`.
+- Atualizado `src/styles/global.css` com estilos do modo execucao e tema escuro.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 243.34 kB, gzip 62.19 kB.
+
+Proximo passo recomendado:
+- Testar modo execucao no navegador: tema escuro, tamanho da fonte, autoscroll e velocidade.
+- Depois melhorar o modo execucao com tela cheia e navegacao proxima/anterior musica.
+
+## Registro de continuidade - modo execucao tela cheia e navegacao
+
+Data: 2026-06-01
+
+O usuario informou que o modo execucao estava funcionando e pediu para seguir para a proxima etapa.
+
+Alteracoes feitas:
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- Adicionado botao "Anterior" no modo execucao.
+- Adicionado botao "Proxima" no modo execucao.
+- Cada musica do repertorio agora recebe um `id` e pode receber foco.
+- Os botoes anterior/proxima rolam suavemente ate a musica correspondente.
+- Adicionado botao "Tela cheia".
+- O botao alterna entre entrar e sair de tela cheia.
+- O texto do botao muda conforme o estado de tela cheia.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 244.64 kB, gzip 62.57 kB.
+
+Proximo passo recomendado:
+- Testar no navegador os botoes Anterior, Proxima e Tela cheia.
+- Depois seguir para a proxima etapa da rotina: transposicao de acordes ou refinamento do modo execucao.
+
+## Registro de continuidade - correcao anterior/proxima
+
+Data: 2026-06-01
+
+O usuario testou o modo execucao e informou:
+- Tela cheia funcionando.
+- Botoes Anterior/Proxima nao funcionando.
+
+Correcao feita:
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- A inicializacao dos controles do modo execucao foi movida para depois da renderizacao das musicas.
+- Antes, os botoes eram configurados quando a lista de musicas ainda estava vazia.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 244.64 kB, gzip 62.57 kB.
+
+Proximo passo recomendado:
+- Testar novamente Anterior/Proxima no modo execucao.
+
+## Registro de continuidade - transposicao de acordes
+
+Data: 2026-06-01
+
+O usuario informou que tela cheia e navegacao anterior/proxima estavam funcionando e pediu o proximo passo.
+
+Alteracoes feitas:
+- Atualizado `src/utils/chordpro.js`.
+- Adicionadas funcoes `transposeChordPro` e `transposeKey`.
+- A transposicao altera acordes dentro de colchetes ChordPro.
+- Suporte inicial a notas com sustenido, bemol ASCII e simbolos `♭`/`♯`.
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- A pagina de detalhe da musica agora tem controles `-1 semitom`, `+1 semitom` e `Original`.
+- O tom exibido e a cifra renderizada mudam sem alterar o banco.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- O modo execucao agora tem controles de transposicao global para todas as musicas do repertorio.
+- Atualizado `src/styles/global.css` com estilos para controles de transposicao.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 247.27 kB, gzip 63.21 kB.
+
+Proximo passo recomendado:
+- Testar transposicao em musica individual e no modo execucao.
+- Conferir acordes com baixo, exemplo `C/E`, `D/F#`, e acordes menores.
+- Depois seguir para capotraste, impressao/exportacao ou refinamento do parser de acordes.
+
+## Registro de continuidade - capotraste
+
+Data: 2026-06-01
+
+O usuario informou que os testes de transposicao estavam ok e pediu o proximo passo.
+
+Alteracoes feitas:
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- Adicionado seletor de capotraste na pagina de detalhe da musica.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- Adicionado seletor de capotraste no modo execucao.
+- O capotraste ajusta os acordes exibidos sem alterar o tom real mostrado.
+- No modo execucao, a preferencia de capotraste e salva no `localStorage`.
+- Atualizado `src/styles/global.css` com estilos para selects de capotraste.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 248.29 kB, gzip 63.42 kB.
+
+Proximo passo recomendado:
+- Testar capotraste na musica individual e no modo execucao.
+- Exemplo: musica em tom D com capotraste casa 2 deve mostrar posicoes equivalentes a C, mantendo o tom real como D.
+- Depois seguir para impressao/exportacao ou refinamento do parser de acordes.
+
+## Registro de continuidade - impressao limpa
+
+Data: 2026-06-01
+
+O usuario informou que o capotraste estava funcionando e pediu o proximo passo.
+
+Alteracoes feitas:
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- Adicionado botao "Imprimir" na pagina de detalhe da musica.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- Adicionado botao "Imprimir" no modo execucao do repertorio.
+- Atualizado `src/styles/global.css`.
+- Criados estilos `@media print` para esconder navegacao, controles e formularios.
+- Impressao usa fundo branco, texto preto e cifra monoespacada.
+- No modo execucao, cada musica tenta evitar quebra interna de pagina.
+- A impressao respeita a visualizacao atual, incluindo transposicao e capotraste aplicados.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 248.64 kB, gzip 63.47 kB.
+
+Proximo passo recomendado:
+- Testar imprimir/salvar PDF em uma musica individual.
+- Testar imprimir/salvar PDF no modo execucao de um repertorio.
+- Depois seguir para exportacao ChordPro ou refinamento do parser de acordes.
+
+## Registro de continuidade - exportacao ChordPro
+
+Data: 2026-06-01
+
+O usuario confirmou que a impressao estava funcionando e pediu para seguir para a proxima etapa.
+
+Alteracoes feitas:
+- Criado `src/utils/download.js`.
+- Adicionado utilitario `downloadTextFile`.
+- Adicionado utilitario `slugifyFilename`.
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- Adicionado botao "Exportar ChordPro" na musica individual.
+- A exportacao da musica inclui metadados de titulo, tom e capotraste quando aplicavel.
+- A exportacao respeita transposicao e capotraste aplicados na visualizacao.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- Adicionado botao "Exportar ChordPro" no modo execucao.
+- A exportacao do repertorio baixa um arquivo `.cho` com metadados do repertorio e blocos separados por musica.
+- A exportacao do repertorio tambem respeita transposicao e capotraste aplicados.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 67 modulos transformados.
+- Bundle JS: 250.77 kB, gzip 64.03 kB.
+
+Proximo passo recomendado:
+- Testar exportar ChordPro em uma musica individual.
+- Testar exportar ChordPro no modo execucao de um repertorio.
+- Depois seguir para refinamento do parser de acordes ou sistema numerico.
+
+## Registro de continuidade - ChordPro como informacao interna
+
+Data: 2026-06-01
+
+O usuario definiu uma diretriz de produto:
+- O formato ChordPro deve ser tratado como informacao interna do sistema.
+- Todas as interacoes com o usuario devem usar o formato original da cifra.
+- A unica interacao com ChordPro deve acontecer internamente na inclusao/alteracao da musica.
+
+Alteracoes feitas:
+- Removido `src/utils/download.js`.
+- Removidos botoes "Exportar ChordPro" da musica individual e do modo execucao.
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- A pagina de detalhe voltou a exibir `cifra_original`.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- O modo execucao voltou a exibir `cifra_original`.
+- Atualizado `src/utils/chordpro.js`.
+- Adicionada funcao `transposeCifraOriginal` para transpor linhas de acordes no formato original sem expor ChordPro ao usuario.
+- Transposicao e capotraste continuam funcionando sobre a cifra original.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- Build gerado com 66 modulos transformados.
+- Bundle JS: 248.63 kB, gzip 63.47 kB.
+
+Proximo passo recomendado:
+- Testar uma musica no formato original com linhas de acordes separadas da letra.
+- Validar transposicao e capotraste no detalhe da musica e no modo execucao.
+- Depois seguir para refinamento do parser de acordes ou sistema numerico.

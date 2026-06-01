@@ -183,6 +183,36 @@ a {
   color: #5f594f;
 }
 
+.transpose-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.transpose-toolbar span,
+.transpose-status {
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.transpose-toolbar label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.transpose-toolbar select,
+.performance-toolbar select {
+  border: 1px solid #cfc7b8;
+  padding: 8px 10px;
+  font: inherit;
+  background: #ffffff;
+}
+
 .chordpro-view {
   overflow: auto;
   padding: 20px;
@@ -212,6 +242,32 @@ a {
 .performance-header p {
   margin: 0;
   color: #5f594f;
+}
+
+.performance-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 28px;
+  padding: 12px;
+  border: 1px solid #ddd6c8;
+  background: #ffffff;
+}
+
+.performance-toolbar label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.performance-toolbar input[type="range"] {
+  width: 120px;
 }
 
 .performance-list {
@@ -247,6 +303,57 @@ a {
 .performance-song p {
   margin: 0;
   color: #5f594f;
+}
+
+.performance-page .chordpro-view {
+  font-size: var(--performance-font-size, 18px);
+}
+
+.performance-page article.is-dark {
+  color: #f6f2e8;
+}
+
+.performance-page article.is-dark .back-link {
+  color: #9bd8c9;
+}
+
+.performance-page article.is-dark .performance-header p,
+.performance-page article.is-dark .performance-song p,
+.performance-page article.is-dark .performance-toolbar label,
+.performance-page article.is-dark .transpose-status {
+  color: #c7c0b3;
+}
+
+.performance-page article.is-dark .performance-toolbar {
+  border-color: #3d443f;
+  background: #111513;
+}
+
+.performance-page article.is-dark .nav-button {
+  border-color: #536159;
+  background: #1a211e;
+  color: #f6f2e8;
+}
+
+.performance-page article.is-dark .performance-toolbar select {
+  border-color: #536159;
+  background: #1a211e;
+  color: #f6f2e8;
+}
+
+.performance-page article.is-dark .performance-song {
+  border-top-color: #3d443f;
+}
+
+.performance-page article.is-dark .performance-song header > span {
+  background: #9bd8c9;
+  color: #111513;
+}
+
+.performance-page article.is-dark .chordpro-view {
+  border-color: #3d443f;
+  background: #111513;
+  color: #f6f2e8;
 }
 
 .form {
@@ -324,5 +431,77 @@ a {
 
   .list-toolbar {
     grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  :root {
+    color: #000000;
+    background: #ffffff;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .main-nav,
+  .back-link,
+  .page-actions,
+  .transpose-toolbar,
+  .performance-toolbar,
+  .form,
+  .editor-panel {
+    display: none !important;
+  }
+
+  .page,
+  .performance-page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .song-header,
+  .performance-header {
+    margin-bottom: 16px;
+  }
+
+  .song-header h1,
+  .performance-header h1 {
+    color: #000000;
+  }
+
+  .song-header p,
+  .performance-header p,
+  .performance-song p {
+    color: #333333;
+  }
+
+  .chordpro-view,
+  .performance-page article.is-dark .chordpro-view {
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: #ffffff;
+    color: #000000;
+    font-size: 12pt;
+    white-space: pre-wrap;
+  }
+
+  .performance-list {
+    gap: 0;
+  }
+
+  .performance-song {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-top: 1px solid #cccccc;
+    padding-top: 16px;
+    margin-top: 20px;
+  }
+
+  .performance-song header > span {
+    border: 1px solid #000000;
+    background: #ffffff;
+    color: #000000;
   }
 }

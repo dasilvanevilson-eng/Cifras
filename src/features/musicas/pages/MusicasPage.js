@@ -83,14 +83,13 @@ function createMusicasBrowser(musicas) {
     <div class="list-toolbar">
       <label>
         Buscar
-        <input class="search-input" type="search" placeholder="Titulo, artista, tom ou trecho da cifra">
+        <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da cifra">
       </label>
       <label>
         Ordenar
         <select class="sort-select">
           <option value="titulo">Titulo</option>
           <option value="artista">Artista</option>
-          <option value="tom">Tom</option>
           <option value="recentes">Mais recentes</option>
         </select>
       </label>
@@ -168,7 +167,6 @@ function matchesSearch(musica, query) {
   const searchableText = [
     getField(musica, ['titulo', 'nome', 'title']),
     getField(musica, ['artista', 'autor', 'artist']),
-    getField(musica, ['tom', 'key']),
     getField(musica, ['cifra_original']),
     getField(musica, ['cifra_chordpro', 'chordpro', 'conteudo_chordpro']),
   ].join(' ');
@@ -190,7 +188,6 @@ function compareMusicas(a, b, sortBy) {
 function getSortFieldNames(sortBy) {
   const fields = {
     artista: ['artista', 'autor', 'artist'],
-    tom: ['tom', 'key'],
     titulo: ['titulo', 'nome', 'title'],
   };
 

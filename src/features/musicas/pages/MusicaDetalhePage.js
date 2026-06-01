@@ -7,6 +7,7 @@ import {
   removeMusicaDeTodosRepertorios,
 } from '../../../services/musicasService.js';
 import { canEditContent } from '../../auth/roles.js';
+import { transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -47,17 +48,32 @@ function createMusicaView(musica, options = {}) {
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const artist = getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(musica, ['tom', 'key']);
-  const chordpro = getField(musica, ['cifra_chordpro', 'chordpro', 'conteudo_chordpro']);
+  const cifraOriginal = getField(musica, ['cifra_original']);
 
   wrapper.innerHTML = `
     <a class="back-link" href="/musicas">Voltar para musicas</a>
     <div class="page-actions"></div>
     <header class="song-header">
       <h1>${escapeHtml(title)}</h1>
-      <p>${escapeHtml(artist)} - Tom: ${escapeHtml(key)}</p>
+      <p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>
     </header>
-    <pre class="chordpro-view">${escapeHtml(chordpro)}</pre>
+    <div class="transpose-toolbar">
+      <button class="nav-button" type="button" data-action="transpose-down">-1 semitom</button>
+      <span data-role="transpose-status">Original</span>
+      <button class="nav-button" type="button" data-action="transpose-up">+1 semitom</button>
+      <button class="nav-button" type="button" data-action="transpose-reset">Original</button>
+      <button class="nav-button" type="button" data-action="print">Imprimir</button>
+      <label>
+        Capotraste
+        <select data-action="capo">
+          ${createCapoOptions()}
+        </select>
+      </label>
+    </div>
+    <pre class="chordpro-view">${escapeHtml(cifraOriginal)}</pre>
   `;
+
+  setupTransposeControls(wrapper, { cifraOriginal, key });
 
   if (options.canEdit) {
     const actions = wrapper.querySelector('.page-actions');
@@ -66,6 +82,63 @@ function createMusicaView(musica, options = {}) {
   }
 
   return wrapper;
+}
+
+function setupTransposeControls(wrapper, { cifraOriginal, key }) {
+  const chordproView = wrapper.querySelector('.chordpro-view');
+  const currentKey = wrapper.querySelector('.current-key');
+  const status = wrapper.querySelector('[data-role="transpose-status"]');
+  const downButton = wrapper.querySelector('[data-action="transpose-down"]');
+  const upButton = wrapper.querySelector('[data-action="transpose-up"]');
+  const resetButton = wrapper.querySelector('[data-action="transpose-reset"]');
+  const printButton = wrapper.querySelector('[data-action="print"]');
+  const capoSelect = wrapper.querySelector('[data-action="capo"]');
+  let semitones = 0;
+  let capo = 0;
+
+  function render() {
+    chordproView.textContent = transposeCifraOriginal(cifraOriginal, semitones - capo);
+    currentKey.textContent = transposeKey(key, semitones);
+    status.textContent = formatTransposeStatus(semitones, capo);
+  }
+
+  downButton.addEventListener('click', () => {
+    semitones -= 1;
+    render();
+  });
+
+  upButton.addEventListener('click', () => {
+    semitones += 1;
+    render();
+  });
+
+  resetButton.addEventListener('click', () => {
+    semitones = 0;
+    render();
+  });
+
+  capoSelect.addEventListener('change', () => {
+    capo = Number(capoSelect.value || 0);
+    render();
+  });
+
+  printButton.addEventListener('click', () => {
+    window.print();
+  });
+}
+
+function createCapoOptions() {
+  return Array.from({ length: 12 }, (_, index) => (
+    `<option value="${index}">${index === 0 ? 'Sem capo' : `Casa ${index}`}</option>`
+  )).join('');
+}
+
+function formatTransposeStatus(semitones, capo) {
+  const transposeText = semitones === 0
+    ? 'Original'
+    : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+
+  return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
 
 function createDeleteButton(musicaId, title) {
