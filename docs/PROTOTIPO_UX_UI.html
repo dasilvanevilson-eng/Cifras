@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Protótipo UX/UI - Master Cifras</title>
+  <style>
+    :root {
+      color: #20211f;
+      background: #f4f1ea;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    header.page-header {
+      padding: 28px 32px 20px;
+      border-bottom: 1px solid #d8d1c2;
+      background: #ffffff;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 20px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+
+    p {
+      margin: 6px 0 0;
+      color: #615b50;
+    }
+
+    main {
+      display: grid;
+      gap: 28px;
+      padding: 28px 32px 48px;
+    }
+
+    .prototype-section {
+      display: grid;
+      gap: 16px;
+    }
+
+    .surface {
+      border: 1px solid #d8d1c2;
+      background: #ffffff;
+    }
+
+    .desktop-frame {
+      display: grid;
+      gap: 18px;
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      color: #1f574d;
+      font-size: 14px;
+    }
+
+    .search-row,
+    .form-row,
+    .toolbar {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: minmax(220px, 1fr) 180px;
+      align-items: end;
+    }
+
+    .form-row {
+      grid-template-columns: 2fr 1.2fr 120px 1.5fr;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #4f4a42;
+      font-size: 13px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #c8bfad;
+      padding: 10px 12px;
+      background: #ffffff;
+      color: #20211f;
+      font: inherit;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+      gap: 16px;
+    }
+
+    textarea {
+      min-height: 420px;
+      font-family: Consolas, "Courier New", monospace;
+      font-weight: 600;
+      line-height: 1.55;
+      resize: vertical;
+    }
+
+    .button-row,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .button {
+      border: 0;
+      padding: 10px 14px;
+      background: #1f574d;
+      color: #ffffff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button.secondary {
+      border: 1px solid #1f574d;
+      background: #ffffff;
+      color: #1f574d;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #ded6c8;
+      padding: 12px;
+      background: #fbfaf7;
+    }
+
+    .performance {
+      background: #111513;
+      color: #f6f2e8;
+    }
+
+    .performance p {
+      color: #c9c0b2;
+    }
+
+    .performance .toolbar {
+      position: sticky;
+      top: 0;
+      grid-template-columns: repeat(6, auto);
+      justify-content: start;
+      border-bottom: 1px solid #39413b;
+      padding-bottom: 12px;
+    }
+
+    .performance .button {
+      background: #26322e;
+      color: #f6f2e8;
+    }
+
+    .song-text {
+      margin-top: 22px;
+      padding: 0;
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.7;
+    }
+
+    .mobile-preview {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 360px));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .phone {
+      overflow: hidden;
+      border: 1px solid #c8bfad;
+      background: #ffffff;
+    }
+
+    .phone header {
+      padding: 14px;
+      border-bottom: 1px solid #ded6c8;
+      background: #fbfaf7;
+    }
+
+    .phone .body {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .phone .editor-grid,
+    .phone .dashboard-grid,
+    .phone .search-row,
+    .phone .form-row,
+    .phone .toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .phone textarea {
+      min-height: 220px;
+    }
+
+    .phone .list-item {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .phone.performance {
+      background: #111513;
+    }
+
+    .phone.performance header {
+      border-bottom-color: #39413b;
+      background: #151b18;
+    }
+
+    .phone.performance .body {
+      color: #f6f2e8;
+    }
+
+    .phone.performance .song-text {
+      font-size: 18px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        padding: 20px 16px 36px;
+      }
+
+      .editor-grid,
+      .dashboard-grid,
+      .mobile-preview,
+      .form-row,
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1>Master Cifras - Protótipo UX/UI</h1>
+    <p>Direção visual para desktop como bancada de edição e mobile/tablet como ambiente de consulta e execução.</p>
+  </header>
+
+  <main>
+    <section class="prototype-section">
+      <h2>Desktop - Músicas Cifradas</h2>
+      <div class="surface desktop-frame">
+        <div class="topbar">
+          <h1>Músicas Cifradas</h1>
+          <nav class="nav">
+            <span>Painel</span>
+            <span>Músicas Cifradas</span>
+            <span>Músicas Letras</span>
+            <span>Repertórios</span>
+          </nav>
+        </div>
+
+        <div class="search-row">
+          <label>Buscar música cadastrada
+            <input placeholder="Título, artista, tag ou trecho da cifra">
+          </label>
+          <label>Ordenar
+            <select>
+              <option>Título</option>
+              <option>Artista</option>
+              <option>Mais recentes</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>Título <input value="Grande És Tu"></label>
+          <label>Artista <input value="Adoração"></label>
+          <label>Tom <input value="D"></label>
+          <label>Tags <input value="adoração, entrada"></label>
+        </div>
+
+        <label>Link
+          <div class="actions">
+            <input value="https://exemplo.com/musica">
+            <a class="button secondary" href="#">Abrir</a>
+          </div>
+        </label>
+
+        <div class="editor-grid">
+          <label>Cifra original
+            <textarea>D        A/C#       Bm7
+Grande és Tu, Senhor
+G        D/F#       A
+Teu amor não falha</textarea>
+          </label>
+          <label>ChordPro interno
+            <textarea>[D]GRANDE [A/C#]ÉS TU, [Bm7]SENHOR
+[G]TEU AMOR [D/F#]NÃO [A]FALHA</textarea>
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button class="button">Salvar música</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="prototype-section">
+      <h2>Painel - Consulta Rápida</h2>
+      <div class="surface desktop-frame">
+        <div class="topbar">
+          <h1>Painel</h1>
+        </div>
+        <div class="dashboard-grid">
+          <section>
+            <h2>Repertórios</h2>
+            <label>Buscar repertório <input placeholder="Nome ou data"></label>
+            <div class="list">
+              <article class="list-item">
+                <div>
+                  <h3>Culto Domingo</h3>
+                  <p>09/06/2026</p>
+                </div>
+                <a class="button secondary" href="#">Visualizar</a>
+              </article>
+              <article class="list-item">
+                <div>
+                  <h3>Ensaio Quinta</h3>
+                  <p>13/06/2026</p>
+                </div>
+                <a class="button secondary" href="#">Visualizar</a>
+              </article>
+            </div>
+          </section>
+
+          <section>
+            <h2>Músicas</h2>
+            <label>Buscar música <input placeholder="Título, artista ou tag"></label>
+            <div class="list">
+              <article class="list-item">
+                <div>
+                  <h3>Grande És Tu</h3>
+                  <p>Adoração</p>
+                </div>
+                <a class="button secondary" href="#">Visualizar</a>
+              </article>
+              <article class="list-item">
+                <div>
+                  <h3>Bondade de Deus</h3>
+                  <p>Louvor</p>
+                </div>
+                <a class="button secondary" href="#">Visualizar</a>
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="prototype-section">
+      <h2>Modo Execução - Tablet/Celular</h2>
+      <div class="surface desktop-frame performance">
+        <a class="button secondary" href="#">Voltar</a>
+        <header>
+          <h1>Culto Domingo</h1>
+          <p>Tom salvo no repertório: D</p>
+        </header>
+        <div class="toolbar">
+          <button class="button">Tema</button>
+          <button class="button">Fonte</button>
+          <button class="button">Rolagem</button>
+          <button class="button">Tela cheia</button>
+          <button class="button">-1</button>
+          <button class="button">+1</button>
+        </div>
+        <pre class="song-text">D        A/C#       Bm7
+GRANDE ÉS TU, SENHOR
+
+G        D/F#       A
+TEU AMOR NÃO FALHA</pre>
+      </div>
+    </section>
+
+    <section class="prototype-section">
+      <h2>Comparativo Mobile</h2>
+      <div class="mobile-preview">
+        <article class="phone">
+          <header>
+            <h3>Músicas Cifradas</h3>
+            <p>Edição empilhada</p>
+          </header>
+          <div class="body">
+            <label>Buscar <input placeholder="Título ou tag"></label>
+            <label>Título <input value="Grande És Tu"></label>
+            <label>Tom <input value="D"></label>
+            <label>Cifra original <textarea>D  A/C#
+Grande és Tu</textarea></label>
+            <label>ChordPro interno <textarea>[D]GRANDE [A/C#]ÉS TU</textarea></label>
+            <button class="button">Salvar</button>
+          </div>
+        </article>
+
+        <article class="phone">
+          <header>
+            <h3>Painel</h3>
+            <p>Consulta rápida</p>
+          </header>
+          <div class="body">
+            <h3>Repertórios</h3>
+            <label>Buscar <input></label>
+            <div class="list-item">
+              <div>
+                <h3>Culto Domingo</h3>
+                <p>09/06/2026</p>
+              </div>
+              <a class="button secondary" href="#">Visualizar</a>
+            </div>
+            <h3>Músicas</h3>
+            <label>Buscar <input></label>
+            <div class="list-item">
+              <div>
+                <h3>Grande És Tu</h3>
+                <p>Adoração</p>
+              </div>
+              <a class="button secondary" href="#">Visualizar</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone performance">
+          <header>
+            <h3>Execução</h3>
+            <p>Uso em palco</p>
+          </header>
+          <div class="body">
+            <div class="toolbar">
+              <button class="button">-1</button>
+              <button class="button">+1</button>
+              <button class="button">Capo</button>
+              <button class="button">Tela cheia</button>
+            </div>
+            <pre class="song-text">D    A/C#
+GRANDE ÉS TU
+
+G    A
+SENHOR</pre>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

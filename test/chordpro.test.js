@@ -3,6 +3,7 @@ import {
   convertCifraOriginalToNumbers,
   convertToChordPro,
   extractLyricsFromCifraOriginal,
+  getTransposeSemitones,
   transposeCifraOriginal,
   transposeChordPro,
   transposeKey,
@@ -33,6 +34,8 @@ assert.equal(
 
 assert.equal(transposeKey('D', -2), 'C');
 assert.equal(transposeKey('Bb', 2), 'C');
+assert.equal(getTransposeSemitones('D', 'C'), -2);
+assert.equal(getTransposeSemitones('C', 'D'), 2);
 
 assert.equal(
   convertToChordPro(['G      D/F#', 'Grande es Tu'].join('\n')),

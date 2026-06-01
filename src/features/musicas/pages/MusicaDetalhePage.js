@@ -6,8 +6,9 @@ import {
   listRepertoriosComMusica,
   removeMusicaDeTodosRepertorios,
 } from '../../../services/musicasService.js';
+import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
-import { convertCifraOriginalToNumbers, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { convertCifraOriginalToNumbers, getTransposeSemitones, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
@@ -19,6 +20,8 @@ export async function MusicaDetalhePage({ session } = {}) {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   const returnTo = params.get('returnTo') || '/musicas';
+  const associationId = params.get('associationId');
+  const repertorioTom = params.get('repertorioTom');
 
   if (!id) {
     status.className = 'page-status error';
@@ -41,8 +44,10 @@ export async function MusicaDetalhePage({ session } = {}) {
     });
 
     page.replaceChildren(createMusicaView(musica, {
-      canEdit: canEditContent(session?.profile?.papel),
+      canEdit: canEditContent(session?.profile?.papel) && !associationId,
       returnTo,
+      associationId,
+      repertorioTom,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -58,13 +63,14 @@ function createMusicaView(musica, options = {}) {
 
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const artist = getField(musica, ['artista', 'autor', 'artist']);
-  const key = getField(musica, ['tom', 'key']);
+  const originalKey = getField(musica, ['tom', 'key']);
+  const key = options.repertorioTom || originalKey;
   const tags = normalizeTags(getField(musica, ['tags']));
   const link = getField(musica, ['musica_link']);
   const cifraOriginal = getField(musica, ['cifra_original']);
 
   wrapper.innerHTML = `
-    <a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}">Voltar</a>
+    <a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back">Voltar</a>
     <div class="page-actions"></div>
     <header class="song-header">
       <h1>${escapeHtml(title)}</h1>
@@ -89,7 +95,13 @@ function createMusicaView(musica, options = {}) {
     <pre class="chordpro-view">${escapeHtml(cifraOriginal)}</pre>
   `;
 
-  setupTransposeControls(wrapper, { cifraOriginal, key });
+  setupTransposeControls(wrapper, {
+    cifraOriginal,
+    originalKey,
+    key,
+    associationId: options.associationId,
+    returnTo: options.returnTo || '/musicas',
+  });
 
   if (options.canEdit) {
     const actions = wrapper.querySelector('.page-actions');
@@ -110,17 +122,18 @@ function normalizeTags(value) {
     .filter(Boolean);
 }
 
-function setupTransposeControls(wrapper, { cifraOriginal, key }) {
+function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, associationId, returnTo }) {
   const chordproView = wrapper.querySelector('.chordpro-view');
   const currentKey = wrapper.querySelector('.current-key');
   const status = wrapper.querySelector('[data-role="transpose-status"]');
+  const backLink = wrapper.querySelector('[data-action="back"]');
   const downButton = wrapper.querySelector('[data-action="transpose-down"]');
   const upButton = wrapper.querySelector('[data-action="transpose-up"]');
   const resetButton = wrapper.querySelector('[data-action="transpose-reset"]');
   const numbersButton = wrapper.querySelector('[data-action="numbers"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
-  let semitones = 0;
+  let semitones = getTransposeSemitones(originalKey, key);
   let capo = 0;
   let showNumbers = false;
 
@@ -161,6 +174,31 @@ function setupTransposeControls(wrapper, { cifraOriginal, key }) {
   printButton.addEventListener('click', () => {
     window.print();
   });
+
+  backLink.addEventListener('click', async (event) => {
+    if (!associationId) return;
+
+    event.preventDefault();
+
+    const displayedKey = transposeKey(originalKey, semitones);
+
+    if (displayedKey !== key) {
+      const confirmed = window.confirm(`Salvar esta musica no repertorio no tom ${displayedKey}?`);
+
+      if (confirmed) {
+        const { error } = await updateTomMusicaRepertorio(associationId, displayedKey);
+
+        if (error) {
+          window.alert(error.message || 'Nao foi possivel salvar o tom no repertorio.');
+          return;
+        }
+      }
+    }
+
+    window.location.href = returnTo;
+  });
+
+  render();
 }
 
 function createCapoOptions() {

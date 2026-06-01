@@ -40,6 +40,18 @@ export function transposeKey(key, semitones) {
   return transposeChord(key, semitones);
 }
 
+export function getTransposeSemitones(fromKey, toKey) {
+  const fromRoot = getChordRoot(fromKey);
+  const toRoot = getChordRoot(toKey);
+  const fromIndex = NOTES_SHARP.indexOf(FLAT_TO_SHARP[fromRoot] || fromRoot);
+  const toIndex = NOTES_SHARP.indexOf(FLAT_TO_SHARP[toRoot] || toRoot);
+
+  if (fromIndex === -1 || toIndex === -1) return 0;
+
+  const distance = mod(toIndex - fromIndex, NOTES_SHARP.length);
+  return distance > 6 ? distance - NOTES_SHARP.length : distance;
+}
+
 export function convertCifraOriginalToNumbers(input, key) {
   if (!input || !key || key === '-') return input || '';
 

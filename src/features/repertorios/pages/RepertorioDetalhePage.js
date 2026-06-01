@@ -273,16 +273,17 @@ function createMusicasList(items, options = {}) {
 
   items.forEach((item, index) => {
     const musica = item.musicas || {};
+    const tom = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
+    const musicaUrl = `/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}&returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}&associationId=${encodeURIComponent(item.id)}&repertorioTom=${encodeURIComponent(tom)}`;
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${escapeHtml(item.ordem || '-')}</td>
-      <td><a href="/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}">${escapeHtml(formatMusicaName(musica))}</a></td>
+      <td><a href="${escapeHtml(musicaUrl)}">${escapeHtml(formatMusicaName(musica))}</a></td>
       <td></td>
       ${options.canEdit ? '<td></td>' : ''}
     `;
 
     const tomCell = row.querySelector('td:nth-child(3)');
-    const tom = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
 
     if (options.canEdit) {
       tomCell.append(createTomInput(item.id, tom));
