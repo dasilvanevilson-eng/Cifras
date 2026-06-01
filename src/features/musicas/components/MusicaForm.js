@@ -1,6 +1,9 @@
+import { convertToChordPro } from '../../../utils/chordpro.js';
+
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
+  const initialChordPro = initialValues.cifra_chordpro || convertToChordPro(initialValues.cifra_original || '');
   form.className = 'form';
   form.innerHTML = `
     <label>
@@ -18,10 +21,17 @@ export function MusicaForm(options = {}) {
       <input name="tom" type="text" placeholder="Ex: C, D, Em" value="${escapeHtml(initialValues.tom || '')}">
     </label>
 
-    <label>
-      Cifra original
-      <textarea name="cifra_original" rows="12" required>${escapeHtml(initialValues.cifra_original || '')}</textarea>
-    </label>
+    <div class="cifra-editor-grid">
+      <label>
+        Cifra original
+        <textarea name="cifra_original" rows="14" required>${escapeHtml(initialValues.cifra_original || '')}</textarea>
+      </label>
+
+      <label>
+        ChordPro interno
+        <textarea name="cifra_chordpro" rows="14" required>${escapeHtml(initialChordPro)}</textarea>
+      </label>
+    </div>
 
     <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
     <p class="form-message" aria-live="polite"></p>
@@ -29,6 +39,18 @@ export function MusicaForm(options = {}) {
 
   const message = form.querySelector('.form-message');
   const button = form.querySelector('button');
+  const originalTextarea = form.querySelector('[name="cifra_original"]');
+  const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
+  let chordProEditedManually = Boolean(initialValues.cifra_chordpro);
+
+  originalTextarea.addEventListener('input', () => {
+    if (chordProEditedManually) return;
+    chordProTextarea.value = convertToChordPro(originalTextarea.value);
+  });
+
+  chordProTextarea.addEventListener('input', () => {
+    chordProEditedManually = true;
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -46,6 +68,7 @@ export function MusicaForm(options = {}) {
         artista: String(formData.get('artista') || '').trim(),
         tom: String(formData.get('tom') || '').trim(),
         cifra_original: String(formData.get('cifra_original') || '').trim(),
+        cifra_chordpro: String(formData.get('cifra_chordpro') || '').trim(),
       });
 
       if (!options.keepValuesAfterSubmit) {

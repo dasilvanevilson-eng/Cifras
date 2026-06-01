@@ -51,6 +51,11 @@ function createEditView(id, repertorio) {
     initialValues: {
       nome: repertorio.nome || '',
       data: repertorio.data || '',
+      tipo: repertorio.tipo || '',
+      horario: repertorio.horario || '',
+      local: repertorio.local || '',
+      responsavel: repertorio.responsavel || '',
+      observacoes: repertorio.observacoes || '',
     },
     submitLabel: 'Salvar alteracoes',
     keepValuesAfterSubmit: true,

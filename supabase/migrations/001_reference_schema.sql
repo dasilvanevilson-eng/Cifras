@@ -106,6 +106,11 @@ create table if not exists repertorios (
   id uuid primary key default gen_random_uuid(),
   nome text not null,
   data date,
+  tipo text,
+  horario time,
+  local text,
+  responsavel text,
+  observacoes text,
   created_at timestamptz not null default now()
 );
 

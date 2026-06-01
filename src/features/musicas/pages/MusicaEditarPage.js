@@ -1,6 +1,5 @@
 import { MusicaForm } from '../components/MusicaForm.js';
 import { getMusicaById, updateMusica } from '../../../services/musicasService.js';
-import { convertToChordPro } from '../../../utils/chordpro.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function MusicaEditarPage({ session } = {}) {
@@ -54,16 +53,12 @@ function createEditView(id, musica) {
       artista: musica.artista || '',
       tom: musica.tom || '',
       cifra_original: musica.cifra_original || '',
+      cifra_chordpro: musica.cifra_chordpro || '',
     },
     submitLabel: 'Salvar alteracoes',
     keepValuesAfterSubmit: true,
     onSubmit: async (values) => {
-      const payload = {
-        ...values,
-        cifra_chordpro: convertToChordPro(values.cifra_original),
-      };
-
-      const { error } = await updateMusica(id, payload);
+      const { error } = await updateMusica(id, values);
 
       if (error) {
         throw error;

@@ -7,7 +7,7 @@ import {
   removeMusicaDeTodosRepertorios,
 } from '../../../services/musicasService.js';
 import { canEditContent } from '../../auth/roles.js';
-import { transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { convertCifraOriginalToNumbers, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -62,6 +62,7 @@ function createMusicaView(musica, options = {}) {
       <span data-role="transpose-status">Original</span>
       <button class="nav-button" type="button" data-action="transpose-up">+1 semitom</button>
       <button class="nav-button" type="button" data-action="transpose-reset">Original</button>
+      <button class="nav-button" type="button" data-action="numbers">Numeros</button>
       <button class="nav-button" type="button" data-action="print">Imprimir</button>
       <label>
         Capotraste
@@ -91,15 +92,20 @@ function setupTransposeControls(wrapper, { cifraOriginal, key }) {
   const downButton = wrapper.querySelector('[data-action="transpose-down"]');
   const upButton = wrapper.querySelector('[data-action="transpose-up"]');
   const resetButton = wrapper.querySelector('[data-action="transpose-reset"]');
+  const numbersButton = wrapper.querySelector('[data-action="numbers"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   let semitones = 0;
   let capo = 0;
+  let showNumbers = false;
 
   function render() {
-    chordproView.textContent = transposeCifraOriginal(cifraOriginal, semitones - capo);
-    currentKey.textContent = transposeKey(key, semitones);
+    const displayedCifra = transposeCifraOriginal(cifraOriginal, semitones - capo);
+    const displayedKey = transposeKey(key, semitones);
+    chordproView.textContent = showNumbers ? convertCifraOriginalToNumbers(displayedCifra, displayedKey) : displayedCifra;
+    currentKey.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
+    numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
   }
 
   downButton.addEventListener('click', () => {
@@ -114,6 +120,11 @@ function setupTransposeControls(wrapper, { cifraOriginal, key }) {
 
   resetButton.addEventListener('click', () => {
     semitones = 0;
+    render();
+  });
+
+  numbersButton.addEventListener('click', () => {
+    showNumbers = !showNumbers;
     render();
   });
 

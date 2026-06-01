@@ -78,6 +78,8 @@ function createRepertoriosTable(repertorios) {
       <tr>
         <th>Nome</th>
         <th>Data</th>
+        <th>Tipo</th>
+        <th>Horario</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -93,6 +95,8 @@ function createRepertoriosTable(repertorios) {
     row.innerHTML = `
       <td><a href="/repertorios/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(nome)}</a></td>
       <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
+      <td>${escapeHtml(formatTipo(getField(repertorio, ['tipo'])))}</td>
+      <td>${escapeHtml(formatTime(getField(repertorio, ['horario'])))}</td>
     `;
     body.append(row);
   });
@@ -109,6 +113,25 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = value.split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
+}
+
+function formatTipo(value) {
+  if (!value || value === '-') return '-';
+
+  const labels = {
+    culto: 'Culto',
+    ensaio: 'Ensaio',
+    celula: 'Celula',
+    conferencia: 'Conferencia',
+    outro: 'Outro',
+  };
+
+  return labels[value] || value;
+}
+
+function formatTime(value) {
+  if (!value || value === '-') return '-';
+  return String(value).slice(0, 5);
 }
 
 function escapeHtml(value) {

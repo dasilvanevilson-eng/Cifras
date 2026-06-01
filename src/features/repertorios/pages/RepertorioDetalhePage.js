@@ -2,6 +2,7 @@ import { listMusicas } from '../../../services/musicasService.js';
 import {
   addMusicaToRepertorio,
   deleteRepertorio,
+  duplicateRepertorio,
   getRepertorioById,
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
@@ -71,6 +72,13 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit 
       <h1>${escapeHtml(nome)}</h1>
       <p>Data: ${escapeHtml(data)}</p>
     </header>
+    <dl class="metadata-list">
+      ${createMetadataItem('Tipo', formatTipo(getField(repertorio, ['tipo'])))}
+      ${createMetadataItem('Horario', formatTime(getField(repertorio, ['horario'])))}
+      ${createMetadataItem('Local', getField(repertorio, ['local']))}
+      ${createMetadataItem('Responsavel', getField(repertorio, ['responsavel']))}
+      ${createMetadataItem('Observacoes', getField(repertorio, ['observacoes']))}
+    </dl>
     <div class="page-grid">
       <section class="editor-panel">
         <h2>Adicionar musica</h2>
@@ -90,6 +98,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit 
 
   if (canEdit) {
     actions.append(createEditLink(repertorio.id));
+    actions.append(createDuplicateButton(repertorio, musicasAssociadas));
     actions.append(createDeleteButton(repertorio.id, nome));
     formSlot.append(createAddMusicaForm({
       repertorioId: repertorio.id,
@@ -112,6 +121,34 @@ function createEditLink(repertorioId) {
   link.href = `/repertorios/editar?id=${encodeURIComponent(repertorioId)}`;
   link.textContent = 'Editar';
   return link;
+}
+
+function createDuplicateButton(repertorio, musicasAssociadas) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'nav-button';
+  button.textContent = 'Duplicar';
+
+  button.addEventListener('click', async () => {
+    const confirmed = window.confirm('Duplicar este repertorio com as mesmas musicas e ordem?');
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = 'Duplicando...';
+
+    const { data, error } = await duplicateRepertorio(repertorio, normalizeOrder(musicasAssociadas));
+
+    if (error) {
+      button.disabled = false;
+      button.textContent = 'Duplicar';
+      window.alert(error.message || 'Nao foi possivel duplicar o repertorio.');
+      return;
+    }
+
+    window.location.href = `/repertorios/detalhe?id=${encodeURIComponent(data.id)}`;
+  });
+
+  return button;
 }
 
 function createDeleteButton(repertorioId, nome) {
@@ -337,6 +374,36 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = value.split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
+}
+
+function formatTipo(value) {
+  if (!value || value === '-') return '-';
+
+  const labels = {
+    culto: 'Culto',
+    ensaio: 'Ensaio',
+    celula: 'Celula',
+    conferencia: 'Conferencia',
+    outro: 'Outro',
+  };
+
+  return labels[value] || value;
+}
+
+function formatTime(value) {
+  if (!value || value === '-') return '-';
+  return String(value).slice(0, 5);
+}
+
+function createMetadataItem(label, value) {
+  if (!value || value === '-') return '';
+
+  return `
+    <div>
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(value)}</dd>
+    </div>
+  `;
 }
 
 function escapeHtml(value) {

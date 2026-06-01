@@ -17,7 +17,7 @@ export function convertToChordPro(input) {
     output.push(convertStandaloneChordLine(line));
   }
 
-  return output.map((line) => line.trimEnd()).join('\n');
+  return output.map((line) => uppercaseLyrics(line.trimEnd())).join('\n');
 }
 
 export function transposeChordPro(input, semitones) {
@@ -40,24 +40,17 @@ export function transposeKey(key, semitones) {
   return transposeChord(key, semitones);
 }
 
-function transposeChord(chord, semitones) {
-  return String(chord).replace(NOTE_PATTERN, (note) => transposeNote(note, semitones));
-}
+export function convertCifraOriginalToNumbers(input, key) {
+  if (!input || !key || key === '-') return input || '';
 
-function transposeChordLine(line, semitones) {
-  return line.replace(CHORD_PATTERN, (chord) => transposeChord(chord, semitones));
-}
+  const keyRoot = getChordRoot(key);
 
-function transposeNote(note, semitones) {
-  const normalizedNote = note.replace('♭', 'b').replace('♯', '#');
-  const noteIndex = NOTES_SHARP.indexOf(normalizedNote);
+  if (!keyRoot) return input || '';
 
-  if (noteIndex === -1) {
-    return note;
-  }
-
-  const transposedIndex = mod(noteIndex + Number(semitones), NOTES_SHARP.length);
-  return NOTES_SHARP[transposedIndex];
+  return normalizeTabs(input)
+    .split('\n')
+    .map((line) => (isChordLine(line) ? convertChordLineToNumbers(line, keyRoot) : line))
+    .join('\n');
 }
 
 function mergeChordLineWithLyrics(chordLine, lyricLine) {
@@ -92,11 +85,12 @@ function isChordLine(line) {
     return false;
   }
 
-  const onlyChordsAndSpaces = line
+  const onlyChordsAndSeparators = line
     .replace(CHORD_PATTERN, '')
+    .replace(CHORD_SEPARATOR_PATTERN, '')
     .trim().length === 0;
 
-  return onlyChordsAndSpaces;
+  return onlyChordsAndSeparators;
 }
 
 function findChords(line) {
@@ -106,9 +100,81 @@ function findChords(line) {
   }));
 }
 
-const CHORD_PATTERN = /[A-G][#b♭♯]?(?:m|maj|min|dim|aug|sus|add)?[0-9]?(?:\/[A-G][#b♭♯]?)?/g;
-const NOTE_PATTERN = /[A-G][#b♭♯]?/g;
+function transposeChordLine(line, semitones) {
+  return line.replace(CHORD_PATTERN, (chord) => transposeChord(chord, semitones));
+}
+
+function transposeChord(chord, semitones) {
+  return String(chord).replace(NOTE_PATTERN, (note) => transposeNote(note, semitones));
+}
+
+function convertChordLineToNumbers(line, keyRoot) {
+  return line.replace(CHORD_PATTERN, (chord) => convertChordToNumber(chord, keyRoot));
+}
+
+function convertChordToNumber(chord, keyRoot) {
+  const root = getChordRoot(chord);
+
+  if (!root) return chord;
+
+  const suffixStart = root.length;
+  const slashIndex = chord.indexOf('/');
+  const suffix = slashIndex >= 0 ? chord.slice(suffixStart, slashIndex) : chord.slice(suffixStart);
+  const bass = slashIndex >= 0 ? chord.slice(slashIndex + 1) : '';
+  const number = noteToNumber(root, keyRoot);
+  const bassNumber = bass ? `/${noteToNumber(bass, keyRoot)}` : '';
+
+  return `${number}${suffix}${bassNumber}`;
+}
+
+function getChordRoot(value) {
+  const match = String(value || '').match(/^[A-G](?:#|b)?/);
+  return match ? match[0] : '';
+}
+
+function noteToNumber(note, keyRoot) {
+  const noteIndex = NOTES_SHARP.indexOf(FLAT_TO_SHARP[note] || note);
+  const keyIndex = NOTES_SHARP.indexOf(FLAT_TO_SHARP[keyRoot] || keyRoot);
+
+  if (noteIndex === -1 || keyIndex === -1) return note;
+
+  return SEMITONE_TO_NUMBER[mod(noteIndex - keyIndex, NOTES_SHARP.length)];
+}
+
+function transposeNote(note, semitones) {
+  const normalizedNote = FLAT_TO_SHARP[note] || note;
+  const noteIndex = NOTES_SHARP.indexOf(normalizedNote);
+
+  if (noteIndex === -1) {
+    return note;
+  }
+
+  const transposedIndex = mod(noteIndex + Number(semitones), NOTES_SHARP.length);
+  return NOTES_SHARP[transposedIndex];
+}
+
+function uppercaseLyrics(line) {
+  return String(line).replace(/\[[^\]]+\]|[^\[]+/g, (part) => {
+    if (part.startsWith('[')) {
+      return part;
+    }
+
+    return part.toLocaleUpperCase('pt-BR');
+  });
+}
+
+const CHORD_PATTERN = /[A-G](?:#|b)?(?:m|maj|min|dim|aug|sus|add)?(?:[0-9]{0,2})?(?:M)?(?:\([^)]*\))?(?:\/[A-G](?:#|b)?)?/g;
+const CHORD_SEPARATOR_PATTERN = /[|:.,-]/g;
+const NOTE_PATTERN = /[A-G](?:#|b)?/g;
 const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const SEMITONE_TO_NUMBER = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', '#5', '6', 'b7', '7'];
+const FLAT_TO_SHARP = {
+  Db: 'C#',
+  Eb: 'D#',
+  Gb: 'F#',
+  Ab: 'G#',
+  Bb: 'A#',
+};
 
 function mod(value, size) {
   return ((value % size) + size) % size;

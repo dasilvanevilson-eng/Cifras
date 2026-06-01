@@ -183,6 +183,29 @@ a {
   color: #5f594f;
 }
 
+.metadata-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.metadata-list div {
+  border: 1px solid #ddd6c8;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.metadata-list dt {
+  color: #5f594f;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.metadata-list dd {
+  margin: 4px 0 0;
+}
+
 .transpose-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -385,6 +408,12 @@ a {
   white-space: pre;
 }
 
+.cifra-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+  gap: 16px;
+}
+
 .form-message {
   min-height: 24px;
   margin: 0;
@@ -430,6 +459,10 @@ a {
   }
 
   .list-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .cifra-editor-grid {
     grid-template-columns: 1fr;
   }
 }

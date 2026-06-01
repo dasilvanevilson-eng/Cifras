@@ -2,7 +2,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
-import { transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { convertCifraOriginalToNumbers, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 
 export async function RepertorioExecucaoPage() {
   const page = document.createElement('section');
@@ -49,6 +49,7 @@ function createPerformanceView({ repertorio, musicasAssociadas }) {
     <header class="performance-header">
       <h1>${escapeHtml(nome)}</h1>
       <p>${escapeHtml(data)}</p>
+      <p>${escapeHtml(formatPerformanceMetadata(repertorio))}</p>
     </header>
     <div class="performance-toolbar">
       <button class="nav-button" type="button" data-action="theme">Tema escuro</button>
@@ -69,6 +70,7 @@ function createPerformanceView({ repertorio, musicasAssociadas }) {
       <span class="transpose-status" data-role="transpose-status">Original</span>
       <button class="nav-button" type="button" data-action="transpose-up">+1</button>
       <button class="nav-button" type="button" data-action="transpose-reset">Original</button>
+      <button class="nav-button" type="button" data-action="numbers">Numeros</button>
       <label>
         Capotraste
         <select data-action="capo">
@@ -135,12 +137,14 @@ function setupPerformanceControls(wrapper) {
   const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
   const transposeUpButton = wrapper.querySelector('[data-action="transpose-up"]');
   const transposeResetButton = wrapper.querySelector('[data-action="transpose-reset"]');
+  const numbersButton = wrapper.querySelector('[data-action="numbers"]');
   const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   const songs = [...wrapper.querySelectorAll('.performance-song')];
   let scrollTimer = null;
   let currentSongIndex = 0;
   let semitones = 0;
+  let showNumbers = false;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
 
   const savedTheme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
@@ -152,7 +156,7 @@ function setupPerformanceControls(wrapper) {
   capoSelect.value = String(capo);
   setPerformanceTheme(wrapper, themeButton, savedTheme);
   setPerformanceFontSize(wrapper, savedFontSize);
-  renderTransposedPerformance(wrapper, semitones, capo, transposeStatus);
+  renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
 
   themeButton.addEventListener('click', () => {
     const nextTheme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -218,23 +222,28 @@ function setupPerformanceControls(wrapper) {
 
   transposeDownButton.addEventListener('click', () => {
     semitones -= 1;
-    renderTransposedPerformance(wrapper, semitones, capo, transposeStatus);
+    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   transposeUpButton.addEventListener('click', () => {
     semitones += 1;
-    renderTransposedPerformance(wrapper, semitones, capo, transposeStatus);
+    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   transposeResetButton.addEventListener('click', () => {
     semitones = 0;
-    renderTransposedPerformance(wrapper, semitones, capo, transposeStatus);
+    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+  });
+
+  numbersButton.addEventListener('click', () => {
+    showNumbers = !showNumbers;
+    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 
   capoSelect.addEventListener('change', () => {
     capo = Number(capoSelect.value || 0);
     window.localStorage.setItem('masterCifras.performanceCapo', String(capo));
-    renderTransposedPerformance(wrapper, semitones, capo, transposeStatus);
+    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
   });
 }
 
@@ -270,9 +279,12 @@ function scrollToSong(songs, index) {
   song.focus({ preventScroll: true });
 }
 
-function renderTransposedPerformance(wrapper, semitones, capo, status) {
+function renderTransposedPerformance(wrapper, semitones, capo, showNumbers, status, numbersButton) {
   wrapper.querySelectorAll('.chordpro-view').forEach((view) => {
-    view.textContent = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+    const keyElement = view.closest('.performance-song')?.querySelector('.current-key');
+    const displayedKey = transposeKey(keyElement?.dataset.originalKey || '-', semitones);
+    const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+    view.textContent = showNumbers ? convertCifraOriginalToNumbers(displayedCifra, displayedKey) : displayedCifra;
   });
 
   wrapper.querySelectorAll('.current-key').forEach((key) => {
@@ -280,6 +292,7 @@ function renderTransposedPerformance(wrapper, semitones, capo, status) {
   });
 
   status.textContent = formatTransposeStatus(semitones, capo);
+  numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
 }
 
 function createCapoOptions() {
@@ -309,6 +322,36 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = value.split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
+}
+
+function formatPerformanceMetadata(repertorio) {
+  const items = [
+    formatTipo(getField(repertorio, ['tipo'])),
+    formatTime(getField(repertorio, ['horario'])),
+    getField(repertorio, ['local']),
+    getField(repertorio, ['responsavel']),
+  ].filter((value) => value && value !== '-');
+
+  return items.join(' | ');
+}
+
+function formatTipo(value) {
+  if (!value || value === '-') return '-';
+
+  const labels = {
+    culto: 'Culto',
+    ensaio: 'Ensaio',
+    celula: 'Celula',
+    conferencia: 'Conferencia',
+    outro: 'Outro',
+  };
+
+  return labels[value] || value;
+}
+
+function formatTime(value) {
+  if (!value || value === '-') return '-';
+  return String(value).slice(0, 5);
 }
 
 function escapeHtml(value) {

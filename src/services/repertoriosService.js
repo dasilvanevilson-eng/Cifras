@@ -25,6 +25,43 @@ export async function deleteRepertorio(id) {
   return supabase.from('repertorios').delete().eq('id', id);
 }
 
+export async function duplicateRepertorio(repertorio, musicasAssociadas = []) {
+  assertSupabaseConfig();
+
+  const { data: novoRepertorio, error: repertorioError } = await createRepertorio({
+    nome: `${repertorio.nome || 'Repertorio'} - copia`,
+    data: repertorio.data || null,
+    tipo: repertorio.tipo || null,
+    horario: repertorio.horario || null,
+    local: repertorio.local || null,
+    responsavel: repertorio.responsavel || null,
+    observacoes: repertorio.observacoes || null,
+  });
+
+  if (repertorioError) {
+    return { data: null, error: repertorioError };
+  }
+
+  const associacoes = musicasAssociadas.map((item, index) => ({
+    repertorio_id: novoRepertorio.id,
+    musica_id: item.musica_id,
+    ordem: item.ordem || index + 1,
+  }));
+
+  if (!associacoes.length) {
+    return { data: novoRepertorio, error: null };
+  }
+
+  const { error: associacoesError } = await supabase.from('repertorio_musicas').insert(associacoes);
+
+  if (associacoesError) {
+    await deleteRepertorio(novoRepertorio.id);
+    return { data: null, error: associacoesError };
+  }
+
+  return { data: novoRepertorio, error: null };
+}
+
 export async function listMusicasDoRepertorio(repertorioId) {
   assertSupabaseConfig();
   return supabase

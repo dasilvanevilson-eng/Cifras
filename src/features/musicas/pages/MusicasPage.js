@@ -1,6 +1,5 @@
 import { MusicaForm } from '../components/MusicaForm.js';
 import { createMusica, listMusicas } from '../../../services/musicasService.js';
-import { convertToChordPro } from '../../../utils/chordpro.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function MusicasPage({ session } = {}) {
@@ -30,12 +29,7 @@ export async function MusicasPage({ session } = {}) {
   if (canEdit) {
     formSlot.append(MusicaForm({
       onSubmit: async (musica) => {
-        const payload = {
-          ...musica,
-          cifra_chordpro: convertToChordPro(musica.cifra_original),
-        };
-
-        const { error } = await createMusica(payload);
+        const { error } = await createMusica(musica);
 
         if (error) {
           throw error;
