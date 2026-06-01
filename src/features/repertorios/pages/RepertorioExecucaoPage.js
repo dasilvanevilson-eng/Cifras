@@ -2,7 +2,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
-import { convertCifraOriginalToNumbers, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function RepertorioExecucaoPage() {
@@ -62,27 +62,26 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
       <p>${escapeHtml(data)}</p>
     </header>
     <div class="performance-toolbar">
-      <button class="nav-button" type="button" data-action="theme">Tema escuro</button>
+      <button class="nav-button icon-button" type="button" data-action="theme" aria-label="Alternar tema" title="Alternar tema claro/escuro">☾</button>
       <label>
-        Fonte
+        A
         <input type="range" min="14" max="28" value="18" data-action="font-size">
       </label>
-      <button class="nav-button" type="button" data-action="autoscroll">Iniciar rolagem</button>
+      <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">▶</button>
       <label>
-        Velocidade
+        V
         <input type="range" min="1" max="8" value="3" data-action="speed">
       </label>
-      <button class="nav-button" type="button" data-action="previous-song">Anterior</button>
-      <button class="nav-button" type="button" data-action="next-song">Proxima</button>
-      <button class="nav-button" type="button" data-action="fullscreen">Tela cheia</button>
-      <button class="nav-button" type="button" data-action="print">Imprimir</button>
-      <button class="nav-button" type="button" data-action="transpose-down">-1</button>
+      <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">‹</button>
+      <span class="performance-position" data-role="song-position">1/1</span>
+      <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">›</button>
+      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">⛶</button>
+      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
+      <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer um semitom" title="Descer um semitom">-1</button>
       <span class="transpose-status" data-role="transpose-status">Original</span>
-      <button class="nav-button" type="button" data-action="transpose-up">+1</button>
-      <button class="nav-button" type="button" data-action="transpose-reset">Original</button>
-      <button class="nav-button" type="button" data-action="numbers">Numeros</button>
+      <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir um semitom" title="Subir um semitom">+1</button>
       <label>
-        Capotraste
+        Capo
         <select data-action="capo">
           ${createCapoOptions()}
         </select>
@@ -146,16 +145,14 @@ function setupPerformanceControls(wrapper) {
   const printButton = wrapper.querySelector('[data-action="print"]');
   const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
   const transposeUpButton = wrapper.querySelector('[data-action="transpose-up"]');
-  const transposeResetButton = wrapper.querySelector('[data-action="transpose-reset"]');
-  const numbersButton = wrapper.querySelector('[data-action="numbers"]');
   const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   const songs = [...wrapper.querySelectorAll('.performance-song')];
   let scrollTimer = null;
   let currentSongIndex = 0;
-  let semitones = 0;
-  let showNumbers = false;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
+  const songSemitones = songs.map(() => 0);
+  const songPosition = wrapper.querySelector('[data-role="song-position"]');
 
   const savedTheme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedFontSize = window.localStorage.getItem('masterCifras.performanceFontSize') || '18';
@@ -166,7 +163,7 @@ function setupPerformanceControls(wrapper) {
   capoSelect.value = String(capo);
   setPerformanceTheme(wrapper, themeButton, savedTheme);
   setPerformanceFontSize(wrapper, savedFontSize);
-  renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+  renderCurrentSong();
 
   themeButton.addEventListener('click', () => {
     const nextTheme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -187,11 +184,11 @@ function setupPerformanceControls(wrapper) {
     if (scrollTimer) {
       window.clearInterval(scrollTimer);
       scrollTimer = null;
-      autoscrollButton.textContent = 'Iniciar rolagem';
+      autoscrollButton.textContent = '▶';
       return;
     }
 
-    autoscrollButton.textContent = 'Pausar rolagem';
+    autoscrollButton.textContent = 'Ⅱ';
     scrollTimer = window.setInterval(() => {
       window.scrollBy({ top: Number(speedInput.value), behavior: 'auto' });
     }, 80);
@@ -201,13 +198,13 @@ function setupPerformanceControls(wrapper) {
   nextSongButton.disabled = songs.length <= 1;
 
   previousSongButton.addEventListener('click', () => {
-    currentSongIndex = Math.max(0, getCurrentSongIndex(songs) - 1);
-    scrollToSong(songs, currentSongIndex);
+    currentSongIndex = Math.max(0, currentSongIndex - 1);
+    renderCurrentSong();
   });
 
   nextSongButton.addEventListener('click', () => {
-    currentSongIndex = Math.min(songs.length - 1, getCurrentSongIndex(songs) + 1);
-    scrollToSong(songs, currentSongIndex);
+    currentSongIndex = Math.min(songs.length - 1, currentSongIndex + 1);
+    renderCurrentSong();
   });
 
   fullscreenButton.addEventListener('click', async () => {
@@ -223,7 +220,7 @@ function setupPerformanceControls(wrapper) {
   });
 
   document.addEventListener('fullscreenchange', () => {
-    fullscreenButton.textContent = document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia';
+    fullscreenButton.textContent = document.fullscreenElement ? '↙' : '⛶';
   });
 
   printButton.addEventListener('click', () => {
@@ -231,78 +228,77 @@ function setupPerformanceControls(wrapper) {
   });
 
   transposeDownButton.addEventListener('click', () => {
-    semitones -= 1;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    songSemitones[currentSongIndex] -= 1;
+    renderCurrentSong();
   });
 
   transposeUpButton.addEventListener('click', () => {
-    semitones += 1;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
-  });
-
-  transposeResetButton.addEventListener('click', () => {
-    semitones = 0;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
-  });
-
-  numbersButton.addEventListener('click', () => {
-    showNumbers = !showNumbers;
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    songSemitones[currentSongIndex] += 1;
+    renderCurrentSong();
   });
 
   capoSelect.addEventListener('change', () => {
     capo = Number(capoSelect.value || 0);
     window.localStorage.setItem('masterCifras.performanceCapo', String(capo));
-    renderTransposedPerformance(wrapper, semitones, capo, showNumbers, transposeStatus, numbersButton);
+    renderCurrentSong();
   });
+
+  function renderCurrentSong() {
+    renderPagedPerformance({
+      songs,
+      currentSongIndex,
+      songSemitones,
+      capo,
+      status: transposeStatus,
+      songPosition,
+      previousSongButton,
+      nextSongButton,
+    });
+  }
 }
 
 function setPerformanceTheme(wrapper, button, theme) {
   wrapper.classList.toggle('is-dark', theme === 'dark');
-  button.textContent = theme === 'dark' ? 'Tema claro' : 'Tema escuro';
+  button.textContent = theme === 'dark' ? '☀' : '◐';
 }
 
 function setPerformanceFontSize(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
 }
 
-function getCurrentSongIndex(songs) {
-  if (!songs.length) return 0;
+function renderPagedPerformance({
+  songs,
+  currentSongIndex,
+  songSemitones,
+  capo,
+  status,
+  songPosition,
+  previousSongButton,
+  nextSongButton,
+}) {
+  songs.forEach((song, index) => {
+    const isActive = index === currentSongIndex;
+    song.hidden = !isActive;
 
-  const toolbarOffset = 96;
+    if (!isActive) return;
 
-  for (let index = songs.length - 1; index >= 0; index -= 1) {
-    if (songs[index].getBoundingClientRect().top <= toolbarOffset) {
-      return index;
-    }
-  }
-
-  return 0;
-}
-
-function scrollToSong(songs, index) {
-  const song = songs[index];
-
-  if (!song) return;
-
-  song.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  song.focus({ preventScroll: true });
-}
-
-function renderTransposedPerformance(wrapper, semitones, capo, showNumbers, status, numbersButton) {
-  wrapper.querySelectorAll('.chordpro-view').forEach((view) => {
-    const keyElement = view.closest('.performance-song')?.querySelector('.current-key');
+    const semitones = songSemitones[index] || 0;
+    const view = song.querySelector('.chordpro-view');
+    const keyElement = song.querySelector('.current-key');
     const displayedKey = transposeKey(keyElement?.dataset.originalKey || '-', semitones);
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
-    view.textContent = showNumbers ? convertCifraOriginalToNumbers(displayedCifra, displayedKey) : displayedCifra;
+
+    view.textContent = displayedCifra;
+    keyElement.textContent = displayedKey;
+    status.textContent = formatTransposeStatus(semitones, capo);
   });
 
-  wrapper.querySelectorAll('.current-key').forEach((key) => {
-    key.textContent = transposeKey(key.dataset.originalKey || '-', semitones);
-  });
+  if (songPosition) {
+    songPosition.textContent = songs.length ? `${currentSongIndex + 1}/${songs.length}` : '0/0';
+  }
 
-  status.textContent = formatTransposeStatus(semitones, capo);
-  numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
+  previousSongButton.disabled = currentSongIndex <= 0;
+  nextSongButton.disabled = currentSongIndex >= songs.length - 1;
 }
 
 function createCapoOptions() {

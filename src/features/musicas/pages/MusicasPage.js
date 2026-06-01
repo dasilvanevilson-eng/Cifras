@@ -1,5 +1,5 @@
 import { MusicaForm } from '../components/MusicaForm.js';
-import { createMusica, listMusicas } from '../../../services/musicasService.js';
+import { createMusica, listMusicas, updateMusica } from '../../../services/musicasService.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function MusicasPage({ session } = {}) {
@@ -24,22 +24,6 @@ export async function MusicasPage({ session } = {}) {
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
 
-  if (canEdit) {
-    formSlot.append(MusicaForm({
-      onSubmit: async (musica) => {
-        const { error } = await createMusica(musica);
-
-        if (error) {
-          throw error;
-        }
-
-        window.location.reload();
-      },
-    }));
-  } else {
-    formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas cifradas, mas nao cadastrar ou editar.'));
-  }
-
   try {
     const { data, error } = await listMusicas();
 
@@ -47,18 +31,68 @@ export async function MusicasPage({ session } = {}) {
       throw error;
     }
 
-    if (!data || data.length === 0) {
+    const musicas = data || [];
+
+    if (canEdit) {
+      renderForm(formSlot, { musicas });
+    } else {
+      formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas cifradas, mas nao cadastrar ou editar.'));
+    }
+
+    if (!musicas.length) {
       status.textContent = 'Nenhuma musica cadastrada ainda.';
       return page;
     }
 
-    listSlot.replaceChildren(createMusicasBrowser(data));
+    listSlot.replaceChildren(createMusicasBrowser(musicas, {
+      canEdit,
+      onSelect: (musica) => {
+        renderForm(formSlot, { musicas, selectedMusica: musica });
+        window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
+      },
+    }));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar as musicas.';
   }
 
   return page;
+}
+
+function renderForm(formSlot, { musicas, selectedMusica = null }) {
+  formSlot.replaceChildren(MusicaForm({
+    initialValues: selectedMusica ? {
+      titulo: selectedMusica.titulo || '',
+      artista: selectedMusica.artista || '',
+      tom: selectedMusica.tom || '',
+      tags: selectedMusica.tags || '',
+      musica_link: selectedMusica.musica_link || '',
+      cifra_original: selectedMusica.cifra_original || '',
+      cifra_chordpro: selectedMusica.cifra_chordpro || selectedMusica.chordpro || selectedMusica.conteudo_chordpro || '',
+    } : {},
+    submitLabel: selectedMusica ? 'Salvar alteracoes' : 'Salvar musica',
+    keepValuesAfterSubmit: Boolean(selectedMusica),
+    onSubmit: async (musica) => {
+      const result = selectedMusica
+        ? await updateMusica(selectedMusica.id, musica)
+        : await createMusica(musica);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (!selectedMusica) {
+        window.location.reload();
+        return;
+      }
+
+      const index = musicas.findIndex((item) => item.id === selectedMusica.id);
+
+      if (index >= 0) {
+        musicas[index] = { ...musicas[index], ...musica };
+      }
+    },
+  }));
 }
 
 function createReadOnlyNotice(text) {
@@ -68,7 +102,7 @@ function createReadOnlyNotice(text) {
   return notice;
 }
 
-function createMusicasBrowser(musicas) {
+function createMusicasBrowser(musicas, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser';
   wrapper.innerHTML = `
@@ -112,7 +146,17 @@ function createMusicasBrowser(musicas) {
       return;
     }
 
-    tableSlot.replaceChildren(createMusicasTable(filtered));
+    tableSlot.replaceChildren(createMusicasTable(filtered, {
+      ...options,
+      onSelect: (musica) => {
+        searchInput.value = getField(musica, ['titulo', 'nome', 'title']);
+        tableSlot.hidden = true;
+
+        if (options.onSelect) {
+          options.onSelect(musica);
+        }
+      },
+    }));
   }
 
   searchInput.addEventListener('input', render);
@@ -143,7 +187,7 @@ function createMusicasBrowser(musicas) {
   return wrapper;
 }
 
-function createMusicasTable(musicas) {
+function createMusicasTable(musicas, options = {}) {
   const table = document.createElement('table');
   table.className = 'data-table';
   table.innerHTML = `
@@ -164,13 +208,36 @@ function createMusicasTable(musicas) {
     const row = document.createElement('tr');
     const id = getField(musica, ['id']);
     const title = getField(musica, ['titulo', 'nome', 'title']);
+    const musicaUrl = `/musicas/detalhe?id=${encodeURIComponent(id)}`;
 
     row.innerHTML = `
-      <td><a href="/musicas/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(title)}</a></td>
+      <td><a href="${escapeHtml(musicaUrl)}">${escapeHtml(title)}</a></td>
       <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
       <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
       <td>${escapeHtml(formatTags(getField(musica, ['tags'])))}</td>
     `;
+    row.tabIndex = 0;
+    row.className = 'clickable-row';
+    row.addEventListener('click', (event) => {
+      if (options.canEdit && options.onSelect) {
+        event.preventDefault();
+        options.onSelect(musica);
+        return;
+      }
+
+      if (event.target.closest('a')) return;
+      window.location.href = musicaUrl;
+    });
+    row.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+
+      if (options.canEdit && options.onSelect) {
+        options.onSelect(musica);
+        return;
+      }
+
+      window.location.href = musicaUrl;
+    });
     body.append(row);
   });
 

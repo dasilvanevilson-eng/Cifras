@@ -45,7 +45,7 @@ export function LoginPage() {
 
       message.className = 'form-message success';
       message.textContent = 'Login realizado com sucesso.';
-      window.location.href = '/musicas';
+      window.location.href = '/dashboard';
     } catch (error) {
       message.className = 'form-message error';
       message.textContent = error.message || 'Nao foi possivel fazer login.';

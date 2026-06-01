@@ -84,7 +84,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
       <h1>${escapeHtml(nome)}</h1>
       <p>Data: ${escapeHtml(data)}</p>
     </header>
-    <div class="page-grid">
+    <div class="page-grid repertorio-detail-grid">
       <section class="editor-panel">
         <h2>Adicionar musica</h2>
         <div class="form-slot"></div>
@@ -309,31 +309,44 @@ function createTomInput(associationId, initialValue) {
   const wrapper = document.createElement('span');
   wrapper.className = 'inline-edit';
   wrapper.innerHTML = `
-    <input type="text" value="${escapeHtml(initialValue !== '-' ? initialValue : '')}" aria-label="Tom da musica no repertorio">
-    <button class="nav-button" type="button">Salvar</button>
+    <input type="text" value="${escapeHtml(initialValue !== '-' ? initialValue : '')}" aria-label="Tom da musica no repertorio" title="Tom salvo automaticamente">
   `;
 
   const input = wrapper.querySelector('input');
-  const button = wrapper.querySelector('button');
+  let lastSavedValue = input.value.trim();
+  let isSaving = false;
 
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    button.textContent = 'Salvando...';
+  async function save() {
+    const nextValue = input.value.trim();
 
-    const { error } = await updateTomMusicaRepertorio(associationId, input.value.trim() || null);
+    if (isSaving || nextValue === lastSavedValue) return;
+
+    isSaving = true;
+    input.disabled = true;
+    input.title = 'Salvando tom...';
+
+    const { error } = await updateTomMusicaRepertorio(associationId, nextValue || null);
 
     if (error) {
-      button.disabled = false;
-      button.textContent = 'Salvar';
+      input.disabled = false;
+      input.title = 'Tom salvo automaticamente';
       window.alert(error.message || 'Nao foi possivel salvar o tom.');
+      isSaving = false;
       return;
     }
 
-    button.disabled = false;
-    button.textContent = 'Salvo';
-    window.setTimeout(() => {
-      button.textContent = 'Salvar';
-    }, 1200);
+    lastSavedValue = nextValue;
+    input.disabled = false;
+    input.title = 'Tom salvo';
+    isSaving = false;
+  }
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+
+    event.preventDefault();
+    input.blur();
   });
 
   return wrapper;
@@ -346,8 +359,10 @@ function normalizeOrder(items) {
 function createMoveButton(label, items, index, direction) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'nav-button';
-  button.textContent = label;
+  button.className = 'nav-button icon-button';
+  button.textContent = direction < 0 ? '↑' : '↓';
+  button.setAttribute('aria-label', label);
+  button.title = label;
 
   const targetIndex = index + direction;
   const canMove = targetIndex >= 0 && targetIndex < items.length;
@@ -360,7 +375,7 @@ function createMoveButton(label, items, index, direction) {
     const target = items[targetIndex];
 
     button.disabled = true;
-    button.textContent = 'Salvando...';
+    button.textContent = '…';
 
     const [currentResult, targetResult] = await Promise.all([
       updateOrdemMusicaRepertorio(current.id, target.ordem),
@@ -371,7 +386,7 @@ function createMoveButton(label, items, index, direction) {
 
     if (error) {
       button.disabled = false;
-      button.textContent = label;
+      button.textContent = direction < 0 ? '↑' : '↓';
       window.alert(error.message || 'Nao foi possivel alterar a ordem.');
       return;
     }
@@ -385,21 +400,23 @@ function createMoveButton(label, items, index, direction) {
 function createRemoveButton(associationId) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'danger-button';
-  button.textContent = 'Remover';
+  button.className = 'danger-button icon-button';
+  button.textContent = '×';
+  button.setAttribute('aria-label', 'Remover musica');
+  button.title = 'Remover';
 
   button.addEventListener('click', async () => {
     const confirmed = window.confirm('Remover esta musica do repertorio?');
     if (!confirmed) return;
 
     button.disabled = true;
-    button.textContent = 'Removendo...';
+    button.textContent = '…';
 
     const { error } = await removeMusicaDoRepertorio(associationId);
 
     if (error) {
       button.disabled = false;
-      button.textContent = 'Remover';
+      button.textContent = '×';
       window.alert(error.message || 'Nao foi possivel remover a musica.');
       return;
     }

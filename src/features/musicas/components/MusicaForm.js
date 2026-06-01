@@ -1,9 +1,9 @@
-import { convertToChordPro } from '../../../utils/chordpro.js';
+import { convertToChordPro, normalizeChordProLyrics, renderChordProForDisplay } from '../../../utils/chordpro.js';
 
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
-  const initialChordPro = initialValues.cifra_chordpro || convertToChordPro(initialValues.cifra_original || '');
+  const initialChordPro = getInitialChordPro(initialValues);
   form.className = 'form musica-form';
   form.innerHTML = `
     <label>
@@ -42,35 +42,80 @@ export function MusicaForm(options = {}) {
 
       <label>
         ChordPro interno
-        <textarea name="cifra_chordpro" rows="14" required>${escapeHtml(initialChordPro)}</textarea>
+        <textarea class="chordpro-source" name="cifra_chordpro">${escapeHtml(initialChordPro)}</textarea>
+        <div class="chordpro-editor" contenteditable="true" role="textbox" aria-label="ChordPro interno" spellcheck="false"></div>
       </label>
     </div>
+
+    <div class="preview-actions">
+      <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
+    </div>
+    <section class="song-preview" hidden>
+      <header class="song-header">
+        <h2 data-preview="titulo"></h2>
+        <p data-preview="meta"></p>
+      </header>
+      <pre class="chordpro-view" data-preview="cifra"></pre>
+    </section>
 
     <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
     <p class="form-message" aria-live="polite"></p>
   `;
 
   const message = form.querySelector('.form-message');
-  const button = form.querySelector('button');
+  const button = form.querySelector('button[type="submit"]');
   const originalTextarea = form.querySelector('[name="cifra_original"]');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
+  const chordProEditor = form.querySelector('.chordpro-editor');
   const linkInput = form.querySelector('[name="musica_link"]');
   const linkAction = form.querySelector('.field-action-link');
-  let chordProEditedManually = Boolean(initialValues.cifra_chordpro);
+  const previewToggle = form.querySelector('.preview-toggle');
+  const previewPanel = form.querySelector('.song-preview');
+  let chordProEditedManually = false;
 
   updateLinkAction(linkInput, linkAction);
+  renderChordProEditor(chordProEditor, chordProTextarea.value);
 
   originalTextarea.addEventListener('input', () => {
     if (chordProEditedManually) return;
-    chordProTextarea.value = convertToChordPro(originalTextarea.value);
+    setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(originalTextarea.value));
   });
 
-  chordProTextarea.addEventListener('input', () => {
+  chordProEditor.addEventListener('focus', () => {
+    chordProEditor.textContent = chordProTextarea.value;
+  });
+
+  chordProEditor.addEventListener('input', () => {
     chordProEditedManually = true;
+    chordProTextarea.value = getEditableText(chordProEditor);
+
+    if (!previewPanel.hidden) {
+      updatePreview(form, previewPanel);
+    }
+  });
+
+  chordProEditor.addEventListener('blur', () => {
+    setChordProValue(chordProTextarea, chordProEditor, normalizeChordProLyrics(chordProTextarea.value));
   });
 
   linkInput.addEventListener('input', () => {
     updateLinkAction(linkInput, linkAction);
+  });
+
+  previewToggle.addEventListener('click', () => {
+    const shouldShow = previewPanel.hidden;
+    previewPanel.hidden = !shouldShow;
+    previewToggle.textContent = shouldShow ? 'Ocultar pre-visualizacao' : 'Pre-visualizacao';
+
+    if (shouldShow) {
+      updatePreview(form, previewPanel);
+    }
+  });
+
+  form.addEventListener('input', () => {
+    if (!previewPanel.hidden) {
+      updatePreview(form, previewPanel);
+    }
   });
 
   form.addEventListener('submit', async (event) => {
@@ -83,16 +128,7 @@ export function MusicaForm(options = {}) {
     message.textContent = 'Salvando...';
 
     try {
-      const formData = new FormData(form);
-      await options.onSubmit({
-        titulo: String(formData.get('titulo') || '').trim(),
-        artista: String(formData.get('artista') || '').trim(),
-        tom: String(formData.get('tom') || '').trim(),
-        tags: String(formData.get('tags') || '').trim() || null,
-        musica_link: String(formData.get('musica_link') || '').trim() || null,
-        cifra_original: String(formData.get('cifra_original') || '').trim(),
-        cifra_chordpro: String(formData.get('cifra_chordpro') || '').trim(),
-      });
+      await options.onSubmit(getFormValues(form));
 
       if (!options.keepValuesAfterSubmit) {
         form.reset();
@@ -108,6 +144,61 @@ export function MusicaForm(options = {}) {
   });
 
   return form;
+}
+
+function getFormValues(form) {
+  const formData = new FormData(form);
+
+  return {
+    titulo: String(formData.get('titulo') || '').trim(),
+    artista: String(formData.get('artista') || '').trim(),
+    tom: String(formData.get('tom') || '').trim(),
+    tags: String(formData.get('tags') || '').trim() || null,
+    musica_link: String(formData.get('musica_link') || '').trim() || null,
+    cifra_original: String(formData.get('cifra_original') || '').trim(),
+    cifra_chordpro: normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '').trim()),
+  };
+}
+
+function getInitialChordPro(initialValues) {
+  return normalizeChordProLyrics(initialValues.cifra_chordpro
+    || initialValues.chordpro
+    || initialValues.conteudo_chordpro
+    || convertToChordPro(initialValues.cifra_original || ''));
+}
+
+function updatePreview(form, previewPanel) {
+  const values = getFormValues(form);
+  const title = values.titulo || 'Musica sem titulo';
+  const artist = values.artista || '-';
+  const key = values.tom || '-';
+
+  previewPanel.querySelector('[data-preview="titulo"]').textContent = title;
+  previewPanel.querySelector('[data-preview="meta"]').textContent = `${artist} - Tom: ${key}`;
+  previewPanel.querySelector('[data-preview="cifra"]').textContent = renderChordProForDisplay(values.cifra_chordpro)
+    || 'A conversao ChordPro aparecera aqui.';
+}
+
+function setChordProValue(source, editor, value) {
+  source.value = value;
+  renderChordProEditor(editor, value);
+}
+
+function renderChordProEditor(editor, value) {
+  editor.innerHTML = escapeHtml(value || '')
+    .replace(/\[([^\]]+)\]/g, (match, chord) => (
+      isChordToken(chord) ? `<span class="chord-token">${match}</span>` : match
+    ));
+}
+
+function getEditableText(element) {
+  return String(element.innerText || '')
+    .replace(/\n\n$/g, '\n')
+    .replace(/\u00a0/g, ' ');
+}
+
+function isChordToken(value) {
+  return /^[A-G](?:#|b)?/.test(String(value || ''));
 }
 
 function updateLinkAction(input, action) {

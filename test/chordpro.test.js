@@ -4,6 +4,8 @@ import {
   convertToChordPro,
   extractLyricsFromCifraOriginal,
   getTransposeSemitones,
+  normalizeChordProLyrics,
+  renderChordProForDisplay,
   transposeCifraOriginal,
   transposeChordPro,
   transposeKey,
@@ -40,6 +42,51 @@ assert.equal(getTransposeSemitones('C', 'D'), 2);
 assert.equal(
   convertToChordPro(['G      D/F#', 'Grande es Tu'].join('\n')),
   '[G]GRANDE [D/F#]ES TU',
+);
+
+assert.equal(
+  renderChordProForDisplay('[G]GRANDE [D/F#]ES TU'),
+  ['G      D/F#', 'GRANDE ES TU'].join('\n'),
+);
+
+assert.equal(
+  normalizeChordProLyrics('[G]Grande [D/F#]es Tu'),
+  '[G]GRANDE [D/F#]ES TU',
+);
+
+assert.equal(
+  convertToChordPro(['Intro: Bbº  F#m7(b5)  C7M(9)  G4/7  A/C#', 'Grande es Tu'].join('\n')),
+  ['[*Intro:]', '[Bbº]GRAND[F#m7(b5)]E ES TU[C7M(9)][G4/7][A/C#]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Ponte: Eadd9  Dsus4/F#  G#dim7'),
+  ['[*Ponte:]', '[Eadd9] [Dsus4/F#] [G#dim7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Intro G  D  Em  C'),
+  ['[*Intro:]', '[G] [D] [Em] [C]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Introdução A  B  C#  D'),
+  ['[*Introdução:]', '[A] [B] [C#] [D]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Solo: Bb  C  Dm7  F/A'),
+  ['[*Solo:]', '[Bb] [C] [Dm7] [F/A]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro(['Solo', 'G  D/F#  Em'].join('\n')),
+  ['[*Solo:]', '[G] [D/F#] [Em]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Solo:Bb  C  Dm7'),
+  ['[*Solo:]', '[Bb] [C] [Dm7]'].join('\n'),
 );
 
 assert.equal(

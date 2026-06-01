@@ -31,8 +31,8 @@ export async function DashboardPage({ session } = {}) {
 
 function createDashboardView({ musicas, repertorios }) {
   const wrapper = document.createElement('section');
-  const proximosRepertorios = getProximosRepertorios(repertorios).slice(0, 5);
-  const musicasRecentes = getMusicasRecentes(musicas).slice(0, 5);
+  const repertoriosOrdenados = getRepertoriosOrdenados(repertorios);
+  const musicasRecentes = getMusicasRecentes(musicas);
 
   wrapper.innerHTML = `
     <header class="dashboard-header">
@@ -61,7 +61,7 @@ function createDashboardView({ musicas, repertorios }) {
   setupDashboardSearch({
     input: wrapper.querySelector('[data-search="repertorios"]'),
     slot: wrapper.querySelector('[data-slot="repertorios"]'),
-    items: proximosRepertorios,
+    items: repertoriosOrdenados,
     render: createRepertoriosList,
     getUrl: getRepertorioUrl,
   });
@@ -78,18 +78,20 @@ function createDashboardView({ musicas, repertorios }) {
 
 function setupDashboardSearch({ input, slot, items, render, getUrl }) {
   let currentItems = items;
+  const defaultLimit = 8;
 
   function update() {
     const query = normalizeText(input.value);
-    currentItems = query
+    const filteredItems = query
       ? items.filter((item) => normalizeText([
         getField(item, ['nome', 'titulo', 'name', 'title']),
         getField(item, ['artista', 'autor', 'artist']),
         getField(item, ['tags']),
         formatDate(getField(item, ['data', 'date'])),
       ].join(' ')).includes(query))
-      : items;
+      : items.slice(0, defaultLimit);
 
+    currentItems = filteredItems;
     slot.replaceChildren(render(currentItems));
   }
 
@@ -105,7 +107,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl }) {
 
 function createRepertoriosList(repertorios) {
   if (!repertorios.length) {
-    return createEmptyState('Nenhum repertorio futuro encontrado.');
+    return createEmptyState('Nenhum repertorio encontrado.');
   }
 
   const list = document.createElement('div');
@@ -121,7 +123,7 @@ function createRepertoriosList(repertorios) {
         <p>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a href="${escapeHtml(getRepertorioUrl(repertorio))}">Visualizar</a>
+        <a class="button-link secondary icon-action" href="${escapeHtml(getRepertorioUrl(repertorio))}" aria-label="Visualizar repertorio" title="Visualizar">👁</a>
       </div>
     `;
     item.addEventListener('click', (event) => {
@@ -156,7 +158,7 @@ function createMusicasList(musicas) {
         <p>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a href="${escapeHtml(getMusicaUrl(musica))}">Visualizar</a>
+        <a class="button-link secondary icon-action" href="${escapeHtml(getMusicaUrl(musica))}" aria-label="Visualizar musica" title="Visualizar">👁</a>
       </div>
     `;
     item.addEventListener('click', (event) => {
@@ -188,17 +190,9 @@ function getMusicaUrl(musica) {
   return `/musicas/execucao?id=${encodeURIComponent(musica.id)}&returnTo=/dashboard`;
 }
 
-function getProximosRepertorios(repertorios) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return repertorios
-    .filter((repertorio) => {
-      const value = getField(repertorio, ['data', 'date']);
-      if (!value || value === '-') return false;
-      return new Date(`${value}T00:00:00`) >= today;
-    })
-    .sort((a, b) => compareText(getField(a, ['data', 'date']), getField(b, ['data', 'date'])));
+function getRepertoriosOrdenados(repertorios) {
+  return [...repertorios]
+    .sort((a, b) => compareText(getField(b, ['data', 'date']), getField(a, ['data', 'date'])));
 }
 
 function getMusicasRecentes(musicas) {

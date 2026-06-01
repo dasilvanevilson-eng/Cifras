@@ -7,6 +7,14 @@ export function convertToChordPro(input) {
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     const nextLine = lines[index + 1];
+    const label = getChordSectionLabel(line);
+
+    if (label && nextLine !== undefined && isChordLine(nextLine)) {
+      output.push(`[*${label}]`);
+      output.push(convertStandaloneChordLine(nextLine, { includeLabel: false }));
+      index += 1;
+      continue;
+    }
 
     if (isChordLine(line) && nextLine !== undefined && !isChordLine(nextLine)) {
       output.push(mergeChordLineWithLyrics(line, nextLine));
@@ -17,13 +25,31 @@ export function convertToChordPro(input) {
     output.push(convertStandaloneChordLine(line));
   }
 
-  return output.map((line) => uppercaseLyrics(line.trimEnd())).join('\n');
+  return output.map((line) => uppercaseChordProLyrics(line.trimEnd())).join('\n');
 }
 
 export function transposeChordPro(input, semitones) {
   if (!input || !Number(semitones)) return input || '';
 
   return String(input).replace(/\[([^\]]+)\]/g, (match, chord) => `[${transposeChord(chord, semitones)}]`);
+}
+
+export function normalizeChordProLyrics(input) {
+  if (!input) return '';
+
+  return String(input)
+    .split('\n')
+    .map(uppercaseChordProLyrics)
+    .join('\n');
+}
+
+export function renderChordProForDisplay(input) {
+  if (!input) return '';
+
+  return String(input)
+    .split('\n')
+    .map(renderChordProLineForDisplay)
+    .join('\n');
 }
 
 export function transposeCifraOriginal(input, semitones) {
@@ -78,7 +104,8 @@ export function extractLyricsFromCifraOriginal(input) {
 }
 
 function mergeChordLineWithLyrics(chordLine, lyricLine) {
-  const chords = findChords(chordLine);
+  const parsed = parseChordLine(chordLine);
+  const chords = findChords(parsed.chordText);
   let result = lyricLine;
   let offset = 0;
 
@@ -89,32 +116,72 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
     offset += tag.length;
   });
 
-  return result;
+  return parsed.label ? `[*${parsed.label}]\n${result}` : result;
 }
 
-function convertStandaloneChordLine(line) {
+function renderChordProLineForDisplay(line) {
+  const chordLine = [];
+  const lyricLine = [];
+  let lyricPosition = 0;
+  let index = 0;
+
+  while (index < line.length) {
+    if (line[index] === '[') {
+      const endIndex = line.indexOf(']', index);
+
+      if (endIndex > index) {
+        writeAt(chordLine, lyricPosition, line.slice(index + 1, endIndex));
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    lyricLine.push(line[index]);
+    lyricPosition += 1;
+    index += 1;
+  }
+
+  const chords = chordLine.join('').trimEnd();
+  const lyrics = lyricLine.join('').trimEnd();
+
+  if (!chords) return lyrics;
+  if (!lyrics) return chords;
+
+  return `${chords}\n${lyrics}`;
+}
+
+function writeAt(target, position, value) {
+  while (target.length < position) {
+    target.push(' ');
+  }
+
+  [...value].forEach((char, index) => {
+    target[position + index] = char;
+  });
+}
+
+function convertStandaloneChordLine(line, options = {}) {
   if (!isChordLine(line)) {
     return line;
   }
 
-  return findChords(line)
+  const parsed = parseChordLine(line);
+  const chords = findChords(parsed.chordText)
     .map(({ chord }) => `[${chord}]`)
     .join(' ');
+
+  return parsed.label && options.includeLabel !== false ? `[*${parsed.label}]\n${chords}` : chords;
 }
 
 function isChordLine(line) {
-  const chords = findChords(line);
+  const parsed = parseChordLine(line);
+  const chords = findChords(parsed.chordText);
 
   if (!chords.length) {
     return false;
   }
 
-  const onlyChordsAndSeparators = line
-    .replace(CHORD_PATTERN, '')
-    .replace(CHORD_SEPARATOR_PATTERN, '')
-    .trim().length === 0;
-
-  return onlyChordsAndSeparators;
+  return isOnlyChordsAndSeparators(parsed.chordText);
 }
 
 function findChords(line) {
@@ -129,6 +196,8 @@ function transposeChordLine(line, semitones) {
 }
 
 function transposeChord(chord, semitones) {
+  if (String(chord).startsWith('*')) return chord;
+
   return String(chord).replace(NOTE_PATTERN, (note) => transposeNote(note, semitones));
 }
 
@@ -156,6 +225,33 @@ function getChordRoot(value) {
   return match ? match[0] : '';
 }
 
+function parseChordLine(line) {
+  const value = String(line || '');
+  const keywordMatch = value.match(/^\s*((?:intro|introdu[cç][aã]o|solo)\b\s*:?)\s*(.*)$/i);
+
+  if (keywordMatch) {
+    const [, label, chordText] = keywordMatch;
+
+    if (findChords(chordText).length && isOnlyChordsAndSeparators(chordText)) {
+      return { label: formatChordLineLabel(label), chordText };
+    }
+  }
+
+  const match = value.match(/^\s*([A-Za-zÀ-ÿ0-9ªº ._-]{2,30}:)\s+(.*)$/);
+
+  if (!match) {
+    return { label: '', chordText: value };
+  }
+
+  const [, label, chordText] = match;
+
+  if (!findChords(chordText).length) {
+    return { label: '', chordText: value };
+  }
+
+  return { label: formatChordLineLabel(label), chordText };
+}
+
 function noteToNumber(note, keyRoot) {
   const noteIndex = NOTES_SHARP.indexOf(FLAT_TO_SHARP[note] || note);
   const keyIndex = NOTES_SHARP.indexOf(FLAT_TO_SHARP[keyRoot] || keyRoot);
@@ -177,7 +273,7 @@ function transposeNote(note, semitones) {
   return NOTES_SHARP[transposedIndex];
 }
 
-function uppercaseLyrics(line) {
+function uppercaseChordProLyrics(line) {
   return String(line).replace(/\[[^\]]+\]|[^\[]+/g, (part) => {
     if (part.startsWith('[')) {
       return part;
@@ -187,8 +283,25 @@ function uppercaseLyrics(line) {
   });
 }
 
-const CHORD_PATTERN = /[A-G](?:#|b)?(?:m|maj|min|dim|aug|sus|add)?(?:[0-9]{0,2})?(?:M)?(?:\([^)]*\))?(?:\/[A-G](?:#|b)?)?/g;
-const CHORD_SEPARATOR_PATTERN = /[|:.,-]/g;
+function isOnlyChordsAndSeparators(value) {
+  return String(value || '')
+    .replace(CHORD_PATTERN, '')
+    .replace(CHORD_SEPARATOR_PATTERN, '')
+    .trim().length === 0;
+}
+
+function getChordSectionLabel(line) {
+  const match = String(line || '').match(/^\s*(intro|introdu[cç][aã]o|solo)\s*:?\s*$/i);
+  return match ? formatChordLineLabel(match[1]) : '';
+}
+
+function formatChordLineLabel(label) {
+  const trimmed = String(label || '').trim().replace(/:$/, '');
+  return trimmed ? `${trimmed}:` : '';
+}
+
+const CHORD_PATTERN = /(?<![A-Za-zÀ-ÿ])(?:[A-G](?:#|b)?(?:(?:m(?![a-z])|maj|min|dim|aug|sus|add|M|º|°|ø|Δ|\+|-|[#b]?\d{1,2}|\([^)]*\)))*(?:\/(?:[A-G](?:#|b)?|[#b]?\d{1,2}))*)(?![A-Za-zÀ-ÿ])/g;
+const CHORD_SEPARATOR_PATTERN = /[|:.,;()\[\]{}-]/g;
 const NOTE_PATTERN = /[A-G](?:#|b)?/g;
 const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const SEMITONE_TO_NUMBER = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', '#5', '6', 'b7', '7'];

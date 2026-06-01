@@ -55,7 +55,7 @@ function createEditView(id, musica) {
       tags: musica.tags || '',
       musica_link: musica.musica_link || '',
       cifra_original: musica.cifra_original || '',
-      cifra_chordpro: musica.cifra_chordpro || '',
+      cifra_chordpro: musica.cifra_chordpro || musica.chordpro || musica.conteudo_chordpro || '',
     },
     submitLabel: 'Salvar alteracoes',
     keepValuesAfterSubmit: true,
