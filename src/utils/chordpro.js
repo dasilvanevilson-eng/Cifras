@@ -120,6 +120,12 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
 }
 
 function renderChordProLineForDisplay(line) {
+  if (isChordOnlyChordProLine(line)) {
+    return [...line.matchAll(/\[([^\]]+)\]/g)]
+      .map((match) => match[1])
+      .join('  ');
+  }
+
   const chordLine = [];
   const lyricLine = [];
   let lyricPosition = 0;
@@ -148,6 +154,17 @@ function renderChordProLineForDisplay(line) {
   if (!lyrics) return chords;
 
   return `${chords}\n${lyrics}`;
+}
+
+function isChordOnlyChordProLine(line) {
+  const value = String(line || '');
+
+  if (!/\[[^\]]+\]/.test(value)) return false;
+
+  return value
+    .replace(/\[[^\]]+\]/g, '')
+    .replace(CHORD_SEPARATOR_PATTERN, '')
+    .trim().length === 0;
 }
 
 function writeAt(target, position, value) {
@@ -227,14 +244,16 @@ function getChordRoot(value) {
 
 function parseChordLine(line) {
   const value = String(line || '');
-  const keywordMatch = value.match(/^\s*((?:intro|introdu[cç][aã]o|solo)\b\s*:?)\s*(.*)$/i);
+  const introChordLine = parseSectionChordLine(value, /^(intro|introdu[cç][aã]o)\b\s*:?\s*(.*)$/i);
 
-  if (keywordMatch) {
-    const [, label, chordText] = keywordMatch;
+  if (introChordLine) {
+    return introChordLine;
+  }
 
-    if (findChords(chordText).length && isOnlyChordsAndSeparators(chordText)) {
-      return { label: formatChordLineLabel(label), chordText };
-    }
+  const soloChordLine = parseSectionChordLine(value, /^(solo)\b\s*:?\s*(.*)$/i);
+
+  if (soloChordLine) {
+    return soloChordLine;
   }
 
   const match = value.match(/^\s*([A-Za-zÀ-ÿ0-9ªº ._-]{2,30}:)\s+(.*)$/);
@@ -293,6 +312,41 @@ function isOnlyChordsAndSeparators(value) {
 function getChordSectionLabel(line) {
   const match = String(line || '').match(/^\s*(intro|introdu[cç][aã]o|solo)\s*:?\s*$/i);
   return match ? formatChordLineLabel(match[1]) : '';
+}
+
+function parseSectionChordLine(line, pattern) {
+  const match = String(line || '').trim().match(pattern);
+
+  if (!match) return null;
+
+  const [, label, chordText] = match;
+  return parseKeywordChordText(label, chordText);
+}
+
+function parseKeywordChordText(label, text) {
+  const value = String(text || '');
+  const chords = findChords(value);
+
+  if (!chords.length) return null;
+
+  if (isOnlyChordsAndSeparators(value)) {
+    return { label: formatChordLineLabel(label), chordText: value };
+  }
+
+  const extraLabel = value
+    .replace(CHORD_PATTERN, ' ')
+    .replace(CHORD_SEPARATOR_PATTERN, ' ')
+    .replace(/\b\d+\s*x\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const chordText = chords.map(({ chord }) => chord).join(' ');
+
+  const fullLabel = [label, extraLabel]
+    .map((part) => String(part || '').trim().replace(/:$/, ''))
+    .filter(Boolean)
+    .join(' ');
+
+  return { label: formatChordLineLabel(fullLabel), chordText };
 }
 
 function formatChordLineLabel(label) {

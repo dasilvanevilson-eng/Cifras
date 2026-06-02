@@ -139,6 +139,21 @@ a {
 .dashboard-list {
   display: grid;
   gap: 10px;
+  max-height: min(58vh, 520px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.dashboard-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dashboard-list::-webkit-scrollbar-track {
+  background: #ede7dc;
+}
+
+.dashboard-list::-webkit-scrollbar-thumb {
+  background: #c7bca9;
 }
 
 .dashboard-search {
@@ -216,6 +231,17 @@ a {
 
 .repertorio-detail-grid .editor-panel .form {
   max-width: 560px;
+}
+
+.usuarios-grid {
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+}
+
+.inline-edit select {
+  border: 1px solid #cfc7b8;
+  padding: 8px 10px;
+  font: inherit;
+  background: #ffffff;
 }
 
 .page-status {
@@ -811,6 +837,10 @@ a {
   .dashboard-list-item {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .dashboard-list {
+    max-height: 42vh;
   }
 
   .dashboard-item-actions,

@@ -10,6 +10,7 @@ import { RepertorioDetalhePage } from '../features/repertorios/pages/RepertorioD
 import { RepertorioEditarPage } from '../features/repertorios/pages/RepertorioEditarPage.js';
 import { RepertorioExecucaoPage } from '../features/repertorios/pages/RepertorioExecucaoPage.js';
 import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.js';
+import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 
 const routes = {
   '/login': LoginPage,
@@ -24,6 +25,7 @@ const routes = {
   '/repertorios/detalhe': RepertorioDetalhePage,
   '/repertorios/editar': RepertorioEditarPage,
   '/repertorios/execucao': RepertorioExecucaoPage,
+  '/usuarios': UsuariosPage,
 };
 
 const publicRoutes = new Set(['/login']);

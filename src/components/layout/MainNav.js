@@ -15,6 +15,7 @@ export function MainNav(options = {}) {
       <a href="/musicas">Musicas Cifradas</a>
       <a href="/musicas-letras">Musicas Letras</a>
       <a href="/repertorios">Repertorios</a>
+      ${options.profile?.papel === 'admin' ? '<a href="/usuarios">Usuarios</a>' : ''}
     `;
 
     const email = document.createElement('span');

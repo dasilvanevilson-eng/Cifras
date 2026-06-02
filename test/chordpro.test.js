@@ -50,6 +50,11 @@ assert.equal(
 );
 
 assert.equal(
+  renderChordProForDisplay('[*Solo:]\n[G] [D] [Em] [C]'),
+  ['*Solo:', 'G  D  Em  C'].join('\n'),
+);
+
+assert.equal(
   normalizeChordProLyrics('[G]Grande [D/F#]es Tu'),
   '[G]GRANDE [D/F#]ES TU',
 );
@@ -87,6 +92,36 @@ assert.equal(
 assert.equal(
   convertToChordPro('Solo:Bb  C  Dm7'),
   ['[*Solo:]', '[Bb] [C] [Dm7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Solo final Bb  C  Dm7'),
+  ['[*Solo final:]', '[Bb] [C] [Dm7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('SOLO - Bb  C  Dm7'),
+  ['[*SOLO:]', '[Bb] [C] [Dm7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Solo 2 Bb  C  Dm7'),
+  ['[*Solo 2:]', '[Bb] [C] [Dm7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Solo guitarra Bb  C  Dm7  2x'),
+  ['[*Solo guitarra:]', '[Bb] [C] [Dm7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Solo final: Bb  C  Dm7  bis'),
+  ['[*Solo final bis:]', '[Bb] [C] [Dm7]'].join('\n'),
+);
+
+assert.equal(
+  convertToChordPro('Intro violao G  D  Em'),
+  ['[*Intro violao:]', '[G] [D] [Em]'].join('\n'),
 );
 
 assert.equal(

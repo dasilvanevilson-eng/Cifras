@@ -32,7 +32,7 @@ export async function DashboardPage({ session } = {}) {
 function createDashboardView({ musicas, repertorios }) {
   const wrapper = document.createElement('section');
   const repertoriosOrdenados = getRepertoriosOrdenados(repertorios);
-  const musicasRecentes = getMusicasRecentes(musicas);
+  const musicasOrdenadas = getMusicasOrdenadas(musicas);
 
   wrapper.innerHTML = `
     <header class="dashboard-header">
@@ -68,7 +68,7 @@ function createDashboardView({ musicas, repertorios }) {
   setupDashboardSearch({
     input: wrapper.querySelector('[data-search="musicas"]'),
     slot: wrapper.querySelector('[data-slot="musicas"]'),
-    items: musicasRecentes,
+    items: musicasOrdenadas,
     render: createMusicasList,
     getUrl: getMusicaUrl,
   });
@@ -192,11 +192,17 @@ function getMusicaUrl(musica) {
 
 function getRepertoriosOrdenados(repertorios) {
   return [...repertorios]
-    .sort((a, b) => compareText(getField(b, ['data', 'date']), getField(a, ['data', 'date'])));
+    .sort((a, b) => compareText(
+      getField(b, ['created_at', 'criado_em', 'data', 'date']),
+      getField(a, ['created_at', 'criado_em', 'data', 'date']),
+    ));
 }
 
-function getMusicasRecentes(musicas) {
-  return [...musicas].sort((a, b) => compareText(getField(b, ['created_at']), getField(a, ['created_at'])));
+function getMusicasOrdenadas(musicas) {
+  return [...musicas].sort((a, b) => compareText(
+    getField(a, ['titulo', 'nome', 'title']),
+    getField(b, ['titulo', 'nome', 'title']),
+  ));
 }
 
 function compareText(a, b) {
