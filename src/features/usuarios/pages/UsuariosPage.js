@@ -1,5 +1,5 @@
 import { USER_ROLES, canManageUsers } from '../../auth/roles.js';
-import { createUser, listProfiles, updateProfile } from '../../../services/usersService.js';
+import { createUser, deleteUser, listProfiles, updateUser } from '../../../services/usersService.js';
 
 export async function UsuariosPage({ session } = {}) {
   const page = document.createElement('section');
@@ -14,7 +14,7 @@ export async function UsuariosPage({ session } = {}) {
     <h1>Usuarios</h1>
     <div class="page-grid usuarios-grid">
       <section>
-        <h2>Novo usuario</h2>
+        <h2 data-role="form-title">Novo usuario</h2>
         <div class="form-slot"></div>
       </section>
       <section>
@@ -26,22 +26,53 @@ export async function UsuariosPage({ session } = {}) {
     </div>
   `;
 
+  const formTitle = page.querySelector('[data-role="form-title"]');
   const formSlot = page.querySelector('.form-slot');
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
   let currentUsers = [];
+  let editingUser = null;
 
-  formSlot.append(createUserForm(async () => {
-    const refreshedUsers = await refreshUsers(listSlot);
-    currentUsers = mergeUsers([...currentUsers, ...refreshedUsers]);
-    listSlot.replaceChildren(createUsersTable(currentUsers));
-  }, (createdUser) => {
-    currentUsers = mergeUsers([createdUser, ...currentUsers]);
-    listSlot.replaceChildren(createUsersTable(currentUsers));
-  }));
+  function renderForm() {
+    formTitle.textContent = editingUser ? 'Editar usuario' : 'Novo usuario';
+    formSlot.replaceChildren(createUserForm({
+      user: editingUser,
+      onCancel: () => {
+        editingUser = null;
+        renderForm();
+      },
+      onSaved: async (savedUser) => {
+        editingUser = null;
+        currentUsers = mergeUsers([savedUser, ...currentUsers]);
+        listSlot.replaceChildren(createUsersTable(currentUsers, tableOptions));
+        renderForm();
+
+        try {
+          currentUsers = await refreshUsers(listSlot, tableOptions);
+        } catch (_error) {
+          // A lista local ja foi atualizada com o retorno da operacao.
+        }
+      },
+    }));
+  }
+
+  const tableOptions = {
+    currentUserId: session?.user?.id,
+    onEdit: (user) => {
+      editingUser = user;
+      renderForm();
+      window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
+    },
+    onDeleted: async (userId) => {
+      currentUsers = currentUsers.filter((user) => user.id !== userId);
+      listSlot.replaceChildren(createUsersTable(currentUsers, tableOptions));
+    },
+  };
+
+  renderForm();
 
   try {
-    currentUsers = await refreshUsers(listSlot);
+    currentUsers = await refreshUsers(listSlot, tableOptions);
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar usuarios.';
@@ -50,79 +81,103 @@ export async function UsuariosPage({ session } = {}) {
   return page;
 }
 
-function createUserForm(onRefresh, onCreated) {
+function createUserForm({ user = null, onCancel, onSaved }) {
+  const isEditing = Boolean(user?.id);
   const form = document.createElement('form');
   form.className = 'form';
   form.innerHTML = `
     <label>
       Nome
-      <input name="nome" type="text" autocomplete="name">
+      <input name="nome" type="text" autocomplete="name" value="${escapeHtml(user?.nome || '')}" required>
     </label>
     <label>
       E-mail
-      <input name="email" type="email" autocomplete="email" required>
+      <input name="email" type="email" autocomplete="email" value="${escapeHtml(user?.email || '')}" ${isEditing ? 'disabled' : 'required'}>
     </label>
     <label>
-      Senha inicial
-      <input name="password" type="password" autocomplete="new-password" minlength="6" required>
+      ${isEditing ? 'Nova senha' : 'Senha inicial'}
+      <input
+        name="password"
+        type="password"
+        autocomplete="new-password"
+        minlength="6"
+        ${isEditing ? 'placeholder="Deixe em branco para manter a senha atual"' : 'required'}
+      >
+    </label>
+    <label>
+      Telefone
+      <input name="telefone" type="tel" autocomplete="tel" value="${escapeHtml(user?.telefone || '')}">
+    </label>
+    <label>
+      Observacao
+      <textarea name="observacao" rows="4">${escapeHtml(user?.observacao || '')}</textarea>
     </label>
     <label>
       Papel
       <select name="papel">
-        ${createRoleOptions(USER_ROLES.MUSICO)}
+        ${createRoleOptions(user?.papel || USER_ROLES.MUSICO)}
       </select>
     </label>
-    <button class="button" type="submit">Cadastrar usuario</button>
+    <div class="form-actions">
+      <button class="button" type="submit">${isEditing ? 'Salvar alteracoes' : 'Cadastrar usuario'}</button>
+      ${isEditing ? '<button class="button-link secondary" type="button" data-action="cancel">Cancelar</button>' : ''}
+    </div>
     <p class="form-message" aria-live="polite"></p>
   `;
 
-  const button = form.querySelector('button');
+  const button = form.querySelector('button[type="submit"]');
+  const cancelButton = form.querySelector('[data-action="cancel"]');
   const message = form.querySelector('.form-message');
+
+  if (cancelButton) {
+    cancelButton.addEventListener('click', () => {
+      if (onCancel) onCancel();
+    });
+  }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
+    const values = {
+      id: user?.id,
+      nome: String(formData.get('nome') || '').trim(),
+      email: String(formData.get('email') || user?.email || '').trim(),
+      password: String(formData.get('password') || ''),
+      telefone: String(formData.get('telefone') || '').trim(),
+      observacao: String(formData.get('observacao') || '').trim(),
+      papel: String(formData.get('papel') || USER_ROLES.MUSICO),
+    };
 
     button.disabled = true;
     message.className = 'form-message';
-    message.textContent = 'Cadastrando...';
+    message.textContent = isEditing ? 'Salvando...' : 'Cadastrando...';
 
-    const { data, error } = await createUser({
-      nome: String(formData.get('nome') || '').trim(),
-      email: String(formData.get('email') || '').trim(),
-      password: String(formData.get('password') || ''),
-      papel: String(formData.get('papel') || USER_ROLES.MUSICO),
-    });
+    const { data, error } = isEditing
+      ? await updateUser(values)
+      : await createUser(values);
 
     if (error || data?.error) {
       button.disabled = false;
       message.className = 'form-message error';
-      message.textContent = error?.message || data?.error || 'Nao foi possivel cadastrar usuario.';
+      message.textContent = error?.message || data?.error || 'Nao foi possivel salvar usuario.';
       return;
     }
 
     form.reset();
     button.disabled = false;
     message.className = 'form-message success';
-    message.textContent = 'Usuario cadastrado com sucesso.';
+    message.textContent = isEditing ? 'Usuario atualizado com sucesso.' : 'Usuario cadastrado com sucesso.';
 
-    if (data?.user && onCreated) {
-      onCreated(data.user);
-    }
-
-    try {
-      await onRefresh();
-    } catch (refreshError) {
-      message.className = 'form-message success';
-      message.textContent = 'Usuario cadastrado. Atualize a pagina se ele nao aparecer na lista.';
+    if (data?.user && onSaved) {
+      onSaved({ ...user, ...data.user, email: data.user.email || user?.email || values.email });
     }
   });
 
   return form;
 }
 
-async function refreshUsers(slot) {
+async function refreshUsers(slot, options) {
   const { data, error } = await listProfiles();
 
   if (error) {
@@ -130,11 +185,11 @@ async function refreshUsers(slot) {
   }
 
   const users = data || [];
-  slot.replaceChildren(createUsersTable(users));
+  slot.replaceChildren(createUsersTable(users, options));
   return users;
 }
 
-function createUsersTable(users) {
+function createUsersTable(users, options = {}) {
   if (!users.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
@@ -149,7 +204,10 @@ function createUsersTable(users) {
       <tr>
         <th>Nome</th>
         <th>E-mail</th>
+        <th>Telefone</th>
         <th>Papel</th>
+        <th>Observacao</th>
+        <th>Acoes</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -162,15 +220,64 @@ function createUsersTable(users) {
     row.innerHTML = `
       <td>${escapeHtml(user.nome || '-')}</td>
       <td>${escapeHtml(user.email || '-')}</td>
-      <td></td>
+      <td>${escapeHtml(user.telefone || '-')}</td>
+      <td>${escapeHtml(formatRole(user.papel))}</td>
+      <td>${escapeHtml(user.observacao || '-')}</td>
+      <td class="table-actions"></td>
     `;
 
-    const roleCell = row.querySelector('td:last-child');
-    roleCell.append(createRoleSelect(user));
+    const actionsCell = row.querySelector('.table-actions');
+    actionsCell.append(createEditButton(user, options));
+    actionsCell.append(createDeleteButton(user, options));
     body.append(row);
   });
 
   return table;
+}
+
+function createEditButton(user, options) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'nav-button';
+  button.textContent = 'Editar';
+
+  button.addEventListener('click', () => {
+    if (options.onEdit) options.onEdit(user);
+  });
+
+  return button;
+}
+
+function createDeleteButton(user, options) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'danger-button';
+  button.textContent = 'Excluir';
+  button.disabled = user.id === options.currentUserId;
+  button.title = button.disabled ? 'Voce nao pode excluir o proprio usuario.' : 'Excluir usuario';
+
+  button.addEventListener('click', async () => {
+    const confirmed = window.confirm(`Excluir o usuario "${user.nome || user.email}"? Esta acao remove o login deste usuario.`);
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = 'Excluindo...';
+
+    const { data, error } = await deleteUser(user.id);
+
+    if (error || data?.error) {
+      button.disabled = false;
+      button.textContent = 'Excluir';
+      window.alert(error?.message || data?.error || 'Nao foi possivel excluir usuario.');
+      return;
+    }
+
+    if (options.onDeleted) {
+      options.onDeleted(user.id);
+    }
+  });
+
+  return button;
 }
 
 function mergeUsers(users) {
@@ -187,36 +294,6 @@ function mergeUsers(users) {
   return [...uniqueUsers.values()];
 }
 
-function createRoleSelect(user) {
-  const wrapper = document.createElement('span');
-  wrapper.className = 'inline-edit';
-  wrapper.innerHTML = `
-    <select aria-label="Papel de ${escapeHtml(user.nome || 'usuario')}">
-      ${createRoleOptions(user.papel)}
-    </select>
-  `;
-
-  const select = wrapper.querySelector('select');
-
-  select.addEventListener('change', async () => {
-    select.disabled = true;
-
-    const { error } = await updateProfile(user.id, { papel: select.value });
-
-    select.disabled = false;
-
-    if (error) {
-      select.value = user.papel;
-      window.alert(error.message || 'Nao foi possivel alterar o papel.');
-      return;
-    }
-
-    user.papel = select.value;
-  });
-
-  return wrapper;
-}
-
 function createRoleOptions(selectedRole) {
   return [
     [USER_ROLES.MUSICO, 'Musico'],
@@ -225,6 +302,16 @@ function createRoleOptions(selectedRole) {
   ].map(([value, label]) => (
     `<option value="${value}"${value === selectedRole ? ' selected' : ''}>${label}</option>`
   )).join('');
+}
+
+function formatRole(role) {
+  const roles = {
+    [USER_ROLES.MUSICO]: 'Musico',
+    [USER_ROLES.EDITOR]: 'Editor',
+    [USER_ROLES.ADMIN]: 'Admin',
+  };
+
+  return roles[role] || role || '-';
 }
 
 function escapeHtml(value) {

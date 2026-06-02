@@ -5,6 +5,18 @@ export async function signInWithPassword(email, password) {
   return supabase.auth.signInWithPassword({ email, password });
 }
 
+export async function sendPasswordResetEmail(email) {
+  assertSupabaseConfig();
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/alterar-senha`,
+  });
+}
+
+export async function updatePassword(password) {
+  assertSupabaseConfig();
+  return supabase.auth.updateUser({ password });
+}
+
 export async function signOut() {
   assertSupabaseConfig();
   return supabase.auth.signOut();

@@ -24,6 +24,206 @@ Como retomar:
 Estado atual:
 - Estamos testando o fluxo de registro manual de continuidade do chat.
 
+## Registro de continuidade - persistencia do chat
+
+Data: 2026-06-02
+
+O usuario informou que o projeto comecou usando arquivos JSON e depois migrou para banco de dados Supabase. Apos essa migracao, ao reabrir o VS Code, o historico do chat do Codex nao fica salvo.
+
+Diagnostico:
+- Esse historico e do ambiente Codex/VS Code, nao do app Master Cifras.
+- A migracao dos dados do app para Supabase nao controla a persistencia do chat da extensao.
+- Nao ha, neste workspace, configuracao `.vscode`, `.codex` ou `.agents` para salvar/restaurar automaticamente conversas.
+- Tambem nao ha um mecanismo confiavel para o codigo do projeto interceptar o fechamento do VS Code e copiar o conteudo completo do chat.
+
+Solucao de continuidade adotada:
+- Usar este arquivo `HISTORICO_CODEX.md` como memoria local do projeto.
+- Ao final de decisoes importantes ou entregas, registrar um resumo objetivo com:
+  - o que foi pedido;
+  - o que foi alterado;
+  - validacoes feitas;
+  - proximos passos.
+- Ao abrir um novo chat, pedir:
+
+```text
+Leia HISTORICO_CODEX.md e docs/ROTINA_IMPLEMENTACAO.md, depois retome o projeto de onde parou.
+```
+
+Observacao:
+- Esta solucao nao recupera o texto completo de chats antigos automaticamente.
+- Ela preserva o contexto util para continuar o desenvolvimento sem depender do historico interno do VS Code.
+
+## Registro de continuidade - ajustes pos-avaliacao minuciosa
+
+Data: 2026-06-02
+
+Diretriz confirmada pelo usuario:
+- A visualizacao/edicao do arquivo convertido para ChordPro deve permanecer na inclusao/edicao de musica.
+- O objetivo e permitir que o usuario confira se a conversao ficou correta.
+- Futuramente essa condicao pode mudar se a conversao ficar confiavel o bastante.
+
+Alteracoes feitas:
+- Atualizada a Edge Function `supabase/functions/create-user/index.ts`.
+- O CORS agora declara `GET, POST, OPTIONS`, preservando a listagem de usuarios por `GET`.
+- A funcao agora aceita `SERVICE_ROLE_KEY` ou `SUPABASE_SERVICE_ROLE_KEY`.
+- Criada a migration `supabase/migrations/005_rpc_delete_musica_com_vinculos.sql`.
+- A nova RPC `delete_musica_com_vinculos` remove vinculos, exclui repertorios vazios e exclui a musica em uma unica chamada transacional.
+- Criada a migration `supabase/migrations/006_rpc_reorder_repertorio_musicas.sql`.
+- A nova RPC `swap_repertorio_musicas_ordem` troca a ordem de duas musicas do repertorio em uma unica chamada transacional.
+- Atualizados `src/services/musicasService.js` e `src/features/musicas/pages/MusicaDetalhePage.js` para usar a RPC na exclusao de musicas com vinculos.
+- Atualizados `src/services/repertoriosService.js` e `src/features/repertorios/pages/RepertorioDetalhePage.js` para usar a RPC na troca de ordem.
+- Criadas paginas simples `NotFoundPage` e `AccessDeniedPage` em `src/features/system/pages`.
+- Atualizado `src/app/router.js` para exibir 404 em rotas inexistentes e bloquear `/usuarios` antes da pagina quando o usuario nao for admin.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Aplicar as migrations `005` e `006` no Supabase.
+- Redeploy da Edge Function `create-user` para publicar o ajuste de CORS/env.
+
+## Registro de continuidade - usuarios editar/excluir e campos extras
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Adicionar opcao de editar/excluir em usuarios.
+- Completar o cadastro de usuarios com campos `telefone` e `observacao`.
+- Manter funcionalidades ja implementadas.
+
+Alteracoes feitas:
+- Criada a migration `supabase/migrations/007_add_profile_contact_fields.sql`.
+- A migration adiciona `telefone` e `observacao` em `profiles`.
+- Atualizada a Edge Function `supabase/functions/create-user/index.ts`.
+- A funcao agora aceita `PATCH` para editar dados de usuario.
+- A funcao agora aceita `DELETE` para excluir usuario pelo Supabase Auth Admin.
+- A funcao impede excluir o proprio usuario.
+- A funcao impede o admin remover o proprio papel de admin.
+- Atualizado `src/services/usersService.js` com `updateUser` e `deleteUser`.
+- Refeita a tela `src/features/usuarios/pages/UsuariosPage.js`.
+- O formulario agora cadastra e edita usuarios.
+- A tabela agora mostra nome, e-mail, telefone, papel, observacao e acoes.
+- Cada usuario tem botoes `Editar` e `Excluir`.
+- O botao excluir fica desabilitado para o proprio usuario logado.
+- Adicionado estilo `.form-actions` em `src/styles/global.css`.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- O usuario informou em 2026-06-02 que a migration `007_add_profile_contact_fields.sql` ja foi aplicada no Supabase.
+- Fazer redeploy da Edge Function `create-user`.
+
+## Registro de continuidade - alteracao e recuperacao de senha
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Implementar alteracao de senha para usuarios.
+- Adicionar opcao "Esqueci minha senha".
+
+Alteracoes feitas:
+- Atualizado `src/services/authService.js`.
+- Adicionadas funcoes `sendPasswordResetEmail` e `updatePassword`.
+- Atualizada a tela `src/features/auth/pages/LoginPage.js`.
+- A tela de login agora tem botao "Esqueci minha senha".
+- O botao envia e-mail de recuperacao pelo Supabase Auth usando redirect para `/alterar-senha`.
+- Criada a pagina `src/features/auth/pages/AlterarSenhaPage.js`.
+- A pagina permite definir nova senha ao abrir o link de recuperacao.
+- Criada a pagina `src/features/auth/pages/MinhaContaPage.js`.
+- Usuario logado agora pode alterar a propria senha em `/minha-conta`.
+- Atualizado `src/components/layout/MainNav.js` com link "Minha conta".
+- Atualizado `src/app/router.js` com rotas `/alterar-senha` e `/minha-conta`.
+- `/alterar-senha` foi marcada como rota publica para funcionar a partir do link de recuperacao.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- O usuario informou que liberou `http://localhost:5173/alterar-senha` no Supabase Auth.
+- Quando o projeto for publicado, lembrar o usuario de adicionar `https://SEU_DOMINIO/alterar-senha` nas URLs permitidas do Supabase Auth.
+
+## Registro de continuidade - admin redefine senha de usuario
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Quando o admin editar um usuario, a senha tambem deve aparecer para edicao.
+
+Observacao importante:
+- A senha atual nao pode ser exibida, pois o Supabase Auth nao expõe senhas salvas.
+- A edicao permite definir uma nova senha.
+- Se o campo ficar em branco, a senha atual e mantida.
+
+Alteracoes feitas:
+- Atualizada a Edge Function `supabase/functions/create-user/index.ts`.
+- No `PATCH`, a funcao aceita `password` opcional.
+- Se `password` for informado, valida minimo de 6 caracteres e chama `admin.updateUserById`.
+- Atualizada a tela `src/features/usuarios/pages/UsuariosPage.js`.
+- Na edicao de usuario, o formulario agora mostra o campo `Nova senha`.
+- O campo informa que deve ficar em branco para manter a senha atual.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Fazer redeploy da Edge Function `create-user` para publicar a redefinicao de senha pelo admin.
+
+## Registro de continuidade - correcao chamada Edge Function usuarios
+
+Data: 2026-06-02
+
+Problema informado pelo usuario:
+- Ao tentar alterar um usuario, apareceu a mensagem `Failed to send a request to the Edge Function`.
+
+Diagnostico provavel:
+- A chamada de edicao usava metodo `PATCH`.
+- Mesmo com a funcao local atualizada para aceitar `PATCH`, a funcao remota pode ainda estar com a versao antiga ou o navegador pode bloquear por CORS/preflight.
+
+Alteracoes feitas:
+- Atualizado `src/services/usersService.js`.
+- Edicao de usuario agora chama a Edge Function por `POST` com `action: update-user`.
+- Exclusao de usuario agora chama a Edge Function por `POST` com `action: delete-user`.
+- Atualizada `supabase/functions/create-user/index.ts`.
+- A funcao continua aceitando `PATCH` e `DELETE`, mas tambem entende `POST` com `action`.
+- Isso reduz risco de bloqueio de CORS/preflight para editar/excluir usuarios.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Fazer redeploy da Edge Function `create-user`.
+- Sem redeploy, o Supabase remoto continua executando a versao antiga e o erro pode continuar.
+- O usuario informou em 2026-06-02 que a migration `007_add_profile_contact_fields.sql` ja foi aplicada no Supabase.
+
+## Registro de continuidade - estado atual Supabase usuarios
+
+Data: 2026-06-02
+
+Estado confirmado pelo usuario:
+- A migration `007_add_profile_contact_fields.sql` ja foi aplicada no Supabase.
+- Essa migration adiciona os campos `telefone` e `observacao` na tabela `profiles`.
+
+Pendencia atual:
+- Fazer redeploy da Edge Function `create-user`.
+- O arquivo atual da funcao usa `SERVICE_ROLE_KEY` ou `SUPABASE_SERVICE_ROLE_KEY`.
+- A funcao atual tambem aceita edicao/exclusao de usuario por `POST` com `action`, para evitar problemas de CORS com `PATCH`/`DELETE`.
+
+Motivo da pendencia:
+- Enquanto a Edge Function remota nao for redeployada, o Supabase continua executando a versao antiga.
+- Isso pode manter o erro `Failed to send a request to the Edge Function` ao editar usuario.
+
+Atualizacao:
+- Em 2026-06-02 foi executado `npx supabase functions deploy create-user`.
+- Deploy concluido com sucesso no projeto Supabase `bslfsilmjvtksxmcujmc`.
+- Saida informada pela CLI: `Deployed Functions on project bslfsilmjvtksxmcujmc: create-user`.
+- A CLI tambem exibiu `WARNING: Docker is not running`, mas o deploy foi concluido e o arquivo `supabase/functions/create-user/index.ts` foi enviado.
+
 ## Registro de continuidade - avaliacao do projeto
 
 Data: 2026-06-01

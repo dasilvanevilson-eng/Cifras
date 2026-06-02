@@ -6,7 +6,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
-  updateOrdemMusicaRepertorio,
+  swapOrdemMusicasRepertorio,
   updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
@@ -377,12 +377,7 @@ function createMoveButton(label, items, index, direction) {
     button.disabled = true;
     button.textContent = '…';
 
-    const [currentResult, targetResult] = await Promise.all([
-      updateOrdemMusicaRepertorio(current.id, target.ordem),
-      updateOrdemMusicaRepertorio(target.id, current.ordem),
-    ]);
-
-    const error = currentResult.error || targetResult.error;
+    const { error } = await swapOrdemMusicasRepertorio(current.id, target.id);
 
     if (error) {
       button.disabled = false;

@@ -1,4 +1,6 @@
 import { LoginPage } from '../features/auth/pages/LoginPage.js';
+import { AlterarSenhaPage } from '../features/auth/pages/AlterarSenhaPage.js';
+import { MinhaContaPage } from '../features/auth/pages/MinhaContaPage.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.js';
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
@@ -11,9 +13,14 @@ import { RepertorioEditarPage } from '../features/repertorios/pages/RepertorioEd
 import { RepertorioExecucaoPage } from '../features/repertorios/pages/RepertorioExecucaoPage.js';
 import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.js';
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
+import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
+import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
+import { canManageUsers } from '../features/auth/roles.js';
 
 const routes = {
   '/login': LoginPage,
+  '/alterar-senha': AlterarSenhaPage,
+  '/minha-conta': MinhaContaPage,
   '/dashboard': DashboardPage,
   '/musicas': MusicasPage,
   '/musicas/detalhe': MusicaDetalhePage,
@@ -28,7 +35,11 @@ const routes = {
   '/usuarios': UsuariosPage,
 };
 
-const publicRoutes = new Set(['/login']);
+const publicRoutes = new Set(['/login', '/alterar-senha']);
+
+const protectedRoutes = {
+  '/usuarios': canManageUsers,
+};
 
 export function createRouter() {
   return {
@@ -45,7 +56,18 @@ export function createRouter() {
         window.history.replaceState(null, '', '/dashboard');
       }
 
-      const Page = routes[window.location.pathname] || DashboardPage;
+      const Page = routes[window.location.pathname];
+
+      if (!Page) {
+        return NotFoundPage({ session });
+      }
+
+      const canAccessRoute = protectedRoutes[window.location.pathname];
+
+      if (canAccessRoute && !canAccessRoute(session.profile?.papel)) {
+        return AccessDeniedPage({ session });
+      }
+
       return Page({ session });
     },
   };

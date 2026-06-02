@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
 Deno.serve(async (req) => {
@@ -11,12 +11,12 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  if (!['GET', 'POST'].includes(req.method)) {
+  if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
     return jsonResponse({ error: 'Metodo nao permitido.' }, 405);
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('SERVICE_ROLE_KEY');
+  const serviceRoleKey = Deno.env.get('SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const authorization = req.headers.get('Authorization') || '';
   const token = authorization.replace('Bearer ', '').trim();
 
@@ -64,10 +64,24 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Dados invalidos.' }, 400);
   }
 
+  if (req.method === 'DELETE') {
+    return deleteUser(req, adminClient, userData.user.id);
+  }
+
+  if (req.method === 'PATCH' || payload?.action === 'update-user') {
+    return updateUser(payload, adminClient, userData.user.id);
+  }
+
+  if (payload?.action === 'delete-user') {
+    return deleteUser(req, adminClient, userData.user.id, payload);
+  }
+
   const email = String(payload?.email || '').trim().toLowerCase();
   const password = String(payload?.password || '');
   const nome = String(payload?.nome || '').trim() || email;
   const papel = String(payload?.papel || 'musico').trim();
+  const telefone = normalizeOptionalText(payload?.telefone);
+  const observacao = normalizeOptionalText(payload?.observacao);
 
   if (!email || !password) {
     return jsonResponse({ error: 'Informe e-mail e senha.' }, 400);
@@ -98,8 +112,10 @@ Deno.serve(async (req) => {
       id: created.user.id,
       nome,
       papel,
+      telefone,
+      observacao,
     })
-    .select('id, nome, papel')
+    .select('id, nome, papel, telefone, observacao')
     .single();
 
   if (saveProfileError) {
@@ -127,7 +143,7 @@ async function listUsers(adminClient: ReturnType<typeof createClient>) {
 
   const { data: profiles, error: profilesError } = await adminClient
     .from('profiles')
-    .select('id, nome, papel, created_at');
+    .select('id, nome, papel, telefone, observacao, created_at');
 
   if (profilesError) {
     return jsonResponse({ error: profilesError.message }, 500);
@@ -143,12 +159,116 @@ async function listUsers(adminClient: ReturnType<typeof createClient>) {
         email: user.email,
         nome: profile?.nome || user.user_metadata?.nome || user.email || '-',
         papel: profile?.papel || 'musico',
+        telefone: profile?.telefone || '',
+        observacao: profile?.observacao || '',
         created_at: profile?.created_at || user.created_at,
       };
     })
     .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
 
   return jsonResponse({ users });
+}
+
+async function updateUser(
+  payload: Record<string, unknown>,
+  adminClient: ReturnType<typeof createClient>,
+  currentUserId: string,
+) {
+  const id = String(payload?.id || '').trim();
+  const nome = String(payload?.nome || '').trim();
+  const papel = String(payload?.papel || 'musico').trim();
+  const password = String(payload?.password || '');
+  const telefone = normalizeOptionalText(payload?.telefone);
+  const observacao = normalizeOptionalText(payload?.observacao);
+
+  if (!id) {
+    return jsonResponse({ error: 'Usuario nao informado.' }, 400);
+  }
+
+  if (!nome) {
+    return jsonResponse({ error: 'Informe o nome do usuario.' }, 400);
+  }
+
+  if (!['admin', 'editor', 'musico'].includes(papel)) {
+    return jsonResponse({ error: 'Papel invalido.' }, 400);
+  }
+
+  if (id === currentUserId && papel !== 'admin') {
+    return jsonResponse({ error: 'Voce nao pode remover o proprio papel de admin.' }, 400);
+  }
+
+  if (password && password.length < 6) {
+    return jsonResponse({ error: 'A senha deve ter pelo menos 6 caracteres.' }, 400);
+  }
+
+  const { data: savedProfile, error: saveProfileError } = await adminClient
+    .from('profiles')
+    .upsert({
+      id,
+      nome,
+      papel,
+      telefone,
+      observacao,
+    })
+    .select('id, nome, papel, telefone, observacao, created_at')
+    .single();
+
+  if (saveProfileError) {
+    return jsonResponse({ error: saveProfileError.message }, 500);
+  }
+
+  if (password) {
+    const { error: passwordError } = await adminClient.auth.admin.updateUserById(id, {
+      password,
+    });
+
+    if (passwordError) {
+      return jsonResponse({ error: passwordError.message }, 400);
+    }
+  }
+
+  return jsonResponse({ user: savedProfile });
+}
+
+async function deleteUser(
+  req: Request,
+  adminClient: ReturnType<typeof createClient>,
+  currentUserId: string,
+  initialPayload: Record<string, unknown> = {},
+) {
+  const url = new URL(req.url);
+  let payload: Record<string, unknown> = initialPayload;
+
+  if (!Object.keys(payload).length) {
+    try {
+      payload = await req.json();
+    } catch (_error) {
+      payload = {};
+    }
+  }
+
+  const id = String(url.searchParams.get('id') || payload?.id || '').trim();
+
+  if (!id) {
+    return jsonResponse({ error: 'Usuario nao informado.' }, 400);
+  }
+
+  if (id === currentUserId) {
+    return jsonResponse({ error: 'Voce nao pode excluir o proprio usuario.' }, 400);
+  }
+
+  const { error } = await adminClient.auth.admin.deleteUser(id);
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  return jsonResponse({ ok: true });
+}
+
+function normalizeOptionalText(value: unknown) {
+  const text = String(value || '').trim();
+  return text || null;
 }
 
 function jsonResponse(body: unknown, status = 200) {

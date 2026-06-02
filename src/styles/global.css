@@ -681,6 +681,13 @@ a {
   gap: 6px;
 }
 
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
 .form input,
 .form textarea,
 .form select {

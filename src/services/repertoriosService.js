@@ -93,6 +93,14 @@ export async function updateOrdemMusicaRepertorio(id, ordem) {
   return supabase.from('repertorio_musicas').update({ ordem }).eq('id', id);
 }
 
+export async function swapOrdemMusicasRepertorio(currentId, targetId) {
+  assertSupabaseConfig();
+  return supabase.rpc('swap_repertorio_musicas_ordem', {
+    p_current_id: currentId,
+    p_target_id: targetId,
+  });
+}
+
 export async function updateTomMusicaRepertorio(id, tom) {
   assertSupabaseConfig();
   return supabase.from('repertorio_musicas').update({ tom }).eq('id', id);

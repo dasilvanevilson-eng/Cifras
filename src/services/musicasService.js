@@ -58,3 +58,8 @@ export async function deleteMusica(id) {
   assertSupabaseConfig();
   return supabase.from('musicas').delete().eq('id', id);
 }
+
+export async function deleteMusicaComVinculos(id) {
+  assertSupabaseConfig();
+  return supabase.rpc('delete_musica_com_vinculos', { p_musica_id: id });
+}

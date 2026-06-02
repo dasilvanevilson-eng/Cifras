@@ -1,10 +1,9 @@
 import {
   countMusicasNoRepertorio,
   deleteMusica,
-  deleteRepertorios,
+  deleteMusicaComVinculos,
   getMusicaById,
   listRepertoriosComMusica,
-  removeMusicaDeTodosRepertorios,
 } from '../../../services/musicasService.js';
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
@@ -255,33 +254,9 @@ function createDeleteButton(musicaId, title) {
 
     button.textContent = repertorios.length ? 'Removendo vinculos...' : 'Excluindo...';
 
-    if (repertorios.length) {
-      const { error: removeError } = await removeMusicaDeTodosRepertorios(musicaId);
-
-      if (removeError) {
-        button.disabled = false;
-        button.textContent = 'Excluir';
-        window.alert(removeError.message || 'Nao foi possivel remover a musica dos repertorios.');
-        return;
-      }
-    }
-
-    if (repertoriosParaExcluir.length) {
-      button.textContent = 'Excluindo repertorios vazios...';
-
-      const { error: repertoriosError } = await deleteRepertorios(repertoriosParaExcluir.map((repertorio) => repertorio.id));
-
-      if (repertoriosError) {
-        button.disabled = false;
-        button.textContent = 'Excluir';
-        window.alert(repertoriosError.message || 'A musica foi removida dos repertorios, mas nao foi possivel excluir repertorios vazios.');
-        return;
-      }
-    }
-
-    button.textContent = 'Excluindo...';
-
-    const { error } = await deleteMusica(musicaId);
+    const { error } = repertorios.length || repertoriosParaExcluir.length
+      ? await deleteMusicaComVinculos(musicaId)
+      : await deleteMusica(musicaId);
 
     if (error) {
       button.disabled = false;

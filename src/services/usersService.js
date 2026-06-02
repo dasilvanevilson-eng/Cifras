@@ -49,6 +49,46 @@ export async function createUser(values) {
   return result;
 }
 
+export async function updateUser(values) {
+  assertSupabaseConfig();
+  const result = await supabase.functions.invoke('create-user', {
+    body: {
+      ...values,
+      action: 'update-user',
+    },
+  });
+
+  if (result.error) {
+    const parsedError = await parseFunctionError(result.error);
+
+    if (parsedError) {
+      return { data: { error: parsedError }, error: null };
+    }
+  }
+
+  return result;
+}
+
+export async function deleteUser(id) {
+  assertSupabaseConfig();
+  const result = await supabase.functions.invoke('create-user', {
+    body: {
+      id,
+      action: 'delete-user',
+    },
+  });
+
+  if (result.error) {
+    const parsedError = await parseFunctionError(result.error);
+
+    if (parsedError) {
+      return { data: { error: parsedError }, error: null };
+    }
+  }
+
+  return result;
+}
+
 async function parseFunctionError(error) {
   const context = error?.context;
 
