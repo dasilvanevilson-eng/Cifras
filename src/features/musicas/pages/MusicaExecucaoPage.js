@@ -1,5 +1,5 @@
 import { getMusicaById } from '../../../services/musicasService.js';
-import { transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { renderCifraOriginalPreviewHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 
 export async function MusicaExecucaoPage() {
   const page = document.createElement('section');
@@ -71,7 +71,7 @@ function createPerformanceView({ musica, returnTo }) {
         </select>
       </label>
     </div>
-    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${escapeHtml(cifraOriginal)}</pre>
+    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalPreviewHtml(cifraOriginal)}</pre>
   `;
 
   setupPerformanceControls(wrapper);
@@ -176,7 +176,7 @@ function renderPerformance(wrapper, semitones, capo, status) {
   const displayedKey = transposeKey(key.dataset.originalKey || '-', semitones);
   const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
 
-  view.textContent = displayedCifra;
+  view.innerHTML = renderCifraOriginalPreviewHtml(displayedCifra);
   key.textContent = displayedKey;
   status.textContent = formatTransposeStatus(semitones, capo);
 }

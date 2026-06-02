@@ -7,7 +7,7 @@ import {
 } from '../../../services/musicasService.js';
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
-import { convertCifraOriginalToNumbers, getTransposeSemitones, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { convertCifraOriginalToNumbers, getTransposeSemitones, renderCifraOriginalForDisplayHtml, renderCifraOriginalPreviewHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
@@ -91,7 +91,7 @@ function createMusicaView(musica, options = {}) {
         </select>
       </label>
     </div>
-    <pre class="chordpro-view">${escapeHtml(cifraOriginal)}</pre>
+    <pre class="chordpro-view">${renderCifraOriginalPreviewHtml(cifraOriginal)}</pre>
   `;
 
   setupTransposeControls(wrapper, {
@@ -139,7 +139,10 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
   function render() {
     const displayedCifra = transposeCifraOriginal(cifraOriginal, semitones - capo);
     const displayedKey = transposeKey(key, semitones);
-    chordproView.textContent = showNumbers ? convertCifraOriginalToNumbers(displayedCifra, displayedKey) : displayedCifra;
+    const displayHtml = showNumbers
+      ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
+      : renderCifraOriginalPreviewHtml(displayedCifra);
+    chordproView.innerHTML = displayHtml;
     currentKey.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
     numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';

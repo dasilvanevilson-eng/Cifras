@@ -91,8 +91,10 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Papel invalido.' }, 400);
   }
 
-  if (password.length < 6) {
-    return jsonResponse({ error: 'A senha deve ter pelo menos 6 caracteres.' }, 400);
+  const passwordError = validatePassword(password);
+
+  if (passwordError) {
+    return jsonResponse({ error: passwordError }, 400);
   }
 
   const { data: created, error: createError } = await adminClient.auth.admin.createUser({
@@ -197,8 +199,12 @@ async function updateUser(
     return jsonResponse({ error: 'Voce nao pode remover o proprio papel de admin.' }, 400);
   }
 
-  if (password && password.length < 6) {
-    return jsonResponse({ error: 'A senha deve ter pelo menos 6 caracteres.' }, 400);
+  if (password) {
+    const passwordError = validatePassword(password);
+
+    if (passwordError) {
+      return jsonResponse({ error: passwordError }, 400);
+    }
   }
 
   const { data: savedProfile, error: saveProfileError } = await adminClient
@@ -269,6 +275,18 @@ async function deleteUser(
 function normalizeOptionalText(value: unknown) {
   const text = String(value || '').trim();
   return text || null;
+}
+
+function validatePassword(password: string) {
+  if (password.length < 6) {
+    return 'A senha deve ter pelo menos 6 caracteres.';
+  }
+
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    return 'A senha deve conter letras e numeros.';
+  }
+
+  return '';
 }
 
 function jsonResponse(body: unknown, status = 200) {

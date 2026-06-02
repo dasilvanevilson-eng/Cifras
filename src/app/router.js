@@ -12,10 +12,12 @@ import { RepertorioDetalhePage } from '../features/repertorios/pages/RepertorioD
 import { RepertorioEditarPage } from '../features/repertorios/pages/RepertorioEditarPage.js';
 import { RepertorioExecucaoPage } from '../features/repertorios/pages/RepertorioExecucaoPage.js';
 import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.js';
+import { EnviarSugestaoPage } from '../features/sugestoes/pages/EnviarSugestaoPage.js';
+import { RevisarSugestoesPage } from '../features/sugestoes/pages/RevisarSugestoesPage.js';
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
-import { canManageUsers } from '../features/auth/roles.js';
+import { canEditContent, canManageUsers } from '../features/auth/roles.js';
 
 const routes = {
   '/login': LoginPage,
@@ -32,12 +34,15 @@ const routes = {
   '/repertorios/detalhe': RepertorioDetalhePage,
   '/repertorios/editar': RepertorioEditarPage,
   '/repertorios/execucao': RepertorioExecucaoPage,
+  '/sugestoes/enviar': EnviarSugestaoPage,
+  '/sugestoes': RevisarSugestoesPage,
   '/usuarios': UsuariosPage,
 };
 
 const publicRoutes = new Set(['/login', '/alterar-senha']);
 
 const protectedRoutes = {
+  '/sugestoes': canEditContent,
   '/usuarios': canManageUsers,
 };
 

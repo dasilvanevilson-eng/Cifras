@@ -224,6 +224,411 @@ Atualizacao:
 - Saida informada pela CLI: `Deployed Functions on project bslfsilmjvtksxmcujmc: create-user`.
 - A CLI tambem exibiu `WARNING: Docker is not running`, mas o deploy foi concluido e o arquivo `supabase/functions/create-user/index.ts` foi enviado.
 
+## Registro de continuidade - correcao current_user_role ausente
+
+Data: 2026-06-02
+
+Problema informado pelo usuario:
+- Ao salvar um usuario, apareceu o erro `function public.current_user_role() does not exist`.
+
+Diagnostico:
+- O banco remoto nao tem a funcao `public.current_user_role()`.
+- Essa funcao e usada por policies/triggers para checar o papel do usuario.
+- Sem ela, operacoes em `profiles` podem falhar, inclusive edicao de usuario feita pela Edge Function.
+
+Alteracao feita:
+- Criada a migration `supabase/migrations/008_ensure_current_user_role.sql`.
+- A migration cria ou substitui `public.current_user_role()`.
+- A migration concede execucao para `authenticated` e `service_role`.
+
+Validacao local:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Aplicar a migration `008_ensure_current_user_role.sql` no Supabase.
+- Depois testar novamente salvar/editar usuario.
+
+Atualizacao:
+- O usuario aplicou/testou a correcao e informou que salvar usuario passou a funcionar corretamente.
+- O erro `function public.current_user_role() does not exist` foi resolvido.
+
+## Registro de continuidade - busca no cadastro de usuarios
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Eliminar a tela/secao "Usuarios cadastrados".
+- Criar um campo de busca entre o titulo "Usuarios" e "Novo usuario".
+- Ao clicar sobre o usuario buscado, carregar seus dados para edicao.
+
+Alteracoes feitas:
+- Atualizada `src/features/usuarios/pages/UsuariosPage.js`.
+- Removida a secao visual "Usuarios cadastrados".
+- Adicionado campo "Buscar usuario" logo abaixo do titulo "Usuarios".
+- A busca considera nome, e-mail, telefone, papel e observacao.
+- Os resultados aparecem como lista suspensa de selecao.
+- Ao clicar em um resultado, os dados do usuario sao carregados no formulario de edicao.
+- A opcao de excluir usuario foi preservada dentro do formulario de edicao.
+- O cadastro de novo usuario continua disponivel quando nenhum usuario esta selecionado.
+- Atualizado `src/styles/global.css` com estilos da busca de usuarios.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Atualizacao de UX:
+- O usuario pediu que a aba/lista em cascata abaixo de "Buscar usuario" so abra quando o foco estiver no campo de busca.
+- Atualizada `src/features/usuarios/pages/UsuariosPage.js`.
+- A lista de resultados nao abre mais automaticamente apos carregar usuarios.
+- A lista abre ao focar/digitar no campo de busca.
+- A lista fecha ao sair do campo, cancelar, salvar, excluir ou selecionar um usuario.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+## Registro de continuidade - editor de cifras lado a lado
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Na opcao "Musicas Cifradas", quando o sistema detectar que a tela permite abrir "Cifra original" e "ChordPro interno" lado a lado, deve providenciar esse layout.
+
+Alteracoes feitas:
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- O formulario agora mede o espaco disponivel do container `.cifra-editor-grid`.
+- Quando o container tem largura suficiente, adiciona a classe `can-show-side-by-side`.
+- Atualizado `src/styles/global.css`.
+- O editor fica empilhado por padrao.
+- Com a classe `can-show-side-by-side`, os campos "Cifra original" e "ChordPro interno" aparecem lado a lado.
+- Em telas pequenas/mobile, o layout permanece empilhado.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Atualizacao:
+- O usuario informou que, ao expandir o site no desktop, a tela "Cifra original" ainda ocupava toda a largura.
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- A medicao responsiva do editor agora roda com `requestAnimationFrame` e `setTimeout(0)`, para acontecer depois que o formulario entra no layout.
+- Objetivo: garantir que a classe `can-show-side-by-side` seja aplicada corretamente em desktop quando houver espaco suficiente.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+Nova atualizacao:
+- O usuario informou que "Cifra original" continuava expandindo lateralmente ate o final no desktop.
+- Atualizado `src/styles/global.css`.
+- Adicionada regra `@media (min-width: 980px)` para forcar `.musicas-page .cifra-editor-grid` em duas colunas.
+- Essa regra independe da classe calculada via JavaScript e garante lado a lado no desktop.
+- Em telas menores, o layout continua empilhado.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+Nova correcao:
+- O usuario informou que o problema persistiu.
+- Atualizado novamente `src/styles/global.css`.
+- O container `.cifra-editor-grid` passou de CSS Grid para Flexbox com `flex-wrap`.
+- Cada editor agora usa `flex: 1 1 360px`.
+- Isso faz "Cifra original" e "ChordPro interno" ficarem lado a lado quando houver espaco real, e quebrarem para baixo apenas quando nao couberem.
+- Em telas pequenas, a regra mobile continua empilhando os campos.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+Confirmacao:
+- O usuario testou e informou que a correcao funcionou.
+
+## Registro de continuidade - tabela sugestoes de musicas
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Gerar codigo para cadastrar corretamente os campos do fluxo em que musicos enviam sugestoes de musicas.
+
+Alteracao feita:
+- Criada a migration `supabase/migrations/009_create_sugestoes_musicas.sql`.
+- A tabela criada e `sugestoes_musicas`.
+- Campos incluidos:
+  - `id`
+  - `titulo`
+  - `artista`
+  - `tom`
+  - `cifra_original`
+  - `musica_link`
+  - `observacao`
+  - `status`
+  - `motivo_rejeicao`
+  - `musica_id`
+  - `enviado_por`
+  - `revisado_por`
+  - `created_at`
+  - `reviewed_at`
+- Status permitidos: `pendente`, `aprovada`, `rejeitada`.
+- RLS ativado.
+- Usuarios autenticados podem enviar sugestoes proprias.
+- Usuarios autenticados podem ler as proprias sugestoes.
+- Admin/editor podem ler todas as sugestoes.
+- Admin/editor podem revisar sugestoes.
+- Criados indices para `status`, `enviado_por` e `created_at`.
+
+Acao pendente fora do codigo local:
+- Aplicar a migration `009_create_sugestoes_musicas.sql` no Supabase.
+- Depois criar service e telas para envio/revisao das sugestoes.
+
+Atualizacao:
+- O usuario aplicou a migration `009_create_sugestoes_musicas.sql` no Supabase.
+- O SQL Editor retornou `Success. No rows returned`.
+- A tabela `sugestoes_musicas` esta criada/aplicada no banco remoto.
+
+## Registro de continuidade - telas de sugestoes de musicas
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Seguir para a proxima etapa depois de aplicar a tabela `sugestoes_musicas`.
+
+Alteracoes feitas:
+- Criado `src/services/sugestoesMusicasService.js`.
+- O service inclui:
+  - `createSugestaoMusica`
+  - `listMinhasSugestoes`
+  - `listSugestoesPendentes`
+  - `approveSugestaoMusica`
+  - `rejectSugestaoMusica`
+- Criada a tela `src/features/sugestoes/pages/EnviarSugestaoPage.js`.
+- A tela permite usuario autenticado enviar sugestao com titulo, artista, tom, link, observacao e cifra original.
+- A tela tambem mostra as proprias sugestoes e seus status.
+- Criada a tela `src/features/sugestoes/pages/RevisarSugestoesPage.js`.
+- Admin/editor podem ver sugestoes pendentes.
+- Admin/editor podem revisar campos antes de aprovar.
+- Ao aprovar, o sistema cria uma musica oficial em `musicas`, convertendo `cifra_original` para `cifra_chordpro`.
+- Ao rejeitar, o sistema exige motivo de rejeicao.
+- Atualizado `src/app/router.js` com:
+  - `/sugestoes/enviar`
+  - `/sugestoes`
+- Atualizado `src/components/layout/MainNav.js`.
+- Usuarios logados veem `Enviar musica`.
+- Admin/editor tambem veem `Sugestoes`.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Proximo teste recomendado:
+- Entrar como musico e enviar uma sugestao.
+- Entrar como admin/editor e conferir se a sugestao aparece em `/sugestoes`.
+- Aprovar a sugestao e conferir se a musica aparece em `Musicas Cifradas`.
+- Rejeitar outra sugestao e conferir se o motivo aparece para o usuario que enviou.
+
+Atualizacao no fluxo de aprovacao:
+- O usuario pediu que, ao clicar em "Aprovar e cadastrar", o sistema abra a opcao "Musicas Cifradas" e carregue os dados da musica sugerida.
+- Atualizado `src/features/sugestoes/pages/RevisarSugestoesPage.js`.
+- O botao "Aprovar e cadastrar" agora salva temporariamente os dados revisados em `sessionStorage` e redireciona para `/musicas`.
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- A tela "Musicas Cifradas" agora detecta sugestao pendente em `sessionStorage` e carrega os dados no formulario de cadastro.
+- Ao salvar a musica oficial, a sugestao e marcada como `aprovada` e recebe o `musica_id`.
+- Atualizado `src/services/sugestoesMusicasService.js` com `markSugestaoMusicaAprovada`.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+Atualizacao visual:
+- O usuario informou que, ao abrir "Musicas Cifradas" a partir de "Sugestoes", os campos "Cifra original" e "ChordPro interno" ficavam desalinhados.
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- O recalculo responsivo do editor agora roda tambem apos pequeno atraso, alem de `requestAnimationFrame` e `resize`.
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- Quando a tela abre com sugestao pendente, o app rola para o formulario depois da renderizacao.
+- Objetivo: abrir o formulario vindo de sugestao com o mesmo comportamento visual de incluir/editar musica diretamente.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+Nova atualizacao visual:
+- O usuario informou que os campos "Cifra original" e "ChordPro interno" continuavam desalinhados quando a tela era aberta a partir de "Sugestoes".
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- Removido o `scrollIntoView` especifico do fluxo vindo de sugestoes, para nao criar comportamento visual diferente do fluxo normal de "Musicas Cifradas".
+- Atualizado `src/styles/global.css`.
+- `textarea` de cifra original e `.chordpro-editor` agora usam a mesma altura base (`height: 62vh`, `min-height: 420px`, `max-height: 72vh`) no desktop.
+- No mobile, ambos usam `height: 42vh` e `min-height: 320px`.
+- Objetivo: manter os dois paineis alinhados visualmente independentemente de o formulario vir de sugestao, inclusao direta ou edicao.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+## Registro de continuidade - regra de senha com letras e numeros
+
+Data: 2026-06-02
+
+Contexto:
+- O usuario alterou provisoriamente a senha de um musico para `123456`.
+- O Google Password Manager alertou que a senha foi encontrada em violacao de dados.
+
+Pedido do usuario:
+- No cadastramento de senha, obrigar o uso de numeros e letras.
+
+Alteracoes feitas:
+- Criado `src/utils/password.js` com `validatePassword`.
+- A regra exige:
+  - minimo de 6 caracteres;
+  - pelo menos uma letra;
+  - pelo menos um numero.
+- Atualizada `src/features/auth/pages/AlterarSenhaPage.js`.
+- Alteracao/recuperacao de senha pelo usuario agora valida letras e numeros.
+- Atualizada `src/features/usuarios/pages/UsuariosPage.js`.
+- Cadastro de usuario e redefinicao de senha pelo admin agora validam letras e numeros no frontend.
+- Atualizada `supabase/functions/create-user/index.ts`.
+- Criacao de usuario e redefinicao de senha pelo admin tambem validam letras e numeros na Edge Function.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+- Foi executado `npx supabase functions deploy create-user`.
+- Deploy concluido com sucesso no projeto `bslfsilmjvtksxmcujmc`.
+- A CLI exibiu `WARNING: Docker is not running`, mas o deploy foi concluido.
+
+## Registro de continuidade - sugestoes pendentes e dados do remetente
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- A letra da opcao `Sugestoes` deve ficar em negrito enquanto houver sugestoes em aberto.
+- No menu superior, no lugar do e-mail deve aparecer o nome do usuario.
+- Ao receber a musica enviada por um usuario, devem vir tambem os dados de quem estava logado no momento do envio.
+
+Alteracoes feitas:
+- Criada a migration `supabase/migrations/010_add_sender_snapshot_sugestoes.sql`.
+- A migration adiciona em `sugestoes_musicas`:
+  - `enviado_por_nome`
+  - `enviado_por_email`
+  - `enviado_por_papel`
+- Atualizado `src/services/sugestoesMusicasService.js`.
+- Ao criar sugestao, o service envia os dados do usuario logado.
+- Adicionada funcao `countSugestoesPendentes`.
+- Atualizado `src/features/sugestoes/pages/EnviarSugestaoPage.js`.
+- A sugestao agora salva nome, e-mail e papel do usuario logado no momento do envio.
+- Atualizado `src/features/sugestoes/pages/RevisarSugestoesPage.js`.
+- A lista e o formulario de revisao mostram os dados de quem enviou.
+- Atualizado `src/app/startApp.js`.
+- Admin/editor carregam a contagem de sugestoes pendentes no layout.
+- Atualizado `src/components/layout/MainNav.js`.
+- O topo agora mostra `profile.nome` no lugar do e-mail.
+- A opcao `Sugestoes` recebe classe `has-pending` quando ha pendencias.
+- Atualizado `src/styles/global.css`.
+- `.main-nav-links a.has-pending` fica em negrito.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Aplicar a migration `010_add_sender_snapshot_sugestoes.sql` no Supabase antes de testar novo envio de sugestoes com dados do remetente.
+
+Atualizacao:
+- O usuario informou que a migration `010_add_sender_snapshot_sugestoes.sql` foi cadastrada/aplicada no Supabase.
+
+## Registro de continuidade - organizacao tela de revisao de sugestoes
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Ajustar a tela onde sao recebidas as sugestoes de novas musicas, pois estava baguncada.
+
+Alteracoes feitas:
+- Atualizado `src/features/sugestoes/pages/RevisarSugestoesPage.js`.
+- A tela de revisao deixou de usar a classe `musica-form`, que era especifica do cadastro de musicas.
+- Criado layout proprio para revisao com `suggestions-review-grid`.
+- O formulario de revisao agora usa fieldsets:
+  - `Dados do envio`
+  - `Musica`
+  - `Revisao`
+- Os dados do remetente e data do envio aparecem em campos desabilitados.
+- Atualizado `src/styles/global.css`.
+- Adicionados estilos especificos para `.suggestions-review-grid` e `.suggestion-review-form`.
+- A lista de pendentes fica em uma coluna e o formulario em outra no desktop.
+- Em telas menores, o layout empilha.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+## Registro de continuidade - pre-visualizacao com acordes finais
+
+Data: 2026-06-02
+
+Problema informado pelo usuario:
+- A conversao para ChordPro esta correta.
+- Na pre-visualizacao de musicas, quando ha mais de um acorde ao final de uma frase, aparecia apenas o ultimo acorde.
+
+Diagnostico:
+- O problema estava em `renderChordProForDisplay`, na funcao auxiliar `writeAt`.
+- Quando mais de um acorde caia na mesma posicao visual, o acorde seguinte sobrescrevia o anterior.
+
+Alteracoes feitas:
+- Atualizado `src/utils/chordpro.js`.
+- `writeAt` agora detecta colisao na posicao de escrita e posiciona o proximo acorde apos o trecho ja escrito, separado por espacos.
+- Atualizado `test/chordpro.test.js`.
+- Adicionado teste para `renderChordProForDisplay('GRANDE ES TU [G][D/F#][Em]')`.
+
+Validacao:
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+- `npm run build` executou com sucesso.
+
+## Registro de continuidade - acordes em laranja nas cifras
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Em todos os lugares onde ha visualizacao de musicas cifradas, os acordes devem aparecer na cor laranja.
+
+Alteracoes feitas:
+- Atualizado `src/utils/chordpro.js`.
+- Criada a funcao `renderCifraOriginalForDisplayHtml`.
+- A funcao renderiza a cifra de forma segura e envolve linhas de acordes com `<span class="chord-line">`.
+- Tambem detecta linhas de sistema numerico quando exibidas.
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- Atualizado `src/features/musicas/pages/MusicaExecucaoPage.js`.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- A pre-visualizacao do formulario tambem passa a destacar os acordes.
+- Atualizado `src/styles/global.css` com `.chord-line { color: #c8792b; }`.
+- Atualizado `test/chordpro.test.js` com teste da renderizacao HTML dos acordes.
+
+Validacao:
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+- `npm run build` executou com sucesso.
+
+## Registro de continuidade - visualizacao unica igual a pre-visualizacao
+
+Data: 2026-06-02
+
+Diretriz do usuario:
+- Em todas as partes do sistema em que as cifras sao exibidas de alguma forma, o conteudo visto deve ser sempre identico ao da pre-visualizacao.
+
+Alteracoes feitas:
+- Atualizado `src/utils/chordpro.js`.
+- Criada a funcao `renderCifraOriginalPreviewHtml`.
+- Essa funcao converte a cifra original para ChordPro internamente, renderiza para display e aplica o HTML seguro com acordes destacados.
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- Atualizado `src/features/musicas/pages/MusicaExecucaoPage.js`.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- As exibicoes de cifra nessas telas agora usam o mesmo resultado visual da pre-visualizacao.
+- A visualizacao em sistema numerico continua usando renderizacao propria com destaque de acordes/numeros.
+- Atualizado `test/chordpro.test.js` com teste para `renderCifraOriginalPreviewHtml`.
+
+Validacao:
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+- `npm run build` executou com sucesso.
+
+## Registro de continuidade - sincronizacao Cifra original e ChordPro interno
+
+Data: 2026-06-02
+
+Problema informado pelo usuario:
+- A conversao estava acontecendo corretamente.
+- Porem, ao sair da tela/campo de "Cifra original" e retornar novamente, ela perdia a conexao com "ChordPro interno".
+
+Diagnostico:
+- O formulario usava uma flag booleana simples para saber se o ChordPro interno tinha sido editado manualmente.
+- Esse estado podia ficar fragil depois de alternar foco entre os campos.
+
+Alteracao feita:
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- A sincronizacao agora compara o conteudo atual do ChordPro com o ultimo ChordPro gerado automaticamente.
+- Se o ChordPro interno ainda estiver igual ao ultimo gerado automaticamente, ele continua acompanhando alteracoes da "Cifra original".
+- Se o usuario editar manualmente o ChordPro interno, o sistema preserva essa edicao e para de sobrescrever automaticamente.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
 ## Registro de continuidade - avaliacao do projeto
 
 Data: 2026-06-01

@@ -52,6 +52,22 @@ export function renderChordProForDisplay(input) {
     .join('\n');
 }
 
+export function renderCifraOriginalForDisplayHtml(input) {
+  if (!input) return '';
+
+  return normalizeTabs(String(input))
+    .split('\n')
+    .map((line) => {
+      const escapedLine = escapeHtml(line);
+      return isDisplayChordLine(line) ? `<span class="chord-line">${escapedLine}</span>` : escapedLine;
+    })
+    .join('\n');
+}
+
+export function renderCifraOriginalPreviewHtml(input) {
+  return renderCifraOriginalForDisplayHtml(renderChordProForDisplay(convertToChordPro(input || '')));
+}
+
 export function transposeCifraOriginal(input, semitones) {
   if (!input || !Number(semitones)) return input || '';
 
@@ -172,6 +188,14 @@ function writeAt(target, position, value) {
     target.push(' ');
   }
 
+  if (target.slice(position, position + value.length).some((char) => char && char !== ' ')) {
+    position = target.join('').trimEnd().length + 2;
+
+    while (target.length < position) {
+      target.push(' ');
+    }
+  }
+
   [...value].forEach((char, index) => {
     target[position + index] = char;
   });
@@ -199,6 +223,19 @@ function isChordLine(line) {
   }
 
   return isOnlyChordsAndSeparators(parsed.chordText);
+}
+
+function isDisplayChordLine(line) {
+  return isChordLine(line) || isNumberChordLine(line);
+}
+
+function isNumberChordLine(line) {
+  const value = String(line || '').trim();
+
+  if (!value) return false;
+
+  return /^[#b]?\d(?:m|maj|min|dim|aug|sus|add|M|[-+#b/()\d\s|:.,;])*$/.test(value)
+    && /\d/.test(value);
 }
 
 function findChords(line) {
@@ -373,4 +410,13 @@ function mod(value, size) {
 
 function normalizeTabs(input) {
   return input.replaceAll('\t', '    ');
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }

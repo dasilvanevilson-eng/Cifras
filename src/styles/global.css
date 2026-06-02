@@ -41,6 +41,10 @@ a {
   gap: 16px;
 }
 
+.main-nav-links a.has-pending {
+  font-weight: 700;
+}
+
 .user-email {
   color: #5f594f;
   font-size: 14px;
@@ -235,6 +239,115 @@ a {
 
 .usuarios-grid {
   grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+}
+
+.usuarios-page {
+  max-width: 720px;
+}
+
+.user-search-panel {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.user-search-panel label {
+  display: grid;
+  gap: 6px;
+}
+
+.user-search-panel input {
+  width: 100%;
+  border: 1px solid #cfc7b8;
+  padding: 10px 12px;
+  font: inherit;
+  background: #ffffff;
+}
+
+.user-search-results {
+  position: absolute;
+  top: calc(100% - 2px);
+  right: 0;
+  left: 0;
+  z-index: 12;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid #ddd6c8;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
+}
+
+.user-search-results[hidden] {
+  display: none;
+}
+
+.user-search-list {
+  display: grid;
+}
+
+.user-search-item {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e5dece;
+  padding: 12px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-search-item:hover,
+.user-search-item:focus {
+  background: #f8f5ee;
+  outline: 0;
+}
+
+.user-search-item span {
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.suggestions-review-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.suggestion-review-form {
+  max-width: none;
+}
+
+.suggestion-review-form fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #ddd6c8;
+  background: #ffffff;
+}
+
+.suggestion-review-form legend {
+  padding: 0 6px;
+  color: #5f594f;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.suggestion-review-form label:has(textarea),
+.suggestion-review-form label:has([name="cifra_original"]),
+.suggestion-review-form label:has([name="motivo_rejeicao"]) {
+  grid-column: 1 / -1;
+}
+
+.suggestion-review-form textarea[name="cifra_original"] {
+  min-height: 48vh;
 }
 
 .inline-edit select {
@@ -712,7 +825,9 @@ a {
 
 .chordpro-editor {
   width: 100%;
-  min-height: 62vh;
+  height: 62vh;
+  min-height: 420px;
+  max-height: 72vh;
   overflow: auto;
   border: 1px solid #cfc7b8;
   padding: 10px 12px;
@@ -733,6 +848,10 @@ a {
   color: #c8792b;
 }
 
+.chord-line {
+  color: #c8792b;
+}
+
 .field-with-action {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -745,19 +864,27 @@ a {
 }
 
 .cifra-editor-grid {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   width: 100%;
 }
 
+.cifra-editor-grid.can-show-side-by-side {
+  display: flex;
+}
+
 .cifra-editor-grid label {
+  flex: 1 1 360px;
   min-width: 0;
+  width: auto;
 }
 
 .cifra-editor-grid textarea {
   width: 100%;
-  min-height: 62vh;
+  height: 62vh;
+  min-height: 420px;
+  max-height: 72vh;
   resize: vertical;
 }
 
@@ -838,6 +965,14 @@ a {
   }
 
   .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .suggestions-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .suggestion-review-form fieldset {
     grid-template-columns: 1fr;
   }
 
@@ -922,11 +1057,23 @@ a {
   }
 
   .cifra-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .cifra-editor-grid.can-show-side-by-side {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
   .cifra-editor-grid textarea {
-    min-height: 42vh;
+    height: 42vh;
+    min-height: 320px;
+  }
+
+  .chordpro-editor {
+    height: 42vh;
+    min-height: 320px;
   }
 }
 

@@ -1,4 +1,4 @@
-import { convertToChordPro, normalizeChordProLyrics, renderChordProForDisplay } from '../../../utils/chordpro.js';
+import { convertToChordPro, normalizeChordProLyrics, renderChordProForDisplay, renderCifraOriginalForDisplayHtml } from '../../../utils/chordpro.js';
 
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
@@ -67,18 +67,27 @@ export function MusicaForm(options = {}) {
   const originalTextarea = form.querySelector('[name="cifra_original"]');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
   const chordProEditor = form.querySelector('.chordpro-editor');
+  const cifraEditorGrid = form.querySelector('.cifra-editor-grid');
   const linkInput = form.querySelector('[name="musica_link"]');
   const linkAction = form.querySelector('.field-action-link');
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
-  let chordProEditedManually = false;
+  let lastAutoChordPro = convertToChordPro(originalTextarea.value);
 
   updateLinkAction(linkInput, linkAction);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
+  setupResponsiveCifraEditor(cifraEditorGrid);
 
   originalTextarea.addEventListener('input', () => {
-    if (chordProEditedManually) return;
-    setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(originalTextarea.value));
+    const currentChordPro = normalizeChordProLyrics(chordProTextarea.value);
+    const isStillSynced = currentChordPro === normalizeChordProLyrics(lastAutoChordPro);
+    const nextAutoChordPro = convertToChordPro(originalTextarea.value);
+
+    if (isStillSynced) {
+      setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
+    }
+
+    lastAutoChordPro = nextAutoChordPro;
   });
 
   chordProEditor.addEventListener('focus', () => {
@@ -86,7 +95,6 @@ export function MusicaForm(options = {}) {
   });
 
   chordProEditor.addEventListener('input', () => {
-    chordProEditedManually = true;
     chordProTextarea.value = getEditableText(chordProEditor);
 
     if (!previewPanel.hidden) {
@@ -146,6 +154,26 @@ export function MusicaForm(options = {}) {
   return form;
 }
 
+function setupResponsiveCifraEditor(container) {
+  if (!container) return;
+
+  function updateLayout() {
+    const canShowSideBySide = container.clientWidth >= 760;
+    container.classList.toggle('can-show-side-by-side', canShowSideBySide);
+  }
+
+  window.requestAnimationFrame(updateLayout);
+  window.setTimeout(updateLayout, 0);
+  window.setTimeout(updateLayout, 120);
+
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(updateLayout);
+    observer.observe(container);
+  }
+
+  window.addEventListener('resize', updateLayout);
+}
+
 function getFormValues(form) {
   const formData = new FormData(form);
 
@@ -175,8 +203,9 @@ function updatePreview(form, previewPanel) {
 
   previewPanel.querySelector('[data-preview="titulo"]').textContent = title;
   previewPanel.querySelector('[data-preview="meta"]').textContent = `${artist} - Tom: ${key}`;
-  previewPanel.querySelector('[data-preview="cifra"]').textContent = renderChordProForDisplay(values.cifra_chordpro)
+  const renderedCifra = renderChordProForDisplay(values.cifra_chordpro)
     || 'A conversao ChordPro aparecera aqui.';
+  previewPanel.querySelector('[data-preview="cifra"]').innerHTML = renderCifraOriginalForDisplayHtml(renderedCifra);
 }
 
 function setChordProValue(source, editor, value) {

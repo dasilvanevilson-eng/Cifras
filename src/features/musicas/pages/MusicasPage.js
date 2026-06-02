@@ -1,5 +1,6 @@
 import { MusicaForm } from '../components/MusicaForm.js';
 import { createMusica, listMusicas, updateMusica } from '../../../services/musicasService.js';
+import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasService.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function MusicasPage({ session } = {}) {
@@ -32,9 +33,10 @@ export async function MusicasPage({ session } = {}) {
     }
 
     const musicas = data || [];
+    const pendingSugestao = canEdit ? readPendingSugestaoMusica() : null;
 
     if (canEdit) {
-      renderForm(formSlot, { musicas });
+      renderForm(formSlot, { musicas, pendingSugestao, session });
     } else {
       formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas cifradas, mas nao cadastrar ou editar.'));
     }
@@ -47,7 +49,8 @@ export async function MusicasPage({ session } = {}) {
     listSlot.replaceChildren(createMusicasBrowser(musicas, {
       canEdit,
       onSelect: (musica) => {
-        renderForm(formSlot, { musicas, selectedMusica: musica });
+        clearPendingSugestaoMusica();
+        renderForm(formSlot, { musicas, selectedMusica: musica, session });
         window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
       },
     }));
@@ -59,17 +62,19 @@ export async function MusicasPage({ session } = {}) {
   return page;
 }
 
-function renderForm(formSlot, { musicas, selectedMusica = null }) {
+function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, session = {} }) {
+  const initialValues = selectedMusica || pendingSugestao || {};
+
   formSlot.replaceChildren(MusicaForm({
-    initialValues: selectedMusica ? {
-      titulo: selectedMusica.titulo || '',
-      artista: selectedMusica.artista || '',
-      tom: selectedMusica.tom || '',
-      tags: selectedMusica.tags || '',
-      musica_link: selectedMusica.musica_link || '',
-      cifra_original: selectedMusica.cifra_original || '',
-      cifra_chordpro: selectedMusica.cifra_chordpro || selectedMusica.chordpro || selectedMusica.conteudo_chordpro || '',
-    } : {},
+    initialValues: {
+      titulo: initialValues.titulo || '',
+      artista: initialValues.artista || '',
+      tom: initialValues.tom || '',
+      tags: initialValues.tags || '',
+      musica_link: initialValues.musica_link || '',
+      cifra_original: initialValues.cifra_original || '',
+      cifra_chordpro: initialValues.cifra_chordpro || initialValues.chordpro || initialValues.conteudo_chordpro || '',
+    },
     submitLabel: selectedMusica ? 'Salvar alteracoes' : 'Salvar musica',
     keepValuesAfterSubmit: Boolean(selectedMusica),
     onSubmit: async (musica) => {
@@ -82,6 +87,19 @@ function renderForm(formSlot, { musicas, selectedMusica = null }) {
       }
 
       if (!selectedMusica) {
+        if (pendingSugestao?.sugestao_id && result.data?.id) {
+          const { error: sugestaoError } = await markSugestaoMusicaAprovada(pendingSugestao.sugestao_id, {
+            musica_id: result.data.id,
+            revisado_por: pendingSugestao.revisado_por || session?.user?.id,
+          });
+
+          if (sugestaoError) {
+            throw sugestaoError;
+          }
+
+          clearPendingSugestaoMusica();
+        }
+
         window.location.reload();
         return;
       }
@@ -93,6 +111,19 @@ function renderForm(formSlot, { musicas, selectedMusica = null }) {
       }
     },
   }));
+}
+
+function readPendingSugestaoMusica() {
+  try {
+    const value = window.sessionStorage.getItem('masterCifras.pendingSugestaoMusica');
+    return value ? JSON.parse(value) : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function clearPendingSugestaoMusica() {
+  window.sessionStorage.removeItem('masterCifras.pendingSugestaoMusica');
 }
 
 function createReadOnlyNotice(text) {

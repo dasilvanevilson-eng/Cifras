@@ -6,6 +6,8 @@ import {
   getTransposeSemitones,
   normalizeChordProLyrics,
   renderChordProForDisplay,
+  renderCifraOriginalForDisplayHtml,
+  renderCifraOriginalPreviewHtml,
   transposeCifraOriginal,
   transposeChordPro,
   transposeKey,
@@ -52,6 +54,21 @@ assert.equal(
 assert.equal(
   renderChordProForDisplay('[*Solo:]\n[G] [D] [Em] [C]'),
   ['*Solo:', 'G  D  Em  C'].join('\n'),
+);
+
+assert.equal(
+  renderChordProForDisplay('GRANDE ES TU [G][D/F#][Em]'),
+  ['             G  D/F#  Em', 'GRANDE ES TU'].join('\n'),
+);
+
+assert.equal(
+  renderCifraOriginalForDisplayHtml(['G  D/F#  Em', 'Grande es Tu'].join('\n')),
+  ['<span class="chord-line">G  D/F#  Em</span>', 'Grande es Tu'].join('\n'),
+);
+
+assert.equal(
+  renderCifraOriginalPreviewHtml(['G      D/F#', 'Grande es Tu'].join('\n')),
+  ['<span class="chord-line">G      D/F#</span>', 'GRANDE ES TU'].join('\n'),
 );
 
 assert.equal(

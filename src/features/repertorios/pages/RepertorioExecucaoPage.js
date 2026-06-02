@@ -2,7 +2,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
-import { transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { renderCifraOriginalPreviewHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function RepertorioExecucaoPage() {
@@ -128,7 +128,7 @@ function createSongBlock(item, number) {
         <p>${escapeHtml(artist)} - Tom: <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span></p>
       </div>
     </header>
-    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${escapeHtml(cifraOriginal)}</pre>
+    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalPreviewHtml(cifraOriginal)}</pre>
   `;
 
   return block;
@@ -288,7 +288,7 @@ function renderPagedPerformance({
     const displayedKey = transposeKey(keyElement?.dataset.originalKey || '-', semitones);
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
 
-    view.textContent = displayedCifra;
+    view.innerHTML = renderCifraOriginalPreviewHtml(displayedCifra);
     keyElement.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
   });

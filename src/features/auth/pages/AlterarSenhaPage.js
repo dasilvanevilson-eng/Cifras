@@ -1,4 +1,5 @@
 import { updatePassword } from '../../../services/authService.js';
+import { validatePassword } from '../../../utils/password.js';
 
 export function AlterarSenhaPage({ session } = {}) {
   const page = document.createElement('section');
@@ -39,9 +40,11 @@ export function setupPasswordForm(form, options = {}) {
     const password = String(formData.get('password') || '');
     const passwordConfirm = String(formData.get('password_confirm') || '');
 
-    if (password.length < 6) {
+    const passwordError = validatePassword(password);
+
+    if (passwordError) {
       message.className = 'form-message error';
-      message.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+      message.textContent = passwordError;
       return;
     }
 

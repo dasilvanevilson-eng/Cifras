@@ -10,18 +10,21 @@ export function MainNav(options = {}) {
   const userArea = nav.querySelector('.main-nav-user');
 
   if (options.user) {
+    const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
     linksArea.innerHTML = `
       <a href="/dashboard">Painel</a>
       <a href="/musicas">Musicas Cifradas</a>
       <a href="/musicas-letras">Musicas Letras</a>
+      <a href="/sugestoes/enviar">Enviar musica</a>
+      ${['admin', 'editor'].includes(options.profile?.papel) ? `<a class="${hasPendingSuggestions ? 'has-pending' : ''}" href="/sugestoes">Sugestoes</a>` : ''}
       <a href="/repertorios">Repertorios</a>
       <a href="/minha-conta">Minha conta</a>
       ${options.profile?.papel === 'admin' ? '<a href="/usuarios">Usuarios</a>' : ''}
     `;
 
-    const email = document.createElement('span');
-    email.className = 'user-email';
-    email.textContent = options.user.email;
+    const userName = document.createElement('span');
+    userName.className = 'user-email';
+    userName.textContent = options.profile?.nome || options.user.email;
 
     const role = document.createElement('span');
     role.className = 'user-role';
@@ -36,7 +39,7 @@ export function MainNav(options = {}) {
       logoutButton.addEventListener('click', options.onLogout);
     }
 
-    userArea.append(email, role, logoutButton);
+    userArea.append(userName, role, logoutButton);
   } else {
     const loginLink = document.createElement('a');
     loginLink.href = '/login';

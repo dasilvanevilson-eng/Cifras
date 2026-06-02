@@ -1,9 +1,10 @@
 import { USER_ROLES, canManageUsers } from '../../auth/roles.js';
 import { createUser, deleteUser, listProfiles, updateUser } from '../../../services/usersService.js';
+import { validatePassword } from '../../../utils/password.js';
 
 export async function UsuariosPage({ session } = {}) {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page usuarios-page';
 
   if (!canManageUsers(session?.profile?.papel)) {
     page.innerHTML = '<div class="page-status error">Apenas administradores podem gerenciar usuarios.</div>';
@@ -12,43 +13,57 @@ export async function UsuariosPage({ session } = {}) {
 
   page.innerHTML = `
     <h1>Usuarios</h1>
-    <div class="page-grid usuarios-grid">
-      <section>
-        <h2 data-role="form-title">Novo usuario</h2>
-        <div class="form-slot"></div>
-      </section>
-      <section>
-        <h2>Usuarios cadastrados</h2>
-        <div class="list-slot">
-          <div class="page-status">Carregando usuarios...</div>
-        </div>
-      </section>
-    </div>
+    <section class="user-search-panel">
+      <label>
+        Buscar usuario
+        <input type="search" data-action="search-user" placeholder="Nome, e-mail, telefone ou papel">
+      </label>
+      <div class="user-search-results" data-role="search-results" hidden></div>
+      <p class="page-status" data-role="load-status">Carregando usuarios...</p>
+    </section>
+    <section>
+      <h2 data-role="form-title">Novo usuario</h2>
+      <div class="form-slot"></div>
+    </section>
   `;
 
   const formTitle = page.querySelector('[data-role="form-title"]');
   const formSlot = page.querySelector('.form-slot');
-  const listSlot = page.querySelector('.list-slot');
-  const status = page.querySelector('.page-status');
+  const searchInput = page.querySelector('[data-action="search-user"]');
+  const searchResults = page.querySelector('[data-role="search-results"]');
+  const loadStatus = page.querySelector('[data-role="load-status"]');
   let currentUsers = [];
   let editingUser = null;
+  let isSearchFocused = false;
 
   function renderForm() {
     formTitle.textContent = editingUser ? 'Editar usuario' : 'Novo usuario';
     formSlot.replaceChildren(createUserForm({
       user: editingUser,
+      currentUserId: session?.user?.id,
       onCancel: () => {
         editingUser = null;
+        searchInput.value = '';
+        hideSearchResults(searchResults);
+        renderForm();
+      },
+      onDeleted: (userId) => {
+        currentUsers = currentUsers.filter((user) => user.id !== userId);
+        editingUser = null;
+        searchInput.value = '';
+        hideSearchResults(searchResults);
         renderForm();
       },
       onSaved: async (savedUser) => {
         editingUser = null;
         currentUsers = mergeUsers([savedUser, ...currentUsers]);
-        listSlot.replaceChildren(createUsersTable(currentUsers, tableOptions));
+        searchInput.value = '';
+        hideSearchResults(searchResults);
         renderForm();
 
         try {
-          currentUsers = await refreshUsers(listSlot, tableOptions);
+          currentUsers = await loadUsers();
+          hideSearchResults(searchResults);
         } catch (_error) {
           // A lista local ja foi atualizada com o retorno da operacao.
         }
@@ -56,32 +71,51 @@ export async function UsuariosPage({ session } = {}) {
     }));
   }
 
-  const tableOptions = {
-    currentUserId: session?.user?.id,
-    onEdit: (user) => {
-      editingUser = user;
-      renderForm();
-      window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
-    },
-    onDeleted: async (userId) => {
-      currentUsers = currentUsers.filter((user) => user.id !== userId);
-      listSlot.replaceChildren(createUsersTable(currentUsers, tableOptions));
-    },
-  };
+  function onSelectUser(user) {
+    editingUser = user;
+    searchInput.value = formatUserLabel(user);
+    hideSearchResults(searchResults);
+    renderForm();
+    window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
+  }
+
+  searchInput.addEventListener('input', () => {
+    if (!isSearchFocused) return;
+    renderSearchResults(searchResults, currentUsers, searchInput.value, onSelectUser);
+  });
+
+  searchInput.addEventListener('focus', () => {
+    isSearchFocused = true;
+    renderSearchResults(searchResults, currentUsers, searchInput.value, onSelectUser);
+  });
+
+  searchInput.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (document.activeElement?.closest('.user-search-results')) return;
+      isSearchFocused = false;
+      hideSearchResults(searchResults);
+    }, 120);
+  });
 
   renderForm();
 
   try {
-    currentUsers = await refreshUsers(listSlot, tableOptions);
+    currentUsers = await loadUsers();
+    loadStatus.hidden = true;
+    hideSearchResults(searchResults);
   } catch (error) {
-    status.className = 'page-status error';
-    status.textContent = error.message || 'Nao foi possivel carregar usuarios.';
+    loadStatus.className = 'page-status error';
+    loadStatus.textContent = error.message || 'Nao foi possivel carregar usuarios.';
   }
 
   return page;
 }
 
-function createUserForm({ user = null, onCancel, onSaved }) {
+function hideSearchResults(slot) {
+  slot.hidden = true;
+}
+
+function createUserForm({ user = null, currentUserId, onCancel, onDeleted, onSaved }) {
   const isEditing = Boolean(user?.id);
   const form = document.createElement('form');
   form.className = 'form';
@@ -121,17 +155,42 @@ function createUserForm({ user = null, onCancel, onSaved }) {
     <div class="form-actions">
       <button class="button" type="submit">${isEditing ? 'Salvar alteracoes' : 'Cadastrar usuario'}</button>
       ${isEditing ? '<button class="button-link secondary" type="button" data-action="cancel">Cancelar</button>' : ''}
+      ${isEditing ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
     </div>
     <p class="form-message" aria-live="polite"></p>
   `;
 
   const button = form.querySelector('button[type="submit"]');
   const cancelButton = form.querySelector('[data-action="cancel"]');
+  const deleteButton = form.querySelector('[data-action="delete"]');
   const message = form.querySelector('.form-message');
 
   if (cancelButton) {
     cancelButton.addEventListener('click', () => {
       if (onCancel) onCancel();
+    });
+  }
+
+  if (deleteButton) {
+    deleteButton.disabled = user.id === currentUserId;
+    deleteButton.title = deleteButton.disabled ? 'Voce nao pode excluir o proprio usuario.' : 'Excluir usuario';
+    deleteButton.addEventListener('click', async () => {
+      const confirmed = window.confirm(`Excluir o usuario "${user.nome || user.email}"? Esta acao remove o login deste usuario.`);
+      if (!confirmed) return;
+
+      deleteButton.disabled = true;
+      deleteButton.textContent = 'Excluindo...';
+
+      const { data, error } = await deleteUser(user.id);
+
+      if (error || data?.error) {
+        deleteButton.disabled = user.id === currentUserId;
+        deleteButton.textContent = 'Excluir';
+        window.alert(error?.message || data?.error || 'Nao foi possivel excluir usuario.');
+        return;
+      }
+
+      if (onDeleted) onDeleted(user.id);
     });
   }
 
@@ -148,6 +207,16 @@ function createUserForm({ user = null, onCancel, onSaved }) {
       observacao: String(formData.get('observacao') || '').trim(),
       papel: String(formData.get('papel') || USER_ROLES.MUSICO),
     };
+
+    if (values.password) {
+      const passwordError = validatePassword(values.password);
+
+      if (passwordError) {
+        message.className = 'form-message error';
+        message.textContent = passwordError;
+        return;
+      }
+    }
 
     button.disabled = true;
     message.className = 'form-message';
@@ -177,107 +246,55 @@ function createUserForm({ user = null, onCancel, onSaved }) {
   return form;
 }
 
-async function refreshUsers(slot, options) {
+async function loadUsers() {
   const { data, error } = await listProfiles();
 
   if (error) {
     throw error;
   }
 
-  const users = data || [];
-  slot.replaceChildren(createUsersTable(users, options));
-  return users;
+  return data || [];
 }
 
-function createUsersTable(users, options = {}) {
-  if (!users.length) {
+function renderSearchResults(slot, users, query, onSelectUser) {
+  const normalizedQuery = normalizeText(query);
+  const results = normalizedQuery
+    ? users.filter((user) => normalizeText([
+      user.nome,
+      user.email,
+      user.telefone,
+      user.papel,
+      user.observacao,
+    ].join(' ')).includes(normalizedQuery))
+    : users.slice(0, 8);
+
+  if (!results.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
-    empty.textContent = 'Nenhum usuario cadastrado ainda.';
-    return empty;
+    empty.textContent = 'Nenhum usuario encontrado.';
+    slot.replaceChildren(empty);
+    slot.hidden = false;
+    return;
   }
 
-  const table = document.createElement('table');
-  table.className = 'data-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>E-mail</th>
-        <th>Telefone</th>
-        <th>Papel</th>
-        <th>Observacao</th>
-        <th>Acoes</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
+  const list = document.createElement('div');
+  list.className = 'user-search-list';
 
-  const body = table.querySelector('tbody');
-
-  users.forEach((user) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${escapeHtml(user.nome || '-')}</td>
-      <td>${escapeHtml(user.email || '-')}</td>
-      <td>${escapeHtml(user.telefone || '-')}</td>
-      <td>${escapeHtml(formatRole(user.papel))}</td>
-      <td>${escapeHtml(user.observacao || '-')}</td>
-      <td class="table-actions"></td>
+  results.forEach((user) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'user-search-item';
+    button.innerHTML = `
+      <strong>${escapeHtml(user.nome || '-')}</strong>
+      <span>${escapeHtml(user.email || '-')}</span>
+      <span>${escapeHtml([formatRole(user.papel), user.telefone].filter(Boolean).join(' | ') || '-')}</span>
     `;
-
-    const actionsCell = row.querySelector('.table-actions');
-    actionsCell.append(createEditButton(user, options));
-    actionsCell.append(createDeleteButton(user, options));
-    body.append(row);
+    button.addEventListener('click', () => onSelectUser(user));
+    list.append(button);
   });
 
-  return table;
-}
-
-function createEditButton(user, options) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'nav-button';
-  button.textContent = 'Editar';
-
-  button.addEventListener('click', () => {
-    if (options.onEdit) options.onEdit(user);
-  });
-
-  return button;
-}
-
-function createDeleteButton(user, options) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'danger-button';
-  button.textContent = 'Excluir';
-  button.disabled = user.id === options.currentUserId;
-  button.title = button.disabled ? 'Voce nao pode excluir o proprio usuario.' : 'Excluir usuario';
-
-  button.addEventListener('click', async () => {
-    const confirmed = window.confirm(`Excluir o usuario "${user.nome || user.email}"? Esta acao remove o login deste usuario.`);
-    if (!confirmed) return;
-
-    button.disabled = true;
-    button.textContent = 'Excluindo...';
-
-    const { data, error } = await deleteUser(user.id);
-
-    if (error || data?.error) {
-      button.disabled = false;
-      button.textContent = 'Excluir';
-      window.alert(error?.message || data?.error || 'Nao foi possivel excluir usuario.');
-      return;
-    }
-
-    if (options.onDeleted) {
-      options.onDeleted(user.id);
-    }
-  });
-
-  return button;
+  slot.replaceChildren(list);
+  slot.hidden = false;
 }
 
 function mergeUsers(users) {
@@ -304,6 +321,10 @@ function createRoleOptions(selectedRole) {
   )).join('');
 }
 
+function formatUserLabel(user) {
+  return [user.nome, user.email].filter(Boolean).join(' - ');
+}
+
 function formatRole(role) {
   const roles = {
     [USER_ROLES.MUSICO]: 'Musico',
@@ -311,7 +332,15 @@ function formatRole(role) {
     [USER_ROLES.ADMIN]: 'Admin',
   };
 
-  return roles[role] || role || '-';
+  return roles[role] || role || '';
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function escapeHtml(value) {
