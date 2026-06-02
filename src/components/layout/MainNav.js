@@ -11,15 +11,24 @@ export function MainNav(options = {}) {
 
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
+    const links = [
+      { href: '/dashboard', label: 'Painel', match: ['/dashboard'] },
+      { href: '/musicas', label: 'Musicas Cifradas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao'] },
+      { href: '/musicas-letras', label: 'Musicas Letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
+      { href: '/sugestoes/enviar', label: 'Enviar musica', match: ['/sugestoes/enviar'] },
+      ...(['admin', 'editor'].includes(options.profile?.papel)
+        ? [{ href: '/sugestoes', label: 'Sugestoes', match: ['/sugestoes'], className: hasPendingSuggestions ? 'has-pending' : '' }]
+        : []),
+      { href: '/repertorios', label: 'Repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
+      { href: '/repertorios-pdf', label: 'PDF Repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
+      { href: '/minha-conta', label: 'Minha conta', match: ['/minha-conta'] },
+      ...(options.profile?.papel === 'admin'
+        ? [{ href: '/usuarios', label: 'Usuarios', match: ['/usuarios'] }]
+        : []),
+    ];
+
     linksArea.innerHTML = `
-      <a href="/dashboard">Painel</a>
-      <a href="/musicas">Musicas Cifradas</a>
-      <a href="/musicas-letras">Musicas Letras</a>
-      <a href="/sugestoes/enviar">Enviar musica</a>
-      ${['admin', 'editor'].includes(options.profile?.papel) ? `<a class="${hasPendingSuggestions ? 'has-pending' : ''}" href="/sugestoes">Sugestoes</a>` : ''}
-      <a href="/repertorios">Repertorios</a>
-      <a href="/minha-conta">Minha conta</a>
-      ${options.profile?.papel === 'admin' ? '<a href="/usuarios">Usuarios</a>' : ''}
+      ${links.map(createNavLink).join('')}
     `;
 
     const userName = document.createElement('span');
@@ -48,4 +57,17 @@ export function MainNav(options = {}) {
   }
 
   return nav;
+}
+
+function createNavLink(link) {
+  const classes = [
+    link.className || '',
+    isActiveNavLink(link.match) ? 'is-active' : '',
+  ].filter(Boolean).join(' ');
+
+  return `<a${classes ? ` class="${classes}"` : ''} href="${link.href}">${link.label}</a>`;
+}
+
+function isActiveNavLink(paths = []) {
+  return paths.includes(window.location.pathname);
 }

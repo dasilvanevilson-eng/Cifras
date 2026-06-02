@@ -2,7 +2,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
-import { renderCifraOriginalPreviewHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function RepertorioExecucaoPage() {
@@ -111,24 +111,27 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
 
 function createSongBlock(item, number) {
   const musica = item.musicas || {};
-  const title = getField(musica, ['titulo', 'nome', 'title']);
-  const artist = getField(musica, ['artista', 'autor', 'artist']);
+  const musicaExcluida = isMusicaExcluida(item);
+  const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
+  const artist = musicaExcluida ? getField(item, ['musica_artista']) : getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
-  const cifraOriginal = getField(musica, ['cifra_original']);
+  const cifraOriginal = getCifraExibicao(musica);
 
   const block = document.createElement('section');
-  block.className = 'performance-song';
+  block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
   block.id = `musica-${number}`;
   block.tabIndex = -1;
   block.innerHTML = `
     <header>
       <span>${number}</span>
       <div>
-        <h2>${escapeHtml(title)}</h2>
+        <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
         <p>${escapeHtml(artist)} - Tom: <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span></p>
       </div>
     </header>
-    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalPreviewHtml(cifraOriginal)}</pre>
+    ${musicaExcluida
+      ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
+      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>`}
   `;
 
   return block;
@@ -285,10 +288,12 @@ function renderPagedPerformance({
     const semitones = songSemitones[index] || 0;
     const view = song.querySelector('.chordpro-view');
     const keyElement = song.querySelector('.current-key');
+    if (!view || !keyElement) return;
+
     const displayedKey = transposeKey(keyElement?.dataset.originalKey || '-', semitones);
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
 
-    view.innerHTML = renderCifraOriginalPreviewHtml(displayedCifra);
+    view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
     keyElement.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
   });
@@ -299,6 +304,10 @@ function renderPagedPerformance({
 
   previousSongButton.disabled = currentSongIndex <= 0;
   nextSongButton.disabled = currentSongIndex >= songs.length - 1;
+}
+
+function isMusicaExcluida(item) {
+  return Boolean(item?.musica_excluida_em || !item?.musica_id || !item?.musicas);
 }
 
 function createCapoOptions() {

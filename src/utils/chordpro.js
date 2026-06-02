@@ -68,6 +68,22 @@ export function renderCifraOriginalPreviewHtml(input) {
   return renderCifraOriginalForDisplayHtml(renderChordProForDisplay(convertToChordPro(input || '')));
 }
 
+export function createCifraExibicao(input) {
+  return renderChordProForDisplay(convertToChordPro(input || ''));
+}
+
+export function getCifraExibicao(record = {}) {
+  if (record.cifra_exibicao) {
+    return String(record.cifra_exibicao);
+  }
+
+  if (record.cifra_chordpro) {
+    return renderChordProForDisplay(record.cifra_chordpro);
+  }
+
+  return createCifraExibicao(record.cifra_original || '');
+}
+
 export function transposeCifraOriginal(input, semitones) {
   if (!input || !Number(semitones)) return input || '';
 

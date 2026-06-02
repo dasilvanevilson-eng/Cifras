@@ -186,30 +186,109 @@ function createDeleteButton(repertorioId, nome) {
 
 function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proximaOrdem }) {
   const form = document.createElement('form');
-  form.className = 'form';
+  form.className = 'form add-repertorio-song-form';
   form.innerHTML = `
     <label>
-      Musica
-      <select name="musica_id" required>
-        <option value="">Selecione uma musica</option>
-      </select>
+      Buscar musica
+      <input class="song-search-input" type="search" placeholder="Digite titulo ou artista" autocomplete="off">
+      <input name="musica_id" type="hidden" required>
     </label>
+    <div class="song-search-results" hidden></div>
     <button class="button" type="submit">Adicionar ao repertorio</button>
     <p class="form-message" aria-live="polite"></p>
   `;
 
-  const select = form.querySelector('select');
+  const searchInput = form.querySelector('.song-search-input');
+  const musicaIdInput = form.querySelector('[name="musica_id"]');
+  const resultsSlot = form.querySelector('.song-search-results');
   const message = form.querySelector('.form-message');
   const button = form.querySelector('button');
-  const musicasAdicionadas = new Set(musicasAssociadas.map((item) => item.musica_id));
+  const musicasAdicionadas = new Set(
+    musicasAssociadas
+      .map((item) => item.musica_id)
+      .filter(Boolean),
+  );
+  const musicasOrdenadas = sortMusicasByName(musicas);
+  let isPointerInsideResults = false;
 
-  musicas.forEach((musica) => {
-    const option = document.createElement('option');
-    option.value = musica.id;
-    option.textContent = formatMusicaName(musica);
-    option.disabled = musicasAdicionadas.has(musica.id);
-    select.append(option);
+  function renderResults() {
+    const query = normalizeText(searchInput.value);
+    musicaIdInput.value = '';
+    message.textContent = '';
+    message.className = 'form-message';
+
+    const filtered = musicasOrdenadas
+      .filter((musica) => matchesMusicaSearch(musica, query))
+      .slice(0, 60);
+
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.className = 'page-status';
+      empty.textContent = 'Nenhuma musica encontrada.';
+      resultsSlot.replaceChildren(empty);
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'song-search-list';
+
+    filtered.forEach((musica) => {
+      const item = document.createElement('button');
+      const isAdded = musicasAdicionadas.has(musica.id);
+      item.type = 'button';
+      item.className = 'song-search-item';
+      item.disabled = isAdded;
+      item.innerHTML = `
+        <strong>${escapeHtml(formatMusicaName(musica))}</strong>
+        <span>${isAdded ? 'Ja esta neste repertorio' : `Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}`}</span>
+      `;
+
+      item.addEventListener('click', () => {
+        searchInput.value = formatMusicaName(musica);
+        musicaIdInput.value = musica.id;
+        resultsSlot.hidden = true;
+        message.textContent = '';
+        message.className = 'form-message';
+      });
+
+      list.append(item);
+    });
+
+    resultsSlot.replaceChildren(list);
+  }
+
+  searchInput.addEventListener('input', () => {
+    renderResults();
+    resultsSlot.hidden = false;
   });
+
+  searchInput.addEventListener('focus', () => {
+    renderResults();
+    resultsSlot.hidden = false;
+  });
+
+  searchInput.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (!isPointerInsideResults) {
+        resultsSlot.hidden = true;
+      }
+    }, 120);
+  });
+
+  resultsSlot.addEventListener('mouseenter', () => {
+    isPointerInsideResults = true;
+    resultsSlot.hidden = false;
+  });
+
+  resultsSlot.addEventListener('mouseleave', () => {
+    isPointerInsideResults = false;
+
+    if (document.activeElement !== searchInput) {
+      resultsSlot.hidden = true;
+    }
+  });
+
+  renderResults();
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -218,6 +297,15 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
     const musicaId = String(formData.get('musica_id') || '');
     const musicaSelecionada = musicas.find((musica) => musica.id === musicaId);
     const tom = getField(musicaSelecionada || {}, ['tom', 'key']);
+
+    if (!musicaSelecionada) {
+      message.className = 'form-message error';
+      message.textContent = 'Selecione uma musica da lista de busca.';
+      searchInput.focus();
+      resultsSlot.hidden = false;
+      renderResults();
+      return;
+    }
 
     if (musicasAdicionadas.has(musicaId)) {
       message.className = 'form-message error';
@@ -273,19 +361,28 @@ function createMusicasList(items, options = {}) {
 
   items.forEach((item, index) => {
     const musica = item.musicas || {};
+    const musicaExcluida = isMusicaExcluida(item);
     const tom = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
-    const musicaUrl = `/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}&returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}&associationId=${encodeURIComponent(item.id)}&repertorioTom=${encodeURIComponent(tom)}`;
+    const musicaUrl = !musicaExcluida
+      ? `/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}&returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}&associationId=${encodeURIComponent(item.id)}&repertorioTom=${encodeURIComponent(tom)}`
+      : null;
+    const musicaNome = formatRepertorioMusicaName(item);
     const row = document.createElement('tr');
+    row.className = musicaExcluida ? 'deleted-repertorio-song' : '';
     row.innerHTML = `
       <td>${escapeHtml(item.ordem || '-')}</td>
-      <td><a href="${escapeHtml(musicaUrl)}">${escapeHtml(formatMusicaName(musica))}</a></td>
+      <td>${musicaUrl
+        ? `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(musicaNome)}</a>`
+        : `<span>${escapeHtml(musicaNome)}</span><small>Musica excluida do acervo</small>`}</td>
       <td></td>
       ${options.canEdit ? '<td></td>' : ''}
     `;
 
     const tomCell = row.querySelector('td:nth-child(3)');
 
-    if (options.canEdit) {
+    if (musicaExcluida) {
+      tomCell.textContent = tom;
+    } else if (options.canEdit) {
       tomCell.append(createTomInput(item.id, tom));
     } else {
       tomCell.textContent = tom;
@@ -422,10 +519,49 @@ function createRemoveButton(associationId) {
   return button;
 }
 
+function isMusicaExcluida(item) {
+  return Boolean(item?.musica_excluida_em || !item?.musica_id || !item?.musicas);
+}
+
+function formatRepertorioMusicaName(item) {
+  if (isMusicaExcluida(item)) {
+    const titulo = getField(item, ['musica_titulo']);
+    const artista = getField(item, ['musica_artista']);
+    const nome = artista && artista !== '-' ? `${titulo} - ${artista}` : titulo;
+    return `${nome} (excluida)`;
+  }
+
+  return formatMusicaName(item.musicas || {});
+}
+
 function formatMusicaName(musica) {
   const titulo = getField(musica, ['titulo', 'nome', 'title']);
   const artista = getField(musica, ['artista', 'autor', 'artist']);
   return artista && artista !== '-' ? `${titulo} - ${artista}` : titulo;
+}
+
+function sortMusicasByName(musicas) {
+  return [...musicas].sort((a, b) => (
+    formatMusicaName(a).localeCompare(formatMusicaName(b), 'pt-BR', { sensitivity: 'base' })
+  ));
+}
+
+function matchesMusicaSearch(musica, query) {
+  if (!query) return true;
+
+  return normalizeText([
+    getField(musica, ['titulo', 'nome', 'title']),
+    getField(musica, ['artista', 'autor', 'artist']),
+    getField(musica, ['tags']),
+  ].join(' ')).includes(query);
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function getField(record, names) {

@@ -1,5 +1,5 @@
 import { getMusicaById } from '../../../services/musicasService.js';
-import { renderCifraOriginalPreviewHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 
 export async function MusicaExecucaoPage() {
   const page = document.createElement('section');
@@ -39,7 +39,7 @@ function createPerformanceView({ musica, returnTo }) {
   const artist = getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(musica, ['tom', 'key']);
   const link = getField(musica, ['musica_link']);
-  const cifraOriginal = getField(musica, ['cifra_original']);
+  const cifraOriginal = getCifraExibicao(musica);
 
   wrapper.innerHTML = `
     <a class="back-link" href="${escapeHtml(returnTo)}">Voltar</a>
@@ -71,7 +71,7 @@ function createPerformanceView({ musica, returnTo }) {
         </select>
       </label>
     </div>
-    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalPreviewHtml(cifraOriginal)}</pre>
+    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>
   `;
 
   setupPerformanceControls(wrapper);
@@ -176,7 +176,7 @@ function renderPerformance(wrapper, semitones, capo, status) {
   const displayedKey = transposeKey(key.dataset.originalKey || '-', semitones);
   const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
 
-  view.innerHTML = renderCifraOriginalPreviewHtml(displayedCifra);
+  view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
   key.textContent = displayedKey;
   status.textContent = formatTransposeStatus(semitones, capo);
 }

@@ -11,7 +11,9 @@ import { MusicasLetrasPage } from '../features/musicas/pages/MusicasLetrasPage.j
 import { RepertorioDetalhePage } from '../features/repertorios/pages/RepertorioDetalhePage.js';
 import { RepertorioEditarPage } from '../features/repertorios/pages/RepertorioEditarPage.js';
 import { RepertorioExecucaoPage } from '../features/repertorios/pages/RepertorioExecucaoPage.js';
+import { RepertorioPdfPage } from '../features/repertorios/pages/RepertorioPdfPage.js';
 import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.js';
+import { RepertoriosPdfPage } from '../features/repertorios/pages/RepertoriosPdfPage.js';
 import { EnviarSugestaoPage } from '../features/sugestoes/pages/EnviarSugestaoPage.js';
 import { RevisarSugestoesPage } from '../features/sugestoes/pages/RevisarSugestoesPage.js';
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
@@ -34,6 +36,8 @@ const routes = {
   '/repertorios/detalhe': RepertorioDetalhePage,
   '/repertorios/editar': RepertorioEditarPage,
   '/repertorios/execucao': RepertorioExecucaoPage,
+  '/repertorios-pdf': RepertoriosPdfPage,
+  '/repertorios-pdf/gerar': RepertorioPdfPage,
   '/sugestoes/enviar': EnviarSugestaoPage,
   '/sugestoes': RevisarSugestoesPage,
   '/usuarios': UsuariosPage,

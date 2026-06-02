@@ -1,5 +1,12 @@
 import { MusicaForm } from '../components/MusicaForm.js';
-import { createMusica, listMusicas, updateMusica } from '../../../services/musicasService.js';
+import {
+  createMusica,
+  deleteMusica,
+  deleteMusicaComVinculos,
+  listMusicas,
+  listRepertoriosComMusica,
+  updateMusica,
+} from '../../../services/musicasService.js';
 import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasService.js';
 import { canEditContent } from '../../auth/roles.js';
 
@@ -74,9 +81,27 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
       musica_link: initialValues.musica_link || '',
       cifra_original: initialValues.cifra_original || '',
       cifra_chordpro: initialValues.cifra_chordpro || initialValues.chordpro || initialValues.conteudo_chordpro || '',
+      cifra_exibicao: initialValues.cifra_exibicao || '',
     },
     submitLabel: selectedMusica ? 'Salvar alteracoes' : 'Salvar musica',
-    keepValuesAfterSubmit: Boolean(selectedMusica),
+    canDelete: Boolean(selectedMusica),
+    onClear: () => {
+      clearPendingSugestaoMusica();
+      renderForm(formSlot, { musicas, session });
+    },
+    onDelete: selectedMusica
+      ? async () => {
+        const deleted = await deleteSelectedMusica(selectedMusica);
+
+        if (!deleted) {
+          return false;
+        }
+
+        removeMusicaFromList(musicas, selectedMusica.id);
+        renderForm(formSlot, { musicas, session });
+        return true;
+      }
+      : null,
     onSubmit: async (musica) => {
       const result = selectedMusica
         ? await updateMusica(selectedMusica.id, musica)
@@ -100,17 +125,107 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
           clearPendingSugestaoMusica();
         }
 
-        window.location.reload();
+        if (result.data) {
+          musicas.unshift(result.data);
+        }
+
+        renderForm(formSlot, { musicas, session });
         return;
       }
 
       const index = musicas.findIndex((item) => item.id === selectedMusica.id);
 
       if (index >= 0) {
-        musicas[index] = { ...musicas[index], ...musica };
+        musicas[index] = { ...musicas[index], ...musica, id: selectedMusica.id };
       }
+
+      renderForm(formSlot, { musicas, session });
     },
   }));
+}
+
+async function deleteSelectedMusica(musica) {
+  const musicaId = musica?.id;
+  const title = getField(musica, ['titulo', 'nome', 'title']);
+
+  if (!musicaId) {
+    throw new Error('Musica nao informada para exclusao.');
+  }
+
+  const { data: vinculos, error: vinculosError } = await listRepertoriosComMusica(musicaId);
+
+  if (vinculosError) {
+    throw vinculosError;
+  }
+
+  const repertorios = await loadRepertoriosAfetados(vinculos || []);
+  const confirmed = window.confirm(createDeleteConfirmationMessage(title, repertorios));
+
+  if (!confirmed) {
+    return false;
+  }
+
+  const { error } = repertorios.length
+    ? await deleteMusicaComVinculos(musicaId)
+    : await deleteMusica(musicaId);
+
+  if (error) {
+    throw new Error(getDeleteErrorMessage(error));
+  }
+
+  return true;
+}
+
+async function loadRepertoriosAfetados(vinculos) {
+  return vinculos
+    .map((vinculo) => vinculo.repertorios)
+    .filter(Boolean)
+    .map((repertorio) => ({
+      id: repertorio.id,
+      nome: getField(repertorio, ['nome', 'titulo', 'name']),
+      data: formatDate(getField(repertorio, ['data', 'date'])),
+    }));
+}
+
+function createDeleteConfirmationMessage(title, repertorios) {
+  if (!repertorios.length) {
+    return `Excluir a musica "${title}"? Esta acao nao pode ser desfeita.`;
+  }
+
+  const repertoriosList = repertorios
+    .map((repertorio) => {
+      const data = repertorio.data !== '-' ? ` (${repertorio.data})` : '';
+      return `- ${repertorio.nome}${data}`;
+    })
+    .join('\n');
+
+  return [
+    `A musica "${title}" faz parte de um ou mais repertorios.`,
+    'Ao confirmar, ela sera excluida do acervo, mas continuara visivel nos repertorios abaixo como "musica excluida".',
+    'Depois, ela podera ser removida manualmente de cada repertorio pelo botao de remover.',
+    '',
+    'Repertorios vinculados:',
+    '',
+    repertoriosList,
+    '',
+    'Confirma a exclusao?',
+  ].join('\n');
+}
+
+function getDeleteErrorMessage(error) {
+  if (error?.code === '23503') {
+    return 'Esta musica ainda esta vinculada a um ou mais repertorios. Tente novamente ou remova manualmente antes de excluir.';
+  }
+
+  return error?.message || 'Nao foi possivel excluir a musica.';
+}
+
+function removeMusicaFromList(musicas, musicaId) {
+  const index = musicas.findIndex((item) => item.id === musicaId);
+
+  if (index >= 0) {
+    musicas.splice(index, 1);
+  }
 }
 
 function readPendingSugestaoMusica() {
@@ -242,7 +357,7 @@ function createMusicasTable(musicas, options = {}) {
     const musicaUrl = `/musicas/detalhe?id=${encodeURIComponent(id)}`;
 
     row.innerHTML = `
-      <td><a href="${escapeHtml(musicaUrl)}">${escapeHtml(title)}</a></td>
+      <td>${options.canEdit ? escapeHtml(title) : `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(title)}</a>`}</td>
       <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
       <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
       <td>${escapeHtml(formatTags(getField(musica, ['tags'])))}</td>
@@ -256,7 +371,6 @@ function createMusicasTable(musicas, options = {}) {
         return;
       }
 
-      if (event.target.closest('a')) return;
       window.location.href = musicaUrl;
     });
     row.addEventListener('keydown', (event) => {
@@ -339,6 +453,12 @@ function normalizeText(value) {
 function getField(record, names) {
   const fieldName = names.find((name) => record?.[name]);
   return fieldName ? record[fieldName] : '-';
+}
+
+function formatDate(value) {
+  if (!value || value === '-') return '-';
+  const [year, month, day] = String(value).split('-');
+  return day && month && year ? `${day}/${month}/${year}` : value;
 }
 
 function escapeHtml(value) {

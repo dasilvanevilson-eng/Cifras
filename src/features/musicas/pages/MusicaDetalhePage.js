@@ -1,5 +1,4 @@
 import {
-  countMusicasNoRepertorio,
   deleteMusica,
   deleteMusicaComVinculos,
   getMusicaById,
@@ -7,7 +6,7 @@ import {
 } from '../../../services/musicasService.js';
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
-import { convertCifraOriginalToNumbers, getTransposeSemitones, renderCifraOriginalForDisplayHtml, renderCifraOriginalPreviewHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function MusicaDetalhePage({ session } = {}) {
@@ -67,6 +66,7 @@ function createMusicaView(musica, options = {}) {
   const tags = normalizeTags(getField(musica, ['tags']));
   const link = getField(musica, ['musica_link']);
   const cifraOriginal = getField(musica, ['cifra_original']);
+  const cifraExibicao = getCifraExibicao(musica);
 
   wrapper.innerHTML = `
     <a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back">Voltar</a>
@@ -91,11 +91,11 @@ function createMusicaView(musica, options = {}) {
         </select>
       </label>
     </div>
-    <pre class="chordpro-view">${renderCifraOriginalPreviewHtml(cifraOriginal)}</pre>
+    <pre class="chordpro-view">${renderCifraOriginalForDisplayHtml(cifraExibicao)}</pre>
   `;
 
   setupTransposeControls(wrapper, {
-    cifraOriginal,
+    cifraOriginal: cifraExibicao,
     originalKey,
     key,
     associationId: options.associationId,
@@ -141,7 +141,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     const displayedKey = transposeKey(key, semitones);
     const displayHtml = showNumbers
       ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
-      : renderCifraOriginalPreviewHtml(displayedCifra);
+      : renderCifraOriginalForDisplayHtml(displayedCifra);
     chordproView.innerHTML = displayHtml;
     currentKey.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
@@ -247,7 +247,6 @@ function createDeleteButton(musicaId, title) {
       return;
     }
 
-    const repertoriosParaExcluir = repertorios.filter((repertorio) => repertorio.ficaraVazio);
     const confirmed = window.confirm(createDeleteConfirmationMessage(title, repertorios));
     if (!confirmed) {
       button.disabled = false;
@@ -257,7 +256,7 @@ function createDeleteButton(musicaId, title) {
 
     button.textContent = repertorios.length ? 'Removendo vinculos...' : 'Excluindo...';
 
-    const { error } = repertorios.length || repertoriosParaExcluir.length
+    const { error } = repertorios.length
       ? await deleteMusicaComVinculos(musicaId)
       : await deleteMusica(musicaId);
 
@@ -275,7 +274,7 @@ function createDeleteButton(musicaId, title) {
 }
 
 async function loadRepertoriosAfetados(vinculos) {
-  const repertorios = vinculos
+  return vinculos
     .map((vinculo) => vinculo.repertorios)
     .filter(Boolean)
     .map((repertorio) => ({
@@ -283,22 +282,6 @@ async function loadRepertoriosAfetados(vinculos) {
       nome: getField(repertorio, ['nome', 'titulo', 'name']),
       data: formatDate(getField(repertorio, ['data', 'date'])),
     }));
-
-  const repertoriosComContagem = await Promise.all(repertorios.map(async (repertorio) => {
-    const { count, error } = await countMusicasNoRepertorio(repertorio.id);
-
-    if (error) {
-      throw error;
-    }
-
-    return {
-      ...repertorio,
-      totalMusicas: Number(count || 0),
-      ficaraVazio: Number(count || 0) <= 1,
-    };
-  }));
-
-  return repertoriosComContagem;
 }
 
 function createDeleteConfirmationMessage(title, repertorios) {
@@ -309,18 +292,18 @@ function createDeleteConfirmationMessage(title, repertorios) {
   const repertoriosList = repertorios
     .map((repertorio) => {
       const data = repertorio.data !== '-' ? ` (${repertorio.data})` : '';
-      const vazio = repertorio.ficaraVazio ? ' - sera excluido porque ficara sem musicas' : '';
-      return `- ${repertorio.nome}${data}${vazio}`;
+      return `- ${repertorio.nome}${data}`;
     })
     .join('\n');
 
   return [
-    `A musica "${title}" esta presente nos seguintes repertorios:`,
+    `A musica "${title}" faz parte de um ou mais repertorios.`,
+    'Ao confirmar, ela sera excluida do acervo, mas continuara visivel nos repertorios abaixo como "musica excluida".',
+    'Depois, ela podera ser removida manualmente de cada repertorio pelo botao de remover.',
+    '',
+    'Repertorios vinculados:',
     '',
     repertoriosList,
-    '',
-    'Se confirmar, a musica sera removida desses repertorios e excluida definitivamente.',
-    'Repertorios que ficarem sem nenhuma musica tambem serao excluidos.',
     '',
     'Confirma a exclusao?',
   ].join('\n');

@@ -41,6 +41,25 @@ a {
   gap: 16px;
 }
 
+.main-nav-links a {
+  border-bottom: 3px solid transparent;
+  padding: 8px 2px 6px;
+  color: #4f4a42;
+  text-decoration: none;
+}
+
+.main-nav-links a:hover,
+.main-nav-links a:focus {
+  color: #1d4f45;
+  outline: 0;
+}
+
+.main-nav-links a.is-active {
+  border-bottom-color: #c8792b;
+  color: #1d4f45;
+  font-weight: 700;
+}
+
 .main-nav-links a.has-pending {
   font-weight: 700;
 }
@@ -311,6 +330,62 @@ a {
   font-size: 14px;
 }
 
+.add-repertorio-song-form {
+  position: relative;
+}
+
+.song-search-results {
+  position: absolute;
+  top: 78px;
+  right: 0;
+  left: 0;
+  z-index: 12;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid #ddd6c8;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
+}
+
+.song-search-results[hidden] {
+  display: none;
+}
+
+.song-search-list {
+  display: grid;
+}
+
+.song-search-item {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e5dece;
+  padding: 12px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.song-search-item:hover,
+.song-search-item:focus {
+  background: #f8f5ee;
+  outline: 0;
+}
+
+.song-search-item:disabled {
+  background: #f2eee5;
+  color: #8a8174;
+  cursor: not-allowed;
+}
+
+.song-search-item span {
+  color: #5f594f;
+  font-size: 14px;
+}
+
 .suggestions-review-grid {
   display: grid;
   grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
@@ -449,6 +524,19 @@ a {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.deleted-repertorio-song {
+  background: #fff7ed;
+}
+
+.deleted-repertorio-song small,
+.deleted-song-notice {
+  display: block;
+  margin-top: 4px;
+  color: #9b4f12;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .inline-edit {
@@ -743,6 +831,153 @@ a {
   color: #f6f2e8;
 }
 
+.pdf-repertorio-page {
+  max-width: 980px;
+}
+
+.pdf-toolbar {
+  position: sticky;
+  top: 73px;
+  z-index: 8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 10px;
+  border: 1px solid #ddd6c8;
+  background: #ffffff;
+}
+
+.pdf-cover {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  border-bottom: 1px solid #ddd6c8;
+  padding: 12px 0 20px;
+}
+
+.pdf-cover p {
+  margin: 0;
+  color: #c8792b;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdf-cover h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.12;
+}
+
+.pdf-cover dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 0;
+}
+
+.pdf-cover dl div {
+  min-width: 140px;
+}
+
+.pdf-cover dt {
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdf-cover dd {
+  margin: 4px 0 0;
+  font-size: 18px;
+}
+
+.pdf-summary {
+  padding: 16px 0 24px;
+  border-bottom: 1px solid #ddd6c8;
+}
+
+.pdf-summary h2 {
+  margin-bottom: 16px;
+}
+
+.pdf-summary ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 24px;
+}
+
+.pdf-summary a {
+  display: grid;
+  gap: 3px;
+  color: #1d4f45;
+  text-decoration: none;
+}
+
+.pdf-summary small {
+  color: #5f594f;
+}
+
+.pdf-song {
+  padding: 24px 0;
+  border-bottom: 1px solid #ddd6c8;
+}
+
+.pdf-song header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.pdf-song header > p {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  background: #1d4f45;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.pdf-song h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+}
+
+.pdf-song header span {
+  color: #5f594f;
+}
+
+.pdf-index-link {
+  display: inline-block;
+  margin-top: 6px;
+  border: 1px solid #1d4f45;
+  padding: 5px 8px;
+  background: #ffffff;
+  color: #1d4f45;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pdf-index-link:hover,
+.pdf-index-link:focus {
+  background: #f4f1ea;
+  outline: 0;
+}
+
+.pdf-song .chordpro-view {
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.38;
+}
+
 .form {
   display: grid;
   gap: 16px;
@@ -772,16 +1007,19 @@ a {
 
 .musica-form label:nth-of-type(5),
 .cifra-editor-grid,
-.preview-actions,
+.music-form-actions,
 .song-preview,
-.musica-form .button,
+.musica-form > .button,
 .musica-form .form-message {
   grid-column: 1 / -1;
 }
 
-.preview-actions {
+.music-form-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: flex-start;
+  align-items: center;
 }
 
 .song-preview {
@@ -1090,6 +1328,7 @@ a {
   .main-nav,
   .back-link,
   .page-actions,
+  .pdf-toolbar,
   .transpose-toolbar,
   .performance-toolbar,
   .form,
@@ -1145,6 +1384,61 @@ a {
   .performance-song header > span {
     border: 1px solid #000000;
     background: #ffffff;
+    color: #000000;
+  }
+
+  .pdf-repertorio-page {
+    max-width: none;
+  }
+
+  .pdf-cover {
+    min-height: 0;
+    break-after: auto;
+    page-break-after: auto;
+    border-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 16px;
+  }
+
+  .pdf-summary {
+    break-after: page;
+    page-break-after: always;
+    border-bottom: 0;
+  }
+
+  .pdf-summary a {
+    color: #000000;
+  }
+
+  .pdf-song {
+    break-before: page;
+    page-break-before: always;
+    border-bottom: 0;
+    padding: 0;
+  }
+
+  .pdf-song header {
+    margin-bottom: 8px;
+  }
+
+  .pdf-song .chordpro-view {
+    font-size: 10.5pt;
+    line-height: 1.28;
+  }
+
+  .pdf-song:first-child {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  .pdf-song header > p {
+    border: 1px solid #000000;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .pdf-index-link {
+    border-color: #000000;
     color: #000000;
   }
 }

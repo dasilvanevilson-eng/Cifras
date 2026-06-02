@@ -3,6 +3,8 @@ import {
   convertCifraOriginalToNumbers,
   convertToChordPro,
   extractLyricsFromCifraOriginal,
+  createCifraExibicao,
+  getCifraExibicao,
   getTransposeSemitones,
   normalizeChordProLyrics,
   renderChordProForDisplay,
@@ -69,6 +71,16 @@ assert.equal(
 assert.equal(
   renderCifraOriginalPreviewHtml(['G      D/F#', 'Grande es Tu'].join('\n')),
   ['<span class="chord-line">G      D/F#</span>', 'GRANDE ES TU'].join('\n'),
+);
+
+assert.equal(
+  createCifraExibicao(['G      D/F#', 'Grande es Tu'].join('\n')),
+  ['G      D/F#', 'GRANDE ES TU'].join('\n'),
+);
+
+assert.equal(
+  getCifraExibicao({ cifra_exibicao: 'C\nJA SALVA' }),
+  'C\nJA SALVA',
 );
 
 assert.equal(

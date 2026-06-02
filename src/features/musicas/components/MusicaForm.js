@@ -34,6 +34,13 @@ export function MusicaForm(options = {}) {
       </span>
     </label>
 
+    <div class="music-form-actions">
+      <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
+      <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
+      ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
+      <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
+    </div>
+
     <div class="cifra-editor-grid">
       <label>
         Cifra original
@@ -47,9 +54,6 @@ export function MusicaForm(options = {}) {
       </label>
     </div>
 
-    <div class="preview-actions">
-      <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
-    </div>
     <section class="song-preview" hidden>
       <header class="song-header">
         <h2 data-preview="titulo"></h2>
@@ -58,12 +62,13 @@ export function MusicaForm(options = {}) {
       <pre class="chordpro-view" data-preview="cifra"></pre>
     </section>
 
-    <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
     <p class="form-message" aria-live="polite"></p>
   `;
 
   const message = form.querySelector('.form-message');
   const button = form.querySelector('button[type="submit"]');
+  const clearButton = form.querySelector('[data-action="clear"]');
+  const deleteButton = form.querySelector('[data-action="delete"]');
   const originalTextarea = form.querySelector('[name="cifra_original"]');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
   const chordProEditor = form.querySelector('.chordpro-editor');
@@ -72,22 +77,18 @@ export function MusicaForm(options = {}) {
   const linkAction = form.querySelector('.field-action-link');
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
-  let lastAutoChordPro = convertToChordPro(originalTextarea.value);
 
   updateLinkAction(linkInput, linkAction);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
   setupResponsiveCifraEditor(cifraEditorGrid);
 
   originalTextarea.addEventListener('input', () => {
-    const currentChordPro = normalizeChordProLyrics(chordProTextarea.value);
-    const isStillSynced = currentChordPro === normalizeChordProLyrics(lastAutoChordPro);
     const nextAutoChordPro = convertToChordPro(originalTextarea.value);
+    setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
 
-    if (isStillSynced) {
-      setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
+    if (!previewPanel.hidden) {
+      updatePreview(form, previewPanel);
     }
-
-    lastAutoChordPro = nextAutoChordPro;
   });
 
   chordProEditor.addEventListener('focus', () => {
@@ -96,6 +97,7 @@ export function MusicaForm(options = {}) {
 
   chordProEditor.addEventListener('input', () => {
     chordProTextarea.value = getEditableText(chordProEditor);
+    originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
 
     if (!previewPanel.hidden) {
       updatePreview(form, previewPanel);
@@ -103,12 +105,46 @@ export function MusicaForm(options = {}) {
   });
 
   chordProEditor.addEventListener('blur', () => {
-    setChordProValue(chordProTextarea, chordProEditor, normalizeChordProLyrics(chordProTextarea.value));
+    const normalizedChordPro = normalizeChordProLyrics(chordProTextarea.value);
+    setChordProValue(chordProTextarea, chordProEditor, normalizedChordPro);
+    originalTextarea.value = renderChordProForDisplay(normalizedChordPro);
   });
 
   linkInput.addEventListener('input', () => {
     updateLinkAction(linkInput, linkAction);
   });
+
+  clearButton.addEventListener('click', () => {
+    if (options.onClear) {
+      options.onClear();
+      return;
+    }
+
+    clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle);
+  });
+
+  if (deleteButton) {
+    deleteButton.addEventListener('click', async () => {
+      if (!options.onDelete) return;
+
+      deleteButton.disabled = true;
+      message.className = 'form-message';
+      message.textContent = 'Excluindo...';
+
+      try {
+        const deleted = await options.onDelete();
+
+        if (deleted === false) {
+          message.textContent = '';
+          deleteButton.disabled = false;
+        }
+      } catch (error) {
+        message.className = 'form-message error';
+        message.textContent = error.message || 'Nao foi possivel excluir a musica.';
+        deleteButton.disabled = false;
+      }
+    });
+  }
 
   previewToggle.addEventListener('click', () => {
     const shouldShow = previewPanel.hidden;
@@ -139,10 +175,14 @@ export function MusicaForm(options = {}) {
       await options.onSubmit(getFormValues(form));
 
       if (!options.keepValuesAfterSubmit) {
-        form.reset();
+        clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle);
       }
       message.className = 'form-message success';
       message.textContent = 'Musica salva com sucesso.';
+
+      if (options.onSaved) {
+        options.onSaved();
+      }
     } catch (error) {
       message.className = 'form-message error';
       message.textContent = error.message || 'Nao foi possivel salvar a musica.';
@@ -152,6 +192,16 @@ export function MusicaForm(options = {}) {
   });
 
   return form;
+}
+
+function clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle) {
+  form.querySelectorAll('input, textarea').forEach((field) => {
+    field.value = '';
+  });
+  setChordProValue(chordProTextarea, chordProEditor, '');
+  previewPanel.hidden = true;
+  previewToggle.textContent = 'Pre-visualizacao';
+  updateLinkAction(form.querySelector('[name="musica_link"]'), form.querySelector('.field-action-link'));
 }
 
 function setupResponsiveCifraEditor(container) {
@@ -185,6 +235,7 @@ function getFormValues(form) {
     musica_link: String(formData.get('musica_link') || '').trim() || null,
     cifra_original: String(formData.get('cifra_original') || '').trim(),
     cifra_chordpro: normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '').trim()),
+    cifra_exibicao: renderChordProForDisplay(normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '').trim())),
   };
 }
 

@@ -607,6 +607,62 @@ Validacao:
 - `npm test` executou com sucesso e exibiu `chordpro tests passed`.
 - `npm run build` executou com sucesso.
 
+## Registro de continuidade - campo cifra_exibicao
+
+Data: 2026-06-02
+
+Diretriz do usuario:
+- Manter `cifra_original` como texto original/editavel usado para conversao para ChordPro.
+- Criar/usar `cifra_exibicao` para todas as opcoes de visualizacao, impressao, PDF, execucao etc.
+- O usuario informou que ja criou a coluna `cifra_exibicao` no Supabase.
+
+Alteracoes feitas:
+- Criada a migration local `supabase/migrations/011_add_cifra_exibicao_musicas.sql`, idempotente, para registrar a coluna no historico do projeto.
+- Atualizado `src/utils/chordpro.js`.
+- Criadas as funcoes:
+  - `createCifraExibicao`
+  - `getCifraExibicao`
+- `createCifraExibicao` gera o texto visual igual a pre-visualizacao.
+- `getCifraExibicao` usa `cifra_exibicao` quando existir e, para musicas antigas, faz fallback para `cifra_chordpro` ou `cifra_original`.
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- Ao salvar/incluir/editar musica, o formulario agora envia `cifra_exibicao`.
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- O formulario passa valores iniciais considerando `cifra_exibicao`.
+- Atualizado `src/features/musicas/pages/MusicaDetalhePage.js`.
+- Atualizado `src/features/musicas/pages/MusicaExecucaoPage.js`.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- As visualizacoes passam a usar `cifra_exibicao` com fallback seguro.
+- Atualizado `test/chordpro.test.js` com testes para `createCifraExibicao` e `getCifraExibicao`.
+
+Validacao:
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+- `npm run build` executou com sucesso.
+
+Observacao:
+- Musicas antigas sem `cifra_exibicao` continuam abrindo por fallback.
+- Ao editar e salvar uma musica antiga, o campo `cifra_exibicao` passa a ser preenchido.
+
+## Registro de continuidade - acesso a exclusao de musicas
+
+Data: 2026-06-02
+
+Problema informado pelo usuario:
+- O usuario nao encontrou a opcao para excluir musica.
+
+Diagnostico:
+- A exclusao ja existia na tela de detalhe da musica para admin/editor.
+- Na listagem "Musicas Cifradas", o clique da linha para admin/editor capturava tambem o clique no link do titulo, carregando a musica no formulario de edicao em vez de abrir o detalhe.
+- Isso dificultava chegar ao botao "Excluir".
+
+Alteracao feita:
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- Agora, ao clicar no titulo/link da musica, abre a tela de detalhe.
+- Ao clicar no restante da linha, continua carregando a musica para edicao no formulario, como antes.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
 ## Registro de continuidade - sincronizacao Cifra original e ChordPro interno
 
 Data: 2026-06-02
@@ -628,6 +684,16 @@ Alteracao feita:
 Validacao:
 - `npm run build` executou com sucesso.
 - `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Atualizacao de regra:
+- O usuario informou que as telas deixavam de se espelhar apos digitar algo novo na "Cifra original", por exemplo `Intro G Am`.
+- Nova diretriz: "Cifra original" deve ser espelhada em "ChordPro interno" e vice-versa.
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- Ao digitar na "Cifra original", o sistema sempre converte e atualiza o "ChordPro interno".
+- Ao editar o "ChordPro interno", o sistema atualiza a "Cifra original" usando `renderChordProForDisplay`.
+- Ao sair do campo "ChordPro interno", o ChordPro e normalizado e a "Cifra original" e atualizada novamente.
+- Esta regra substitui o comportamento anterior de parar a sincronizacao quando o ChordPro fosse editado manualmente.
+- `npm run build` e `npm test` executaram com sucesso apos a mudanca.
 
 ## Registro de continuidade - avaliacao do projeto
 
@@ -1041,3 +1107,112 @@ Proximo passo recomendado:
 - Testar uma musica no formato original com linhas de acordes separadas da letra.
 - Validar transposicao e capotraste no detalhe da musica e no modo execucao.
 - Depois seguir para refinamento do parser de acordes ou sistema numerico.
+
+## Registro de continuidade - acoes no formulario de Musicas Cifradas
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Na opcao "Musicas Cifradas", limpar a tela apos salvar a musica.
+- Criar botao "Excluir musica".
+- Criar botao "Limpar tela".
+- Colocar "Excluir musica", "Pre-visualizacao", "Limpar tela" e "Salvar musica" acima das telas "Cifra original" e "ChordPro interno".
+
+Alteracoes feitas:
+- Atualizado `src/features/musicas/components/MusicaForm.js`.
+- O formulario agora tem uma barra de acoes acima dos editores de cifra.
+- A barra inclui "Excluir musica" quando uma musica existente esta selecionada.
+- A barra inclui "Pre-visualizacao", "Limpar tela" e "Salvar musica".
+- O botao "Limpar tela" limpa tambem o contexto de sugestao pendente quando usado na tela de musicas.
+- Apos salvar uma musica nova ou editar uma musica existente, a tela volta para o formulario limpo.
+- Atualizado `src/features/musicas/pages/MusicasPage.js`.
+- A exclusao de musica foi adicionada diretamente no formulario de edicao.
+- A exclusao reutiliza a regra de verificar repertorios vinculados, confirmar com o usuario e usar a RPC `delete_musica_com_vinculos` quando houver vinculos.
+- Atualizado `src/styles/global.css` para posicionar a nova barra de acoes acima dos editores.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+## Registro de continuidade - preservar musica excluida nos repertorios
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Quando uma musica que faz parte de repertorio for excluida do acervo, manter o titulo no repertorio com uma observacao de que ela foi excluida.
+- Permitir remover manualmente esse item do repertorio depois, como se fosse uma musica ativa.
+
+Alteracoes feitas:
+- Criada a migration `supabase/migrations/012_keep_deleted_music_in_repertorios.sql`.
+- A migration adiciona campos de snapshot em `repertorio_musicas`:
+  - `musica_titulo`
+  - `musica_artista`
+  - `musica_tom_original`
+  - `musica_excluida_em`
+- A migration permite `musica_id` nulo em `repertorio_musicas` e altera a chave estrangeira para `on delete set null`.
+- A RPC `delete_musica_com_vinculos` foi recriada para preservar o item no repertorio como musica excluida, em vez de remover o vinculo.
+- Atualizado `src/services/repertoriosService.js` para carregar os campos de snapshot.
+- Atualizado `src/features/repertorios/pages/RepertorioDetalhePage.js`.
+- Musicas excluidas aparecem no repertorio como `(excluida)` e com aviso "Musica excluida do acervo".
+- O botao de remover do repertorio continua funcionando para remover manualmente o item preservado.
+- Atualizado `src/features/repertorios/pages/RepertorioExecucaoPage.js`.
+- No modo execucao, musicas excluidas aparecem como referencia, sem tentar renderizar cifra inexistente.
+- Atualizadas as mensagens de confirmacao de exclusao em `MusicasPage` e `MusicaDetalhePage`.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Aplicar a migration `012_keep_deleted_music_in_repertorios.sql` no Supabase antes de testar esse novo comportamento no site.
+
+## Registro de continuidade - PDF navegavel de repertorio
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Criar uma opcao de seguranca para execucao de repertorio sem depender de internet.
+- A solucao escolhida foi gerar um PDF do repertorio com sumario navegavel.
+- A nova funcionalidade deve aparecer como mais uma opcao no menu principal.
+
+Alteracoes feitas:
+- Criada a pagina `src/features/repertorios/pages/RepertoriosPdfPage.js`.
+- A nova pagina lista repertorios, permite buscar por nome/data e abre a geracao do PDF.
+- Criada a pagina `src/features/repertorios/pages/RepertorioPdfPage.js`.
+- A pagina de PDF renderiza:
+  - capa do repertorio;
+  - sumario com links internos para cada musica;
+  - musicas em ordem do repertorio;
+  - cifras no mesmo formato de exibicao do sistema;
+  - aviso para musicas excluidas do acervo;
+  - botao "Imprimir / Salvar PDF".
+- Atualizado `src/app/router.js` com:
+  - `/repertorios-pdf`
+  - `/repertorios-pdf/gerar`
+- Atualizado `src/components/layout/MainNav.js`.
+- Adicionado item "PDF Repertorio" no menu principal.
+- Atualizado `src/styles/global.css` com estilos de capa, sumario, musicas e regras de impressao/PDF.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Uso esperado:
+- Abrir `PDF Repertorio` no menu principal.
+- Escolher um repertorio.
+- Clicar em `Gerar PDF`.
+- Na tela gerada, clicar em `Imprimir / Salvar PDF`.
+- Salvar como PDF no navegador; o sumario usa links internos para navegar entre as musicas.
+
+Atualizacao:
+- O usuario pediu para separar as acoes de impressao e geracao de PDF.
+- Em `src/features/repertorios/pages/RepertoriosPdfPage.js`, a acao da tabela foi alterada:
+  - `Imprimir` abre a visualizacao do repertorio;
+  - `Gerar PDF` abre a visualizacao e dispara a janela de impressao/salvamento automaticamente.
+- Em `src/features/repertorios/pages/RepertorioPdfPage.js`, o botao interno `Imprimir / Salvar PDF` foi separado em:
+  - `Imprimir`;
+  - `Gerar PDF`.
+- O botao `Gerar PDF` ajusta temporariamente o titulo do documento para sugerir o nome do arquivo baseado no nome do repertorio.
+- Foi adicionada a tecla/link `Voltar ao indice` no titulo de cada musica do PDF.
+- Atualizado `src/styles/global.css` com o estilo da tecla `Voltar ao indice`.
+- `npm run build` e `npm test` executaram com sucesso apos o ajuste.

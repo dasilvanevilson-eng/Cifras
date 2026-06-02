@@ -39,9 +39,14 @@ export async function duplicateRepertorio(repertorio, musicasAssociadas = []) {
 
   const associacoes = musicasAssociadas.map((item, index) => ({
     repertorio_id: novoRepertorio.id,
-    musica_id: item.musica_id,
+    musica_id: item.musica_id || null,
     ordem: item.ordem || index + 1,
     tom: item.tom || item.musicas?.tom || null,
+    musica_titulo: item.musica_titulo || item.musicas?.titulo || null,
+    musica_artista: item.musica_artista || item.musicas?.artista || null,
+    musica_tom_original: item.musica_tom_original || item.musicas?.tom || null,
+    musica_excluida_em: item.musica_excluida_em || null,
+    musica_excluida_usuario: item.musica_excluida_usuario || null,
   }));
 
   if (!associacoes.length) {
@@ -67,6 +72,11 @@ export async function listMusicasDoRepertorio(repertorioId) {
       ordem,
       musica_id,
       tom,
+      musica_titulo,
+      musica_artista,
+      musica_tom_original,
+      musica_excluida_em,
+      musica_excluida_usuario,
       musicas (*)
     `)
     .eq('repertorio_id', repertorioId)
