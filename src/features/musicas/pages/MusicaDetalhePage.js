@@ -89,7 +89,7 @@ function createMusicaView(musica, options = {}) {
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>
       <label>
-        Capotraste
+        ${isRepertorioView ? 'Capo' : 'Capotraste'}
         <select data-action="capo">
           ${createCapoOptions()}
         </select>
