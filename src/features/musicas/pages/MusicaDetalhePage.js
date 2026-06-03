@@ -99,7 +99,7 @@ function createMusicaView(musica, options = {}) {
           ${createCapoOptions({ useCapoLabel: isRepertorioView })}
         </select>
       </label>
-      ${isRepertorioView && link && link !== '-' ? `<a class="button-link secondary toolbar-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a>` : ''}
+      ${isRepertorioView && link && link !== '-' ? `<a class="button-link secondary toolbar-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Link</a>` : ''}
     </div>
     ${isRepertorioView ? `
       <div class="repertorio-song-title-bar">

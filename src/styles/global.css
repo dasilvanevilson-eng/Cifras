@@ -105,6 +105,7 @@ a {
 
 .nav-button {
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   min-height: 40px;
   padding: 8px 12px;
   background: #ffffff;
@@ -214,6 +215,7 @@ a {
 .dashboard-search input {
   width: 100%;
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -344,6 +346,7 @@ a {
 .user-search-panel input {
   width: 100%;
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -375,6 +378,7 @@ a {
   gap: 3px;
   width: 100%;
   border: 0;
+  border-radius: 5%;
   border-bottom: 1px solid #e5dece;
   padding: 12px;
   background: #ffffff;
@@ -425,6 +429,7 @@ a {
   gap: 3px;
   width: 100%;
   border: 0;
+  border-radius: 5%;
   border-bottom: 1px solid #e5dece;
   padding: 12px;
   background: #ffffff;
@@ -540,6 +545,7 @@ a {
 .list-toolbar select {
   width: 100%;
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -677,6 +683,7 @@ a {
 
 .button-link {
   display: inline-block;
+  border-radius: 5%;
   min-height: 40px;
   padding: 10px 14px;
   background: #1d4f45;
@@ -765,15 +772,16 @@ a {
   margin-bottom: 0;
 }
 
-.repertorio-song-view .song-header:empty {
+.repertorio-song-view .song-header {
   display: none;
+  margin: 0;
 }
 
 .repertorio-song-title-bar {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin: 0 0 6px;
+  margin: 0 0 2px;
 }
 
 .repertorio-song-title-bar h1 {
@@ -786,6 +794,8 @@ a {
 .repertorio-song-view .transpose-toolbar {
   flex-wrap: nowrap;
   gap: 6px;
+  margin-top: 0;
+  margin-bottom: 4px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 8px;
@@ -838,7 +848,7 @@ a {
 }
 
 .repertorio-song-view .chordpro-view {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Courier New', monospace;
   font-size: var(--repertorio-song-font-size, 18px);
   font-weight: 700;
   line-height: 1.55;
@@ -945,6 +955,7 @@ a {
 .transpose-toolbar select,
 .performance-toolbar select {
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   padding: 8px 10px;
   font: inherit;
   background: #ffffff;
@@ -1354,6 +1365,7 @@ a {
 .form select {
   width: 100%;
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -1451,6 +1463,7 @@ a {
 
 .button {
   border: 0;
+  border-radius: 5%;
   min-height: 42px;
   padding: 10px 14px;
   background: #1d4f45;
@@ -1465,6 +1478,7 @@ a {
 
 .danger-button {
   border: 1px solid #b94a48;
+  border-radius: 5%;
   min-height: 40px;
   padding: 8px 10px;
   background: #ffffff;
