@@ -809,6 +809,15 @@ a {
   padding: 8px 10px;
 }
 
+.repertorio-song-view .transpose-toolbar .button-link {
+  flex: 0 0 auto;
+}
+
+.repertorio-song-view .transpose-toolbar .toolbar-link {
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
 .repertorio-song-view .transpose-toolbar label {
   flex: 0 0 auto;
 }

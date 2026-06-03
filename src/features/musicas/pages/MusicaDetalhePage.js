@@ -80,9 +80,10 @@ function createMusicaView(musica, options = {}) {
         <p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>
       `}
       ${!isRepertorioView && tags.length ? `<div class="tag-list">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
-      ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
+      ${!isRepertorioView && link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
     <div class="transpose-toolbar">
+      ${isRepertorioView ? `<a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Voltar" title="Voltar">&larr;</a>` : ''}
       <button class="nav-button" type="button" data-action="transpose-down">${isRepertorioView ? '-1/2' : '-1 semitom'}</button>
       <span data-role="transpose-status">${isRepertorioView ? 'Tom' : 'Original'}</span>
       <button class="nav-button" type="button" data-action="transpose-up">${isRepertorioView ? '+1/2' : '+1 semitom'}</button>
@@ -98,10 +99,10 @@ function createMusicaView(musica, options = {}) {
           ${createCapoOptions({ useCapoLabel: isRepertorioView })}
         </select>
       </label>
+      ${isRepertorioView && link && link !== '-' ? `<a class="button-link secondary toolbar-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a>` : ''}
     </div>
     ${isRepertorioView ? `
       <div class="repertorio-song-title-bar">
-        <a class="button-link secondary icon-action back-icon-action song-title-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Voltar" title="Voltar">&larr;</a>
         <h1>${escapeHtml(title)}</h1>
       </div>
     ` : ''}
