@@ -1204,7 +1204,9 @@ a {
 }
 
 .repertorio-performance-view .performance-position {
+  width: 44px;
   min-width: 44px;
+  max-width: 44px;
   min-height: 40px;
 }
 
@@ -1815,6 +1817,12 @@ a {
   .repertorio-performance-view .performance-toolbar .nav-button {
     width: auto;
     padding: 8px 6px;
+  }
+
+  .repertorio-performance-view .performance-position {
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
   }
 }
 
