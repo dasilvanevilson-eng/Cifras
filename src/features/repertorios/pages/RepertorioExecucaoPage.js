@@ -50,7 +50,7 @@ export async function RepertorioExecucaoPage() {
   return page;
 }
 
-function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
+function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }) {
   const wrapper = document.createElement('article');
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
@@ -109,7 +109,7 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
   return wrapper;
 }
 
-function createSongBlockV2(item, number) {
+function createSongBlockLegacy(item, number) {
   const musica = item.musicas || {};
   const musicaExcluida = isMusicaExcluida(item);
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
@@ -137,7 +137,7 @@ function createSongBlockV2(item, number) {
   return block;
 }
 
-function setupPerformanceControlsV2(wrapper) {
+function setupPerformanceControlsLegacy(wrapper) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontSizeInput = wrapper.querySelector('[data-action="font-size"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
@@ -356,7 +356,7 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
+function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
@@ -387,7 +387,7 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
       <label>
         <select data-action="capo">
-          ${createCapoOptions()}
+          ${createCapoOptionsV2()}
         </select>
       </label>
     </div>
@@ -401,19 +401,19 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
     empty.className = 'page-status';
     empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
     list.append(empty);
-    setupPerformanceControls(wrapper);
+    setupPerformanceControlsV2(wrapper);
     return wrapper;
   }
 
   musicasAssociadas.forEach((item, index) => {
-    list.append(createSongBlock(item, index + 1));
+    list.append(createSongBlockV2(item, index + 1));
   });
 
-  setupPerformanceControls(wrapper);
+  setupPerformanceControlsV2(wrapper);
   return wrapper;
 }
 
-function createSongBlock(item, number) {
+function createSongBlockV2(item, number) {
   const musica = item.musicas || {};
   const musicaExcluida = isMusicaExcluida(item);
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
@@ -438,7 +438,7 @@ function createSongBlock(item, number) {
   return block;
 }
 
-function setupPerformanceControls(wrapper) {
+function setupPerformanceControlsV2(wrapper) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
