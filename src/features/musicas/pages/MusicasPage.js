@@ -41,9 +41,17 @@ export async function MusicasPage({ session } = {}) {
 
     const musicas = data || [];
     const pendingSugestao = canEdit ? readPendingSugestaoMusica() : null;
+    const pendingSugestaoMusica = pendingSugestao?.tipo_sugestao === 'ajuste'
+      ? musicas.find((musica) => musica.id === pendingSugestao.musica_origem_id)
+      : null;
 
     if (canEdit) {
-      renderForm(formSlot, { musicas, pendingSugestao, session });
+      renderForm(formSlot, {
+        musicas,
+        selectedMusica: pendingSugestaoMusica || null,
+        pendingSugestao,
+        session,
+      });
     } else {
       formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas cifradas, mas nao cadastrar ou editar.'));
     }
@@ -70,7 +78,7 @@ export async function MusicasPage({ session } = {}) {
 }
 
 function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, session = {} }) {
-  const initialValues = selectedMusica || pendingSugestao || {};
+  const initialValues = pendingSugestao || selectedMusica || {};
 
   formSlot.replaceChildren(MusicaForm({
     initialValues: {
@@ -111,20 +119,20 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
         throw result.error;
       }
 
-      if (!selectedMusica) {
-        if (pendingSugestao?.sugestao_id && result.data?.id) {
-          const { error: sugestaoError } = await markSugestaoMusicaAprovada(pendingSugestao.sugestao_id, {
-            musica_id: result.data.id,
-            revisado_por: pendingSugestao.revisado_por || session?.user?.id,
-          });
+      if (pendingSugestao?.sugestao_id) {
+        const { error: sugestaoError } = await markSugestaoMusicaAprovada(pendingSugestao.sugestao_id, {
+          musica_id: result.data?.id || selectedMusica?.id,
+          revisado_por: pendingSugestao.revisado_por || session?.user?.id,
+        });
 
-          if (sugestaoError) {
-            throw sugestaoError;
-          }
-
-          clearPendingSugestaoMusica();
+        if (sugestaoError) {
+          throw sugestaoError;
         }
 
+        clearPendingSugestaoMusica();
+      }
+
+      if (!selectedMusica) {
         if (result.data) {
           musicas.unshift(result.data);
         }

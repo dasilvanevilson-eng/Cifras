@@ -82,6 +82,7 @@ function createSugestoesList(items, onSelect) {
     button.className = 'user-search-item';
     button.innerHTML = `
       <strong>${escapeHtml(item.titulo || '-')}</strong>
+      <span>${escapeHtml(formatTipoSugestao(item.tipo_sugestao))}</span>
       <span>${escapeHtml(item.artista || '-')}</span>
       <span>${escapeHtml(formatSender(item))}</span>
       <span>${escapeHtml(formatDate(item.created_at))}</span>
@@ -99,6 +100,10 @@ function createReviewForm(sugestao, session, onFinished) {
   form.innerHTML = `
     <fieldset class="suggestion-review-meta">
       <legend>Dados do envio</legend>
+      <label>
+        Tipo
+        <input type="text" value="${escapeHtml(formatTipoSugestao(sugestao.tipo_sugestao))}" disabled>
+      </label>
       <label>
         Enviado por
         <input type="text" value="${escapeHtml(formatSender(sugestao))}" disabled>
@@ -153,6 +158,10 @@ function createReviewForm(sugestao, session, onFinished) {
   const rejectButton = form.querySelector('[data-action="reject"]');
   const message = form.querySelector('.form-message');
 
+  approveButton.textContent = sugestao.tipo_sugestao === 'ajuste'
+    ? 'Aprovar ajuste'
+    : 'Aprovar e cadastrar';
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -166,6 +175,8 @@ function createReviewForm(sugestao, session, onFinished) {
     window.sessionStorage.setItem('masterCifras.pendingSugestaoMusica', JSON.stringify({
       sugestao_id: sugestao.id,
       revisado_por: session?.user?.id,
+      tipo_sugestao: sugestao.tipo_sugestao || 'nova',
+      musica_origem_id: sugestao.musica_origem_id || null,
       titulo: values.titulo,
       artista: values.artista,
       tom: values.tom,
@@ -175,7 +186,9 @@ function createReviewForm(sugestao, session, onFinished) {
     }));
 
     message.className = 'form-message success';
-    message.textContent = 'Abrindo Musicas Cifradas...';
+    message.textContent = sugestao.tipo_sugestao === 'ajuste'
+      ? 'Abrindo Cifras para aplicar ajuste...'
+      : 'Abrindo Cifras para cadastro...';
     window.location.href = '/musicas';
   });
 
@@ -252,6 +265,10 @@ function formatSender(sugestao) {
   const email = sugestao.enviado_por_email ? ` - ${sugestao.enviado_por_email}` : '';
   const role = sugestao.enviado_por_papel ? ` (${sugestao.enviado_por_papel})` : '';
   return `${name}${email}${role}`;
+}
+
+function formatTipoSugestao(tipo) {
+  return tipo === 'ajuste' ? 'Sugestao de ajuste de musica' : 'Sugestao de musica nova';
 }
 
 function escapeHtml(value) {

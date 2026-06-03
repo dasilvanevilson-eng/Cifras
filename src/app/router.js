@@ -1,7 +1,6 @@
 import { LoginPage } from '../features/auth/pages/LoginPage.js';
 import { AlterarSenhaPage } from '../features/auth/pages/AlterarSenhaPage.js';
 import { MinhaContaPage } from '../features/auth/pages/MinhaContaPage.js';
-import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.js';
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
 import { MusicaExecucaoPage } from '../features/musicas/pages/MusicaExecucaoPage.js';
@@ -15,17 +14,16 @@ import { RepertorioPdfPage } from '../features/repertorios/pages/RepertorioPdfPa
 import { RepertoriosPage } from '../features/repertorios/pages/RepertoriosPage.js';
 import { RepertoriosPdfPage } from '../features/repertorios/pages/RepertoriosPdfPage.js';
 import { EnviarSugestaoPage } from '../features/sugestoes/pages/EnviarSugestaoPage.js';
-import { RevisarSugestoesPage } from '../features/sugestoes/pages/RevisarSugestoesPage.js';
+import { SugestoesPage } from '../features/sugestoes/pages/SugestoesPage.js';
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
-import { canEditContent, canManageUsers } from '../features/auth/roles.js';
+import { canManageUsers } from '../features/auth/roles.js';
 
 const routes = {
   '/login': LoginPage,
   '/alterar-senha': AlterarSenhaPage,
   '/minha-conta': MinhaContaPage,
-  '/dashboard': DashboardPage,
   '/musicas': MusicasPage,
   '/musicas/detalhe': MusicaDetalhePage,
   '/musicas/editar': MusicaEditarPage,
@@ -39,14 +37,13 @@ const routes = {
   '/repertorios-pdf': RepertoriosPdfPage,
   '/repertorios-pdf/gerar': RepertorioPdfPage,
   '/sugestoes/enviar': EnviarSugestaoPage,
-  '/sugestoes': RevisarSugestoesPage,
+  '/sugestoes': SugestoesPage,
   '/usuarios': UsuariosPage,
 };
 
 const publicRoutes = new Set(['/login', '/alterar-senha']);
 
 const protectedRoutes = {
-  '/sugestoes': canEditContent,
   '/usuarios': canManageUsers,
 };
 
@@ -62,7 +59,11 @@ export function createRouter() {
       }
 
       if (session.user && path === '/login') {
-        window.history.replaceState(null, '', '/dashboard');
+        window.history.replaceState(null, '', '/musicas');
+      }
+
+      if (session.user && path === '/dashboard') {
+        window.history.replaceState(null, '', '/musicas');
       }
 
       const Page = routes[window.location.pathname];

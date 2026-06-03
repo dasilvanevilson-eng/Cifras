@@ -1,4 +1,12 @@
-import { convertToChordPro, normalizeChordProLyrics, renderChordProForDisplay, renderCifraOriginalForDisplayHtml } from '../../../utils/chordpro.js';
+import {
+  convertCifraOriginalToNumbers,
+  convertToChordPro,
+  normalizeChordProLyrics,
+  renderChordProForDisplay,
+  renderCifraOriginalForDisplayHtml,
+  transposeCifraOriginal,
+  transposeKey,
+} from '../../../utils/chordpro.js';
 
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
@@ -54,11 +62,20 @@ export function MusicaForm(options = {}) {
       </label>
     </div>
 
-    <section class="song-preview" hidden>
+    <section class="song-preview song-view" hidden>
+      <button class="back-link preview-back" type="button" data-action="preview-back">Voltar</button>
       <header class="song-header">
-        <h2 data-preview="titulo"></h2>
-        <p data-preview="meta"></p>
+        <h1 data-preview="titulo"></h1>
+        <p><span data-preview="artista"></span> - Tom: <span class="current-key" data-preview="tom"></span></p>
       </header>
+      <div class="transpose-toolbar">
+        <button class="nav-button" type="button" data-preview-action="transpose-down">-1 semitom</button>
+        <span data-preview="transpose-status">Original</span>
+        <button class="nav-button" type="button" data-preview-action="transpose-up">+1 semitom</button>
+        <button class="nav-button" type="button" data-preview-action="transpose-reset">Original</button>
+        <button class="nav-button" type="button" data-preview-action="numbers">Numeros</button>
+        <button class="nav-button" type="button" data-preview-action="print">Imprimir</button>
+      </div>
       <pre class="chordpro-view" data-preview="cifra"></pre>
     </section>
 
@@ -77,6 +94,13 @@ export function MusicaForm(options = {}) {
   const linkAction = form.querySelector('.field-action-link');
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
+  const previewBackButton = form.querySelector('[data-action="preview-back"]');
+  const previewState = {
+    semitones: 0,
+    showNumbers: false,
+    originalCifra: '',
+    originalKey: '',
+  };
 
   updateLinkAction(linkInput, linkAction);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
@@ -87,7 +111,7 @@ export function MusicaForm(options = {}) {
     setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
 
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
+      updatePreview(form, previewPanel, previewState);
     }
   });
 
@@ -100,7 +124,7 @@ export function MusicaForm(options = {}) {
     originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
 
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
+      updatePreview(form, previewPanel, previewState);
     }
   });
 
@@ -147,18 +171,40 @@ export function MusicaForm(options = {}) {
   }
 
   previewToggle.addEventListener('click', () => {
-    const shouldShow = previewPanel.hidden;
-    previewPanel.hidden = !shouldShow;
-    previewToggle.textContent = shouldShow ? 'Ocultar pre-visualizacao' : 'Pre-visualizacao';
+    openPreview(form, previewPanel, previewToggle, previewState);
+  });
 
-    if (shouldShow) {
-      updatePreview(form, previewPanel);
-    }
+  previewBackButton.addEventListener('click', () => {
+    closePreview(form, previewPanel, previewToggle, previewState);
+  });
+
+  previewPanel.querySelector('[data-preview-action="transpose-down"]').addEventListener('click', () => {
+    previewState.semitones -= 1;
+    renderPreviewCifra(previewPanel, previewState);
+  });
+
+  previewPanel.querySelector('[data-preview-action="transpose-up"]').addEventListener('click', () => {
+    previewState.semitones += 1;
+    renderPreviewCifra(previewPanel, previewState);
+  });
+
+  previewPanel.querySelector('[data-preview-action="transpose-reset"]').addEventListener('click', () => {
+    previewState.semitones = 0;
+    renderPreviewCifra(previewPanel, previewState);
+  });
+
+  previewPanel.querySelector('[data-preview-action="numbers"]').addEventListener('click', () => {
+    previewState.showNumbers = !previewState.showNumbers;
+    renderPreviewCifra(previewPanel, previewState);
+  });
+
+  previewPanel.querySelector('[data-preview-action="print"]').addEventListener('click', () => {
+    window.print();
   });
 
   form.addEventListener('input', () => {
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
+      updatePreview(form, previewPanel, previewState);
     }
   });
 
@@ -200,8 +246,26 @@ function clearForm(form, chordProTextarea, chordProEditor, previewPanel, preview
   });
   setChordProValue(chordProTextarea, chordProEditor, '');
   previewPanel.hidden = true;
+  form.classList.remove('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
   updateLinkAction(form.querySelector('[name="musica_link"]'), form.querySelector('.field-action-link'));
+}
+
+function openPreview(form, previewPanel, previewToggle, previewState) {
+  previewPanel.hidden = false;
+  form.classList.add('is-previewing');
+  previewToggle.textContent = 'Pre-visualizacao';
+  updatePreview(form, previewPanel, previewState);
+  previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closePreview(form, previewPanel, previewToggle, previewState) {
+  previewPanel.hidden = true;
+  form.classList.remove('is-previewing');
+  previewToggle.textContent = 'Pre-visualizacao';
+  previewState.semitones = 0;
+  previewState.showNumbers = false;
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function setupResponsiveCifraEditor(container) {
@@ -246,17 +310,45 @@ function getInitialChordPro(initialValues) {
     || convertToChordPro(initialValues.cifra_original || ''));
 }
 
-function updatePreview(form, previewPanel) {
+function updatePreview(form, previewPanel, previewState = null) {
   const values = getFormValues(form);
   const title = values.titulo || 'Musica sem titulo';
   const artist = values.artista || '-';
   const key = values.tom || '-';
-
-  previewPanel.querySelector('[data-preview="titulo"]').textContent = title;
-  previewPanel.querySelector('[data-preview="meta"]').textContent = `${artist} - Tom: ${key}`;
   const renderedCifra = renderChordProForDisplay(values.cifra_chordpro)
     || 'A conversao ChordPro aparecera aqui.';
+
+  previewPanel.querySelector('[data-preview="titulo"]').textContent = title;
+  previewPanel.querySelector('[data-preview="artista"]').textContent = artist;
+  previewPanel.querySelector('[data-preview="tom"]').textContent = key;
+
+  if (previewState) {
+    previewState.originalCifra = renderedCifra;
+    previewState.originalKey = key;
+    renderPreviewCifra(previewPanel, previewState);
+    return;
+  }
+
   previewPanel.querySelector('[data-preview="cifra"]').innerHTML = renderCifraOriginalForDisplayHtml(renderedCifra);
+}
+
+function renderPreviewCifra(previewPanel, previewState) {
+  const displayedKey = transposeKey(previewState.originalKey || '-', previewState.semitones);
+  const displayedCifra = transposeCifraOriginal(previewState.originalCifra || '', previewState.semitones);
+  const displayHtml = previewState.showNumbers
+    ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
+    : renderCifraOriginalForDisplayHtml(displayedCifra);
+
+  previewPanel.querySelector('[data-preview="tom"]').textContent = displayedKey;
+  previewPanel.querySelector('[data-preview="transpose-status"]').textContent = formatTransposeStatus(previewState.semitones);
+  previewPanel.querySelector('[data-preview-action="numbers"]').textContent = previewState.showNumbers ? 'Cifras' : 'Numeros';
+  previewPanel.querySelector('[data-preview="cifra"]').innerHTML = displayHtml;
+}
+
+function formatTransposeStatus(semitones) {
+  if (semitones === 0) return 'Original';
+
+  return `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
 }
 
 function setChordProValue(source, editor, value) {

@@ -1216,3 +1216,39 @@ Atualizacao:
 - Foi adicionada a tecla/link `Voltar ao indice` no titulo de cada musica do PDF.
 - Atualizado `src/styles/global.css` com o estilo da tecla `Voltar ao indice`.
 - `npm run build` e `npm test` executaram com sucesso apos o ajuste.
+
+## Registro de continuidade - sugestao de ajuste de musica existente
+
+Data: 2026-06-02
+
+Pedido do usuario:
+- Na opcao `Sugestoes`, abaixo do titulo `Nova sugestao`, adicionar busca de musica por titulo.
+- A musica selecionada deve carregar os campos do formulario.
+- A cifra original carregada deve poder ser editada.
+- O envio deve ser tratado como sugestao de ajuste de musica.
+
+Alteracoes feitas:
+- Criada a migration `supabase/migrations/013_add_tipo_sugestao_musicas.sql`.
+- A migration adiciona em `sugestoes_musicas`:
+  - `tipo_sugestao` com valores `nova` ou `ajuste`;
+  - `musica_origem_id` apontando para a musica original.
+- Atualizado `src/services/sugestoesMusicasService.js` para enviar `tipo_sugestao` e `musica_origem_id`.
+- Atualizada `src/features/sugestoes/pages/EnviarSugestaoPage.js`.
+- A tela agora busca musicas existentes por titulo/artista.
+- Ao selecionar uma musica, carrega titulo, artista, tom, link e cifra original para edicao.
+- O formulario passa a enviar `tipo_sugestao = ajuste` e `musica_origem_id`.
+- A lista `Minhas sugestoes` mostra se a sugestao e musica nova ou ajuste.
+- Atualizada `src/features/sugestoes/pages/RevisarSugestoesPage.js`.
+- A revisao mostra o tipo da sugestao.
+- Para sugestao de ajuste, o botao muda para `Aprovar ajuste`.
+- Ao aprovar ajuste, o sistema abre `Cifras` carregando a musica original com os dados sugeridos.
+- Atualizada `src/features/musicas/pages/MusicasPage.js`.
+- Quando existe sugestao pendente de ajuste, a tela abre a musica original em modo edicao, usando os dados sugeridos.
+- Ao salvar, atualiza a musica existente e marca a sugestao como aprovada.
+
+Validacao:
+- `npm run build` executou com sucesso.
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+
+Acao pendente fora do codigo local:
+- Aplicar a migration `013_add_tipo_sugestao_musicas.sql` no Supabase antes de testar o envio de sugestao de ajuste no site.

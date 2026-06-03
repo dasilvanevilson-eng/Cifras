@@ -13,6 +13,7 @@ export async function RepertorioPdfPage() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   const shouldAutoPrint = params.get('autoPrint') === '1';
+  const order = params.get('order') === 'alfabetica' ? 'alfabetica' : 'repertorio';
 
   if (!id) {
     status.className = 'page-status error';
@@ -31,8 +32,9 @@ export async function RepertorioPdfPage() {
 
     page.replaceChildren(createPdfView({
       repertorio,
-      musicasAssociadas: normalizeOrder(musicasAssociadas || []),
+      musicasAssociadas: orderMusicas(musicasAssociadas || [], order),
       shouldAutoPrint,
+      order,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -42,7 +44,7 @@ export async function RepertorioPdfPage() {
   return page;
 }
 
-function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false }) {
+function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false, order = 'repertorio' }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'pdf-repertorio';
 
@@ -58,7 +60,6 @@ function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false 
   wrapper.innerHTML = `
     <div class="pdf-toolbar">
       <a class="button-link secondary" href="/repertorios-pdf">Voltar</a>
-      <a class="button-link secondary" href="/repertorios/detalhe?id=${encodeURIComponent(repertorio.id)}">Abrir repertorio</a>
       <button class="button-link secondary" type="button" data-action="print">Imprimir</button>
       <button class="button" type="button" data-action="generate-pdf">Gerar PDF</button>
     </div>
@@ -78,6 +79,10 @@ function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false 
         <div>
           <dt>Gerado em</dt>
           <dd>${escapeHtml(generatedAt)}</dd>
+        </div>
+        <div>
+          <dt>Ordem</dt>
+          <dd>${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}</dd>
         </div>
       </dl>
     </section>
@@ -124,15 +129,12 @@ function printWithSuggestedFilename(filename, originalTitle) {
 
 function createSummaryItem(item, number) {
   const title = getSongTitle(item);
-  const artist = getSongArtist(item);
-  const key = getSongKey(item);
   const deletedLabel = isMusicaExcluida(item) ? ' - excluida do acervo' : '';
 
   return `
     <li>
       <a href="#musica-${number}">
         <span>${number}. ${escapeHtml(title)}${escapeHtml(deletedLabel)}</span>
-        <small>${escapeHtml(artist)} - Tom: ${escapeHtml(key)}</small>
       </a>
     </li>
   `;
@@ -185,8 +187,16 @@ function isMusicaExcluida(item) {
   return Boolean(item?.musica_excluida_em || !item?.musica_id || !item?.musicas);
 }
 
-function normalizeOrder(items) {
-  return [...items].sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
+function orderMusicas(items, order) {
+  const normalized = [...items];
+
+  if (order === 'alfabetica') {
+    return normalized.sort((a, b) => (
+      getSongTitle(a).localeCompare(getSongTitle(b), 'pt-BR', { sensitivity: 'base' })
+    ));
+  }
+
+  return normalized.sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
 }
 
 function getField(record, names) {

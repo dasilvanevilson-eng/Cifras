@@ -12,15 +12,10 @@ export function MainNav(options = {}) {
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
     const links = [
-      { href: '/dashboard', label: 'Painel', match: ['/dashboard'] },
-      { href: '/musicas', label: 'Musicas Cifradas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao'] },
-      { href: '/musicas-letras', label: 'Musicas Letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
-      { href: '/sugestoes/enviar', label: 'Enviar musica', match: ['/sugestoes/enviar'] },
-      ...(['admin', 'editor'].includes(options.profile?.papel)
-        ? [{ href: '/sugestoes', label: 'Sugestoes', match: ['/sugestoes'], className: hasPendingSuggestions ? 'has-pending' : '' }]
-        : []),
+      { href: '/musicas', label: 'Cifras', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao'] },
       { href: '/repertorios', label: 'Repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
       { href: '/repertorios-pdf', label: 'PDF Repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
+      { href: '/sugestoes', label: 'Sugestao', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
       { href: '/minha-conta', label: 'Minha conta', match: ['/minha-conta'] },
       ...(options.profile?.papel === 'admin'
         ? [{ href: '/usuarios', label: 'Usuarios', match: ['/usuarios'] }]
@@ -35,10 +30,6 @@ export function MainNav(options = {}) {
     userName.className = 'user-email';
     userName.textContent = options.profile?.nome || options.user.email;
 
-    const role = document.createElement('span');
-    role.className = 'user-role';
-    role.textContent = options.profile?.papel || 'musico';
-
     const logoutButton = document.createElement('button');
     logoutButton.className = 'nav-button';
     logoutButton.type = 'button';
@@ -48,7 +39,7 @@ export function MainNav(options = {}) {
       logoutButton.addEventListener('click', options.onLogout);
     }
 
-    userArea.append(userName, role, logoutButton);
+    userArea.append(userName, logoutButton);
   } else {
     const loginLink = document.createElement('a');
     loginLink.href = '/login';

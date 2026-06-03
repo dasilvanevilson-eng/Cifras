@@ -393,6 +393,15 @@ a {
   align-items: start;
 }
 
+.suggestion-send-form {
+  position: relative;
+}
+
+.suggestion-song-search {
+  display: grid;
+  gap: 8px;
+}
+
 .suggestion-review-form {
   max-width: none;
 }
@@ -568,6 +577,20 @@ a {
 
 .page-actions:empty {
   display: none;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.tabs .nav-button.is-active {
+  border-color: #1d4f45;
+  background: #1d4f45;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .button-link {
@@ -1025,6 +1048,27 @@ a {
 .song-preview {
   border-top: 1px solid #ddd6c8;
   padding-top: 16px;
+}
+
+.musica-form.is-previewing > label,
+.musica-form.is-previewing > .music-form-actions,
+.musica-form.is-previewing > .cifra-editor-grid,
+.musica-form.is-previewing > .form-message {
+  display: none;
+}
+
+.musica-form.is-previewing > .song-preview {
+  display: block;
+}
+
+.song-preview .preview-back {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #1d4f45;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
 }
 
 .form label {

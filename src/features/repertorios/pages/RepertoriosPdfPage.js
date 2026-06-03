@@ -115,14 +115,38 @@ function createRepertoriosTable(repertorios) {
       <td>${escapeHtml(nome)}</td>
       <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
       <td class="table-actions">
-        <a class="button-link secondary" href="/repertorios-pdf/gerar?id=${encodeURIComponent(id)}">Imprimir</a>
-        <a class="button-link" href="/repertorios-pdf/gerar?id=${encodeURIComponent(id)}&autoPrint=1">Gerar PDF</a>
+        <button class="button-link secondary" type="button" data-action="print" data-id="${escapeHtml(id)}">Imprimir/Gerar PDF</button>
       </td>
     `;
+
+    row.querySelector('[data-action="print"]').addEventListener('click', () => {
+      openPdfPage(id, false);
+    });
+
     body.append(row);
   });
 
   return table;
+}
+
+function openPdfPage(repertorioId, autoPrint) {
+  const order = window.confirm([
+    'Deseja gerar em ordem alfabetica pelo titulo da musica?',
+    '',
+    'OK = ordem alfabetica',
+    'Cancelar = ordem em que esta no repertorio',
+  ].join('\n')) ? 'alfabetica' : 'repertorio';
+
+  const params = new URLSearchParams({
+    id: repertorioId,
+    order,
+  });
+
+  if (autoPrint) {
+    params.set('autoPrint', '1');
+  }
+
+  window.location.href = `/repertorios-pdf/gerar?${params.toString()}`;
 }
 
 function matchesSearch(repertorio, query) {

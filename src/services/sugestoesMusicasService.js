@@ -14,6 +14,8 @@ export async function createSugestaoMusica(values) {
       enviado_por_nome: values.enviado_por_nome || null,
       enviado_por_email: values.enviado_por_email || null,
       enviado_por_papel: values.enviado_por_papel || null,
+      tipo_sugestao: values.tipo_sugestao || 'nova',
+      musica_origem_id: values.musica_origem_id || null,
       status: 'pendente',
     })
     .select()
