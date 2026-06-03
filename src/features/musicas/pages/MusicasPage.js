@@ -264,22 +264,11 @@ function createMusicasBrowser(musicas, options = {}) {
         Buscar
         <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da cifra">
       </label>
-      <label>
-        Ordenar
-        <select class="sort-select">
-          <option value="titulo">Titulo</option>
-          <option value="artista">Artista</option>
-          <option value="recentes">Mais recentes</option>
-        </select>
-      </label>
     </div>
-    <p class="list-summary"></p>
     <div class="table-slot search-results" hidden></div>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
-  const sortSelect = wrapper.querySelector('.sort-select');
-  const summary = wrapper.querySelector('.list-summary');
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
 
@@ -287,9 +276,7 @@ function createMusicasBrowser(musicas, options = {}) {
     const query = normalizeText(searchInput.value);
     const filtered = musicas
       .filter((musica) => matchesSearch(musica, query))
-      .sort((a, b) => compareMusicas(a, b, sortSelect.value));
-
-    summary.textContent = formatSummary(filtered.length, musicas.length);
+      .sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
 
     if (!filtered.length) {
       const empty = document.createElement('p');
@@ -334,7 +321,6 @@ function createMusicasBrowser(musicas, options = {}) {
       tableSlot.hidden = true;
     }
   });
-  sortSelect.addEventListener('change', render);
   render();
 
   return wrapper;
@@ -417,36 +403,8 @@ function formatTags(value) {
   return String(value);
 }
 
-function compareMusicas(a, b, sortBy) {
-  if (sortBy === 'recentes') {
-    return compareText(getField(b, ['created_at']), getField(a, ['created_at']));
-  }
-
-  return compareText(
-    getField(a, getSortFieldNames(sortBy)),
-    getField(b, getSortFieldNames(sortBy)),
-  );
-}
-
-function getSortFieldNames(sortBy) {
-  const fields = {
-    artista: ['artista', 'autor', 'artist'],
-    titulo: ['titulo', 'nome', 'title'],
-  };
-
-  return fields[sortBy] || fields.titulo;
-}
-
 function compareText(a, b) {
   return String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' });
-}
-
-function formatSummary(filteredCount, totalCount) {
-  if (filteredCount === totalCount) {
-    return `${totalCount} musica${totalCount === 1 ? '' : 's'} cadastrada${totalCount === 1 ? '' : 's'}.`;
-  }
-
-  return `${filteredCount} de ${totalCount} musica${totalCount === 1 ? '' : 's'} encontrada${filteredCount === 1 ? '' : 's'}.`;
 }
 
 function normalizeText(value) {

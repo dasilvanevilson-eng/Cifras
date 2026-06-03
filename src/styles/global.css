@@ -488,6 +488,10 @@ a {
   align-items: end;
 }
 
+.musicas-page .list-toolbar {
+  grid-template-columns: minmax(220px, 1fr);
+}
+
 .list-toolbar label {
   display: grid;
   gap: 6px;
@@ -1054,6 +1058,15 @@ a {
   grid-column: span 1;
 }
 
+.musica-form .field-tom {
+  grid-column: span 1;
+  max-width: 120px;
+}
+
+.musica-form .field-tags {
+  grid-column: span 2;
+}
+
 .musica-form label:nth-of-type(5),
 .cifra-editor-grid,
 .music-form-actions,
@@ -1355,12 +1368,26 @@ a {
   }
 
   .musica-form {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(82px, 110px) minmax(0, 1fr);
   }
 
   .musica-form label:nth-of-type(1),
-  .musica-form label:nth-of-type(2) {
+  .musica-form label:nth-of-type(2),
+  .musica-form label:nth-of-type(5),
+  .music-form-actions,
+  .cifra-editor-grid,
+  .song-preview,
+  .musica-form .form-message {
+    grid-column: 1 / -1;
+  }
+
+  .musica-form .field-tom {
     grid-column: 1;
+    max-width: none;
+  }
+
+  .musica-form .field-tags {
+    grid-column: 2;
   }
 
   .cifra-editor-grid {

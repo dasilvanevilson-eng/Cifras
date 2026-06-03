@@ -24,12 +24,12 @@ export function MusicaForm(options = {}) {
       <input name="artista" type="text" value="${escapeHtml(initialValues.artista || '')}">
     </label>
 
-    <label>
+    <label class="field-tom">
       Tom
       <input name="tom" type="text" placeholder="Ex: C, D, Em" value="${escapeHtml(initialValues.tom || '')}">
     </label>
 
-    <label>
+    <label class="field-tags">
       Tags
       <input name="tags" type="text" placeholder="Ex: adoracao, ceia, abertura" value="${escapeHtml(formatTagsInput(initialValues.tags || ''))}">
     </label>
