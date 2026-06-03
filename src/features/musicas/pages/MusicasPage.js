@@ -15,7 +15,6 @@ export async function MusicasPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page musicas-page';
   page.innerHTML = `
-    <h1>Musicas Cifradas</h1>
     <section class="music-search-panel">
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>

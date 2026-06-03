@@ -4,7 +4,6 @@ export async function RepertoriosPdfPage() {
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = `
-    <h1>PDF Repertorio</h1>
     <section class="music-search-panel">
       <div class="list-slot">
         <div class="page-status">Carregando repertorios...</div>

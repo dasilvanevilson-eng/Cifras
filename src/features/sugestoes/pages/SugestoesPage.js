@@ -10,7 +10,6 @@ export async function SugestoesPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = `
-    <h1>Sugestoes de musicas</h1>
     <div class="tabs suggestions-tabs" role="tablist">
       <button class="nav-button is-active" type="button" data-tab="enviar">Enviar musica</button>
       <button class="nav-button" type="button" data-tab="revisar">Revisar sugestoes</button>

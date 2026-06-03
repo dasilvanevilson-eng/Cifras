@@ -7,10 +7,8 @@ export async function RepertoriosPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page';
   page.innerHTML = `
-    <h1>Repertorios</h1>
     <div class="page-grid">
       <section>
-        <h2>Cadastrar repertorio</h2>
         <div class="form-slot"></div>
       </section>
       <section>
