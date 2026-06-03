@@ -784,11 +784,37 @@ a {
 }
 
 .repertorio-song-view .transpose-toolbar {
+  flex-wrap: nowrap;
   gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  white-space: nowrap;
+}
+
+.repertorio-song-view .transpose-toolbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.repertorio-song-view .transpose-toolbar::-webkit-scrollbar-track {
+  background: #f4f1ea;
+}
+
+.repertorio-song-view .transpose-toolbar::-webkit-scrollbar-thumb {
+  background: #c7bca9;
 }
 
 .repertorio-song-view .transpose-toolbar .nav-button {
+  flex: 0 0 auto;
   padding: 8px 10px;
+}
+
+.repertorio-song-view .transpose-toolbar label {
+  flex: 0 0 auto;
+}
+
+.repertorio-song-view .transpose-toolbar span {
+  flex: 0 0 auto;
 }
 
 .repertorio-song-view .transpose-toolbar [data-action="transpose-down"],

@@ -151,7 +151,8 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
-  let semitones = getTransposeSemitones(originalKey, key);
+  const baseSemitones = getTransposeSemitones(originalKey, key);
+  let semitones = baseSemitones;
   let capo = 0;
   let showNumbers = false;
   let fontSize = Number(window.localStorage.getItem('repertorioSongFontSize') || 18);
@@ -171,7 +172,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
 
   function render() {
     const displayedCifra = transposeCifraOriginal(cifraOriginal, semitones - capo);
-    const displayedKey = transposeKey(key, semitones);
+    const displayedKey = transposeKey(originalKey, semitones);
     const displayHtml = showNumbers
       ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
       : renderCifraOriginalForDisplayHtml(displayedCifra);
@@ -179,7 +180,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     if (currentKey) {
       currentKey.textContent = displayedKey;
     }
-    status.textContent = formatTransposeStatus(semitones, capo, useFractionStep, defaultStatusLabel);
+    status.textContent = formatTransposeStatus(semitones - baseSemitones, capo, useFractionStep, defaultStatusLabel);
     if (numbersButton) {
       numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
     }
