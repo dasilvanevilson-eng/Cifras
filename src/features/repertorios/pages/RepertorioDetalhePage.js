@@ -75,8 +75,8 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
 
   wrapper.innerHTML = `
     <div class="page-actions">
-      <a class="button-link secondary icon-action" href="${escapeHtml(returnTo || '/repertorios')}" aria-label="Voltar" title="Voltar">&lt;</a>
-      <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Modo execucao</a>
+      <a class="button-link secondary icon-action back-icon-action" href="${escapeHtml(returnTo || '/repertorios')}" aria-label="Voltar" title="Voltar">&larr;</a>
+      <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Execucao</a>
     </div>
     <header class="song-header repertorio-header">
       <h1>${escapeHtml(nome)}</h1>
@@ -494,10 +494,11 @@ function createMoveButton(label, items, index, direction) {
 function createRemoveButton(associationId) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'danger-button icon-button';
+  button.className = 'danger-button icon-button trash-action';
   button.textContent = '×';
   button.setAttribute('aria-label', 'Remover musica');
   button.title = 'Remover';
+  button.innerHTML = '&#128465;';
 
   button.addEventListener('click', async () => {
     const confirmed = window.confirm('Remover esta musica do repertorio?');
@@ -507,10 +508,12 @@ function createRemoveButton(associationId) {
     button.textContent = '…';
 
     const { error } = await removeMusicaDoRepertorio(associationId);
+    button.innerHTML = '&#128465;';
 
     if (error) {
       button.disabled = false;
       button.textContent = '×';
+      button.innerHTML = '&#128465;';
       window.alert(error.message || 'Nao foi possivel remover a musica.');
       return;
     }

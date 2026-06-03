@@ -578,7 +578,7 @@ a {
 .table-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -680,6 +680,20 @@ a {
   border: 0;
   background: #f4f1ea;
   outline: 0;
+}
+
+.back-icon-action {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.trash-action {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 3px 5px;
+  font-size: 16px;
+  line-height: 1;
 }
 
 .song-header {
