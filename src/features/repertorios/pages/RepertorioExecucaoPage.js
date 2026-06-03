@@ -102,7 +102,7 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
   }
 
   musicasAssociadas.forEach((item, index) => {
-    list.append(createSongBlockV2(item, index + 1));
+    list.append(createSongBlockV2(item, index + 1, nome));
   });
 
   setupPerformanceControlsV2(wrapper);
@@ -414,7 +414,7 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
   return wrapper;
 }
 
-function createSongBlockV2(item, number) {
+function createSongBlockV2(item, number, repertorioTitle = '-') {
   const musica = item.musicas || {};
   const musicaExcluida = isMusicaExcluida(item);
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
@@ -430,8 +430,10 @@ function createSongBlockV2(item, number) {
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
       <span>${number}</span>
+      <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
+      <span class="title-separator" aria-hidden="true">/</span>
       <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
-      <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span>
+      <span class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</span>
     </header>
     ${musicaExcluida
       ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
@@ -525,13 +527,7 @@ function setupPerformanceControlsV2(wrapper) {
   });
 
   fullscreenButton.addEventListener('click', async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await wrapper.requestFullscreen();
-      }
-    } catch (error) {
-      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
-    }
+    await togglePerformanceFullscreen();
   });
 
   document.addEventListener('fullscreenchange', () => {
@@ -567,6 +563,7 @@ function setupPerformanceControlsV2(wrapper) {
   setupSongGestureNavigation(wrapper, {
     onPrevious: () => goToSong(-1),
     onNext: () => goToSong(1),
+    onToggleFullscreen: togglePerformanceFullscreen,
   });
 
   window.addEventListener('resize', renderCurrentSong);
@@ -574,6 +571,18 @@ function setupPerformanceControlsV2(wrapper) {
   function goToSong(direction) {
     currentSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
     renderCurrentSong();
+  }
+
+  async function togglePerformanceFullscreen() {
+    try {
+      if (document.fullscreenElement === wrapper) {
+        await document.exitFullscreen();
+      } else if (!document.fullscreenElement) {
+        await wrapper.requestFullscreen();
+      }
+    } catch (error) {
+      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
+    }
   }
 
   function renderCurrentSong() {
@@ -667,8 +676,9 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize) {
   wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
 }
 
-function setupSongGestureNavigation(wrapper, { onPrevious, onNext }) {
+function setupSongGestureNavigation(wrapper, { onPrevious, onNext, onToggleFullscreen }) {
   let pointerStart = null;
+  let lastTap = null;
 
   wrapper.addEventListener('pointerdown', (event) => {
     if (event.target.closest('.performance-toolbar, a, button, input, select, label')) {
@@ -708,22 +718,29 @@ function setupSongGestureNavigation(wrapper, { onPrevious, onNext }) {
       return;
     }
 
+    const now = Date.now();
+    const isDoubleTap = lastTap
+      && now - lastTap.time <= 340
+      && Math.abs(event.clientX - lastTap.x) <= 44
+      && Math.abs(event.clientY - lastTap.y) <= 44;
+
+    if (isDoubleTap) {
+      lastTap = null;
+      onToggleFullscreen();
+      return;
+    }
+
+    lastTap = {
+      x: event.clientX,
+      y: event.clientY,
+      time: now,
+    };
+
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
-    const screenHeight = window.innerHeight || document.documentElement.clientHeight;
     const leftLimit = screenWidth * 0.28;
     const rightLimit = screenWidth * 0.72;
-    const topCenterLimit = screenHeight * 0.22;
-    const bottomCenterLimit = screenHeight * 0.78;
 
-    if (
-      document.fullscreenElement === wrapper
-      && event.clientX > leftLimit
-      && event.clientX < rightLimit
-      && event.clientY > topCenterLimit
-      && event.clientY < bottomCenterLimit
-    ) {
-      document.exitFullscreen();
-    } else if (event.clientX <= leftLimit) {
+    if (event.clientX <= leftLimit) {
       onPrevious();
     } else if (event.clientX >= rightLimit) {
       onNext();

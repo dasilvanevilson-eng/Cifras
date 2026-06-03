@@ -1175,6 +1175,7 @@ a {
 }
 
 .repertorio-performance-view .performance-header {
+  display: none;
   margin-bottom: 6px;
 }
 
@@ -1261,14 +1262,39 @@ a {
 }
 
 .repertorio-performance-view .performance-song header.repertorio-song-title-bar {
+  flex-wrap: nowrap;
   margin: 0 0 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  white-space: nowrap;
 }
 
 .repertorio-performance-view .performance-song header > span:first-child {
   display: none;
 }
 
+.repertorio-performance-view .performance-song header.repertorio-song-title-bar::-webkit-scrollbar {
+  height: 5px;
+}
+
+.repertorio-performance-view .performance-song header.repertorio-song-title-bar::-webkit-scrollbar-track {
+  background: #f4f1ea;
+}
+
+.repertorio-performance-view .performance-song header.repertorio-song-title-bar::-webkit-scrollbar-thumb {
+  background: #c7bca9;
+}
+
+.repertorio-performance-view .repertorio-title-inline,
+.repertorio-performance-view .title-separator {
+  flex: 0 0 auto;
+  color: #5f594f;
+  font-weight: 700;
+}
+
 .repertorio-performance-view .performance-song h2 {
+  flex: 0 0 auto;
   margin: 0;
   color: #1d4f45;
   font: inherit;
@@ -1302,8 +1328,18 @@ a {
   background: #536159;
 }
 
+.repertorio-performance-view.is-dark .performance-song header.repertorio-song-title-bar::-webkit-scrollbar-track {
+  background: #111513;
+}
+
+.repertorio-performance-view.is-dark .performance-song header.repertorio-song-title-bar::-webkit-scrollbar-thumb {
+  background: #536159;
+}
+
 .repertorio-performance-view.is-dark .performance-song h2,
-.repertorio-performance-view.is-dark .performance-song .current-key {
+.repertorio-performance-view.is-dark .performance-song .current-key,
+.repertorio-performance-view.is-dark .repertorio-title-inline,
+.repertorio-performance-view.is-dark .title-separator {
   color: #f6f2e8;
 }
 
