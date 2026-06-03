@@ -88,6 +88,9 @@ function createMusicaView(musica, options = {}) {
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="transpose-reset">Original</button>'}
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>
+      ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>' : ''}
+      ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>' : ''}
+      ${isRepertorioView ? '<button class="nav-button" type="button" data-action="theme">Tela escura</button>' : ''}
       <label>
         ${isRepertorioView ? 'Capo' : 'Capotraste'}
         <select data-action="capo">
@@ -137,10 +140,25 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
   const resetButton = wrapper.querySelector('[data-action="transpose-reset"]');
   const numbersButton = wrapper.querySelector('[data-action="numbers"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
+  const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
+  const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
+  const themeButton = wrapper.querySelector('[data-action="theme"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   let semitones = getTransposeSemitones(originalKey, key);
   let capo = 0;
   let showNumbers = false;
+  let fontSize = Number(window.localStorage.getItem('repertorioSongFontSize') || 18);
+  let isDark = window.localStorage.getItem('repertorioSongTheme') === 'dark';
+
+  function applyDisplaySettings() {
+    fontSize = Math.min(30, Math.max(12, fontSize));
+    wrapper.style.setProperty('--repertorio-song-font-size', `${fontSize}px`);
+    wrapper.classList.toggle('is-dark', isDark);
+
+    if (themeButton) {
+      themeButton.textContent = isDark ? 'Tela clara' : 'Tela escura';
+    }
+  }
 
   function render() {
     const displayedCifra = transposeCifraOriginal(cifraOriginal, semitones - capo);
@@ -187,6 +205,24 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     window.print();
   });
 
+  fontDownButton?.addEventListener('click', () => {
+    fontSize -= 1;
+    window.localStorage.setItem('repertorioSongFontSize', String(fontSize));
+    applyDisplaySettings();
+  });
+
+  fontUpButton?.addEventListener('click', () => {
+    fontSize += 1;
+    window.localStorage.setItem('repertorioSongFontSize', String(fontSize));
+    applyDisplaySettings();
+  });
+
+  themeButton?.addEventListener('click', () => {
+    isDark = !isDark;
+    window.localStorage.setItem('repertorioSongTheme', isDark ? 'dark' : 'light');
+    applyDisplaySettings();
+  });
+
   backLink.addEventListener('click', async (event) => {
     if (!associationId) return;
 
@@ -210,6 +246,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     window.location.href = returnTo;
   });
 
+  applyDisplaySettings();
   render();
 }
 

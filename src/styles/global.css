@@ -765,6 +765,60 @@ a {
   margin-bottom: 0;
 }
 
+.repertorio-song-view .transpose-toolbar {
+  gap: 6px;
+}
+
+.repertorio-song-view .transpose-toolbar .nav-button {
+  padding: 8px 10px;
+}
+
+.repertorio-song-view .chordpro-view {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: var(--repertorio-song-font-size, 18px);
+  font-weight: 700;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.repertorio-song-view.is-dark {
+  color: #f6f2e8;
+}
+
+.repertorio-song-view.is-dark .song-header p,
+.repertorio-song-view.is-dark .transpose-toolbar span,
+.repertorio-song-view.is-dark .transpose-toolbar label {
+  color: #c7c0b3;
+}
+
+.repertorio-song-view.is-dark .transpose-toolbar {
+  border-color: #3d443f;
+  background: #111513;
+}
+
+.repertorio-song-view.is-dark .nav-button {
+  border-color: #536159;
+  background: #1a211e;
+  color: #f6f2e8;
+}
+
+.repertorio-song-view.is-dark .transpose-toolbar select {
+  border-color: #536159;
+  background: #1a211e;
+  color: #f6f2e8;
+}
+
+.repertorio-song-view.is-dark .chordpro-view {
+  border-color: #3d443f;
+  background: #111513;
+  color: #f6f2e8;
+}
+
+.repertorio-song-view.is-dark .chord-token,
+.repertorio-song-view.is-dark .chord-line {
+  color: #ffad5a;
+}
+
 .song-header p {
   margin: 0;
   color: #5f594f;
