@@ -1263,6 +1263,7 @@ a {
 
 .repertorio-performance-view .performance-song header.repertorio-song-title-bar {
   flex-wrap: nowrap;
+  gap: 6px;
   margin: 0 0 2px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1272,6 +1273,16 @@ a {
 
 .repertorio-performance-view .performance-song header > span:first-child {
   display: none;
+}
+
+.repertorio-performance-view .performance-song header.repertorio-song-title-bar > span {
+  display: inline;
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  background: transparent;
+  color: inherit;
+  place-items: initial;
 }
 
 .repertorio-performance-view .performance-song header.repertorio-song-title-bar::-webkit-scrollbar {

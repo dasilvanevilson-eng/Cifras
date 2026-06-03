@@ -407,7 +407,7 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
   }
 
   musicasAssociadas.forEach((item, index) => {
-    list.append(createSongBlockV2(item, index + 1));
+    list.append(createSongBlockV2(item, index + 1, nome));
   });
 
   setupPerformanceControlsV2(wrapper);
@@ -429,11 +429,10 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   block.dataset.link = link !== '-' ? link : '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
-      <span>${number}</span>
       <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
       <span class="title-separator" aria-hidden="true">/</span>
       <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
-      <span class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</span>
+      <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
     </header>
     ${musicaExcluida
       ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
