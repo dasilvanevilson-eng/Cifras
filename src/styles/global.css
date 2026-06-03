@@ -1212,6 +1212,7 @@ a {
 
 .repertorio-performance-view .performance-list {
   display: block;
+  touch-action: pan-y;
 }
 
 .repertorio-performance-view .performance-song {

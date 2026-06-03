@@ -468,6 +468,8 @@ function setupPerformanceControlsV2(wrapper) {
   setPerformanceThemeV2(wrapper, themeButton, theme);
   setPerformanceFontSizeV2(wrapper, fontSize);
   renderCurrentSong();
+  window.requestAnimationFrame(renderCurrentSong);
+  window.setTimeout(renderCurrentSong, 0);
 
   themeButton.addEventListener('click', () => {
     theme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -479,12 +481,14 @@ function setupPerformanceControlsV2(wrapper) {
     fontSize = Math.max(12, fontSize - 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
+    renderCurrentSong();
   });
 
   fontUpButton.addEventListener('click', () => {
     fontSize = Math.min(30, fontSize + 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
+    renderCurrentSong();
   });
 
   speedInput.addEventListener('input', () => {
@@ -509,13 +513,11 @@ function setupPerformanceControlsV2(wrapper) {
   nextSongButton.disabled = songs.length <= 1;
 
   previousSongButton.addEventListener('click', () => {
-    currentSongIndex = Math.max(0, currentSongIndex - 1);
-    renderCurrentSong();
+    goToSong(-1);
   });
 
   nextSongButton.addEventListener('click', () => {
-    currentSongIndex = Math.min(songs.length - 1, currentSongIndex + 1);
-    renderCurrentSong();
+    goToSong(1);
   });
 
   fullscreenButton.addEventListener('click', async () => {
@@ -554,12 +556,26 @@ function setupPerformanceControlsV2(wrapper) {
     renderCurrentSong();
   });
 
+  setupSongGestureNavigation(wrapper, {
+    onPrevious: () => goToSong(-1),
+    onNext: () => goToSong(1),
+  });
+
+  window.addEventListener('resize', renderCurrentSong);
+
+  function goToSong(direction) {
+    currentSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
+    renderCurrentSong();
+  }
+
   function renderCurrentSong() {
     renderPagedPerformanceV2({
+      wrapper,
       songs,
       currentSongIndex,
       songSemitones,
       capo,
+      desiredFontSize: fontSize,
       status: transposeStatus,
       songPosition,
       previousSongButton,
@@ -580,10 +596,12 @@ function setPerformanceFontSizeV2(wrapper, value) {
 }
 
 function renderPagedPerformanceV2({
+  wrapper,
   songs,
   currentSongIndex,
   songSemitones,
   capo,
+  desiredFontSize,
   status,
   songPosition,
   previousSongButton,
@@ -607,6 +625,7 @@ function renderPagedPerformanceV2({
     if (view) {
       const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
       view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+      fitCifraToWidth(wrapper, view, displayedCifra, desiredFontSize);
     }
 
     status.textContent = formatTransposeStatusV2(semitones, capo);
@@ -618,6 +637,75 @@ function renderPagedPerformanceV2({
 
   previousSongButton.disabled = currentSongIndex <= 0;
   nextSongButton.disabled = currentSongIndex >= songs.length - 1;
+}
+
+function fitCifraToWidth(wrapper, view, cifra, desiredFontSize) {
+  const lines = String(cifra || '').split('\n');
+  const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
+  const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 40);
+  const availableWidth = Math.max(160, measuredWidth - 40);
+  const averageCharWidthFactor = 0.62;
+  const fittedSize = Math.floor(availableWidth / (longestLineLength * averageCharWidthFactor));
+  const fontSize = Math.max(10, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+
+  wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+}
+
+function setupSongGestureNavigation(wrapper, { onPrevious, onNext }) {
+  let pointerStart = null;
+
+  wrapper.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('.performance-toolbar, a, button, input, select, label')) {
+      pointerStart = null;
+      return;
+    }
+
+    pointerStart = {
+      x: event.clientX,
+      y: event.clientY,
+      time: Date.now(),
+    };
+  });
+
+  wrapper.addEventListener('pointerup', (event) => {
+    if (!pointerStart) return;
+
+    const deltaX = event.clientX - pointerStart.x;
+    const deltaY = event.clientY - pointerStart.y;
+    const elapsed = Date.now() - pointerStart.time;
+    pointerStart = null;
+
+    if (Math.abs(deltaY) > 90 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      return;
+    }
+
+    if (Math.abs(deltaX) >= 56) {
+      if (deltaX < 0) {
+        onNext();
+      } else {
+        onPrevious();
+      }
+      return;
+    }
+
+    if (elapsed > 450 || Math.abs(deltaX) > 12 || Math.abs(deltaY) > 12) {
+      return;
+    }
+
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+    const leftLimit = screenWidth * 0.28;
+    const rightLimit = screenWidth * 0.72;
+
+    if (event.clientX <= leftLimit) {
+      onPrevious();
+    } else if (event.clientX >= rightLimit) {
+      onNext();
+    }
+  });
+
+  wrapper.addEventListener('pointercancel', () => {
+    pointerStart = null;
+  });
 }
 
 function createCapoOptionsV2() {
