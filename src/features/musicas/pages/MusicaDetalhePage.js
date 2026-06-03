@@ -82,9 +82,9 @@ function createMusicaView(musica, options = {}) {
       ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
     <div class="transpose-toolbar">
-      <button class="nav-button" type="button" data-action="transpose-down">-1 semitom</button>
+      <button class="nav-button" type="button" data-action="transpose-down">${isRepertorioView ? '-1/2' : '-1 semitom'}</button>
       <span data-role="transpose-status">Original</span>
-      <button class="nav-button" type="button" data-action="transpose-up">+1 semitom</button>
+      <button class="nav-button" type="button" data-action="transpose-up">${isRepertorioView ? '+1/2' : '+1 semitom'}</button>
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="transpose-reset">Original</button>'}
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button" type="button" data-action="print">Imprimir</button>
@@ -103,6 +103,7 @@ function createMusicaView(musica, options = {}) {
     originalKey,
     key,
     associationId: options.associationId,
+    useFractionStep: isRepertorioView,
     returnTo: options.returnTo || '/musicas',
   });
 
@@ -125,7 +126,7 @@ function normalizeTags(value) {
     .filter(Boolean);
 }
 
-function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, associationId, returnTo }) {
+function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, associationId, useFractionStep, returnTo }) {
   const chordproView = wrapper.querySelector('.chordpro-view');
   const currentKey = wrapper.querySelector('.current-key');
   const status = wrapper.querySelector('[data-role="transpose-status"]');
@@ -150,7 +151,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     if (currentKey) {
       currentKey.textContent = displayedKey;
     }
-    status.textContent = formatTransposeStatus(semitones, capo);
+    status.textContent = formatTransposeStatus(semitones, capo, useFractionStep);
     if (numbersButton) {
       numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
     }
@@ -217,10 +218,12 @@ function createCapoOptions() {
   )).join('');
 }
 
-function formatTransposeStatus(semitones, capo) {
+function formatTransposeStatus(semitones, capo, useFractionStep = false) {
   const transposeText = semitones === 0
     ? 'Original'
-    : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+    : useFractionStep
+      ? `${semitones > 0 ? '+' : ''}${semitones}/2`
+      : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
