@@ -372,8 +372,10 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
       <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
       <span class="transpose-status" data-role="transpose-status">Tom</span>
       <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
-      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
-      <a class="button-link secondary toolbar-link" data-action="song-link" href="#" target="_blank" rel="noreferrer" hidden>Link</a>
+      <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">&lsaquo;</button>
+      <span class="performance-position" data-role="song-position">1/1</span>
+      <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">&rsaquo;</button>
+      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
       <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
       <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
@@ -382,15 +384,13 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
         V
         <input type="range" min="1" max="8" value="3" data-action="speed">
       </label>
-      <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">&lsaquo;</button>
-      <span class="performance-position" data-role="song-position">1/1</span>
-      <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">&rsaquo;</button>
-      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
       <label>
         <select data-action="capo">
           ${createCapoOptionsV2()}
         </select>
       </label>
+      <a class="button-link secondary toolbar-link" data-action="song-link" href="#" target="_blank" rel="noreferrer" hidden>Link</a>
+      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
     </div>
     <div class="performance-list"></div>
   `;
@@ -429,9 +429,9 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   block.dataset.link = link !== '-' ? link : '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
-      <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
-      <span class="title-separator" aria-hidden="true">/</span>
       <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
+      <span class="title-separator" aria-hidden="true">/</span>
+      <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
       <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
     </header>
     ${musicaExcluida
