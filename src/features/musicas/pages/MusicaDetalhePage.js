@@ -87,7 +87,7 @@ function createMusicaView(musica, options = {}) {
       <button class="nav-button" type="button" data-action="transpose-up">${isRepertorioView ? '+1/2' : '+1 semitom'}</button>
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="transpose-reset">Original</button>'}
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
-      <button class="nav-button" type="button" data-action="print">Imprimir</button>
+      <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>
       <label>
         Capotraste
         <select data-action="capo">
