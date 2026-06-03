@@ -7,7 +7,6 @@ import {
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
   updateOrdemMusicaRepertorio,
-  updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
@@ -73,16 +72,14 @@ async function loadMusicasDoRepertorio(repertorioId) {
 function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit, returnTo }) {
   const wrapper = document.createElement('section');
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
-  const data = formatDate(getField(repertorio, ['data', 'date']));
 
   wrapper.innerHTML = `
-    <a class="back-link" href="${escapeHtml(returnTo || '/repertorios')}">Voltar</a>
     <div class="page-actions">
+      <a class="button-link secondary icon-action" href="${escapeHtml(returnTo || '/repertorios')}" aria-label="Voltar" title="Voltar">&lt;</a>
       <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Modo execucao</a>
     </div>
     <header class="song-header repertorio-header">
       <h1>${escapeHtml(nome)}</h1>
-      <p>Data: ${escapeHtml(data)}</p>
     </header>
     <div class="page-grid repertorio-detail-grid">
       <section class="editor-panel">
@@ -349,7 +346,6 @@ function createMusicasList(items, options = {}) {
       <tr>
         <th>Ordem</th>
         <th>Musica</th>
-        <th>Tom</th>
         ${options.canEdit ? '<th>Acoes</th>' : ''}
       </tr>
     </thead>
@@ -375,19 +371,8 @@ function createMusicasList(items, options = {}) {
       <td>${musicaUrl
         ? `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(musicaNome)}</a>`
         : `<span>${escapeHtml(musicaNome)}</span><small>Musica excluida do acervo</small>`}</td>
-      <td></td>
       ${options.canEdit ? '<td></td>' : ''}
     `;
-
-    const tomCell = row.querySelector('td:nth-child(3)');
-
-    if (musicaExcluida) {
-      tomCell.textContent = tom;
-    } else if (options.canEdit) {
-      tomCell.append(createTomInput(item.id, tom));
-    } else {
-      tomCell.textContent = tom;
-    }
 
     if (options.canEdit) {
       const actionsCell = row.querySelector('td:last-child');
@@ -403,53 +388,6 @@ function createMusicasList(items, options = {}) {
   }
 
   return table;
-}
-
-function createTomInput(associationId, initialValue) {
-  const wrapper = document.createElement('span');
-  wrapper.className = 'inline-edit';
-  wrapper.innerHTML = `
-    <input type="text" value="${escapeHtml(initialValue !== '-' ? initialValue : '')}" aria-label="Tom da musica no repertorio" title="Tom salvo automaticamente">
-  `;
-
-  const input = wrapper.querySelector('input');
-  let lastSavedValue = input.value.trim();
-  let isSaving = false;
-
-  async function save() {
-    const nextValue = input.value.trim();
-
-    if (isSaving || nextValue === lastSavedValue) return;
-
-    isSaving = true;
-    input.disabled = true;
-    input.title = 'Salvando tom...';
-
-    const { error } = await updateTomMusicaRepertorio(associationId, nextValue || null);
-
-    if (error) {
-      input.disabled = false;
-      input.title = 'Tom salvo automaticamente';
-      window.alert(error.message || 'Nao foi possivel salvar o tom.');
-      isSaving = false;
-      return;
-    }
-
-    lastSavedValue = nextValue;
-    input.disabled = false;
-    input.title = 'Tom salvo';
-    isSaving = false;
-  }
-
-  input.addEventListener('blur', save);
-  input.addEventListener('keydown', (event) => {
-    if (event.key !== 'Enter') return;
-
-    event.preventDefault();
-    input.blur();
-  });
-
-  return wrapper;
 }
 
 function normalizeOrder(items) {
