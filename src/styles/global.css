@@ -278,6 +278,41 @@ a {
   gap: 24px;
 }
 
+.repertorio-detail-page .song-header {
+  margin-bottom: 14px;
+}
+
+.repertorio-detail-page .repertorio-detail-grid {
+  gap: 14px;
+}
+
+.repertorio-detail-page .page-actions {
+  margin-bottom: 12px;
+}
+
+.repertorio-detail-page .form {
+  gap: 10px;
+}
+
+.repertorio-detail-page .song-search-results {
+  top: 46px;
+}
+
+.repertorio-detail-page .data-table th,
+.repertorio-detail-page .data-table td {
+  padding: 7px 10px;
+}
+
+.repertorio-detail-page .data-table td:first-child,
+.repertorio-detail-page .data-table th:first-child {
+  width: 72px;
+}
+
+.repertorio-detail-page .data-table td:last-child,
+.repertorio-detail-page .data-table th:last-child {
+  width: 82px;
+}
+
 .repertorio-detail-grid .editor-panel .form {
   max-width: 560px;
 }
@@ -689,11 +724,19 @@ a {
 }
 
 .trash-action {
+  border: 0;
   min-width: 28px;
   min-height: 28px;
   padding: 3px 5px;
+  background: transparent;
   font-size: 16px;
   line-height: 1;
+}
+
+.trash-action:hover,
+.trash-action:focus {
+  background: #f4f1ea;
+  outline: 0;
 }
 
 .song-header {

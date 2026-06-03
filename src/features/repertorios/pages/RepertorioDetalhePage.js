@@ -71,6 +71,7 @@ async function loadMusicasDoRepertorio(repertorioId) {
 
 function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit, returnTo }) {
   const wrapper = document.createElement('section');
+  wrapper.className = 'repertorio-detail-page';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
 
   wrapper.innerHTML = `
@@ -185,8 +186,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
   form.className = 'form add-repertorio-song-form';
   form.innerHTML = `
     <label>
-      Adicionar musica
-      <input class="song-search-input" type="search" placeholder="Digite titulo ou artista" autocomplete="off">
+      <input class="song-search-input" type="search" placeholder="Digite titulo ou artista" autocomplete="off" aria-label="Buscar musica">
       <input name="musica_id" type="hidden" required>
     </label>
     <div class="song-search-results" hidden></div>
@@ -346,7 +346,7 @@ function createMusicasList(items, options = {}) {
       <tr>
         <th>Ordem</th>
         <th>Musica</th>
-        ${options.canEdit ? '<th>Acoes</th>' : ''}
+        ${options.canEdit ? '<th>Eliminar</th>' : ''}
       </tr>
     </thead>
     <tbody></tbody>
