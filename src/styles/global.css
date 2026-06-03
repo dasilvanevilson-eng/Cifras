@@ -743,8 +743,26 @@ a {
   margin-bottom: 24px;
 }
 
+.song-title-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.song-title-row h1 {
+  margin: 0;
+}
+
+.song-title-back {
+  flex: 0 0 auto;
+}
+
 .song-header h1 {
   margin-bottom: 8px;
+}
+
+.repertorio-song-view .song-header h1 {
+  margin-bottom: 0;
 }
 
 .song-header p {

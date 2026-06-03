@@ -57,7 +57,8 @@ export async function MusicaDetalhePage({ session } = {}) {
 
 function createMusicaView(musica, options = {}) {
   const wrapper = document.createElement('article');
-  wrapper.className = 'song-view';
+  const isRepertorioView = Boolean(options.associationId);
+  wrapper.className = isRepertorioView ? 'song-view repertorio-song-view' : 'song-view';
 
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const artist = getField(musica, ['artista', 'autor', 'artist']);
@@ -69,20 +70,23 @@ function createMusicaView(musica, options = {}) {
   const cifraExibicao = getCifraExibicao(musica);
 
   wrapper.innerHTML = `
-    <a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back">Voltar</a>
+    ${isRepertorioView ? '' : `<a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back">Voltar</a>`}
     <div class="page-actions"></div>
     <header class="song-header">
-      <h1>${escapeHtml(title)}</h1>
-      <p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>
-      ${tags.length ? `<div class="tag-list">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+      <div class="song-title-row">
+        ${isRepertorioView ? `<a class="button-link secondary icon-action back-icon-action song-title-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Voltar" title="Voltar">&larr;</a>` : ''}
+        <h1>${escapeHtml(title)}</h1>
+      </div>
+      ${isRepertorioView ? `<p>${escapeHtml(artist)}</p>` : `<p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>`}
+      ${!isRepertorioView && tags.length ? `<div class="tag-list">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
       ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
     <div class="transpose-toolbar">
       <button class="nav-button" type="button" data-action="transpose-down">-1 semitom</button>
       <span data-role="transpose-status">Original</span>
       <button class="nav-button" type="button" data-action="transpose-up">+1 semitom</button>
-      <button class="nav-button" type="button" data-action="transpose-reset">Original</button>
-      <button class="nav-button" type="button" data-action="numbers">Numeros</button>
+      ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="transpose-reset">Original</button>'}
+      ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button" type="button" data-action="print">Imprimir</button>
       <label>
         Capotraste
@@ -143,9 +147,13 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
       ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
       : renderCifraOriginalForDisplayHtml(displayedCifra);
     chordproView.innerHTML = displayHtml;
-    currentKey.textContent = displayedKey;
+    if (currentKey) {
+      currentKey.textContent = displayedKey;
+    }
     status.textContent = formatTransposeStatus(semitones, capo);
-    numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
+    if (numbersButton) {
+      numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
+    }
   }
 
   downButton.addEventListener('click', () => {
@@ -158,12 +166,12 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     render();
   });
 
-  resetButton.addEventListener('click', () => {
+  resetButton?.addEventListener('click', () => {
     semitones = 0;
     render();
   });
 
-  numbersButton.addEventListener('click', () => {
+  numbersButton?.addEventListener('click', () => {
     showNumbers = !showNumbers;
     render();
   });
