@@ -1,5 +1,5 @@
 import { getMusicaById } from '../../../services/musicasService.js';
-import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
 
 export async function MusicaExecucaoPage() {
   const page = document.createElement('section');
@@ -20,9 +20,7 @@ export async function MusicaExecucaoPage() {
   try {
     const { data: musica, error } = await getMusicaById(id);
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     page.replaceChildren(createPerformanceView({ musica, returnTo }));
   } catch (error) {
@@ -35,43 +33,42 @@ export async function MusicaExecucaoPage() {
 
 function createPerformanceView({ musica, returnTo }) {
   const wrapper = document.createElement('article');
+  wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const title = getField(musica, ['titulo', 'nome', 'title']);
-  const artist = getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(musica, ['tom', 'key']);
   const link = getField(musica, ['musica_link']);
   const cifraOriginal = getCifraExibicao(musica);
 
   wrapper.innerHTML = `
-    <a class="back-link" href="${escapeHtml(returnTo)}">Voltar</a>
-    <header class="performance-header">
-      <h1>${escapeHtml(title)}</h1>
-      <p>${escapeHtml(artist)} - Tom: <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span></p>
-      ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
-    </header>
     <div class="performance-toolbar">
-      <button class="nav-button icon-button" type="button" data-action="theme" aria-label="Alternar tema" title="Alternar tema claro/escuro">☾</button>
-      <label>
-        A
-        <input type="range" min="14" max="28" value="18" data-action="font-size">
-      </label>
-      <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">▶</button>
+      <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(returnTo)}" aria-label="Voltar" title="Voltar">&larr;</a>
+      <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+      <span class="transpose-status" data-role="transpose-status">Tom</span>
+      <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
+      <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
+      <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+      <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
+      <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
       <label>
         V
         <input type="range" min="1" max="8" value="3" data-action="speed">
       </label>
-      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">⛶</button>
-      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
-      <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer um semitom" title="Descer um semitom">-1</button>
-      <span class="transpose-status" data-role="transpose-status">Original</span>
-      <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir um semitom" title="Subir um semitom">+1</button>
       <label>
-        Capo
         <select data-action="capo">
           ${createCapoOptions()}
         </select>
       </label>
+      ${link && link !== '-' ? `<a class="button-link secondary toolbar-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Link</a>` : ''}
+      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
     </div>
-    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>
+    <section class="performance-song">
+      <header class="repertorio-song-title-bar">
+        <h2>${escapeHtml(title)}</h2>
+        <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
+      </header>
+      <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>
+    </section>
   `;
 
   setupPerformanceControls(wrapper);
@@ -80,7 +77,8 @@ function createPerformanceView({ musica, returnTo }) {
 
 function setupPerformanceControls(wrapper) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
-  const fontSizeInput = wrapper.querySelector('[data-action="font-size"]');
+  const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
+  const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
   const speedInput = wrapper.querySelector('[data-action="speed"]');
   const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
@@ -89,30 +87,39 @@ function setupPerformanceControls(wrapper) {
   const transposeUpButton = wrapper.querySelector('[data-action="transpose-up"]');
   const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
+  const view = wrapper.querySelector('.chordpro-view');
   let scrollTimer = null;
   let semitones = 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
-
-  const savedTheme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  const savedFontSize = window.localStorage.getItem('masterCifras.performanceFontSize') || '18';
+  let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 18);
+  let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
-  fontSizeInput.value = savedFontSize;
   speedInput.value = savedSpeed;
   capoSelect.value = String(capo);
-  setPerformanceTheme(wrapper, themeButton, savedTheme);
-  setPerformanceFontSize(wrapper, savedFontSize);
-  renderPerformance(wrapper, semitones, capo, transposeStatus);
+  setPerformanceTheme(wrapper, themeButton, theme);
+  setPerformanceFontSize(wrapper, fontSize);
+  renderPerformance();
+  window.requestAnimationFrame(renderPerformance);
 
   themeButton.addEventListener('click', () => {
-    const nextTheme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
-    setPerformanceTheme(wrapper, themeButton, nextTheme);
-    window.localStorage.setItem('masterCifras.performanceTheme', nextTheme);
+    theme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
+    setPerformanceTheme(wrapper, themeButton, theme);
+    window.localStorage.setItem('masterCifras.performanceTheme', theme);
   });
 
-  fontSizeInput.addEventListener('input', () => {
-    setPerformanceFontSize(wrapper, fontSizeInput.value);
-    window.localStorage.setItem('masterCifras.performanceFontSize', fontSizeInput.value);
+  fontDownButton.addEventListener('click', () => {
+    fontSize = Math.max(12, fontSize - 1);
+    setPerformanceFontSize(wrapper, fontSize);
+    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
+    renderPerformance();
+  });
+
+  fontUpButton.addEventListener('click', () => {
+    fontSize = Math.min(30, fontSize + 1);
+    setPerformanceFontSize(wrapper, fontSize);
+    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
+    renderPerformance();
   });
 
   speedInput.addEventListener('input', () => {
@@ -123,30 +130,24 @@ function setupPerformanceControls(wrapper) {
     if (scrollTimer) {
       window.clearInterval(scrollTimer);
       scrollTimer = null;
-      autoscrollButton.textContent = '▶';
+      autoscrollButton.innerHTML = '&#9654;';
       return;
     }
 
-    autoscrollButton.textContent = 'Ⅱ';
+    autoscrollButton.textContent = '||';
     scrollTimer = window.setInterval(() => {
-      window.scrollBy({ top: Number(speedInput.value), behavior: 'auto' });
+      window.scrollBy({ top: Number(speedInput.value) * 0.7, behavior: 'auto' });
     }, 80);
   });
 
-  fullscreenButton.addEventListener('click', async () => {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await document.documentElement.requestFullscreen();
-      }
-    } catch (error) {
-      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
-    }
-  });
+  fullscreenButton.addEventListener('click', toggleFullscreen);
 
   document.addEventListener('fullscreenchange', () => {
-    fullscreenButton.textContent = document.fullscreenElement ? '↙' : '⛶';
+    const isFullscreen = document.fullscreenElement === wrapper;
+    wrapper.classList.toggle('is-fullscreen', isFullscreen);
+    fullscreenButton.textContent = String.fromCharCode(9974);
+    fullscreenButton.title = isFullscreen ? 'Dois toques na musica para sair da tela cheia' : 'Tela cheia';
+    window.requestAnimationFrame(renderPerformance);
   });
 
   printButton.addEventListener('click', () => {
@@ -155,51 +156,126 @@ function setupPerformanceControls(wrapper) {
 
   transposeDownButton.addEventListener('click', () => {
     semitones -= 1;
-    renderPerformance(wrapper, semitones, capo, transposeStatus);
+    renderPerformance();
   });
 
   transposeUpButton.addEventListener('click', () => {
     semitones += 1;
-    renderPerformance(wrapper, semitones, capo, transposeStatus);
+    renderPerformance();
   });
 
   capoSelect.addEventListener('change', () => {
     capo = Number(capoSelect.value || 0);
     window.localStorage.setItem('masterCifras.performanceCapo', String(capo));
-    renderPerformance(wrapper, semitones, capo, transposeStatus);
+    renderPerformance();
   });
+
+  setupDoubleTapFullscreen(wrapper, toggleFullscreen);
+  window.addEventListener('resize', renderPerformance);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement === wrapper) {
+        await document.exitFullscreen();
+      } else if (!document.fullscreenElement) {
+        await wrapper.requestFullscreen();
+      }
+    } catch (error) {
+      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
+    }
+  }
+
+  function renderPerformance() {
+    const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+    view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+    fitCifraToWidth(wrapper, view, displayedCifra, fontSize);
+    transposeStatus.textContent = formatTransposeStatus(semitones, capo);
+  }
 }
 
-function renderPerformance(wrapper, semitones, capo, status) {
-  const view = wrapper.querySelector('.chordpro-view');
-  const key = wrapper.querySelector('.current-key');
-  const displayedKey = transposeKey(key.dataset.originalKey || '-', semitones);
-  const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
+  let pointerStart = null;
+  let lastTap = null;
 
-  view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
-  key.textContent = displayedKey;
-  status.textContent = formatTransposeStatus(semitones, capo);
+  wrapper.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('.performance-toolbar, a, button, input, select, label')) {
+      pointerStart = null;
+      return;
+    }
+
+    pointerStart = {
+      x: event.clientX,
+      y: event.clientY,
+      time: Date.now(),
+    };
+  });
+
+  wrapper.addEventListener('pointerup', (event) => {
+    if (!pointerStart) return;
+
+    const deltaX = event.clientX - pointerStart.x;
+    const deltaY = event.clientY - pointerStart.y;
+    const elapsed = Date.now() - pointerStart.time;
+    pointerStart = null;
+
+    if (elapsed > 450 || Math.abs(deltaX) > 12 || Math.abs(deltaY) > 12) return;
+
+    const now = Date.now();
+    const isDoubleTap = lastTap
+      && now - lastTap.time <= 340
+      && Math.abs(event.clientX - lastTap.x) <= 44
+      && Math.abs(event.clientY - lastTap.y) <= 44;
+
+    if (isDoubleTap) {
+      lastTap = null;
+      onToggleFullscreen();
+      return;
+    }
+
+    lastTap = {
+      x: event.clientX,
+      y: event.clientY,
+      time: now,
+    };
+  });
+
+  wrapper.addEventListener('pointercancel', () => {
+    pointerStart = null;
+  });
 }
 
 function setPerformanceTheme(wrapper, button, theme) {
   wrapper.classList.toggle('is-dark', theme === 'dark');
-  button.textContent = theme === 'dark' ? '☀' : '☾';
+  button.innerHTML = '<span class="theme-swatch" aria-hidden="true"></span>';
+  button.setAttribute('aria-label', theme === 'dark' ? 'Usar tela clara' : 'Usar tela escura');
+  button.title = theme === 'dark' ? 'Usar tela clara' : 'Usar tela escura';
 }
 
 function setPerformanceFontSize(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
 }
 
+function fitCifraToWidth(wrapper, view, cifra, desiredFontSize) {
+  const lines = String(cifra || '').split('\n');
+  const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
+  const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 40);
+  const availableWidth = Math.max(160, measuredWidth - 40);
+  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.62));
+  const fontSize = Math.max(10, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+
+  wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+}
+
 function createCapoOptions() {
   return Array.from({ length: 12 }, (_, index) => (
-    `<option value="${index}">${index === 0 ? 'Sem capo' : `Casa ${index}`}</option>`
+    `<option value="${index}">${index === 0 ? 'Sem capo' : `Capo ${index}`}</option>`
   )).join('');
 }
 
 function formatTransposeStatus(semitones, capo) {
   const transposeText = semitones === 0
-    ? 'Original'
-    : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+    ? 'Tom'
+    : `${semitones > 0 ? '+' : ''}${semitones}/2`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
