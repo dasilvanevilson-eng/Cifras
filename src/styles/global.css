@@ -784,11 +784,12 @@ a {
 .theme-toggle-button {
   display: inline-grid;
   place-items: center;
+  min-width: 36px;
 }
 
 .theme-swatch {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border: 1px solid #20211f;
   background: linear-gradient(90deg, #ffffff 0 50%, #20211f 50% 100%);
 }
