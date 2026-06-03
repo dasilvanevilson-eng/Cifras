@@ -482,6 +482,51 @@ a {
   font-size: 14px;
 }
 
+.registered-users-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.registered-users-panel h2 {
+  margin: 0;
+}
+
+.registered-users-list {
+  display: grid;
+  gap: 6px;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
+  background: #ffffff;
+}
+
+.registered-user-item {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e5dece;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.registered-user-item:hover,
+.registered-user-item:focus {
+  background: #f8f5ee;
+  outline: 0;
+}
+
+.registered-user-item span {
+  color: #5f594f;
+  font-size: 14px;
+}
+
 .add-repertorio-song-form {
   position: relative;
 }

@@ -5,10 +5,14 @@ export const USER_ROLES = {
 };
 
 export function canEditContent(role) {
-  return role === USER_ROLES.ADMIN || role === USER_ROLES.EDITOR;
+  const normalizedRole = normalizeRole(role);
+  return normalizedRole === USER_ROLES.ADMIN || normalizedRole === USER_ROLES.EDITOR;
 }
 
 export function canManageUsers(role) {
-  return role === USER_ROLES.ADMIN;
+  return normalizeRole(role) === USER_ROLES.ADMIN;
 }
 
+function normalizeRole(role) {
+  return String(role || '').trim().toLowerCase();
+}

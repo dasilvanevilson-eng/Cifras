@@ -21,6 +21,10 @@ export async function UsuariosPage({ session } = {}) {
       <div class="user-search-results" data-role="search-results" hidden></div>
       <p class="page-status" data-role="load-status">Carregando usuarios...</p>
     </section>
+    <section class="registered-users-panel">
+      <h2>Usuarios cadastrados</h2>
+      <div data-role="registered-users"></div>
+    </section>
     <section>
       <h2 data-role="form-title">Novo usuario</h2>
       <div class="form-slot"></div>
@@ -32,6 +36,7 @@ export async function UsuariosPage({ session } = {}) {
   const searchInput = page.querySelector('[data-action="search-user"]');
   const searchResults = page.querySelector('[data-role="search-results"]');
   const loadStatus = page.querySelector('[data-role="load-status"]');
+  const registeredUsersSlot = page.querySelector('[data-role="registered-users"]');
   let currentUsers = [];
   let editingUser = null;
   let isSearchFocused = false;
@@ -45,6 +50,7 @@ export async function UsuariosPage({ session } = {}) {
         editingUser = null;
         searchInput.value = '';
         hideSearchResults(searchResults);
+        renderRegisteredUsers(registeredUsersSlot, currentUsers, searchInput.value, onSelectUser);
         renderForm();
       },
       onDeleted: (userId) => {
@@ -52,6 +58,7 @@ export async function UsuariosPage({ session } = {}) {
         editingUser = null;
         searchInput.value = '';
         hideSearchResults(searchResults);
+        renderRegisteredUsers(registeredUsersSlot, currentUsers, searchInput.value, onSelectUser);
         renderForm();
       },
       onSaved: async (savedUser) => {
@@ -59,10 +66,12 @@ export async function UsuariosPage({ session } = {}) {
         currentUsers = mergeUsers([savedUser, ...currentUsers]);
         searchInput.value = '';
         hideSearchResults(searchResults);
+        renderRegisteredUsers(registeredUsersSlot, currentUsers, searchInput.value, onSelectUser);
         renderForm();
 
         try {
           currentUsers = await loadUsers();
+          renderRegisteredUsers(registeredUsersSlot, currentUsers, searchInput.value, onSelectUser);
           hideSearchResults(searchResults);
         } catch (_error) {
           // A lista local ja foi atualizada com o retorno da operacao.
@@ -80,6 +89,7 @@ export async function UsuariosPage({ session } = {}) {
   }
 
   searchInput.addEventListener('input', () => {
+    renderRegisteredUsers(registeredUsersSlot, currentUsers, searchInput.value, onSelectUser);
     if (!isSearchFocused) return;
     renderSearchResults(searchResults, currentUsers, searchInput.value, onSelectUser);
   });
@@ -102,6 +112,7 @@ export async function UsuariosPage({ session } = {}) {
   try {
     currentUsers = await loadUsers();
     loadStatus.hidden = true;
+    renderRegisteredUsers(registeredUsersSlot, currentUsers, searchInput.value, onSelectUser);
     hideSearchResults(searchResults);
   } catch (error) {
     loadStatus.className = 'page-status error';
@@ -109,6 +120,39 @@ export async function UsuariosPage({ session } = {}) {
   }
 
   return page;
+}
+
+function renderRegisteredUsers(slot, users, query, onSelectUser) {
+  const normalizedQuery = normalizeText(query);
+  const results = normalizedQuery
+    ? users.filter((user) => matchesUserSearch(user, normalizedQuery))
+    : users;
+
+  if (!results.length) {
+    const empty = document.createElement('p');
+    empty.className = 'page-status';
+    empty.textContent = 'Nenhum usuario encontrado.';
+    slot.replaceChildren(empty);
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'registered-users-list';
+
+  results.forEach((user) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'registered-user-item';
+    button.innerHTML = `
+      <strong>${escapeHtml(user.nome || '-')}</strong>
+      <span>${escapeHtml(user.email || '-')}</span>
+      <span>${escapeHtml([formatRole(user.papel), user.telefone].filter(Boolean).join(' | ') || '-')}</span>
+    `;
+    button.addEventListener('click', () => onSelectUser(user));
+    list.append(button);
+  });
+
+  slot.replaceChildren(list);
 }
 
 function hideSearchResults(slot) {
@@ -259,13 +303,7 @@ async function loadUsers() {
 function renderSearchResults(slot, users, query, onSelectUser) {
   const normalizedQuery = normalizeText(query);
   const results = normalizedQuery
-    ? users.filter((user) => normalizeText([
-      user.nome,
-      user.email,
-      user.telefone,
-      user.papel,
-      user.observacao,
-    ].join(' ')).includes(normalizedQuery))
+    ? users.filter((user) => matchesUserSearch(user, normalizedQuery))
     : users.slice(0, 8);
 
   if (!results.length) {
@@ -295,6 +333,16 @@ function renderSearchResults(slot, users, query, onSelectUser) {
 
   slot.replaceChildren(list);
   slot.hidden = false;
+}
+
+function matchesUserSearch(user, normalizedQuery) {
+  return normalizeText([
+    user.nome,
+    user.email,
+    user.telefone,
+    user.papel,
+    user.observacao,
+  ].join(' ')).includes(normalizedQuery);
 }
 
 function mergeUsers(users) {
