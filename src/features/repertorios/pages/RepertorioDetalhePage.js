@@ -6,7 +6,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
-  swapOrdemMusicasRepertorio,
+  updateOrdemMusicaRepertorio,
   updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
@@ -80,13 +80,12 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
     <div class="page-actions">
       <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Modo execucao</a>
     </div>
-    <header class="song-header">
+    <header class="song-header repertorio-header">
       <h1>${escapeHtml(nome)}</h1>
       <p>Data: ${escapeHtml(data)}</p>
     </header>
     <div class="page-grid repertorio-detail-grid">
       <section class="editor-panel">
-        <h2>Adicionar musica</h2>
         <div class="form-slot"></div>
       </section>
       <section>
@@ -189,7 +188,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
   form.className = 'form add-repertorio-song-form';
   form.innerHTML = `
     <label>
-      Buscar musica
+      Adicionar musica
       <input class="song-search-input" type="search" placeholder="Digite titulo ou artista" autocomplete="off">
       <input name="musica_id" type="hidden" required>
     </label>
@@ -366,9 +365,11 @@ function createMusicasList(items, options = {}) {
     const musicaUrl = !musicaExcluida
       ? `/musicas/detalhe?id=${encodeURIComponent(item.musica_id)}&returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}&associationId=${encodeURIComponent(item.id)}&repertorioTom=${encodeURIComponent(tom)}`
       : null;
-    const musicaNome = formatRepertorioMusicaName(item);
+    const musicaNome = formatRepertorioMusicaTitle(item);
     const row = document.createElement('tr');
     row.className = musicaExcluida ? 'deleted-repertorio-song' : '';
+    row.draggable = Boolean(options.canEdit);
+    row.dataset.index = String(index);
     row.innerHTML = `
       <td>${escapeHtml(item.ordem || '-')}</td>
       <td>${musicaUrl
@@ -391,13 +392,15 @@ function createMusicasList(items, options = {}) {
     if (options.canEdit) {
       const actionsCell = row.querySelector('td:last-child');
       actionsCell.className = 'table-actions';
-      actionsCell.append(createMoveButton('Subir', items, index, -1));
-      actionsCell.append(createMoveButton('Descer', items, index, 1));
       actionsCell.append(createRemoveButton(item.id));
     }
 
     body.append(row);
   });
+
+  if (options.canEdit) {
+    setupDragReorder(body, items);
+  }
 
   return table;
 }
@@ -451,6 +454,67 @@ function createTomInput(associationId, initialValue) {
 
 function normalizeOrder(items) {
   return [...items].sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
+}
+
+function setupDragReorder(body, items) {
+  let draggedIndex = null;
+
+  body.addEventListener('dragstart', (event) => {
+    const row = event.target.closest('tr');
+    if (!row) return;
+
+    draggedIndex = Number(row.dataset.index);
+    row.classList.add('is-dragging');
+    event.dataTransfer.effectAllowed = 'move';
+  });
+
+  body.addEventListener('dragend', (event) => {
+    event.target.closest('tr')?.classList.remove('is-dragging');
+    [...body.querySelectorAll('tr')].forEach((row) => row.classList.remove('is-drop-target'));
+  });
+
+  body.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    const row = event.target.closest('tr');
+    if (!row) return;
+
+    [...body.querySelectorAll('tr')].forEach((item) => item.classList.remove('is-drop-target'));
+    row.classList.add('is-drop-target');
+  });
+
+  body.addEventListener('drop', async (event) => {
+    event.preventDefault();
+    const row = event.target.closest('tr');
+    if (!row || draggedIndex === null) return;
+
+    const targetIndex = Number(row.dataset.index);
+    [...body.querySelectorAll('tr')].forEach((item) => item.classList.remove('is-drop-target'));
+
+    if (targetIndex === draggedIndex) return;
+
+    const reordered = [...items];
+    const [draggedItem] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, draggedItem);
+
+    try {
+      await saveNewOrder(reordered);
+      window.location.reload();
+    } catch (error) {
+      window.alert(error.message || 'Nao foi possivel alterar a ordem.');
+    }
+  });
+}
+
+async function saveNewOrder(items) {
+  const results = await Promise.all(items.map((item, index) => (
+    updateOrdemMusicaRepertorio(item.id, index + 1)
+  )));
+
+  const failed = results.find((result) => result.error);
+
+  if (failed) {
+    throw failed.error;
+  }
 }
 
 function createMoveButton(label, items, index, direction) {
@@ -532,6 +596,14 @@ function formatRepertorioMusicaName(item) {
   }
 
   return formatMusicaName(item.musicas || {});
+}
+
+function formatRepertorioMusicaTitle(item) {
+  if (isMusicaExcluida(item)) {
+    return `${getField(item, ['musica_titulo'])} (excluida)`;
+  }
+
+  return getField(item.musicas || {}, ['titulo', 'nome', 'title']);
 }
 
 function formatMusicaName(musica) {

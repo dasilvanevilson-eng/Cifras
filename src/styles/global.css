@@ -282,6 +282,10 @@ a {
   max-width: 560px;
 }
 
+.repertorio-header h1 {
+  font-size: 20px;
+}
+
 .usuarios-grid {
   grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
 }
@@ -556,6 +560,19 @@ a {
 .clickable-row:focus {
   background: #f8f5ee;
   outline: 0;
+}
+
+.data-table tr[draggable="true"] {
+  cursor: grab;
+}
+
+.data-table tr.is-dragging {
+  opacity: 0.55;
+}
+
+.data-table tr.is-drop-target {
+  outline: 2px solid #c8792b;
+  outline-offset: -2px;
 }
 
 .table-actions {
