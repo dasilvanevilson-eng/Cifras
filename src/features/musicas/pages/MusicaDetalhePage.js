@@ -73,11 +73,12 @@ function createMusicaView(musica, options = {}) {
     ${isRepertorioView ? '' : `<a class="back-link" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back">Voltar</a>`}
     <div class="page-actions"></div>
     <header class="song-header">
-      <div class="song-title-row">
-        ${isRepertorioView ? `<a class="button-link secondary icon-action back-icon-action song-title-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Voltar" title="Voltar">&larr;</a>` : ''}
-        <h1>${escapeHtml(title)}</h1>
-      </div>
-      ${isRepertorioView ? `<p>${escapeHtml(artist)}</p>` : `<p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>`}
+      ${isRepertorioView ? '' : `
+        <div class="song-title-row">
+          <h1>${escapeHtml(title)}</h1>
+        </div>
+        <p>${escapeHtml(artist)} - Tom: <span class="current-key">${escapeHtml(key)}</span></p>
+      `}
       ${!isRepertorioView && tags.length ? `<div class="tag-list">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
       ${link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
@@ -98,6 +99,12 @@ function createMusicaView(musica, options = {}) {
         </select>
       </label>
     </div>
+    ${isRepertorioView ? `
+      <div class="repertorio-song-title-bar">
+        <a class="button-link secondary icon-action back-icon-action song-title-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Voltar" title="Voltar">&larr;</a>
+        <h1>${escapeHtml(title)}</h1>
+      </div>
+    ` : ''}
     <pre class="chordpro-view">${renderCifraOriginalForDisplayHtml(cifraExibicao)}</pre>
   `;
 

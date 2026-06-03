@@ -765,6 +765,24 @@ a {
   margin-bottom: 0;
 }
 
+.repertorio-song-view .song-header:empty {
+  display: none;
+}
+
+.repertorio-song-title-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 6px;
+}
+
+.repertorio-song-title-bar h1 {
+  margin: 0;
+  color: #1d4f45;
+  font: inherit;
+  font-weight: 700;
+}
+
 .repertorio-song-view .transpose-toolbar {
   gap: 6px;
 }
