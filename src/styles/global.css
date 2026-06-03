@@ -773,6 +773,17 @@ a {
   padding: 8px 10px;
 }
 
+.repertorio-song-view .transpose-toolbar [data-action="transpose-down"],
+.repertorio-song-view .transpose-toolbar [data-action="transpose-up"],
+.repertorio-song-view .transpose-toolbar [data-action="font-down"],
+.repertorio-song-view .transpose-toolbar [data-action="font-up"] {
+  width: 44px;
+  min-width: 44px;
+  padding-right: 6px;
+  padding-left: 6px;
+  text-align: center;
+}
+
 .repertorio-song-view .chordpro-view {
   font-family: 'Courier New', Courier, monospace;
   font-size: var(--repertorio-song-font-size, 18px);
