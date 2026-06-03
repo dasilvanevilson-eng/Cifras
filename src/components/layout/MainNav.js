@@ -3,11 +3,9 @@ export function MainNav(options = {}) {
   nav.className = 'main-nav';
   nav.innerHTML = `
     <div class="main-nav-links"></div>
-    <div class="main-nav-user"></div>
   `;
 
   const linksArea = nav.querySelector('.main-nav-links');
-  const userArea = nav.querySelector('.main-nav-user');
 
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
@@ -27,7 +25,7 @@ export function MainNav(options = {}) {
     `;
 
     const userName = document.createElement('span');
-    userName.className = 'user-email';
+    userName.className = 'user-email nav-user-name';
     userName.textContent = options.profile?.nome || options.user.email;
 
     const logoutButton = document.createElement('button');
@@ -39,12 +37,12 @@ export function MainNav(options = {}) {
       logoutButton.addEventListener('click', options.onLogout);
     }
 
-    userArea.append(userName, logoutButton);
+    linksArea.append(userName, logoutButton);
   } else {
     const loginLink = document.createElement('a');
     loginLink.href = '/login';
     loginLink.textContent = 'Login';
-    userArea.append(loginLink);
+    linksArea.append(loginLink);
   }
 
   return nav;

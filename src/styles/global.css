@@ -34,14 +34,35 @@ a {
   background: #ffffff;
 }
 
-.main-nav-links,
-.main-nav-user {
+.main-nav-links {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
+.main-nav-links {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  white-space: nowrap;
+}
+
+.main-nav-links::-webkit-scrollbar {
+  height: 6px;
+}
+
+.main-nav-links::-webkit-scrollbar-track {
+  background: #f4f1ea;
+}
+
+.main-nav-links::-webkit-scrollbar-thumb {
+  background: #c7bca9;
+}
+
 .main-nav-links a {
+  flex: 0 0 auto;
   border-bottom: 3px solid transparent;
   padding: 8px 2px 6px;
   color: #4f4a42;
@@ -62,6 +83,11 @@ a {
 
 .main-nav-links a.has-pending {
   font-weight: 700;
+}
+
+.nav-user-name {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .user-email {
@@ -1215,12 +1241,10 @@ a {
   .main-nav {
     position: static;
     align-items: flex-start;
-    flex-direction: column;
     padding: 12px 14px;
   }
 
-  .main-nav-links,
-  .main-nav-user {
+  .main-nav-links {
     width: 100%;
     gap: 8px;
     overflow-x: auto;
@@ -1228,7 +1252,8 @@ a {
   }
 
   .main-nav-links a,
-  .main-nav-user .nav-button {
+  .main-nav-links .nav-button,
+  .nav-user-name {
     flex: 0 0 auto;
   }
 
