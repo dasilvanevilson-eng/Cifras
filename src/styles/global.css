@@ -17,6 +17,10 @@ a {
   color: inherit;
 }
 
+:where(button, .button-link, input[type="search"], input[type="text"], input[type="email"], input[type="password"], select) {
+  border-radius: 5%;
+}
+
 .app-layout {
   min-height: 100vh;
 }
@@ -115,6 +119,7 @@ a {
 
 .icon-button {
   border: 0;
+  border-radius: 5%;
   min-width: 42px;
   padding-right: 10px;
   padding-left: 10px;
@@ -361,6 +366,7 @@ a {
   max-height: 320px;
   overflow: auto;
   border: 1px solid #ddd6c8;
+  border-radius: 5%;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
 }
@@ -412,6 +418,7 @@ a {
   max-height: 320px;
   overflow: auto;
   border: 1px solid #ddd6c8;
+  border-radius: 5%;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
 }
@@ -566,6 +573,7 @@ a {
   max-height: 360px;
   overflow: auto;
   border: 1px solid #ddd6c8;
+  border-radius: 5%;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
 }
@@ -646,6 +654,7 @@ a {
 .inline-edit input {
   width: 76px;
   border: 1px solid #cfc7b8;
+  border-radius: 5%;
   padding: 8px 10px;
   font: inherit;
   background: #ffffff;
@@ -693,12 +702,14 @@ a {
 
 .button-link.secondary {
   border: 1px solid #1d4f45;
+  border-radius: 5%;
   background: #ffffff;
   color: #1d4f45;
 }
 
 .icon-action {
   border: 0;
+  border-radius: 5%;
   min-width: 42px;
   padding-right: 10px;
   padding-left: 10px;
@@ -888,6 +899,12 @@ a {
 }
 
 .repertorio-song-view.is-dark .nav-button {
+  border-color: #536159;
+  background: #1a211e;
+  color: #f6f2e8;
+}
+
+.repertorio-song-view.is-dark .button-link.secondary {
   border-color: #536159;
   background: #1a211e;
   color: #f6f2e8;
