@@ -53,16 +53,17 @@ export function createRouter() {
       const path = window.location.pathname;
       const isPublicRoute = publicRoutes.has(path);
 
+      if (!session.user && path === '/') {
+        window.history.replaceState(null, '', '/login');
+        return LoginPage({ session });
+      }
+
       if (!session.user && !isPublicRoute) {
         window.history.replaceState(null, '', '/login');
         return LoginPage({ session });
       }
 
-      if (session.user && path === '/login') {
-        window.history.replaceState(null, '', '/musicas');
-      }
-
-      if (session.user && path === '/dashboard') {
+      if (session.user && (path === '/' || path === '/login' || path === '/dashboard')) {
         window.history.replaceState(null, '', '/musicas');
       }
 
