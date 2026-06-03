@@ -1305,3 +1305,85 @@ Alteracoes feitas em `src/styles/global.css`:
 Validacao:
 - `npm test` executou com sucesso e exibiu `chordpro tests passed`.
 - `npm run build` executou com sucesso apos repeticao fora do sandbox quando necessario.
+
+## Registro de continuidade - painel e modo execucao refinados
+
+Data: 2026-06-03
+
+Pedidos recentes do usuario:
+- Refinar a opcao `Repertorios / Execucao`.
+- Restaurar a opcao `Painel` no menu principal.
+- Fazer o Painel funcionar como acesso rapido para buscar e executar musicas/repertorios.
+- Ajustar a tela `Usuarios` para admin voltar a exibir busca/lista de usuarios.
+- Salvar o estado atual do chat no historico.
+
+Alteracoes feitas em `src/features/repertorios/pages/RepertorioExecucaoPage.js`:
+- A tela de execucao do repertorio foi alinhada ao padrao visual da musica aberta pelo repertorio.
+- A barra de funcoes passou a ficar em uma linha com rolagem horizontal quando necessario.
+- A tela cheia agora usa o proprio painel de execucao como elemento fullscreen.
+- A tela cheia pode ser ativada/desativada por dois toques na area da musica.
+- A navegacao por toque/arrasto lateral entre musicas foi mantida.
+- Foi adicionada tecla `Link` na barra, exibida somente quando a musica atual tem link cadastrado.
+- O titulo passou a aparecer como `Titulo da musica / Titulo do repertorio`.
+- O tom da musica deixou de aparecer no titulo, ficando apenas como dado interno de transposicao.
+- A barra foi reorganizada:
+  - seta voltar;
+  - `-1/2`, `Tom`, `+1/2`;
+  - pagina anterior/indicador/proxima;
+  - tela cheia;
+  - `A-`, `A+`;
+  - tema claro/escuro;
+  - rolagem automatica e velocidade;
+  - capo;
+  - Link;
+  - impressora no final.
+- A rolagem automatica foi reduzida em 30%.
+- A rota de execucao do repertorio agora aceita `musicaId` para abrir diretamente em uma musica especifica do repertorio.
+
+Alteracoes feitas em `src/features/musicas/pages/MusicaExecucaoPage.js`:
+- A execucao individual de musica foi recriada para usar o mesmo padrao visual/funcional da musica aberta pelo repertorio.
+- Passou a ter barra compacta com seta voltar, transposicao, tela cheia, fonte, tema, rolagem, capo, Link e impressora.
+- Passou a usar `Courier New`, negrito, sem quebra automatica de linha, com ajuste de fonte para evitar quebra quando possivel.
+- A tela cheia tambem pode ser alternada por dois toques.
+- A rolagem automatica segue a reducao de velocidade de 30%.
+
+Alteracoes feitas em `src/app/router.js` e `src/components/layout/MainNav.js`:
+- A rota `/dashboard` foi restaurada.
+- A opcao `Painel` voltou ao menu principal.
+- O redirect automatico de `/dashboard` para `/musicas` foi removido.
+
+Alteracoes feitas em `src/features/dashboard/pages/DashboardPage.js`:
+- O Painel passou a ter dois campos de busca principais: repertorios e musicas.
+- Ao abrir o Painel, nao ficam expostas as listas de repertorios nem de musicas.
+- Ao focar em uma busca, o campo em foco expande para ocupar cerca de 80% da largura e o outro fica com cerca de 20%.
+- A busca focada abre uma janela/lista de resultados abaixo dos campos.
+- Sem texto digitado, a lista mostra todos os itens cadastrados daquela busca.
+- Conforme o usuario digita, a lista vai refinando os resultados.
+- A lista de resultados fica abaixo dos dois campos e pode ocupar toda a largura da tela.
+- Em repertorios, cada resultado permite:
+  - `Executar` o repertorio inteiro;
+  - abrir `Musicas` para listar as musicas daquele repertorio.
+- Ao listar musicas de um repertorio, cada musica tem `Executar`, abrindo a execucao do repertorio ja naquela musica especifica.
+- Em musicas, cada resultado tem `Executar`, abrindo a tela individual no mesmo padrao visual da execucao do repertorio.
+
+Alteracoes feitas em `src/features/usuarios/pages/UsuariosPage.js` e `src/features/auth/roles.js`:
+- A permissao de admin agora normaliza o papel do usuario, aceitando variacoes como `Admin`, `admin` ou com espacos.
+- A tela de usuarios ganhou novamente uma secao `Usuarios cadastrados`, filtrada pelo campo de busca.
+- A lista mostra usuarios cadastrados e permite clicar para carregar os dados no formulario de edicao.
+- Ao salvar, excluir ou cancelar, a lista e atualizada imediatamente.
+
+Alteracoes feitas em `src/styles/global.css`:
+- Estilos adicionados/ajustados para o Painel em desktop e mobile.
+- No Painel mobile, os botoes `Executar` e `Musicas` ficam compactos ao lado do titulo.
+- As listas em cascata do Painel usam largura total abaixo dos campos.
+- A proporcao 80/20 dos campos de busca foi aplicada quando um campo esta em foco.
+- Estilos adicionados para `Usuarios cadastrados`.
+- Estilos da execucao de repertorio/musica foram refinados para tela cheia, barra horizontal, tema escuro/claro e titulo rolavel.
+
+Validacao:
+- `npm test` executou com sucesso apos os ajustes principais.
+- `npm run build` executou com sucesso apos os ajustes principais, usando permissao elevada quando o sandbox do Windows bloqueou o build.
+
+Estado atual:
+- O usuario pediu `salvar chat`.
+- Este registro resume o estado atual para permitir retomar o projeto a partir daqui.

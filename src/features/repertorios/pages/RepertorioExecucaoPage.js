@@ -670,15 +670,7 @@ function renderPagedPerformanceV2({
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize) {
-  const lines = String(cifra || '').split('\n');
-  const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
-  const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 40);
-  const availableWidth = Math.max(160, measuredWidth - 40);
-  const averageCharWidthFactor = 0.62;
-  const fittedSize = Math.floor(availableWidth / (longestLineLength * averageCharWidthFactor));
-  const fontSize = Math.max(10, Math.min(desiredFontSize, fittedSize || desiredFontSize));
-
-  wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+  wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
 }
 
 function setupSongGestureNavigation(wrapper, { onPrevious, onNext, onToggleFullscreen }) {
