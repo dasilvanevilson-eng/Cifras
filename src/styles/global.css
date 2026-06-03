@@ -781,6 +781,22 @@ a {
   white-space: pre;
 }
 
+.theme-toggle-button {
+  display: inline-grid;
+  place-items: center;
+}
+
+.theme-swatch {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #20211f;
+  background: linear-gradient(90deg, #ffffff 0 50%, #20211f 50% 100%);
+}
+
+.repertorio-song-view.is-dark .theme-swatch {
+  border-color: #f6f2e8;
+}
+
 .repertorio-song-view.is-dark {
   color: #f6f2e8;
 }

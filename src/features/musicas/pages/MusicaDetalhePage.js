@@ -90,7 +90,7 @@ function createMusicaView(musica, options = {}) {
       <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>
       ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>' : ''}
       ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>' : ''}
-      ${isRepertorioView ? '<button class="nav-button" type="button" data-action="theme">Tela escura</button>' : ''}
+      ${isRepertorioView ? '<button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>' : ''}
       <label>
         ${isRepertorioView ? 'Capo' : 'Capotraste'}
         <select data-action="capo">
@@ -156,7 +156,9 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     wrapper.classList.toggle('is-dark', isDark);
 
     if (themeButton) {
-      themeButton.textContent = isDark ? 'Tela clara' : 'Tela escura';
+      themeButton.innerHTML = '<span class="theme-swatch" aria-hidden="true"></span>';
+      themeButton.setAttribute('aria-label', isDark ? 'Usar tela clara' : 'Usar tela escura');
+      themeButton.title = isDark ? 'Usar tela clara' : 'Usar tela escura';
     }
   }
 
