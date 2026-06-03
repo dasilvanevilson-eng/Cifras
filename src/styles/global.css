@@ -1,4 +1,6 @@
 :root {
+  --border-radius-default: 5px;
+
   font-family: Arial, Helvetica, sans-serif;
   color: #20211f;
   background: #f4f1ea;
@@ -17,8 +19,33 @@ a {
   color: inherit;
 }
 
-:where(button, .button-link, input[type="search"], input[type="text"], input[type="email"], input[type="password"], select) {
-  border-radius: 5%;
+:where(
+  button,
+  .button-link,
+  input,
+  textarea,
+  select,
+  table,
+  fieldset,
+  .data-table,
+  .dashboard-list-item,
+  .editor-panel,
+  .page-status,
+  .user-role,
+  .user-search-results,
+  .song-search-results,
+  .search-results,
+  .chordpro-view,
+  .chordpro-editor,
+  .performance-toolbar,
+  .performance-position,
+  .pdf-toolbar,
+  .pdf-index-link,
+  .pdf-song header > p,
+  .pdf-cover,
+  .tag-list span
+) {
+  border-radius: var(--border-radius-default);
 }
 
 .app-layout {
@@ -101,6 +128,7 @@ a {
 
 .user-role {
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   padding: 4px 8px;
   color: #5f594f;
   font-size: 12px;
@@ -109,7 +137,7 @@ a {
 
 .nav-button {
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   min-height: 40px;
   padding: 8px 12px;
   background: #ffffff;
@@ -119,7 +147,7 @@ a {
 
 .icon-button {
   border: 0;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   min-width: 42px;
   padding-right: 10px;
   padding-left: 10px;
@@ -220,7 +248,7 @@ a {
 .dashboard-search input {
   width: 100%;
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -232,6 +260,7 @@ a {
   align-items: center;
   justify-content: space-between;
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   min-height: 78px;
   padding: 14px;
   background: #ffffff;
@@ -351,7 +380,7 @@ a {
 .user-search-panel input {
   width: 100%;
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -366,7 +395,7 @@ a {
   max-height: 320px;
   overflow: auto;
   border: 1px solid #ddd6c8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
 }
@@ -384,7 +413,7 @@ a {
   gap: 3px;
   width: 100%;
   border: 0;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   border-bottom: 1px solid #e5dece;
   padding: 12px;
   background: #ffffff;
@@ -418,7 +447,7 @@ a {
   max-height: 320px;
   overflow: auto;
   border: 1px solid #ddd6c8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
 }
@@ -436,7 +465,7 @@ a {
   gap: 3px;
   width: 100%;
   border: 0;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   border-bottom: 1px solid #e5dece;
   padding: 12px;
   background: #ffffff;
@@ -490,6 +519,7 @@ a {
   margin: 0;
   padding: 16px;
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
 }
 
@@ -552,7 +582,7 @@ a {
 .list-toolbar select {
   width: 100%;
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -573,7 +603,7 @@ a {
   max-height: 360px;
   overflow: auto;
   border: 1px solid #ddd6c8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
 }
@@ -585,6 +615,7 @@ a {
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
 }
 
@@ -654,7 +685,7 @@ a {
 .inline-edit input {
   width: 76px;
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   padding: 8px 10px;
   font: inherit;
   background: #ffffff;
@@ -692,7 +723,7 @@ a {
 
 .button-link {
   display: inline-block;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   min-height: 40px;
   padding: 10px 14px;
   background: #1d4f45;
@@ -702,14 +733,14 @@ a {
 
 .button-link.secondary {
   border: 1px solid #1d4f45;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
   color: #1d4f45;
 }
 
 .icon-action {
   border: 0;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   min-width: 42px;
   padding-right: 10px;
   padding-left: 10px;
@@ -941,6 +972,7 @@ a {
 
 .tag-list span {
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   padding: 4px 8px;
   background: #ffffff;
   color: #5f594f;
@@ -972,7 +1004,7 @@ a {
 .transpose-toolbar select,
 .performance-toolbar select {
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   padding: 8px 10px;
   font: inherit;
   background: #ffffff;
@@ -982,6 +1014,7 @@ a {
   overflow: auto;
   padding: 20px;
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
   font-family: Consolas, 'Courier New', monospace;
   font-weight: 600;
@@ -1020,6 +1053,7 @@ a {
   margin-bottom: 28px;
   padding: 10px;
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
 }
 
@@ -1037,6 +1071,7 @@ a {
   min-width: 48px;
   min-height: 40px;
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   background: #f4f1ea;
   color: #5f594f;
   font-size: 14px;
@@ -1281,6 +1316,7 @@ a {
   margin-bottom: 24px;
   padding: 10px;
   border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   background: #ffffff;
 }
 
@@ -1290,6 +1326,7 @@ a {
   align-content: start;
   gap: 12px;
   border-bottom: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
   padding: 12px 0 20px;
 }
 
@@ -1394,6 +1431,7 @@ a {
   display: inline-block;
   margin-top: 6px;
   border: 1px solid #1d4f45;
+  border-radius: var(--border-radius-default);
   padding: 5px 8px;
   background: #ffffff;
   color: #1d4f45;
@@ -1510,7 +1548,7 @@ a {
 .form select {
   width: 100%;
   border: 1px solid #cfc7b8;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
@@ -1535,6 +1573,7 @@ a {
   max-height: 72vh;
   overflow: auto;
   border: 1px solid #cfc7b8;
+  border-radius: var(--border-radius-default);
   padding: 10px 12px;
   background: #ffffff;
   font-family: Consolas, 'Courier New', monospace;
@@ -1608,7 +1647,7 @@ a {
 
 .button {
   border: 0;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   min-height: 42px;
   padding: 10px 14px;
   background: #1d4f45;
@@ -1623,7 +1662,7 @@ a {
 
 .danger-button {
   border: 1px solid #b94a48;
-  border-radius: 5%;
+  border-radius: var(--border-radius-default);
   min-height: 40px;
   padding: 8px 10px;
   background: #ffffff;
