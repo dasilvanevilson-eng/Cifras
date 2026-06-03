@@ -510,7 +510,7 @@ function setupPerformanceControlsV2(wrapper) {
 
     autoscrollButton.textContent = '||';
     scrollTimer = window.setInterval(() => {
-      window.scrollBy({ top: Number(speedInput.value), behavior: 'auto' });
+      window.scrollBy({ top: Number(speedInput.value) * 0.7, behavior: 'auto' });
     }, 80);
   });
 
