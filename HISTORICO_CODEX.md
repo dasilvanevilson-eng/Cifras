@@ -1252,3 +1252,56 @@ Validacao:
 
 Acao pendente fora do codigo local:
 - Aplicar a migration `013_add_tipo_sugestao_musicas.sql` no Supabase antes de testar o envio de sugestao de ajuste no site.
+
+## Registro de continuidade - refinamentos em repertorios e visualizacao de musica
+
+Data: 2026-06-03
+
+Pedidos do usuario:
+- Refinar a tela de detalhe de repertorio.
+- Compactar a lista de musicas do repertorio.
+- Melhorar a visualizacao da musica aberta a partir de um repertorio.
+- Padronizar cantos arredondados em campos de busca e teclas do sistema.
+
+Alteracoes feitas em `src/features/repertorios/pages/RepertorioDetalhePage.js`:
+- A tecla `Modo execucao` foi renomeada para `Execucao`.
+- A acao de voltar virou seta para a esquerda.
+- A coluna `Acoes` foi renomeada para `Eliminar`.
+- O botao `X` de remover musica do repertorio foi trocado por icone de lixeira.
+- A lixeira ficou sem contorno quadrado/vermelho.
+- O texto `Adicionar musica` foi removido acima da busca.
+- O placeholder da busca passou a ser `Buscar por musica ou artista para acrescentar ao repertorio`.
+- As linhas da lista de musicas foram compactadas.
+- A lista mostra somente o titulo da musica e usa arrastar para reordenar.
+
+Alteracoes feitas em `src/features/musicas/pages/MusicaDetalhePage.js` para musicas abertas pelo repertorio:
+- A palavra `Voltar` foi substituida por uma seta na barra de funcoes.
+- A seta fica a esquerda da tecla `-1/2`.
+- A tela nao exibe tom nem tags no cabecalho.
+- As teclas `Original` e `Numeros` foram removidas dessa visualizacao.
+- Os botoes de transposicao passaram a usar `-1/2` e `+1/2`.
+- O status `Original` passou a aparecer como `Tom`.
+- Corrigido o calculo do indicador sobre `Tom`, usando o tom base do repertorio e mostrando apenas o ajuste aplicado.
+- A tecla `Imprimir` foi substituida por icone de impressora.
+- `Capotraste` foi reduzido para seletor sem rotulo na visualizacao do repertorio.
+- O seletor mantem `Sem capo` e usa `Capo 1`, `Capo 2`, etc.
+- Adicionadas teclas `A-` e `A+` para ajustar tamanho da fonte.
+- Adicionada alternancia de tela clara/escura com quadrado metade branco/metade preto.
+- O botao claro/escuro ficou maior e as teclas `-1/2`, `+1/2`, `A-` e `A+` foram padronizadas no mesmo tamanho.
+- A tecla `Abrir link da musica` foi movida para a barra de funcoes e renomeada para `Link`.
+- O titulo da musica passou a aparecer logo acima do painel da cifra, com fonte compacta no estilo de texto/link comum.
+- A cifra usa `Courier New`, que e monoespacada, em negrito, preservando o alinhamento dos acordes.
+- A cifra nao quebra linhas automaticamente; quando necessario, usa rolagem horizontal.
+- Preferencias de tamanho de fonte e tema sao salvas no `localStorage`.
+
+Alteracoes feitas em `src/styles/global.css`:
+- A barra de funcoes da musica aberta pelo repertorio fica sempre em uma linha.
+- Quando nao couber na tela, a barra usa rolagem horizontal.
+- O espaco acima da barra de funcoes foi reduzido ao minimo.
+- O espaco acima e abaixo do titulo da musica foi reduzido.
+- A tecla `Link` acompanha o tema claro/escuro.
+- Botoes, links com aparencia de tecla, seletores e campos de busca receberam cantos arredondados de `5%`.
+
+Validacao:
+- `npm test` executou com sucesso e exibiu `chordpro tests passed`.
+- `npm run build` executou com sucesso apos repeticao fora do sandbox quando necessario.

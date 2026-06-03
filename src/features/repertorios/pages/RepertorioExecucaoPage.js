@@ -37,7 +37,7 @@ export async function RepertorioExecucaoPage() {
       url: `/repertorios/execucao?id=${encodeURIComponent(id)}`,
     });
 
-    page.replaceChildren(createPerformanceView({
+    page.replaceChildren(createPerformanceViewV2({
       repertorio,
       musicasAssociadas: normalizeOrder(musicasAssociadas || []),
       returnTo,
@@ -50,7 +50,7 @@ export async function RepertorioExecucaoPage() {
   return page;
 }
 
-function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
+function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
   const wrapper = document.createElement('article');
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
@@ -83,7 +83,7 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
       <label>
         Capo
         <select data-action="capo">
-          ${createCapoOptions()}
+          ${createCapoOptionsV2()}
         </select>
       </label>
     </div>
@@ -97,19 +97,19 @@ function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
     empty.className = 'page-status';
     empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
     list.append(empty);
-    setupPerformanceControls(wrapper);
+    setupPerformanceControlsV2(wrapper);
     return wrapper;
   }
 
   musicasAssociadas.forEach((item, index) => {
-    list.append(createSongBlock(item, index + 1));
+    list.append(createSongBlockV2(item, index + 1));
   });
 
-  setupPerformanceControls(wrapper);
+  setupPerformanceControlsV2(wrapper);
   return wrapper;
 }
 
-function createSongBlock(item, number) {
+function createSongBlockV2(item, number) {
   const musica = item.musicas || {};
   const musicaExcluida = isMusicaExcluida(item);
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
@@ -137,7 +137,7 @@ function createSongBlock(item, number) {
   return block;
 }
 
-function setupPerformanceControls(wrapper) {
+function setupPerformanceControlsV2(wrapper) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontSizeInput = wrapper.querySelector('[data-action="font-size"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
@@ -354,4 +354,282 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function createPerformanceView({ repertorio, musicasAssociadas, returnTo }) {
+  const wrapper = document.createElement('article');
+  wrapper.className = 'repertorio-performance-view repertorio-song-view';
+  const nome = getField(repertorio, ['nome', 'titulo', 'name']);
+  const data = formatDate(getField(repertorio, ['data', 'date']));
+
+  wrapper.innerHTML = `
+    <header class="performance-header">
+      <h1>${escapeHtml(nome)}</h1>
+      ${data !== '-' ? `<p>${escapeHtml(data)}</p>` : ''}
+    </header>
+    <div class="performance-toolbar">
+      <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(getBackUrl(returnTo, repertorio.id))}" aria-label="Voltar" title="Voltar">&larr;</a>
+      <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+      <span class="transpose-status" data-role="transpose-status">Tom</span>
+      <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
+      <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
+      <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+      <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
+      <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
+      <label>
+        V
+        <input type="range" min="1" max="8" value="3" data-action="speed">
+      </label>
+      <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">&lsaquo;</button>
+      <span class="performance-position" data-role="song-position">1/1</span>
+      <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">&rsaquo;</button>
+      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
+      <label>
+        <select data-action="capo">
+          ${createCapoOptions()}
+        </select>
+      </label>
+    </div>
+    <div class="performance-list"></div>
+  `;
+
+  const list = wrapper.querySelector('.performance-list');
+
+  if (!musicasAssociadas.length) {
+    const empty = document.createElement('p');
+    empty.className = 'page-status';
+    empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
+    list.append(empty);
+    setupPerformanceControls(wrapper);
+    return wrapper;
+  }
+
+  musicasAssociadas.forEach((item, index) => {
+    list.append(createSongBlock(item, index + 1));
+  });
+
+  setupPerformanceControls(wrapper);
+  return wrapper;
+}
+
+function createSongBlock(item, number) {
+  const musica = item.musicas || {};
+  const musicaExcluida = isMusicaExcluida(item);
+  const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
+  const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
+  const cifraOriginal = getCifraExibicao(musica);
+
+  const block = document.createElement('section');
+  block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
+  block.id = `musica-${number}`;
+  block.tabIndex = -1;
+  block.innerHTML = `
+    <header class="repertorio-song-title-bar">
+      <span>${number}</span>
+      <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
+      <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span>
+    </header>
+    ${musicaExcluida
+      ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
+      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>`}
+  `;
+
+  return block;
+}
+
+function setupPerformanceControls(wrapper) {
+  const themeButton = wrapper.querySelector('[data-action="theme"]');
+  const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
+  const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
+  const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
+  const speedInput = wrapper.querySelector('[data-action="speed"]');
+  const previousSongButton = wrapper.querySelector('[data-action="previous-song"]');
+  const nextSongButton = wrapper.querySelector('[data-action="next-song"]');
+  const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
+  const printButton = wrapper.querySelector('[data-action="print"]');
+  const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
+  const transposeUpButton = wrapper.querySelector('[data-action="transpose-up"]');
+  const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
+  const capoSelect = wrapper.querySelector('[data-action="capo"]');
+  const songs = [...wrapper.querySelectorAll('.performance-song')];
+  let scrollTimer = null;
+  let currentSongIndex = 0;
+  let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
+  const songSemitones = songs.map(() => 0);
+  const songPosition = wrapper.querySelector('[data-role="song-position"]');
+
+  let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
+  let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 18);
+  const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
+
+  speedInput.value = savedSpeed;
+  capoSelect.value = String(capo);
+  setPerformanceThemeV2(wrapper, themeButton, theme);
+  setPerformanceFontSizeV2(wrapper, fontSize);
+  renderCurrentSong();
+
+  themeButton.addEventListener('click', () => {
+    theme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
+    setPerformanceThemeV2(wrapper, themeButton, theme);
+    window.localStorage.setItem('masterCifras.performanceTheme', theme);
+  });
+
+  fontDownButton.addEventListener('click', () => {
+    fontSize = Math.max(12, fontSize - 1);
+    setPerformanceFontSizeV2(wrapper, fontSize);
+    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
+  });
+
+  fontUpButton.addEventListener('click', () => {
+    fontSize = Math.min(30, fontSize + 1);
+    setPerformanceFontSizeV2(wrapper, fontSize);
+    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
+  });
+
+  speedInput.addEventListener('input', () => {
+    window.localStorage.setItem('masterCifras.performanceScrollSpeed', speedInput.value);
+  });
+
+  autoscrollButton.addEventListener('click', () => {
+    if (scrollTimer) {
+      window.clearInterval(scrollTimer);
+      scrollTimer = null;
+      autoscrollButton.innerHTML = '&#9654;';
+      return;
+    }
+
+    autoscrollButton.textContent = '||';
+    scrollTimer = window.setInterval(() => {
+      window.scrollBy({ top: Number(speedInput.value), behavior: 'auto' });
+    }, 80);
+  });
+
+  previousSongButton.disabled = songs.length <= 1;
+  nextSongButton.disabled = songs.length <= 1;
+
+  previousSongButton.addEventListener('click', () => {
+    currentSongIndex = Math.max(0, currentSongIndex - 1);
+    renderCurrentSong();
+  });
+
+  nextSongButton.addEventListener('click', () => {
+    currentSongIndex = Math.min(songs.length - 1, currentSongIndex + 1);
+    renderCurrentSong();
+  });
+
+  fullscreenButton.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (error) {
+      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    fullscreenButton.textContent = document.fullscreenElement ? '<' : String.fromCharCode(9974);
+  });
+
+  printButton.addEventListener('click', () => {
+    window.print();
+  });
+
+  transposeDownButton.addEventListener('click', () => {
+    songSemitones[currentSongIndex] -= 1;
+    renderCurrentSong();
+  });
+
+  transposeUpButton.addEventListener('click', () => {
+    songSemitones[currentSongIndex] += 1;
+    renderCurrentSong();
+  });
+
+  capoSelect.addEventListener('change', () => {
+    capo = Number(capoSelect.value || 0);
+    window.localStorage.setItem('masterCifras.performanceCapo', String(capo));
+    renderCurrentSong();
+  });
+
+  function renderCurrentSong() {
+    renderPagedPerformanceV2({
+      songs,
+      currentSongIndex,
+      songSemitones,
+      capo,
+      status: transposeStatus,
+      songPosition,
+      previousSongButton,
+      nextSongButton,
+    });
+  }
+}
+
+function setPerformanceThemeV2(wrapper, button, theme) {
+  wrapper.classList.toggle('is-dark', theme === 'dark');
+  button.innerHTML = '<span class="theme-swatch" aria-hidden="true"></span>';
+  button.setAttribute('aria-label', theme === 'dark' ? 'Usar tela clara' : 'Usar tela escura');
+  button.title = theme === 'dark' ? 'Usar tela clara' : 'Usar tela escura';
+}
+
+function setPerformanceFontSizeV2(wrapper, value) {
+  wrapper.style.setProperty('--performance-font-size', `${value}px`);
+}
+
+function renderPagedPerformanceV2({
+  songs,
+  currentSongIndex,
+  songSemitones,
+  capo,
+  status,
+  songPosition,
+  previousSongButton,
+  nextSongButton,
+}) {
+  songs.forEach((song, index) => {
+    const isActive = index === currentSongIndex;
+    song.hidden = !isActive;
+
+    if (!isActive) return;
+
+    const semitones = songSemitones[index] || 0;
+    const view = song.querySelector('.chordpro-view');
+    const keyElement = song.querySelector('.current-key');
+
+    if (keyElement) {
+      const displayedKey = transposeKey(keyElement.dataset.originalKey || '-', semitones);
+      keyElement.textContent = displayedKey;
+    }
+
+    if (view) {
+      const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+      view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+    }
+
+    status.textContent = formatTransposeStatusV2(semitones, capo);
+  });
+
+  if (songPosition) {
+    songPosition.textContent = songs.length ? `${currentSongIndex + 1}/${songs.length}` : '0/0';
+  }
+
+  previousSongButton.disabled = currentSongIndex <= 0;
+  nextSongButton.disabled = currentSongIndex >= songs.length - 1;
+}
+
+function createCapoOptionsV2() {
+  return Array.from({ length: 12 }, (_, index) => (
+    `<option value="${index}">${index === 0 ? 'Sem capo' : `Capo ${index}`}</option>`
+  )).join('');
+}
+
+function formatTransposeStatusV2(semitones, capo) {
+  const transposeText = semitones === 0
+    ? 'Tom'
+    : `${semitones > 0 ? '+' : ''}${semitones}/2`;
+
+  return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
