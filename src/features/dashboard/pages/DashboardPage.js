@@ -44,16 +44,16 @@ function createDashboardView({ musicas, repertorios }) {
           Buscar repertorio
           <input type="search" data-search="repertorios" placeholder="Nome ou data">
         </label>
-        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="repertorios" hidden></div>
-        <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </section>
       <section class="dashboard-search-column" data-dashboard-column="musicas">
         <label class="dashboard-search">
           Buscar musica
           <input type="search" data-search="musicas" placeholder="Titulo ou artista">
         </label>
-        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
       </section>
+      <div class="dashboard-list-slot dashboard-cascade-results" data-slot="repertorios" hidden></div>
+      <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
+      <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
     </div>
   `;
 
@@ -84,7 +84,6 @@ function createDashboardView({ musicas, repertorios }) {
 function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {
   let currentItems = items;
   let isFocused = false;
-  const defaultLimit = 8;
 
   function update() {
     const query = normalizeText(input.value);
@@ -95,7 +94,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
         getField(item, ['tags']),
         formatDate(getField(item, ['data', 'date'])),
       ].join(' ')).includes(query))
-      : items.slice(0, defaultLimit);
+      : items;
 
     currentItems = filteredItems;
     slot.replaceChildren(render(currentItems, renderContext));

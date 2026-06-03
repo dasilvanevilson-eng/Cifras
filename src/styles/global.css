@@ -209,6 +209,14 @@ a {
   gap: 24px;
 }
 
+.dashboard-grid:has([data-dashboard-column="repertorios"].is-active-search) {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+}
+
+.dashboard-grid:has([data-dashboard-column="musicas"].is-active-search) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
+}
+
 .dashboard-grid > section {
   display: grid;
   align-content: start;
@@ -303,10 +311,7 @@ a {
 }
 
 .dashboard-cascade-results {
-  position: absolute;
-  top: calc(100% + 2px);
-  right: 0;
-  left: 0;
+  grid-column: 1 / -1;
   z-index: 12;
   max-height: min(62vh, 520px);
   overflow: auto;
@@ -325,7 +330,12 @@ a {
 }
 
 .dashboard-selected-slot {
+  grid-column: 1 / -1;
   margin-top: 12px;
+}
+
+.dashboard-selected-slot:empty {
+  display: none;
 }
 
 .dashboard-selected-panel {
@@ -2002,14 +2012,14 @@ a {
     grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
   }
 
-  .dashboard-page .dashboard-search-column:nth-child(2).is-active-search {
-    grid-column: 1;
-    grid-row: 1;
+  .dashboard-page .dashboard-grid:has([data-dashboard-column="musicas"].is-active-search) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
   }
 
+  .dashboard-page .dashboard-search-column:nth-child(2).is-active-search,
   .dashboard-page .dashboard-search-column:nth-child(1).is-inactive-search {
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .dashboard-page .dashboard-search {
@@ -2032,6 +2042,7 @@ a {
   }
 
   .dashboard-page .dashboard-cascade-results {
+    grid-column: 1 / -1;
     max-height: 68vh;
   }
 
