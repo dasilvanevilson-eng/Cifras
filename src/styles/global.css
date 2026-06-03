@@ -724,11 +724,11 @@ a {
 }
 
 .trash-action {
-  border: 0;
+  border: 0 !important;
   min-width: 28px;
   min-height: 28px;
   padding: 3px 5px;
-  background: transparent;
+  background: transparent !important;
   font-size: 16px;
   line-height: 1;
 }

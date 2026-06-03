@@ -186,7 +186,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
   form.className = 'form add-repertorio-song-form';
   form.innerHTML = `
     <label>
-      <input class="song-search-input" type="search" placeholder="Digite titulo ou artista" autocomplete="off" aria-label="Buscar musica">
+      <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista para acrescentar ao repertorio" autocomplete="off" aria-label="Buscar musica">
       <input name="musica_id" type="hidden" required>
     </label>
     <div class="song-search-results" hidden></div>
