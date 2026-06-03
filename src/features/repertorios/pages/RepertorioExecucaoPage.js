@@ -373,6 +373,7 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
       <span class="transpose-status" data-role="transpose-status">Tom</span>
       <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
+      <a class="button-link secondary toolbar-link" data-action="song-link" href="#" target="_blank" rel="noreferrer" hidden>Link</a>
       <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
       <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
@@ -419,11 +420,13 @@ function createSongBlockV2(item, number) {
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
   const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
   const cifraOriginal = getCifraExibicao(musica);
+  const link = musicaExcluida ? '-' : getField(musica, ['musica_link']);
 
   const block = document.createElement('section');
   block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
   block.id = `musica-${number}`;
   block.tabIndex = -1;
+  block.dataset.link = link !== '-' ? link : '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
       <span>${number}</span>
@@ -448,6 +451,7 @@ function setupPerformanceControlsV2(wrapper) {
   const nextSongButton = wrapper.querySelector('[data-action="next-song"]');
   const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
+  const linkButton = wrapper.querySelector('[data-action="song-link"]');
   const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
   const transposeUpButton = wrapper.querySelector('[data-action="transpose-up"]');
   const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
@@ -522,10 +526,8 @@ function setupPerformanceControlsV2(wrapper) {
 
   fullscreenButton.addEventListener('click', async () => {
     try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await document.documentElement.requestFullscreen();
+      if (!document.fullscreenElement) {
+        await wrapper.requestFullscreen();
       }
     } catch (error) {
       window.alert('Nao foi possivel alternar tela cheia neste navegador.');
@@ -533,7 +535,13 @@ function setupPerformanceControlsV2(wrapper) {
   });
 
   document.addEventListener('fullscreenchange', () => {
-    fullscreenButton.textContent = document.fullscreenElement ? '<' : String.fromCharCode(9974);
+    const isPerformanceFullscreen = document.fullscreenElement === wrapper;
+    wrapper.classList.toggle('is-fullscreen', isPerformanceFullscreen);
+    fullscreenButton.textContent = String.fromCharCode(9974);
+    fullscreenButton.title = isPerformanceFullscreen
+      ? 'Toque no centro da musica para sair da tela cheia'
+      : 'Tela cheia';
+    window.requestAnimationFrame(renderCurrentSong);
   });
 
   printButton.addEventListener('click', () => {
@@ -580,6 +588,7 @@ function setupPerformanceControlsV2(wrapper) {
       songPosition,
       previousSongButton,
       nextSongButton,
+      linkButton,
     });
   }
 }
@@ -606,6 +615,7 @@ function renderPagedPerformanceV2({
   songPosition,
   previousSongButton,
   nextSongButton,
+  linkButton,
 }) {
   songs.forEach((song, index) => {
     const isActive = index === currentSongIndex;
@@ -626,6 +636,12 @@ function renderPagedPerformanceV2({
       const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
       view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
       fitCifraToWidth(wrapper, view, displayedCifra, desiredFontSize);
+    }
+
+    if (linkButton) {
+      const link = song.dataset.link || '';
+      linkButton.hidden = !link;
+      linkButton.href = link || '#';
     }
 
     status.textContent = formatTransposeStatusV2(semitones, capo);
@@ -693,10 +709,21 @@ function setupSongGestureNavigation(wrapper, { onPrevious, onNext }) {
     }
 
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+    const screenHeight = window.innerHeight || document.documentElement.clientHeight;
     const leftLimit = screenWidth * 0.28;
     const rightLimit = screenWidth * 0.72;
+    const topCenterLimit = screenHeight * 0.22;
+    const bottomCenterLimit = screenHeight * 0.78;
 
-    if (event.clientX <= leftLimit) {
+    if (
+      document.fullscreenElement === wrapper
+      && event.clientX > leftLimit
+      && event.clientX < rightLimit
+      && event.clientY > topCenterLimit
+      && event.clientY < bottomCenterLimit
+    ) {
+      document.exitFullscreen();
+    } else if (event.clientX <= leftLimit) {
       onPrevious();
     } else if (event.clientX >= rightLimit) {
       onNext();

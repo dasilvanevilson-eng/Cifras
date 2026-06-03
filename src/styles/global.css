@@ -1238,6 +1238,11 @@ a {
   min-width: 36px;
 }
 
+.repertorio-performance-view .performance-toolbar .toolbar-link {
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
 .repertorio-performance-view .performance-position {
   width: 44px;
   min-width: 44px;
@@ -1300,6 +1305,30 @@ a {
 .repertorio-performance-view.is-dark .performance-song h2,
 .repertorio-performance-view.is-dark .performance-song .current-key {
   color: #f6f2e8;
+}
+
+.repertorio-performance-view:fullscreen {
+  width: 100vw;
+  min-height: 100vh;
+  overflow: auto;
+  padding: 8px 10px 16px;
+  background: #f4f1ea;
+}
+
+.repertorio-performance-view.is-dark:fullscreen {
+  background: #0f1210;
+}
+
+.repertorio-performance-view:fullscreen .performance-header {
+  margin-bottom: 4px;
+}
+
+.repertorio-performance-view:fullscreen .performance-toolbar {
+  top: 0;
+}
+
+.repertorio-performance-view:fullscreen .chordpro-view {
+  min-height: calc(100vh - 122px);
 }
 
 .pdf-repertorio-page {
