@@ -13,6 +13,7 @@ export async function RepertorioExecucaoPage() {
   const status = page.querySelector('.page-status');
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+  const musicaId = params.get('musicaId');
   const returnTo = params.get('returnTo') || '/repertorios/detalhe';
 
   if (!id) {
@@ -41,6 +42,7 @@ export async function RepertorioExecucaoPage() {
       repertorio,
       musicasAssociadas: normalizeOrder(musicasAssociadas || []),
       returnTo,
+      initialMusicaId: musicaId,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -356,7 +358,7 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
+function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo, initialMusicaId }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
@@ -402,7 +404,7 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
     empty.className = 'page-status';
     empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
     list.append(empty);
-    setupPerformanceControlsV2(wrapper);
+    setupPerformanceControlsV2(wrapper, { initialMusicaId });
     return wrapper;
   }
 
@@ -410,7 +412,7 @@ function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo }) {
     list.append(createSongBlockV2(item, index + 1, nome));
   });
 
-  setupPerformanceControlsV2(wrapper);
+  setupPerformanceControlsV2(wrapper, { initialMusicaId });
   return wrapper;
 }
 
@@ -427,6 +429,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   block.id = `musica-${number}`;
   block.tabIndex = -1;
   block.dataset.link = link !== '-' ? link : '';
+  block.dataset.musicaId = item.musica_id || '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
       <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
@@ -442,7 +445,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   return block;
 }
 
-function setupPerformanceControlsV2(wrapper) {
+function setupPerformanceControlsV2(wrapper, options = {}) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
@@ -459,7 +462,10 @@ function setupPerformanceControlsV2(wrapper) {
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   const songs = [...wrapper.querySelectorAll('.performance-song')];
   let scrollTimer = null;
-  let currentSongIndex = 0;
+  const initialIndex = options.initialMusicaId
+    ? songs.findIndex((song) => song.dataset.musicaId === options.initialMusicaId)
+    : -1;
+  let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   const songSemitones = songs.map(() => 0);
   const songPosition = wrapper.querySelector('[data-role="song-position"]');

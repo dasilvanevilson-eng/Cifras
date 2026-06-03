@@ -19,8 +19,10 @@ import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
+import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 
 const routes = {
+  '/dashboard': DashboardPage,
   '/login': LoginPage,
   '/alterar-senha': AlterarSenhaPage,
   '/minha-conta': MinhaContaPage,
@@ -63,7 +65,7 @@ export function createRouter() {
         return LoginPage({ session });
       }
 
-      if (session.user && (path === '/' || path === '/login' || path === '/dashboard')) {
+      if (session.user && (path === '/' || path === '/login')) {
         window.history.replaceState(null, '', '/musicas');
       }
 

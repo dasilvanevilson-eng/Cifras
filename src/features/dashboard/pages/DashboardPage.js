@@ -1,7 +1,7 @@
 import { listMusicas } from '../../../services/musicasService.js';
-import { listRepertorios } from '../../../services/repertoriosService.js';
+import { listMusicasDoRepertorio, listRepertorios } from '../../../services/repertoriosService.js';
 
-export async function DashboardPage({ session } = {}) {
+export async function DashboardPage() {
   const page = document.createElement('section');
   page.className = 'page dashboard-page';
   page.innerHTML = '<div class="page-status">Carregando painel...</div>';
@@ -42,15 +42,16 @@ function createDashboardView({ musicas, repertorios }) {
       <section>
         <h2>Repertorios</h2>
         <label class="dashboard-search">
-          Buscar
+          Buscar repertorio
           <input type="search" data-search="repertorios" placeholder="Nome ou data">
         </label>
         <div class="dashboard-list-slot" data-slot="repertorios"></div>
+        <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </section>
       <section>
         <h2>Musicas</h2>
         <label class="dashboard-search">
-          Buscar
+          Buscar musica
           <input type="search" data-search="musicas" placeholder="Titulo ou artista">
         </label>
         <div class="dashboard-list-slot" data-slot="musicas"></div>
@@ -64,7 +65,11 @@ function createDashboardView({ musicas, repertorios }) {
     items: repertoriosOrdenados,
     render: createRepertoriosList,
     getUrl: getRepertorioUrl,
+    renderContext: {
+      musicasSlot: wrapper.querySelector('[data-slot="repertorio-musicas"]'),
+    },
   });
+
   setupDashboardSearch({
     input: wrapper.querySelector('[data-search="musicas"]'),
     slot: wrapper.querySelector('[data-slot="musicas"]'),
@@ -76,7 +81,7 @@ function createDashboardView({ musicas, repertorios }) {
   return wrapper;
 }
 
-function setupDashboardSearch({ input, slot, items, render, getUrl }) {
+function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {
   let currentItems = items;
   const defaultLimit = 8;
 
@@ -92,7 +97,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl }) {
       : items.slice(0, defaultLimit);
 
     currentItems = filteredItems;
-    slot.replaceChildren(render(currentItems));
+    slot.replaceChildren(render(currentItems, renderContext));
   }
 
   input.addEventListener('input', update);
@@ -105,7 +110,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl }) {
   update();
 }
 
-function createRepertoriosList(repertorios) {
+function createRepertoriosList(repertorios, { musicasSlot } = {}) {
   if (!repertorios.length) {
     return createEmptyState('Nenhum repertorio encontrado.');
   }
@@ -123,21 +128,80 @@ function createRepertoriosList(repertorios) {
         <p>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a class="button-link secondary icon-action" href="${escapeHtml(getRepertorioUrl(repertorio))}" aria-label="Visualizar repertorio" title="Visualizar">👁</a>
+        <a class="button-link secondary" href="${escapeHtml(getRepertorioUrl(repertorio))}">Executar</a>
+        <button class="nav-button" type="button" data-action="show-repertorio-songs">Musicas</button>
       </div>
     `;
+
     item.addEventListener('click', (event) => {
-      if (event.target.closest('a')) return;
+      if (event.target.closest('a, button')) return;
       window.location.href = getRepertorioUrl(repertorio);
     });
     item.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter') return;
       window.location.href = getRepertorioUrl(repertorio);
     });
+
+    item.querySelector('[data-action="show-repertorio-songs"]').addEventListener('click', async () => {
+      if (!musicasSlot) return;
+
+      musicasSlot.innerHTML = '<p class="page-status">Carregando musicas do repertorio...</p>';
+      const { data, error } = await listMusicasDoRepertorio(repertorio.id);
+
+      if (error) {
+        musicasSlot.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar as musicas do repertorio.')}</p>`;
+        return;
+      }
+
+      musicasSlot.replaceChildren(createRepertorioMusicasList(repertorio, data || []));
+    });
+
     list.append(item);
   });
 
   return list;
+}
+
+function createRepertorioMusicasList(repertorio, musicasAssociadas) {
+  const wrapper = document.createElement('section');
+  wrapper.className = 'dashboard-selected-panel';
+
+  const musicasAtivas = musicasAssociadas.filter((item) => item.musica_id && item.musicas);
+  const repertorioNome = getField(repertorio, ['nome', 'titulo', 'name']);
+
+  if (!musicasAtivas.length) {
+    wrapper.innerHTML = `
+      <h3>${escapeHtml(repertorioNome)}</h3>
+      <p class="page-status">Nenhuma musica ativa neste repertorio.</p>
+    `;
+    return wrapper;
+  }
+
+  wrapper.innerHTML = `
+    <div class="dashboard-selected-header">
+      <h3>${escapeHtml(repertorioNome)}</h3>
+      <a class="button-link secondary" href="${escapeHtml(getRepertorioUrl(repertorio))}">Executar repertorio</a>
+    </div>
+    <div class="dashboard-mini-list"></div>
+  `;
+
+  const list = wrapper.querySelector('.dashboard-mini-list');
+
+  musicasAtivas.forEach((item) => {
+    const musica = item.musicas || {};
+    const row = document.createElement('article');
+    row.className = 'dashboard-mini-item';
+    row.innerHTML = `
+      <div>
+        <h4>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</h4>
+        <p>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</p>
+      </div>
+      <a class="button-link secondary" href="${escapeHtml(getRepertorioMusicaUrl(repertorio, item))}">Executar</a>
+    `;
+    list.append(row);
+  });
+
+  return wrapper;
 }
 
 function createMusicasList(musicas) {
@@ -158,7 +222,7 @@ function createMusicasList(musicas) {
         <p>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a class="button-link secondary icon-action" href="${escapeHtml(getMusicaUrl(musica))}" aria-label="Visualizar musica" title="Visualizar">👁</a>
+        <a class="button-link secondary" href="${escapeHtml(getMusicaUrl(musica))}">Executar</a>
       </div>
     `;
     item.addEventListener('click', (event) => {
@@ -188,6 +252,10 @@ function getRepertorioUrl(repertorio) {
 
 function getMusicaUrl(musica) {
   return `/musicas/execucao?id=${encodeURIComponent(musica.id)}&returnTo=/dashboard`;
+}
+
+function getRepertorioMusicaUrl(repertorio, item) {
+  return `/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}&musicaId=${encodeURIComponent(item.musica_id)}&returnTo=/dashboard`;
 }
 
 function getRepertoriosOrdenados(repertorios) {
