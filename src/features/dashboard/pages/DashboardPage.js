@@ -39,22 +39,20 @@ function createDashboardView({ musicas, repertorios }) {
       <h1>Painel</h1>
     </header>
     <div class="dashboard-grid">
-      <section>
-        <h2>Repertorios</h2>
+      <section class="dashboard-search-column" data-dashboard-column="repertorios">
         <label class="dashboard-search">
           Buscar repertorio
           <input type="search" data-search="repertorios" placeholder="Nome ou data">
         </label>
-        <div class="dashboard-list-slot" data-slot="repertorios"></div>
+        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="repertorios" hidden></div>
         <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </section>
-      <section>
-        <h2>Musicas</h2>
+      <section class="dashboard-search-column" data-dashboard-column="musicas">
         <label class="dashboard-search">
           Buscar musica
           <input type="search" data-search="musicas" placeholder="Titulo ou artista">
         </label>
-        <div class="dashboard-list-slot" data-slot="musicas"></div>
+        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
       </section>
     </div>
   `;
@@ -67,6 +65,7 @@ function createDashboardView({ musicas, repertorios }) {
     getUrl: getRepertorioUrl,
     renderContext: {
       musicasSlot: wrapper.querySelector('[data-slot="repertorio-musicas"]'),
+      wrapper,
     },
   });
 
@@ -76,6 +75,7 @@ function createDashboardView({ musicas, repertorios }) {
     items: musicasOrdenadas,
     render: createMusicasList,
     getUrl: getMusicaUrl,
+    renderContext: { wrapper },
   });
 
   return wrapper;
@@ -83,6 +83,7 @@ function createDashboardView({ musicas, repertorios }) {
 
 function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {
   let currentItems = items;
+  let isFocused = false;
   const defaultLimit = 8;
 
   function update() {
@@ -98,16 +99,54 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
 
     currentItems = filteredItems;
     slot.replaceChildren(render(currentItems, renderContext));
+    slot.hidden = false;
   }
 
-  input.addEventListener('input', update);
+  input.addEventListener('input', () => {
+    if (isFocused) update();
+  });
+  input.addEventListener('focus', () => {
+    isFocused = true;
+    setActiveDashboardColumn(input, renderContext.wrapper);
+    update();
+  });
+  input.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (slot.contains(document.activeElement)) return;
+      isFocused = false;
+      slot.hidden = true;
+      clearActiveDashboardColumn(renderContext.wrapper);
+    }, 140);
+  });
   input.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' || !currentItems.length) return;
 
     event.preventDefault();
     window.location.href = getUrl(currentItems[0]);
   });
-  update();
+}
+
+function setActiveDashboardColumn(input, wrapper) {
+  if (!wrapper) return;
+
+  const activeColumn = input.closest('.dashboard-search-column');
+  wrapper.querySelectorAll('.dashboard-search-column').forEach((column) => {
+    column.classList.toggle('is-active-search', column === activeColumn);
+    column.classList.toggle('is-inactive-search', column !== activeColumn);
+
+    if (column !== activeColumn) {
+      const results = column.querySelector('.dashboard-cascade-results');
+      if (results) results.hidden = true;
+    }
+  });
+}
+
+function clearActiveDashboardColumn(wrapper) {
+  if (!wrapper) return;
+
+  wrapper.querySelectorAll('.dashboard-search-column').forEach((column) => {
+    column.classList.remove('is-active-search', 'is-inactive-search');
+  });
 }
 
 function createRepertoriosList(repertorios, { musicasSlot } = {}) {
