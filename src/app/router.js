@@ -66,7 +66,7 @@ export function createRouter() {
       }
 
       if (session.user && (path === '/' || path === '/login')) {
-        window.history.replaceState(null, '', '/musicas');
+        window.history.replaceState(null, '', '/dashboard');
       }
 
       const Page = routes[window.location.pathname];

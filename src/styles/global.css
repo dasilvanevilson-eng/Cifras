@@ -1401,7 +1401,7 @@ a {
   white-space: nowrap;
 }
 
-.repertorio-performance-view .performance-song header > span:first-child {
+.repertorio-performance-view .performance-song header:not(.repertorio-song-title-bar) > span:first-child {
   display: none;
 }
 

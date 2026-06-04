@@ -2,7 +2,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
-import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 export async function RepertorioExecucaoPage() {
@@ -420,7 +420,9 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   const musica = item.musicas || {};
   const musicaExcluida = isMusicaExcluida(item);
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
-  const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
+  const originalKey = musicaExcluida ? getField(item, ['musica_tom_original']) : getField(musica, ['tom', 'key']);
+  const repertorioKey = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : originalKey;
+  const baseSemitones = getTransposeSemitones(originalKey, repertorioKey);
   const cifraOriginal = getCifraExibicao(musica);
   const link = musicaExcluida ? '-' : getField(musica, ['musica_link']);
 
@@ -435,7 +437,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
       <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
       <span class="title-separator" aria-hidden="true">/</span>
       <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
-      <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
+      <data class="current-key" data-original-key="${escapeHtml(originalKey)}" data-base-semitones="${baseSemitones}" hidden>${escapeHtml(repertorioKey)}</data>
     </header>
     ${musicaExcluida
       ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
@@ -645,14 +647,16 @@ function renderPagedPerformanceV2({
     const semitones = songSemitones[index] || 0;
     const view = song.querySelector('.chordpro-view');
     const keyElement = song.querySelector('.current-key');
+    const baseSemitones = Number(keyElement?.dataset.baseSemitones || 0);
+    const totalSemitones = baseSemitones + semitones;
 
     if (keyElement) {
-      const displayedKey = transposeKey(keyElement.dataset.originalKey || '-', semitones);
+      const displayedKey = transposeKey(keyElement.dataset.originalKey || '-', totalSemitones);
       keyElement.textContent = displayedKey;
     }
 
     if (view) {
-      const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
+      const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', totalSemitones - capo);
       view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
       fitCifraToWidth(wrapper, view, displayedCifra, desiredFontSize, fitFontToMobileWidth);
     }
