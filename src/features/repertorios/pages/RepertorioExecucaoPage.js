@@ -471,9 +471,8 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
 
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  const savedFontSize = window.localStorage.getItem('masterCifras.performanceFontSize');
-  let fontSize = Number(savedFontSize || 18);
-  let fitFontToMobileWidth = !savedFontSize;
+  let fontSize = 18;
+  let fitFontToMobileWidth = true;
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
   speedInput.value = savedSpeed;
@@ -494,7 +493,6 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     fitFontToMobileWidth = false;
     fontSize = Math.max(12, fontSize - 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
-    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
     renderCurrentSong();
   });
 
@@ -502,7 +500,6 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     fitFontToMobileWidth = false;
     fontSize = Math.min(30, fontSize + 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
-    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
     renderCurrentSong();
   });
 
@@ -579,6 +576,8 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
   function goToSong(direction) {
     currentSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
+    fontSize = 18;
+    fitFontToMobileWidth = true;
     renderCurrentSong();
   }
 

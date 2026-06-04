@@ -91,9 +91,8 @@ function setupPerformanceControls(wrapper) {
   let scrollTimer = null;
   let semitones = 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
-  const savedFontSize = window.localStorage.getItem('masterCifras.performanceFontSize');
-  let fontSize = Number(savedFontSize || 18);
-  let fitFontToMobileWidth = !savedFontSize;
+  let fontSize = 18;
+  let fitFontToMobileWidth = true;
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
@@ -114,7 +113,6 @@ function setupPerformanceControls(wrapper) {
     fitFontToMobileWidth = false;
     fontSize = Math.max(12, fontSize - 1);
     setPerformanceFontSize(wrapper, fontSize);
-    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
     renderPerformance();
   });
 
@@ -122,7 +120,6 @@ function setupPerformanceControls(wrapper) {
     fitFontToMobileWidth = false;
     fontSize = Math.min(30, fontSize + 1);
     setPerformanceFontSize(wrapper, fontSize);
-    window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
     renderPerformance();
   });
 
