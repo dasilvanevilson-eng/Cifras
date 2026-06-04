@@ -145,6 +145,7 @@ function createSongSection(item, number) {
   const title = getSongTitle(item);
   const artist = getSongArtist(item);
   const key = getSongKey(item);
+  const link = getSongLink(item);
   const cifra = deleted ? '' : getCifraExibicao(item.musicas || {});
 
   return `
@@ -154,6 +155,7 @@ function createSongSection(item, number) {
         <div>
           <h2>${escapeHtml(deleted ? `${title} (excluida)` : title)}</h2>
           <span>${escapeHtml(artist)} - Tom: ${escapeHtml(key)}</span>
+          ${link ? `<a class="pdf-index-link pdf-song-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Link</a>` : ''}
           <a class="pdf-index-link" href="#indice">Voltar ao indice</a>
         </div>
       </header>
@@ -181,6 +183,13 @@ function getSongKey(item) {
   return getField(item, ['tom']) !== '-'
     ? getField(item, ['tom'])
     : getField(musica, ['tom', 'key']);
+}
+
+function getSongLink(item) {
+  if (isMusicaExcluida(item)) return '';
+
+  const link = getField(item.musicas || {}, ['musica_link']);
+  return link !== '-' ? link : '';
 }
 
 function isMusicaExcluida(item) {

@@ -1636,6 +1636,7 @@ a {
 .pdf-index-link {
   display: inline-block;
   margin-top: 6px;
+  margin-right: 6px;
   border: 1px solid #1d4f45;
   border-radius: var(--border-radius-default);
   padding: 5px 8px;
@@ -1650,6 +1651,11 @@ a {
 .pdf-index-link:focus {
   background: #f4f1ea;
   outline: 0;
+}
+
+.pdf-song-link {
+  border-color: #c8792b;
+  color: #9b4f12;
 }
 
 .pdf-song .chordpro-view {
