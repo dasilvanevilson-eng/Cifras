@@ -434,7 +434,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   block.dataset.musicaId = item.musica_id || '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
-      <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
+      <span class="repertorio-current-song-title">${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</span>
       <span class="title-separator" aria-hidden="true">/</span>
       <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
       <data class="current-key" data-original-key="${escapeHtml(originalKey)}" data-base-semitones="${baseSemitones}" hidden>${escapeHtml(repertorioKey)}</data>

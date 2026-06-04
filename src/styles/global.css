@@ -1434,6 +1434,14 @@ a {
   font-weight: 700;
 }
 
+.repertorio-performance-view .repertorio-current-song-title {
+  display: inline;
+  flex: 0 0 auto;
+  color: #1d4f45;
+  font: inherit;
+  font-weight: 700;
+}
+
 .repertorio-performance-view .performance-song h2 {
   flex: 0 0 auto;
   margin: 0;
@@ -1478,6 +1486,7 @@ a {
 }
 
 .repertorio-performance-view.is-dark .performance-song h2,
+.repertorio-performance-view.is-dark .repertorio-current-song-title,
 .repertorio-performance-view.is-dark .performance-song .current-key,
 .repertorio-performance-view.is-dark .repertorio-title-inline,
 .repertorio-performance-view.is-dark .title-separator {
