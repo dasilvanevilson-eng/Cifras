@@ -91,7 +91,9 @@ function setupPerformanceControls(wrapper) {
   let scrollTimer = null;
   let semitones = 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
-  let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 18);
+  const savedFontSize = window.localStorage.getItem('masterCifras.performanceFontSize');
+  let fontSize = Number(savedFontSize || 18);
+  let fitFontToMobileWidth = !savedFontSize;
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
@@ -109,6 +111,7 @@ function setupPerformanceControls(wrapper) {
   });
 
   fontDownButton.addEventListener('click', () => {
+    fitFontToMobileWidth = false;
     fontSize = Math.max(12, fontSize - 1);
     setPerformanceFontSize(wrapper, fontSize);
     window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
@@ -116,6 +119,7 @@ function setupPerformanceControls(wrapper) {
   });
 
   fontUpButton.addEventListener('click', () => {
+    fitFontToMobileWidth = false;
     fontSize = Math.min(30, fontSize + 1);
     setPerformanceFontSize(wrapper, fontSize);
     window.localStorage.setItem('masterCifras.performanceFontSize', String(fontSize));
@@ -188,7 +192,7 @@ function setupPerformanceControls(wrapper) {
   function renderPerformance() {
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
     view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
-    fitCifraToWidth(wrapper, view, displayedCifra, fontSize);
+    fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
     transposeStatus.textContent = formatTransposeStatus(semitones, capo);
   }
 }
@@ -255,8 +259,20 @@ function setPerformanceFontSize(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
 }
 
-function fitCifraToWidth(wrapper, view, cifra, desiredFontSize) {
-  wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
+function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
+  if (!fitFontToMobileWidth || !window.matchMedia('(max-width: 760px)').matches) {
+    wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
+    return;
+  }
+
+  const lines = String(cifra || '').split('\n');
+  const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
+  const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24);
+  const availableWidth = Math.max(160, measuredWidth - 28);
+  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.62));
+  const fontSize = Math.max(10, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+
+  wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
 }
 
 function createCapoOptions() {
