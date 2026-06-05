@@ -85,6 +85,7 @@ export async function MusicasPage({ session } = {}) {
 
 function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, session = {} }) {
   const initialValues = pendingSugestao || selectedMusica || {};
+  const reviewerName = getReviewerName(session);
 
   formSlot.replaceChildren(MusicaForm({
     initialValues: {
@@ -93,6 +94,8 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
       tom: initialValues.tom || '',
       tags: initialValues.tags || '',
       musica_link: initialValues.musica_link || '',
+      colaborador_nome: initialValues.colaborador_nome || '',
+      revisado_por_nome: selectedMusica?.revisado_por_nome || pendingSugestao?.revisado_por_nome || reviewerName,
       cifra_original: initialValues.cifra_original || '',
       cifra_chordpro: initialValues.cifra_chordpro || initialValues.chordpro || initialValues.conteudo_chordpro || '',
       cifra_exibicao: initialValues.cifra_exibicao || '',
@@ -117,9 +120,13 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
       }
       : null,
     onSubmit: async (musica) => {
+      const musicaValues = {
+        ...musica,
+        revisado_por_nome: reviewerName,
+      };
       const result = selectedMusica
-        ? await updateMusica(selectedMusica.id, musica)
-        : await createMusica(musica);
+        ? await updateMusica(selectedMusica.id, musicaValues)
+        : await createMusica(musicaValues);
 
       if (result.error) {
         throw result.error;
@@ -142,6 +149,10 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
       return;
     },
   }));
+}
+
+function getReviewerName(session = {}) {
+  return session?.profile?.nome || session?.user?.email || 'Usuario';
 }
 
 async function deleteSelectedMusica(musica) {

@@ -29,7 +29,7 @@ export async function MusicaEditarPage({ session } = {}) {
       throw error;
     }
 
-    page.replaceChildren(createEditView(id, musica));
+    page.replaceChildren(createEditView(id, musica, session));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar a musica.';
@@ -38,7 +38,7 @@ export async function MusicaEditarPage({ session } = {}) {
   return page;
 }
 
-function createEditView(id, musica) {
+function createEditView(id, musica, session = {}) {
   const wrapper = document.createElement('section');
   wrapper.innerHTML = `
     <a class="back-link" href="/musicas/detalhe?id=${encodeURIComponent(id)}">Voltar para a musica</a>
@@ -54,13 +54,18 @@ function createEditView(id, musica) {
       tom: musica.tom || '',
       tags: musica.tags || '',
       musica_link: musica.musica_link || '',
+      colaborador_nome: musica.colaborador_nome || '',
+      revisado_por_nome: musica.revisado_por_nome || getReviewerName(session),
       cifra_original: musica.cifra_original || '',
       cifra_chordpro: musica.cifra_chordpro || musica.chordpro || musica.conteudo_chordpro || '',
     },
     submitLabel: 'Salvar alteracoes',
     keepValuesAfterSubmit: true,
     onSubmit: async (values) => {
-      const { error } = await updateMusica(id, values);
+      const { error } = await updateMusica(id, {
+        ...values,
+        revisado_por_nome: getReviewerName(session),
+      });
 
       if (error) {
         throw error;
@@ -71,4 +76,8 @@ function createEditView(id, musica) {
   }));
 
   return wrapper;
+}
+
+function getReviewerName(session = {}) {
+  return session?.profile?.nome || session?.user?.email || 'Usuario';
 }

@@ -2112,6 +2112,16 @@ a {
   grid-column: 1 / -1;
 }
 
+.musica-form .field-collaborator,
+.musica-form .field-reviewer {
+  grid-column: span 2;
+}
+
+.musica-form .field-reviewer input[readonly] {
+  background: #f4f1ea;
+  color: #5f594f;
+}
+
 .music-form-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2591,6 +2601,8 @@ a {
   .musica-form label:nth-of-type(1),
   .musica-form label:nth-of-type(2),
   .musica-form label:nth-of-type(5),
+  .musica-form .field-collaborator,
+  .musica-form .field-reviewer,
   .music-form-actions,
   .cifra-editor-grid,
   .song-preview,

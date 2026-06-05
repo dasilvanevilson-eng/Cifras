@@ -41,6 +41,16 @@ export function MusicaForm(options = {}) {
       </span>
     </label>
 
+    <label class="field-collaborator">
+      Colaborador
+      <input name="colaborador_nome" type="text" value="${escapeHtml(initialValues.colaborador_nome || '')}">
+    </label>
+
+    <label class="field-reviewer">
+      Revisor
+      <input name="revisado_por_nome" type="text" value="${escapeHtml(initialValues.revisado_por_nome || '')}" readonly>
+    </label>
+
     <div class="music-form-actions">
       <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
       <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
@@ -360,6 +370,8 @@ function getFormValues(form) {
     tom: String(formData.get('tom') || '').trim(),
     tags: String(formData.get('tags') || '').trim() || null,
     musica_link: String(formData.get('musica_link') || '').trim() || null,
+    colaborador_nome: String(formData.get('colaborador_nome') || '').trim() || null,
+    revisado_por_nome: String(formData.get('revisado_por_nome') || '').trim() || null,
     cifra_original: String(formData.get('cifra_original') || '').trim(),
     cifra_chordpro: normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '').trim()),
     cifra_exibicao: renderChordProForDisplay(normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '').trim())),

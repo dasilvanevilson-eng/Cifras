@@ -182,6 +182,8 @@ function createReviewForm(sugestao, session, onFinished) {
       tom: values.tom,
       tags: '',
       musica_link: values.musica_link,
+      colaborador_nome: sugestao.enviado_por_nome || 'Usuario',
+      revisado_por_nome: session?.profile?.nome || session?.user?.email || 'Usuario',
       cifra_original: values.cifra_original,
     }));
 
