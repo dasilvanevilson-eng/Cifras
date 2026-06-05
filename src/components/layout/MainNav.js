@@ -28,7 +28,7 @@ export function MainNav(options = {}) {
 
     const userName = document.createElement('span');
     userName.className = 'user-email nav-user-name';
-    userName.textContent = options.profile?.nome || options.user.email;
+    userName.textContent = getFirstName(options.profile?.nome) || options.user.email;
 
     const logoutButton = document.createElement('button');
     logoutButton.className = 'nav-button';
@@ -61,4 +61,8 @@ function createNavLink(link) {
 
 function isActiveNavLink(paths = []) {
   return paths.includes(window.location.pathname);
+}
+
+function getFirstName(name) {
+  return String(name || '').trim().split(/\s+/)[0] || '';
 }
