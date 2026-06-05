@@ -1779,6 +1779,11 @@ a {
   padding-top: 16px;
 }
 
+.musicas-page:has(.musica-form.is-previewing) {
+  max-width: none;
+  padding: 0;
+}
+
 .musica-form.is-previewing > label,
 .musica-form.is-previewing > .music-form-actions,
 .musica-form.is-previewing > .cifra-editor-grid,
@@ -1788,6 +1793,32 @@ a {
 
 .musica-form.is-previewing > .song-preview {
   display: block;
+  min-height: calc(100vh - 73px);
+  border-top: 0;
+  padding: 8px 10px 16px;
+  background: #f4f1ea;
+}
+
+.musica-form.is-previewing .song-preview .transpose-toolbar {
+  position: sticky;
+  top: 73px;
+  z-index: 8;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  background: #f4f1ea;
+  white-space: nowrap;
+}
+
+.musica-form.is-previewing .song-preview .transpose-toolbar .nav-button,
+.musica-form.is-previewing .song-preview .transpose-toolbar span {
+  flex: 0 0 auto;
+}
+
+.musica-form.is-previewing .song-preview .chordpro-view {
+  min-height: calc(100vh - 143px);
+  margin: 0;
 }
 
 .song-preview .preview-back {
@@ -2190,6 +2221,18 @@ a {
 
   .musica-form .field-tags {
     grid-column: 2;
+  }
+
+  .musicas-page:has(.musica-form.is-previewing) {
+    padding: 0;
+  }
+
+  .musica-form.is-previewing > .song-preview {
+    min-height: 100vh;
+  }
+
+  .musica-form.is-previewing .song-preview .transpose-toolbar {
+    top: 0;
   }
 
   .cifra-editor-grid {

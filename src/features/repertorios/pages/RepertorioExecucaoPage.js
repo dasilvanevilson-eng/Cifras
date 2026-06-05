@@ -80,7 +80,7 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">⛶</button>
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
       <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer um semitom" title="Descer um semitom">-1</button>
-      <span class="transpose-status" data-role="transpose-status">Original</span>
+      <span class="transpose-status" data-role="transpose-status">Tom</span>
       <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir um semitom" title="Subir um semitom">+1</button>
       <label>
         Capo
@@ -320,7 +320,7 @@ function createCapoOptions() {
 
 function formatTransposeStatus(semitones, capo) {
   const transposeText = semitones === 0
-    ? 'Original'
+    ? 'Tom'
     : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
@@ -796,7 +796,7 @@ function createCapoOptionsV2() {
 function formatTransposeStatusV2(semitones, capo) {
   const transposeText = semitones === 0
     ? 'Tom'
-    : `${semitones > 0 ? '+' : ''}${semitones}/2`;
+    : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }

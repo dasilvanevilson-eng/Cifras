@@ -67,14 +67,10 @@ export function MusicaForm(options = {}) {
     </div>
 
     <section class="song-preview song-view" hidden>
-      <header class="song-header">
-        <h1 data-preview="titulo"></h1>
-        <p><span data-preview="artista"></span> - Tom: <span class="current-key" data-preview="tom"></span></p>
-      </header>
       <div class="transpose-toolbar">
         <button class="nav-button preview-back" type="button" data-action="preview-back" aria-label="Voltar" title="Voltar">&larr;</button>
         <button class="nav-button" type="button" data-preview-action="transpose-down">-1 semitom</button>
-        <span data-preview="transpose-status">Original</span>
+        <span data-preview="transpose-status">Tom</span>
         <button class="nav-button" type="button" data-preview-action="transpose-up">+1 semitom</button>
         <button class="nav-button" type="button" data-preview-action="print">Imprimir</button>
       </div>
@@ -316,7 +312,7 @@ function updateFormTransposeStatus(status, formTransposeState, delta) {
 function renderFormTransposeStatus(status, semitones) {
   status.textContent = semitones === 0
     ? 'Tom'
-    : `${semitones > 0 ? '+' : ''}${semitones}/2`;
+    : formatTransposeStatus(semitones);
 }
 
 function openPreview(form, previewPanel, previewToggle, previewState) {
@@ -379,15 +375,9 @@ function getInitialChordPro(initialValues) {
 
 function updatePreview(form, previewPanel, previewState = null) {
   const values = getFormValues(form);
-  const title = values.titulo || 'Musica sem titulo';
-  const artist = values.artista || '-';
   const key = values.tom || '-';
   const renderedCifra = renderChordProForDisplay(values.cifra_chordpro)
     || 'A conversao ChordPro aparecera aqui.';
-
-  previewPanel.querySelector('[data-preview="titulo"]').textContent = title;
-  previewPanel.querySelector('[data-preview="artista"]').textContent = artist;
-  previewPanel.querySelector('[data-preview="tom"]').textContent = key;
 
   if (previewState) {
     previewState.originalCifra = renderedCifra;
@@ -400,16 +390,14 @@ function updatePreview(form, previewPanel, previewState = null) {
 }
 
 function renderPreviewCifra(previewPanel, previewState) {
-  const displayedKey = transposeKey(previewState.originalKey || '-', previewState.semitones);
   const displayedCifra = transposeCifraOriginal(previewState.originalCifra || '', previewState.semitones);
 
-  previewPanel.querySelector('[data-preview="tom"]').textContent = displayedKey;
   previewPanel.querySelector('[data-preview="transpose-status"]').textContent = formatTransposeStatus(previewState.semitones);
   previewPanel.querySelector('[data-preview="cifra"]').innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
 }
 
 function formatTransposeStatus(semitones) {
-  if (semitones === 0) return 'Original';
+  if (semitones === 0) return 'Tom';
 
   return `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
 }
