@@ -841,6 +841,30 @@ a {
   gap: 0.5rem;
 }
 
+.selective-share-users[hidden] {
+  display: none;
+}
+
+.shared-edit-option {
+  border: 2px solid #c4a35d;
+  padding: 0.75rem;
+  background: #fff8e8;
+}
+
+.shared-edit-option span {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.shared-edit-option strong {
+  color: #4f3d18;
+}
+
+.shared-edit-option small {
+  color: #6f5b2d;
+  line-height: 1.35;
+}
+
 .share-user-list {
   display: grid;
   gap: 0.35rem;

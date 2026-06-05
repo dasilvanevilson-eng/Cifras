@@ -13,9 +13,12 @@ export function RepertorioPrivacyFields(options = {}) {
         <option value="seletivo"${initialValues.visibilidade === 'seletivo' ? ' selected' : ''}>Compartilhamento seletivo</option>
       </select>
     </label>
-    <label class="checkbox-label">
+    <label class="checkbox-label shared-edit-option">
       <input name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
-      Permitir que outros usuarios autorizados facam alteracoes
+      <span>
+        <strong>Autorizar alteracoes por outros usuarios</strong>
+        <small>Quando marcado, usuarios autorizados por esta privacidade tambem poderao editar este repertorio.</small>
+      </span>
     </label>
     <div class="selective-share-users" data-role="selective-users">
       <strong>Usuarios com acesso</strong>
