@@ -2788,3 +2788,17 @@ a {
   font-weight: 800;
   text-align: center;
 }
+
+.repertorios-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.repertorios-search-panel {
+  position: relative;
+  z-index: 2;
+}
+
+.repertorios-form-panel {
+  min-width: 0;
+}

@@ -7,19 +7,16 @@ import { canEditContent } from '../../auth/roles.js';
 export async function RepertoriosPage({ session } = {}) {
   const canEdit = canEditContent(session?.profile?.papel);
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page repertorios-page';
   page.innerHTML = `
-    <div class="page-grid">
-      <section>
-        <div class="form-slot"></div>
-      </section>
-      <section>
-        <h2>Repertorios cadastrados</h2>
-        <div class="list-slot">
-          <div class="page-status">Carregando repertorios...</div>
-        </div>
-      </section>
-    </div>
+    <section class="repertorios-search-panel">
+      <div class="list-slot">
+        <div class="page-status">Carregando repertorios...</div>
+      </div>
+    </section>
+    <section class="repertorios-form-panel">
+      <div class="form-slot"></div>
+    </section>
   `;
 
   const formSlot = page.querySelector('.form-slot');
@@ -50,11 +47,11 @@ export async function RepertoriosPage({ session } = {}) {
     }
 
     if (!data || data.length === 0) {
-      status.textContent = 'Nenhum repertorio cadastrado ainda.';
+      listSlot.replaceChildren(createRepertoriosBrowser([]));
       return page;
     }
 
-    listSlot.replaceChildren(createRepertoriosTable(data));
+    listSlot.replaceChildren(createRepertoriosBrowser(data));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar os repertorios.';
@@ -346,6 +343,104 @@ function normalizeText(value) {
     .trim();
 }
 
+function createRepertoriosBrowser(repertorios) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'list-browser repertorios-browser';
+  wrapper.innerHTML = `
+    <div class="list-toolbar">
+      <label>
+        Buscar repertorio
+        <input class="search-input" type="search" placeholder="Nome ou data">
+      </label>
+    </div>
+    <div class="table-slot search-results" hidden></div>
+  `;
+
+  const searchInput = wrapper.querySelector('.search-input');
+  const tableSlot = wrapper.querySelector('.table-slot');
+  let isPointerInsideResults = false;
+  let currentResults = [];
+
+  function render() {
+    const query = normalizeText(searchInput.value);
+    currentResults = repertorios
+      .filter((repertorio) => matchesRepertorioSearch(repertorio, query))
+      .sort((a, b) => compareText(
+        getField(a, ['nome', 'titulo', 'name']),
+        getField(b, ['nome', 'titulo', 'name']),
+      ));
+
+    if (!repertorios.length) {
+      tableSlot.replaceChildren(createStatus('Nenhum repertorio cadastrado ainda.'));
+      return;
+    }
+
+    if (!currentResults.length) {
+      tableSlot.replaceChildren(createStatus('Nenhum repertorio encontrado para esta busca.'));
+      return;
+    }
+
+    tableSlot.replaceChildren(createRepertoriosTable(currentResults));
+  }
+
+  searchInput.addEventListener('input', () => {
+    render();
+    tableSlot.hidden = false;
+  });
+
+  searchInput.addEventListener('focus', () => {
+    render();
+    tableSlot.hidden = false;
+  });
+
+  searchInput.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (!isPointerInsideResults) {
+        tableSlot.hidden = true;
+      }
+    }, 120);
+  });
+
+  searchInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || !currentResults.length) return;
+
+    event.preventDefault();
+    window.location.href = getRepertorioUrl(currentResults[0]);
+  });
+
+  tableSlot.addEventListener('mouseenter', () => {
+    isPointerInsideResults = true;
+    tableSlot.hidden = false;
+  });
+
+  tableSlot.addEventListener('mouseleave', () => {
+    isPointerInsideResults = false;
+
+    if (document.activeElement !== searchInput) {
+      tableSlot.hidden = true;
+    }
+  });
+
+  render();
+  return wrapper;
+}
+
+function createStatus(text) {
+  const status = document.createElement('p');
+  status.className = 'page-status';
+  status.textContent = text;
+  return status;
+}
+
+function matchesRepertorioSearch(repertorio, query) {
+  if (!query) return true;
+
+  return normalizeText([
+    getField(repertorio, ['nome', 'titulo', 'name']),
+    formatDate(getField(repertorio, ['data', 'date'])),
+  ].join(' ')).includes(query);
+}
+
 function createRepertoriosTable(repertorios) {
   const table = document.createElement('table');
   table.className = 'data-table';
@@ -367,13 +462,21 @@ function createRepertoriosTable(repertorios) {
     const nome = getField(repertorio, ['nome', 'titulo', 'name']);
 
     row.innerHTML = `
-      <td><a href="/repertorios/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(nome)}</a></td>
+      <td><a href="${escapeHtml(getRepertorioUrl(repertorio))}">${escapeHtml(nome)}</a></td>
       <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
     `;
     body.append(row);
   });
 
   return table;
+}
+
+function getRepertorioUrl(repertorio) {
+  return `/repertorios/detalhe?id=${encodeURIComponent(getField(repertorio, ['id']))}`;
+}
+
+function compareText(a, b) {
+  return String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' });
 }
 
 function getField(record, names) {
