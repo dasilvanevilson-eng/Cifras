@@ -45,6 +45,11 @@ export function MusicaForm(options = {}) {
     <div class="music-form-actions">
       <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
       <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
+      <span class="inline-transpose-controls" aria-label="Transposicao de tom">
+        <button class="nav-button" type="button" data-action="transpose-form-down" aria-label="Descer meio tom">-1/2</button>
+        <span data-role="form-transpose-status">Tom</span>
+        <button class="nav-button" type="button" data-action="transpose-form-up" aria-label="Subir meio tom">+1/2</button>
+      </span>
       ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
       <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
     </div>
@@ -86,9 +91,13 @@ export function MusicaForm(options = {}) {
   const button = form.querySelector('button[type="submit"]');
   const clearButton = form.querySelector('[data-action="clear"]');
   const deleteButton = form.querySelector('[data-action="delete"]');
+  const transposeFormDownButton = form.querySelector('[data-action="transpose-form-down"]');
+  const transposeFormUpButton = form.querySelector('[data-action="transpose-form-up"]');
+  const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
   const originalTextarea = form.querySelector('[name="cifra_original"]');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
   const chordProEditor = form.querySelector('.chordpro-editor');
+  const tomInput = form.querySelector('[name="tom"]');
   const cifraEditorGrid = form.querySelector('.cifra-editor-grid');
   const linkInput = form.querySelector('[name="musica_link"]');
   const linkAction = form.querySelector('.field-action-link');
@@ -170,6 +179,34 @@ export function MusicaForm(options = {}) {
     });
   }
 
+  transposeFormDownButton.addEventListener('click', () => {
+    transposeFormFields({
+      semitones: -1,
+      originalTextarea,
+      chordProTextarea,
+      chordProEditor,
+      tomInput,
+      previewPanel,
+      previewState,
+      form,
+    });
+    updateFormTransposeStatus(formTransposeStatus, -1);
+  });
+
+  transposeFormUpButton.addEventListener('click', () => {
+    transposeFormFields({
+      semitones: 1,
+      originalTextarea,
+      chordProTextarea,
+      chordProEditor,
+      tomInput,
+      previewPanel,
+      previewState,
+      form,
+    });
+    updateFormTransposeStatus(formTransposeStatus, 1);
+  });
+
   previewToggle.addEventListener('click', () => {
     openPreview(form, previewPanel, previewToggle, previewState);
   });
@@ -245,10 +282,47 @@ function clearForm(form, chordProTextarea, chordProEditor, previewPanel, preview
     field.value = '';
   });
   setChordProValue(chordProTextarea, chordProEditor, '');
+  const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
+  if (formTransposeStatus) {
+    formTransposeStatus.dataset.semitones = '0';
+    formTransposeStatus.textContent = 'Tom';
+  }
   previewPanel.hidden = true;
   form.classList.remove('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
   updateLinkAction(form.querySelector('[name="musica_link"]'), form.querySelector('.field-action-link'));
+}
+
+function transposeFormFields({
+  semitones,
+  originalTextarea,
+  chordProTextarea,
+  chordProEditor,
+  tomInput,
+  previewPanel,
+  previewState,
+  form,
+}) {
+  originalTextarea.value = transposeCifraOriginal(originalTextarea.value, semitones);
+
+  const currentTom = String(tomInput.value || '').trim();
+  if (currentTom) {
+    tomInput.value = transposeKey(currentTom, semitones);
+  }
+
+  setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(originalTextarea.value));
+
+  if (!previewPanel.hidden) {
+    updatePreview(form, previewPanel, previewState);
+  }
+}
+
+function updateFormTransposeStatus(status, delta) {
+  const nextSemitones = Number(status.dataset.semitones || 0) + delta;
+  status.dataset.semitones = String(nextSemitones);
+  status.textContent = nextSemitones === 0
+    ? 'Tom'
+    : `${nextSemitones > 0 ? '+' : ''}${nextSemitones}/2`;
 }
 
 function openPreview(form, previewPanel, previewToggle, previewState) {

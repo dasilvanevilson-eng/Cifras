@@ -1726,6 +1726,25 @@ a {
   align-items: center;
 }
 
+.inline-transpose-controls {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.inline-transpose-controls .nav-button {
+  min-width: 44px;
+  min-height: 40px;
+  padding-right: 6px;
+  padding-left: 6px;
+}
+
+.inline-transpose-controls span {
+  color: #5f594f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .song-preview {
   border-top: 1px solid #ddd6c8;
   padding-top: 16px;
