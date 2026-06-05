@@ -13,6 +13,9 @@ export async function UsuariosPage({ session } = {}) {
 
   page.innerHTML = `
     <h1>Usuarios</h1>
+    <section class="user-account-warning">
+      O sistema registra o historico das acoes realizadas por cada usuario. Mantenha sua senha em seguranca e nao compartilhe seu acesso com terceiros. O uso indevido da conta podera resultar na exclusao do usuario.
+    </section>
     <section class="user-search-panel">
       <label>
         Buscar usuario

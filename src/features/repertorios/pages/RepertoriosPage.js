@@ -90,28 +90,39 @@ function createNewRepertorioComposer(musicas, users) {
   const form = document.createElement('form');
   form.className = 'form new-repertorio-form';
   form.innerHTML = `
-    <label>
-      Nome
-      <input name="nome" type="text" required>
-    </label>
+    <section class="repertorio-form-section repertorio-basic-fields">
+      <h2>Novo repertorio</h2>
+      <div class="repertorio-title-date-grid">
+        <label>
+          Nome
+          <input name="nome" type="text" required>
+        </label>
 
-    <label>
-      Data
-      <input name="data" type="date">
-    </label>
+        <label>
+          Data
+          <input name="data" type="date">
+        </label>
+      </div>
+    </section>
 
-    <label>
-      Musicas do repertorio
-      <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
-    </label>
-    <div class="song-search-results" hidden></div>
-    <div class="selected-repertorio-songs"></div>
-    <button class="button" type="submit" disabled>Salvar repertorio</button>
-    <p class="form-message" aria-live="polite"></p>
+    <section class="repertorio-form-section repertorio-music-fields">
+      <h2>Musicas</h2>
+      <label>
+        Buscar musica
+        <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
+      </label>
+      <div class="song-search-results" hidden></div>
+      <div class="selected-repertorio-songs"></div>
+    </section>
+
+    <div class="repertorio-save-bar">
+      <button class="button" type="submit" disabled>Salvar repertorio</button>
+      <p class="form-message" aria-live="polite"></p>
+    </div>
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
-  form.querySelector('label:nth-of-type(2)').after(RepertorioPrivacyFields({
+  form.querySelector('.repertorio-basic-fields').append(RepertorioPrivacyFields({
     users,
     initialValues: {
       visibilidade: 'publico',

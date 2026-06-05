@@ -2789,6 +2789,15 @@ a {
   text-align: center;
 }
 
+.user-account-warning {
+  border: 2px solid #a12a2a;
+  padding: 14px 16px;
+  background: #fff0df;
+  color: #7d1f1f;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .repertorios-page {
   display: grid;
   gap: 1.25rem;
@@ -2801,4 +2810,81 @@ a {
 
 .repertorios-form-panel {
   min-width: 0;
+}
+
+.new-repertorio-panel {
+  min-width: 0;
+}
+
+.new-repertorio-form {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.repertorio-form-section {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.repertorio-form-section h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.repertorio-title-date-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.45fr);
+  gap: 0.75rem;
+}
+
+.repertorio-music-fields {
+  position: relative;
+}
+
+.new-repertorio-form .repertorio-privacy-fields {
+  min-width: 0;
+}
+
+.new-repertorio-form .selected-repertorio-songs {
+  max-height: min(42vh, 430px);
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.repertorio-save-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid #ddd6c8;
+  padding-top: 0.9rem;
+}
+
+.repertorio-save-bar .form-message {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .new-repertorio-form,
+  .repertorio-title-date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .new-repertorio-form .selected-repertorio-songs {
+    max-height: none;
+  }
+
+  .repertorio-save-bar {
+    justify-content: stretch;
+  }
+
+  .repertorio-save-bar .button {
+    width: 100%;
+  }
 }
