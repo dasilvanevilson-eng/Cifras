@@ -4,6 +4,7 @@ import { MinhaContaPage } from '../features/auth/pages/MinhaContaPage.js';
 import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.js';
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
 import { MusicaExecucaoPage } from '../features/musicas/pages/MusicaExecucaoPage.js';
+import { MusicasSelecaoExecucaoPage } from '../features/musicas/pages/MusicasSelecaoExecucaoPage.js';
 import { MusicaLetraDetalhePage } from '../features/musicas/pages/MusicaLetraDetalhePage.js';
 import { MusicasPage } from '../features/musicas/pages/MusicasPage.js';
 import { MusicasLetrasPage } from '../features/musicas/pages/MusicasLetrasPage.js';
@@ -30,6 +31,7 @@ const routes = {
   '/musicas/detalhe': MusicaDetalhePage,
   '/musicas/editar': MusicaEditarPage,
   '/musicas/execucao': MusicaExecucaoPage,
+  '/musicas/selecao-execucao': MusicasSelecaoExecucaoPage,
   '/musicas-letras': MusicasLetrasPage,
   '/musicas-letras/detalhe': MusicaLetraDetalhePage,
   '/repertorios': RepertoriosPage,

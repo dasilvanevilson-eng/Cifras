@@ -33,6 +33,7 @@ function createDashboardView({ musicas, repertorios }) {
   const wrapper = document.createElement('section');
   const repertoriosOrdenados = getRepertoriosOrdenados(repertorios);
   const musicasOrdenadas = getMusicasOrdenadas(musicas);
+  const musicasSelecionadas = [];
 
   wrapper.innerHTML = `
     <header class="dashboard-header">
@@ -50,6 +51,7 @@ function createDashboardView({ musicas, repertorios }) {
           Buscar musica
           <input type="search" data-search="musicas" placeholder="Titulo ou artista">
         </label>
+        <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
       </section>
       <div class="dashboard-list-slot dashboard-cascade-results" data-slot="repertorios" hidden></div>
       <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
@@ -75,7 +77,16 @@ function createDashboardView({ musicas, repertorios }) {
     items: musicasOrdenadas,
     render: createMusicasList,
     getUrl: getMusicaUrl,
-    renderContext: { wrapper },
+    renderContext: {
+      wrapper,
+      selectionSlot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
+      selectedMusicas: musicasSelecionadas,
+    },
+  });
+
+  renderSelectedMusicasActions({
+    slot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
+    selectedMusicas: musicasSelecionadas,
   });
 
   return wrapper;
@@ -242,7 +253,7 @@ function createRepertorioMusicasList(repertorio, musicasAssociadas) {
   return wrapper;
 }
 
-function createMusicasList(musicas) {
+function createMusicasList(musicas, context = {}) {
   if (!musicas.length) {
     return createEmptyState('Nenhuma musica cadastrada ainda.');
   }
@@ -254,9 +265,14 @@ function createMusicasList(musicas) {
     const item = document.createElement('article');
     item.className = 'dashboard-list-item';
     item.tabIndex = 0;
+    const isSelected = isMusicaSelected(context.selectedMusicas, musica.id);
+    item.classList.toggle('is-selected', isSelected);
     item.innerHTML = `
       <div>
-        <h3>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</h3>
+        <h3 class="dashboard-song-title">
+          <span>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</span>
+          <button class="dashboard-select-song" type="button" data-action="toggle-song-selection" aria-label="${isSelected ? 'Remover musica da selecao' : 'Adicionar musica a selecao'}" title="${isSelected ? 'Remover da selecao' : 'Adicionar a selecao'}">${isSelected ? '&#10003;' : '+'}</button>
+        </h3>
         <p>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</p>
       </div>
       <div class="dashboard-item-actions">
@@ -264,17 +280,91 @@ function createMusicasList(musicas) {
       </div>
     `;
     item.addEventListener('click', (event) => {
-      if (event.target.closest('a')) return;
+      if (event.target.closest('a, button')) return;
       window.location.href = getMusicaUrl(musica);
     });
     item.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter') return;
+      if (event.target.closest('a, button')) return;
       window.location.href = getMusicaUrl(musica);
+    });
+    item.querySelector('[data-action="toggle-song-selection"]').addEventListener('click', () => {
+      toggleMusicaSelection(context.selectedMusicas, musica);
+      renderSelectedMusicasActions(context);
+      item.classList.toggle('is-selected', isMusicaSelected(context.selectedMusicas, musica.id));
+      const button = item.querySelector('[data-action="toggle-song-selection"]');
+      const selected = isMusicaSelected(context.selectedMusicas, musica.id);
+      button.innerHTML = selected ? '&#10003;' : '+';
+      button.title = selected ? 'Remover da selecao' : 'Adicionar a selecao';
+      button.setAttribute('aria-label', selected ? 'Remover musica da selecao' : 'Adicionar musica a selecao');
     });
     list.append(item);
   });
 
   return list;
+}
+
+function toggleMusicaSelection(selectedMusicas = [], musica) {
+  const selectedIndex = selectedMusicas.findIndex((item) => item.id === musica.id);
+
+  if (selectedIndex >= 0) {
+    selectedMusicas.splice(selectedIndex, 1);
+    return;
+  }
+
+  selectedMusicas.push(musica);
+}
+
+function isMusicaSelected(selectedMusicas = [], musicaId) {
+  return selectedMusicas.some((item) => item.id === musicaId);
+}
+
+function renderSelectedMusicasActions({ slot, selectedMusicas = [] } = {}) {
+  if (!slot) return;
+
+  if (!selectedMusicas.length) {
+    slot.replaceChildren();
+    return;
+  }
+
+  const panel = document.createElement('section');
+  panel.className = 'dashboard-selection-panel';
+  panel.innerHTML = `
+    <div class="dashboard-selection-header">
+      <strong>${selectedMusicas.length} musica${selectedMusicas.length === 1 ? '' : 's'} selecionada${selectedMusicas.length === 1 ? '' : 's'}</strong>
+      <div class="dashboard-selection-actions">
+        ${selectedMusicas.length >= 2 ? '<a class="button-link" data-action="execute-selection" href="#">Execucao da selecao</a>' : ''}
+        <button class="nav-button" type="button" data-action="clear-selection">Limpar selecao</button>
+      </div>
+    </div>
+    <div class="dashboard-selected-songs"></div>
+  `;
+
+  const list = panel.querySelector('.dashboard-selected-songs');
+  selectedMusicas.forEach((musica) => {
+    const chip = document.createElement('span');
+    chip.className = 'dashboard-selected-song';
+    chip.textContent = getField(musica, ['titulo', 'nome', 'title']);
+    list.append(chip);
+  });
+
+  const executeLink = panel.querySelector('[data-action="execute-selection"]');
+  if (executeLink) {
+    executeLink.href = getSelecaoExecucaoUrl(selectedMusicas);
+  }
+
+  panel.querySelector('[data-action="clear-selection"]').addEventListener('click', () => {
+    selectedMusicas.splice(0, selectedMusicas.length);
+    renderSelectedMusicasActions({ slot, selectedMusicas });
+    document.querySelectorAll('[data-action="toggle-song-selection"]').forEach((button) => {
+      button.innerHTML = '+';
+      button.title = 'Adicionar a selecao';
+      button.setAttribute('aria-label', 'Adicionar musica a selecao');
+      button.closest('.dashboard-list-item')?.classList.remove('is-selected');
+    });
+  });
+
+  slot.replaceChildren(panel);
 }
 
 function createEmptyState(text) {
@@ -290,6 +380,11 @@ function getRepertorioUrl(repertorio) {
 
 function getMusicaUrl(musica) {
   return `/musicas/execucao?id=${encodeURIComponent(musica.id)}&returnTo=/dashboard`;
+}
+
+function getSelecaoExecucaoUrl(musicas) {
+  const ids = musicas.map((musica) => musica.id).filter(Boolean).join(',');
+  return `/musicas/selecao-execucao?ids=${encodeURIComponent(ids)}&returnTo=/dashboard`;
 }
 
 function getRepertorioMusicaUrl(repertorio, item) {

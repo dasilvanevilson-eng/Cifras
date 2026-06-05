@@ -2491,3 +2491,78 @@ a {
     color: #000000;
   }
 }
+.dashboard-song-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dashboard-song-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-select-song {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.dashboard-list-item.is-selected {
+  border-color: #8f6b2f;
+  background: #fff8e8;
+}
+
+.dashboard-selection-slot {
+  margin-top: 0.75rem;
+}
+
+.dashboard-selection-panel {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid #ddd6c8;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: #ffffff;
+}
+
+.dashboard-selection-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.dashboard-selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.dashboard-selected-songs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dashboard-selected-song {
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid #ddd6c8;
+  border-radius: 999px;
+  padding: 0.26rem 0.55rem;
+  color: #5d5548;
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

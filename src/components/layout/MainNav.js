@@ -11,7 +11,7 @@ export function MainNav(options = {}) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
     const links = [
       { href: '/dashboard', label: 'Painel', match: ['/dashboard'] },
-      { href: '/musicas', label: 'Cifras', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao'] },
+      { href: '/musicas', label: 'Cifras', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
       { href: '/musicas-letras', label: 'Letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
       { href: '/repertorios', label: 'Repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
       { href: '/repertorios-pdf', label: 'PDF Repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
