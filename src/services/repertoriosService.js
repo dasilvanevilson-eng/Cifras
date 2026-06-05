@@ -12,7 +12,20 @@ export async function getRepertorioById(id) {
 
 export async function createRepertorio(repertorio) {
   assertSupabaseConfig();
-  return supabase.from('repertorios').insert(repertorio).select().single();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (authError) {
+    return { data: null, error: authError };
+  }
+
+  return supabase
+    .from('repertorios')
+    .insert({
+      ...repertorio,
+      criado_por: repertorio.criado_por || authData.user?.id,
+    })
+    .select()
+    .single();
 }
 
 export async function createRepertorioComMusicas(repertorio, musicas = [], compartilhadoCom = []) {
