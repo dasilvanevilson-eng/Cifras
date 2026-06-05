@@ -106,7 +106,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
         <div class="list-slot"></div>
       </section>
     </div>
-    <section class="repertorio-history-panel">
+    <section class="repertorio-history-panel" hidden>
       <h2>Historico de alteracoes</h2>
       <div class="history-slot"></div>
     </section>
@@ -121,6 +121,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
   if (canEdit) {
     actions.append(createEditLink(repertorio.id));
     actions.append(createDuplicateButton(repertorio, musicasAssociadas));
+    actions.append(createHistoryButton(wrapper));
     actions.append(createDeleteButton(repertorio.id, nome));
     formSlot.append(createAddMusicaForm({
       repertorioId: repertorio.id,
@@ -136,6 +137,26 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
   historySlot.append(createHistoryList(historico));
 
   return wrapper;
+}
+
+function createHistoryButton(wrapper) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'nav-button';
+  button.textContent = 'Historico';
+
+  button.addEventListener('click', () => {
+    const panel = wrapper.querySelector('.repertorio-history-panel');
+    const isOpening = panel.hidden;
+    panel.hidden = !isOpening;
+    button.textContent = isOpening ? 'Ocultar historico' : 'Historico';
+
+    if (isOpening) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  return button;
 }
 
 function formatCreator(repertorio) {
