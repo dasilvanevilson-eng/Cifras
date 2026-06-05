@@ -4,8 +4,9 @@ import {
   deleteRepertorio,
   duplicateRepertorio,
   getRepertorioById,
-  listRepertorioCompartilhamentos,
   listMusicasDoRepertorio,
+  listRepertorioCompartilhamentos,
+  listRepertorioHistorico,
   removeMusicaDoRepertorio,
   updateObservacaoMusicaRepertorio,
   updateOrdemMusicaRepertorio,
@@ -35,16 +36,19 @@ export async function RepertorioDetalhePage({ session } = {}) {
       musicasAssociadas,
       { data: musicas, error: musicasError },
       { data: compartilhamentos, error: compartilhamentosError },
+      { data: historico, error: historicoError },
     ] = await Promise.all([
       getRepertorioById(id),
       loadMusicasDoRepertorio(id),
       listMusicas(),
       listRepertorioCompartilhamentos(id),
+      listRepertorioHistorico(id),
     ]);
 
     if (repertorioError) throw repertorioError;
     if (musicasError) throw musicasError;
     if (compartilhamentosError) throw compartilhamentosError;
+    if (historicoError) throw historicoError;
 
     addRecentItem({
       type: 'repertorio',
@@ -57,6 +61,7 @@ export async function RepertorioDetalhePage({ session } = {}) {
       repertorio,
       musicasAssociadas,
       musicas: musicas || [],
+      historico: historico || [],
       canEdit: canEditRepertorio(repertorio, compartilhamentos || [], session),
       returnTo,
     }));
@@ -78,7 +83,7 @@ async function loadMusicasDoRepertorio(repertorioId) {
   return data || [];
 }
 
-function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit, returnTo }) {
+function createRepertorioView({ repertorio, musicasAssociadas, musicas, historico, canEdit, returnTo }) {
   const wrapper = document.createElement('section');
   wrapper.className = 'repertorio-detail-page';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
@@ -90,6 +95,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
     </div>
     <header class="song-header repertorio-header">
       <h1>${escapeHtml(nome)}</h1>
+      <p>${escapeHtml(formatCreator(repertorio))}</p>
     </header>
     <div class="page-grid repertorio-detail-grid">
       <section class="editor-panel">
@@ -100,12 +106,17 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
         <div class="list-slot"></div>
       </section>
     </div>
+    <section class="repertorio-history-panel">
+      <h2>Historico de alteracoes</h2>
+      <div class="history-slot"></div>
+    </section>
   `;
 
   const formSlot = wrapper.querySelector('.form-slot');
   const listSlot = wrapper.querySelector('.list-slot');
   const editorPanel = wrapper.querySelector('.editor-panel');
   const actions = wrapper.querySelector('.page-actions');
+  const historySlot = wrapper.querySelector('.history-slot');
 
   if (canEdit) {
     actions.append(createEditLink(repertorio.id));
@@ -122,8 +133,59 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
   }
 
   listSlot.append(createMusicasList(normalizeOrder(musicasAssociadas), { canEdit }));
+  historySlot.append(createHistoryList(historico));
 
   return wrapper;
+}
+
+function formatCreator(repertorio) {
+  const creator = repertorio?.criado_por_nome || 'Usuario nao informado';
+  return `Incluido por: ${creator}`;
+}
+
+function createHistoryList(items = []) {
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'page-status';
+    empty.textContent = 'Nenhuma alteracao registrada ainda.';
+    return empty;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'repertorio-history-list';
+
+  items.slice(0, 80).forEach((item) => {
+    const row = document.createElement('article');
+    row.className = 'repertorio-history-item';
+    row.innerHTML = `
+      <div>
+        <strong>${escapeHtml(item.acao || 'Alteracao')}</strong>
+        <span>${escapeHtml(formatHistoryDetails(item.detalhes))}</span>
+      </div>
+      <small>${escapeHtml([item.usuario_nome || 'Usuario', formatDateTime(item.created_at)].filter(Boolean).join(' - '))}</small>
+    `;
+    list.append(row);
+  });
+
+  return list;
+}
+
+function formatHistoryDetails(details) {
+  if (!details || typeof details !== 'object') {
+    return '';
+  }
+
+  const values = [
+    details.musica,
+    details.usuario,
+    details.nome_novo && details.nome_anterior !== details.nome_novo ? `Nome: ${details.nome_novo}` : '',
+    details.visibilidade_nova && details.visibilidade_anterior !== details.visibilidade_nova ? `Privacidade: ${details.visibilidade_nova}` : '',
+    details.ordem_nova && details.ordem_anterior !== details.ordem_nova ? `Ordem: ${details.ordem_nova}` : '',
+    details.tom_novo && details.tom_anterior !== details.tom_novo ? `Tom: ${details.tom_novo}` : '',
+    details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Obs.: ${details.observacao_nova}` : '',
+  ].filter(Boolean);
+
+  return values.join(' | ');
 }
 
 function canEditRepertorio(repertorio, compartilhamentos, session = {}) {
@@ -674,6 +736,12 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = value.split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('pt-BR');
 }
 
 function escapeHtml(value) {

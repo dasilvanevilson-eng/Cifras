@@ -65,6 +65,15 @@ export async function listRepertorioCompartilhamentos(repertorioId) {
     .eq('repertorio_id', repertorioId);
 }
 
+export async function listRepertorioHistorico(repertorioId) {
+  assertSupabaseConfig();
+  return supabase
+    .from('repertorio_historico')
+    .select('*')
+    .eq('repertorio_id', repertorioId)
+    .order('created_at', { ascending: false });
+}
+
 export async function replaceRepertorioCompartilhamentos(repertorioId, userIds = []) {
   assertSupabaseConfig();
 

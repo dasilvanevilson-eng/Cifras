@@ -810,6 +810,42 @@ a {
   color: #6f675c;
 }
 
+.repertorio-history-panel {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 24px;
+}
+
+.repertorio-history-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.repertorio-history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  border: 1px solid #ddd6c8;
+  padding: 0.65rem;
+  background: #ffffff;
+}
+
+.repertorio-history-item div {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.repertorio-history-item span,
+.repertorio-history-item small {
+  color: #6f675c;
+}
+
+.repertorio-history-item small {
+  white-space: nowrap;
+}
+
 .repertorio-privacy-fields {
   display: grid;
   gap: 0.75rem;
