@@ -874,6 +874,19 @@ a {
   background: #ffffff;
 }
 
+.repertorio-privacy-wrapper {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.privacy-toggle-button {
+  justify-self: start;
+}
+
+.repertorio-privacy-fields[hidden] {
+  display: none;
+}
+
 .repertorio-privacy-fields legend {
   padding: 0 0.35rem;
   color: #5f594f;
@@ -2844,6 +2857,7 @@ a {
   position: relative;
 }
 
+.new-repertorio-form .repertorio-privacy-wrapper,
 .new-repertorio-form .repertorio-privacy-fields {
   min-width: 0;
 }

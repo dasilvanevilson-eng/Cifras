@@ -1,43 +1,55 @@
 export function RepertorioPrivacyFields(options = {}) {
   const users = options.users || [];
   const initialValues = options.initialValues || {};
-  const fieldset = document.createElement('fieldset');
-  fieldset.className = 'repertorio-privacy-fields';
-  fieldset.innerHTML = `
-    <legend>Privacidade</legend>
-    <label>
-      Tipo de compartilhamento
-      <select name="visibilidade">
-        <option value="privado"${initialValues.visibilidade === 'privado' ? ' selected' : ''}>Privado</option>
-        <option value="publico"${(initialValues.visibilidade || 'publico') === 'publico' ? ' selected' : ''}>Compartilhamento publico</option>
-        <option value="seletivo"${initialValues.visibilidade === 'seletivo' ? ' selected' : ''}>Compartilhamento seletivo</option>
-      </select>
-    </label>
-    <label class="checkbox-label shared-edit-option">
-      <input name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
-      <span>
-        <strong>Autorizar alteracoes por outros usuarios</strong>
-        <small>Quando marcado, usuarios autorizados por esta privacidade tambem poderao editar este repertorio.</small>
-      </span>
-    </label>
-    <div class="selective-share-users" data-role="selective-users">
-      <strong>Usuarios com acesso</strong>
-      <div class="share-user-list">
-        ${users.map((user) => createUserOption(user, initialValues.compartilhado_com || [])).join('')}
+  const wrapper = document.createElement('section');
+  wrapper.className = 'repertorio-privacy-wrapper';
+  wrapper.innerHTML = `
+    <button class="nav-button privacy-toggle-button" type="button" aria-expanded="false">Configurar privacidade</button>
+    <fieldset class="repertorio-privacy-fields" hidden>
+      <legend>Privacidade</legend>
+      <label>
+        Tipo de compartilhamento
+        <select name="visibilidade">
+          <option value="privado"${initialValues.visibilidade === 'privado' ? ' selected' : ''}>Privado</option>
+          <option value="publico"${(initialValues.visibilidade || 'publico') === 'publico' ? ' selected' : ''}>Compartilhamento publico</option>
+          <option value="seletivo"${initialValues.visibilidade === 'seletivo' ? ' selected' : ''}>Compartilhamento seletivo</option>
+        </select>
+      </label>
+      <label class="checkbox-label shared-edit-option">
+        <input name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
+        <span>
+          <strong>Autorizar alteracoes por outros usuarios</strong>
+          <small>Quando marcado, usuarios autorizados por esta privacidade tambem poderao editar este repertorio.</small>
+        </span>
+      </label>
+      <div class="selective-share-users" data-role="selective-users">
+        <strong>Usuarios com acesso</strong>
+        <div class="share-user-list">
+          ${users.map((user) => createUserOption(user, initialValues.compartilhado_com || [])).join('')}
+        </div>
       </div>
-    </div>
+    </fieldset>
   `;
 
-  const visibilitySelect = fieldset.querySelector('[name="visibilidade"]');
+  const toggleButton = wrapper.querySelector('.privacy-toggle-button');
+  const fieldset = wrapper.querySelector('.repertorio-privacy-fields');
+  const visibilitySelect = wrapper.querySelector('[name="visibilidade"]');
+
+  toggleButton.addEventListener('click', () => {
+    const isOpening = fieldset.hidden;
+    fieldset.hidden = !isOpening;
+    toggleButton.setAttribute('aria-expanded', String(isOpening));
+    toggleButton.textContent = isOpening ? 'Ocultar privacidade' : 'Configurar privacidade';
+  });
 
   function updateSelectiveUsersVisibility() {
-    fieldset.querySelector('[data-role="selective-users"]').hidden = visibilitySelect.value !== 'seletivo';
+    wrapper.querySelector('[data-role="selective-users"]').hidden = visibilitySelect.value !== 'seletivo';
   }
 
   visibilitySelect.addEventListener('change', updateSelectiveUsersVisibility);
   updateSelectiveUsersVisibility();
 
-  return fieldset;
+  return wrapper;
 }
 
 export function getRepertorioPrivacyValues(form) {
