@@ -79,9 +79,9 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
       <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">›</button>
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">⛶</button>
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
-      <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer um semitom" title="Descer um semitom">-1</button>
+      <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
       <span class="transpose-status" data-role="transpose-status">Tom</span>
-      <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir um semitom" title="Subir um semitom">+1</button>
+      <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
       <label>
         Capo
         <select data-action="capo">

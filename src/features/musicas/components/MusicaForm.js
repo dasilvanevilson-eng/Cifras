@@ -69,9 +69,9 @@ export function MusicaForm(options = {}) {
     <section class="song-preview song-view" hidden>
       <div class="transpose-toolbar">
         <button class="nav-button preview-back" type="button" data-action="preview-back" aria-label="Voltar" title="Voltar">&larr;</button>
-        <button class="nav-button" type="button" data-preview-action="transpose-down">-1 semitom</button>
+        <button class="nav-button" type="button" data-preview-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
         <span data-preview="transpose-status">Tom</span>
-        <button class="nav-button" type="button" data-preview-action="transpose-up">+1 semitom</button>
+        <button class="nav-button" type="button" data-preview-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
         <button class="nav-button" type="button" data-preview-action="print">Imprimir</button>
       </div>
       <pre class="chordpro-view" data-preview="cifra"></pre>
