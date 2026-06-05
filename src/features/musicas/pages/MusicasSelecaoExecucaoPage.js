@@ -12,6 +12,7 @@ export async function MusicasSelecaoExecucaoPage() {
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean);
+  const initialMusicaId = params.get('musicaId') || '';
   const returnTo = params.get('returnTo') || '/dashboard';
 
   if (ids.length < 2) {
@@ -32,7 +33,7 @@ export async function MusicasSelecaoExecucaoPage() {
       throw new Error('Nao foi possivel encontrar as musicas selecionadas.');
     }
 
-    page.replaceChildren(createSelectionPerformanceView({ musicas, returnTo }));
+    page.replaceChildren(createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar a selecao.';
@@ -41,7 +42,7 @@ export async function MusicasSelecaoExecucaoPage() {
   return page;
 }
 
-function createSelectionPerformanceView({ musicas, returnTo }) {
+function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view selection-performance-view';
 
@@ -83,7 +84,7 @@ function createSelectionPerformanceView({ musicas, returnTo }) {
     list.append(createSongBlock(musica, index + 1, musicas.length));
   });
 
-  setupSelectionPerformanceControls(wrapper);
+  setupSelectionPerformanceControls(wrapper, { initialMusicaId });
   return wrapper;
 }
 
@@ -96,6 +97,7 @@ function createSongBlock(musica, number, total) {
   block.className = 'performance-song';
   block.tabIndex = -1;
   block.dataset.link = link !== '-' ? link : '';
+  block.dataset.musicaId = musica.id || '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
       <span class="repertorio-current-song-title">${escapeHtml(title)}</span>
@@ -109,7 +111,7 @@ function createSongBlock(musica, number, total) {
   return block;
 }
 
-function setupSelectionPerformanceControls(wrapper) {
+function setupSelectionPerformanceControls(wrapper, options = {}) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
@@ -128,8 +130,11 @@ function setupSelectionPerformanceControls(wrapper) {
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
   const songs = [...wrapper.querySelectorAll('.performance-song')];
   const songSemitones = songs.map(() => 0);
+  const initialIndex = options.initialMusicaId
+    ? songs.findIndex((song) => song.dataset.musicaId === options.initialMusicaId)
+    : -1;
   let scrollTimer = null;
-  let currentSongIndex = 0;
+  let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   let fontSize = 18;

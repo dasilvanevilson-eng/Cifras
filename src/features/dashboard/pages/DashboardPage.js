@@ -254,14 +254,16 @@ function createRepertorioMusicasList(repertorio, musicasAssociadas) {
 }
 
 function createMusicasList(musicas, context = {}) {
-  if (!musicas.length) {
+  const orderedMusicas = orderMusicasForDashboardSearch(musicas, context.selectedMusicas);
+
+  if (!orderedMusicas.length) {
     return createEmptyState('Nenhuma musica cadastrada ainda.');
   }
 
   const list = document.createElement('div');
   list.className = 'dashboard-list';
 
-  musicas.forEach((musica) => {
+  orderedMusicas.forEach((musica) => {
     const item = document.createElement('article');
     item.className = 'dashboard-list-item';
     item.tabIndex = 0;
@@ -276,7 +278,7 @@ function createMusicasList(musicas, context = {}) {
         <p>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a class="button-link secondary" href="${escapeHtml(getMusicaUrl(musica))}">Executar</a>
+        <a class="button-link secondary" data-action="execute-song" href="${escapeHtml(getMusicaUrl(musica))}">Executar</a>
       </div>
     `;
     item.addEventListener('click', (event) => {
@@ -298,10 +300,42 @@ function createMusicasList(musicas, context = {}) {
       button.title = selected ? 'Remover da selecao' : 'Adicionar a selecao';
       button.setAttribute('aria-label', selected ? 'Remover musica da selecao' : 'Adicionar musica a selecao');
     });
+    item.querySelector('[data-action="execute-song"]').addEventListener('click', (event) => {
+      if ((context.selectedMusicas || []).length < 2 || !isMusicaSelected(context.selectedMusicas, musica.id)) {
+        return;
+      }
+
+      event.preventDefault();
+      window.location.href = getSelecaoExecucaoUrl(context.selectedMusicas);
+    });
     list.append(item);
   });
 
   return list;
+}
+
+function orderMusicasForDashboardSearch(musicas = [], selectedMusicas = []) {
+  const musicasById = new Map();
+
+  [...selectedMusicas, ...musicas].forEach((musica) => {
+    if (musica?.id) {
+      musicasById.set(musica.id, musica);
+    }
+  });
+
+  return [...musicasById.values()].sort((a, b) => {
+    const aSelected = isMusicaSelected(selectedMusicas, a.id);
+    const bSelected = isMusicaSelected(selectedMusicas, b.id);
+
+    if (aSelected !== bSelected) {
+      return aSelected ? -1 : 1;
+    }
+
+    return compareText(
+      getField(a, ['titulo', 'nome', 'title']),
+      getField(b, ['titulo', 'nome', 'title']),
+    );
+  });
 }
 
 function toggleMusicaSelection(selectedMusicas = [], musica) {
@@ -383,7 +417,7 @@ function getMusicaUrl(musica) {
 }
 
 function getSelecaoExecucaoUrl(musicas) {
-  const ids = musicas.map((musica) => musica.id).filter(Boolean).join(',');
+  const ids = getMusicasOrdenadas(musicas).map((musica) => musica.id).filter(Boolean).join(',');
   return `/musicas/selecao-execucao?ids=${encodeURIComponent(ids)}&returnTo=/dashboard`;
 }
 
