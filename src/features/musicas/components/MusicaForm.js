@@ -1,5 +1,4 @@
 import {
-  convertCifraOriginalToNumbers,
   convertToChordPro,
   normalizeChordProLyrics,
   renderChordProForDisplay,
@@ -68,17 +67,15 @@ export function MusicaForm(options = {}) {
     </div>
 
     <section class="song-preview song-view" hidden>
-      <button class="back-link preview-back" type="button" data-action="preview-back">Voltar</button>
       <header class="song-header">
         <h1 data-preview="titulo"></h1>
         <p><span data-preview="artista"></span> - Tom: <span class="current-key" data-preview="tom"></span></p>
       </header>
       <div class="transpose-toolbar">
         <button class="nav-button" type="button" data-preview-action="transpose-down">-1 semitom</button>
+        <button class="nav-button preview-back" type="button" data-action="preview-back" aria-label="Voltar" title="Voltar">&larr;</button>
         <span data-preview="transpose-status">Original</span>
         <button class="nav-button" type="button" data-preview-action="transpose-up">+1 semitom</button>
-        <button class="nav-button" type="button" data-preview-action="transpose-reset">Original</button>
-        <button class="nav-button" type="button" data-preview-action="numbers">Numeros</button>
         <button class="nav-button" type="button" data-preview-action="print">Imprimir</button>
       </div>
       <pre class="chordpro-view" data-preview="cifra"></pre>
@@ -104,9 +101,11 @@ export function MusicaForm(options = {}) {
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
   const previewBackButton = form.querySelector('[data-action="preview-back"]');
+  const formTransposeState = {
+    semitones: 0,
+  };
   const previewState = {
     semitones: 0,
-    showNumbers: false,
     originalCifra: '',
     originalKey: '',
   };
@@ -153,7 +152,7 @@ export function MusicaForm(options = {}) {
       return;
     }
 
-    clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle);
+    clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
   });
 
   if (deleteButton) {
@@ -190,7 +189,7 @@ export function MusicaForm(options = {}) {
       previewState,
       form,
     });
-    updateFormTransposeStatus(formTransposeStatus, -1);
+    updateFormTransposeStatus(formTransposeStatus, formTransposeState, -1);
   });
 
   transposeFormUpButton.addEventListener('click', () => {
@@ -204,7 +203,7 @@ export function MusicaForm(options = {}) {
       previewState,
       form,
     });
-    updateFormTransposeStatus(formTransposeStatus, 1);
+    updateFormTransposeStatus(formTransposeStatus, formTransposeState, 1);
   });
 
   previewToggle.addEventListener('click', () => {
@@ -222,16 +221,6 @@ export function MusicaForm(options = {}) {
 
   previewPanel.querySelector('[data-preview-action="transpose-up"]').addEventListener('click', () => {
     previewState.semitones += 1;
-    renderPreviewCifra(previewPanel, previewState);
-  });
-
-  previewPanel.querySelector('[data-preview-action="transpose-reset"]').addEventListener('click', () => {
-    previewState.semitones = 0;
-    renderPreviewCifra(previewPanel, previewState);
-  });
-
-  previewPanel.querySelector('[data-preview-action="numbers"]').addEventListener('click', () => {
-    previewState.showNumbers = !previewState.showNumbers;
     renderPreviewCifra(previewPanel, previewState);
   });
 
@@ -258,7 +247,7 @@ export function MusicaForm(options = {}) {
       await options.onSubmit(getFormValues(form));
 
       if (!options.keepValuesAfterSubmit) {
-        clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle);
+        clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
       }
       message.className = 'form-message success';
       message.textContent = 'Musica salva com sucesso.';
@@ -277,15 +266,17 @@ export function MusicaForm(options = {}) {
   return form;
 }
 
-function clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle) {
+function clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {
   form.querySelectorAll('input, textarea').forEach((field) => {
     field.value = '';
   });
   setChordProValue(chordProTextarea, chordProEditor, '');
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
   if (formTransposeStatus) {
-    formTransposeStatus.dataset.semitones = '0';
-    formTransposeStatus.textContent = 'Tom';
+    if (formTransposeState) {
+      formTransposeState.semitones = 0;
+    }
+    renderFormTransposeStatus(formTransposeStatus, 0);
   }
   previewPanel.hidden = true;
   form.classList.remove('is-previewing');
@@ -317,12 +308,15 @@ function transposeFormFields({
   }
 }
 
-function updateFormTransposeStatus(status, delta) {
-  const nextSemitones = Number(status.dataset.semitones || 0) + delta;
-  status.dataset.semitones = String(nextSemitones);
-  status.textContent = nextSemitones === 0
+function updateFormTransposeStatus(status, formTransposeState, delta) {
+  formTransposeState.semitones += delta;
+  renderFormTransposeStatus(status, formTransposeState.semitones);
+}
+
+function renderFormTransposeStatus(status, semitones) {
+  status.textContent = semitones === 0
     ? 'Tom'
-    : `${nextSemitones > 0 ? '+' : ''}${nextSemitones}/2`;
+    : `${semitones > 0 ? '+' : ''}${semitones}/2`;
 }
 
 function openPreview(form, previewPanel, previewToggle, previewState) {
@@ -338,7 +332,6 @@ function closePreview(form, previewPanel, previewToggle, previewState) {
   form.classList.remove('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
   previewState.semitones = 0;
-  previewState.showNumbers = false;
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -409,14 +402,10 @@ function updatePreview(form, previewPanel, previewState = null) {
 function renderPreviewCifra(previewPanel, previewState) {
   const displayedKey = transposeKey(previewState.originalKey || '-', previewState.semitones);
   const displayedCifra = transposeCifraOriginal(previewState.originalCifra || '', previewState.semitones);
-  const displayHtml = previewState.showNumbers
-    ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
-    : renderCifraOriginalForDisplayHtml(displayedCifra);
 
   previewPanel.querySelector('[data-preview="tom"]').textContent = displayedKey;
   previewPanel.querySelector('[data-preview="transpose-status"]').textContent = formatTransposeStatus(previewState.semitones);
-  previewPanel.querySelector('[data-preview-action="numbers"]').textContent = previewState.showNumbers ? 'Cifras' : 'Numeros';
-  previewPanel.querySelector('[data-preview="cifra"]').innerHTML = displayHtml;
+  previewPanel.querySelector('[data-preview="cifra"]').innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
 }
 
 function formatTransposeStatus(semitones) {

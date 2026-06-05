@@ -1771,6 +1771,18 @@ a {
   text-decoration: underline;
 }
 
+.song-preview .transpose-toolbar .preview-back {
+  border: 1px solid #cfc7b8;
+  min-width: 44px;
+  min-height: 40px;
+  padding: 8px 10px;
+  background: #ffffff;
+  color: #181818;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
 .form label {
   display: grid;
   gap: 6px;
