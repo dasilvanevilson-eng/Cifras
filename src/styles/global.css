@@ -773,7 +773,7 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 0.65rem;
   align-items: center;
   border: 1px solid #ddd6c8;
@@ -808,6 +808,37 @@ a {
 
 .selected-repertorio-song small {
   color: #6f675c;
+}
+
+.selected-repertorio-song-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.selected-repertorio-song-actions .nav-button {
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.link-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #1d4f45;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.link-button:hover,
+.link-button:focus {
+  color: #143a33;
+  outline: 0;
 }
 
 .repertorio-history-panel {
@@ -2847,6 +2878,21 @@ a {
   font-size: 1.1rem;
 }
 
+.repertorio-form-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.repertorio-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
 .repertorio-title-date-grid {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(170px, 190px) minmax(180px, auto);
@@ -2864,6 +2910,10 @@ a {
 
 .repertorio-music-fields {
   position: relative;
+}
+
+.repertorio-music-fields:empty {
+  display: none;
 }
 
 .new-repertorio-form .repertorio-privacy-wrapper,
@@ -2905,6 +2955,15 @@ a {
   .new-repertorio-form,
   .repertorio-title-date-grid {
     grid-template-columns: 1fr;
+  }
+
+  .selected-repertorio-song {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .selected-repertorio-song-actions {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
   }
 
   .new-repertorio-form .selected-repertorio-songs {

@@ -210,6 +210,31 @@ export async function addMusicaToRepertorio(repertorioId, musicaId, ordem, tom =
   });
 }
 
+export async function replaceMusicasDoRepertorio(repertorioId, musicas = []) {
+  assertSupabaseConfig();
+
+  const { error: deleteError } = await supabase
+    .from('repertorio_musicas')
+    .delete()
+    .eq('repertorio_id', repertorioId);
+
+  if (deleteError) {
+    return { error: deleteError };
+  }
+
+  if (!musicas.length) {
+    return { error: null };
+  }
+
+  return supabase.from('repertorio_musicas').insert(musicas.map((musica, index) => ({
+    repertorio_id: repertorioId,
+    musica_id: musica.id,
+    ordem: index + 1,
+    tom: musica.tom || null,
+    observacao: musica.observacao || null,
+  })));
+}
+
 export async function removeMusicaDoRepertorio(id) {
   assertSupabaseConfig();
   return supabase.from('repertorio_musicas').delete().eq('id', id);

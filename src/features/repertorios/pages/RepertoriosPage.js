@@ -1,7 +1,18 @@
 import { RepertorioPrivacyFields, getRepertorioPrivacyValues } from '../components/RepertorioPrivacyFields.js';
 import { listMusicas } from '../../../services/musicasService.js';
 import { listShareableProfiles } from '../../../services/profilesService.js';
-import { createRepertorioComMusicas, listRepertorios } from '../../../services/repertoriosService.js';
+import {
+  createRepertorioComMusicas,
+  deleteRepertorio,
+  duplicateRepertorio,
+  listMusicasDoRepertorio,
+  listRepertorioCompartilhamentos,
+  listRepertorioHistorico,
+  listRepertorios,
+  replaceMusicasDoRepertorio,
+  replaceRepertorioCompartilhamentos,
+  updateRepertorio,
+} from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function RepertoriosPage({ session } = {}) {
@@ -22,9 +33,40 @@ export async function RepertoriosPage({ session } = {}) {
   const formSlot = page.querySelector('.form-slot');
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
+  let loadedRepertorios = [];
+
+  async function renderForm(selectedRepertorio = null) {
+    if (!canEdit) return;
+
+    formSlot.innerHTML = '<p class="page-status">Carregando formulario...</p>';
+    formSlot.replaceChildren(await createRepertorioUnifiedForm({
+      existingRepertorios: loadedRepertorios,
+      selectedRepertorio,
+      onNew: () => renderForm(),
+    }));
+  }
+
+  try {
+    const { data, error } = await listRepertorios();
+
+    if (error) {
+      throw error;
+    }
+
+    loadedRepertorios = data || [];
+
+    if (!loadedRepertorios.length) {
+      listSlot.replaceChildren(createRepertoriosBrowser([], { onSelect: renderForm }));
+    } else {
+      listSlot.replaceChildren(createRepertoriosBrowser(loadedRepertorios, { onSelect: renderForm }));
+    }
+  } catch (error) {
+    status.className = 'page-status error';
+    status.textContent = error.message || 'Nao foi possivel carregar os repertorios.';
+  }
 
   if (canEdit) {
-    formSlot.append(await createNewRepertorioForm());
+    await renderForm();
   } else {
     formSlot.append(createReadOnlyNotice(
       'No momento seu acesso e restrito nesta opcao.',
@@ -39,28 +81,10 @@ export async function RepertoriosPage({ session } = {}) {
     ));
   }
 
-  try {
-    const { data, error } = await listRepertorios();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data || data.length === 0) {
-      listSlot.replaceChildren(createRepertoriosBrowser([]));
-      return page;
-    }
-
-    listSlot.replaceChildren(createRepertoriosBrowser(data));
-  } catch (error) {
-    status.className = 'page-status error';
-    status.textContent = error.message || 'Nao foi possivel carregar os repertorios.';
-  }
-
   return page;
 }
 
-async function createNewRepertorioForm() {
+async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedRepertorio = null, onNew } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'new-repertorio-panel';
   wrapper.innerHTML = '<p class="page-status">Carregando musicas...</p>';
@@ -68,9 +92,21 @@ async function createNewRepertorioForm() {
   const [
     { data: musicas, error },
     { data: users, error: usersError },
+    { data: musicasAssociadas, error: musicasAssociadasError },
+    { data: compartilhamentos, error: compartilhamentosError },
+    { data: historico, error: historicoError },
   ] = await Promise.all([
     listMusicas(),
     listShareableProfiles(),
+    ...(selectedRepertorio ? [
+      listMusicasDoRepertorio(selectedRepertorio.id),
+      listRepertorioCompartilhamentos(selectedRepertorio.id),
+      listRepertorioHistorico(selectedRepertorio.id),
+    ] : [
+      Promise.resolve({ data: [], error: null }),
+      Promise.resolve({ data: [], error: null }),
+      Promise.resolve({ data: [], error: null }),
+    ]),
   ]);
 
   if (error) {
@@ -81,51 +117,81 @@ async function createNewRepertorioForm() {
     wrapper.innerHTML = `<p class="page-status error">${escapeHtml(usersError.message || 'Nao foi possivel carregar os usuarios.')}</p>`;
     return wrapper;
   }
+  if (musicasAssociadasError) {
+    wrapper.innerHTML = `<p class="page-status error">${escapeHtml(musicasAssociadasError.message || 'Nao foi possivel carregar as musicas do repertorio.')}</p>`;
+    return wrapper;
+  }
+  if (compartilhamentosError) {
+    wrapper.innerHTML = `<p class="page-status error">${escapeHtml(compartilhamentosError.message || 'Nao foi possivel carregar os compartilhamentos.')}</p>`;
+    return wrapper;
+  }
+  if (historicoError) {
+    wrapper.innerHTML = `<p class="page-status error">${escapeHtml(historicoError.message || 'Nao foi possivel carregar o historico.')}</p>`;
+    return wrapper;
+  }
 
-  wrapper.replaceChildren(createNewRepertorioComposer(musicas || [], users || []));
+  wrapper.replaceChildren(createNewRepertorioComposer(musicas || [], users || [], existingRepertorios, {
+    selectedRepertorio,
+    musicasAssociadas: musicasAssociadas || [],
+    compartilhamentos: compartilhamentos || [],
+    historico: historico || [],
+    onNew,
+  }));
   return wrapper;
 }
 
-function createNewRepertorioComposer(musicas, users) {
+function createNewRepertorioComposer(musicas, users, existingRepertorios = [], options = {}) {
+  const selectedRepertorio = options.selectedRepertorio || null;
+  const isEditing = Boolean(selectedRepertorio?.id);
   const form = document.createElement('form');
   form.className = 'form new-repertorio-form';
   form.innerHTML = `
     <section class="repertorio-form-section repertorio-basic-fields">
-      <h2>Novo repertorio</h2>
+      <div class="repertorio-form-heading">
+        <h2>${isEditing ? 'Editar repertorio' : 'Novo repertorio'}</h2>
+        <div class="repertorio-inline-actions"></div>
+      </div>
       <div class="repertorio-title-date-grid">
         <label>
           Nome
-          <input name="nome" type="text" required>
+          <input name="nome" type="text" required value="${escapeHtml(selectedRepertorio?.nome || '')}">
         </label>
 
         <label>
           Data
-          <input name="data" type="date">
+          <input name="data" type="date" value="${escapeHtml(selectedRepertorio?.data || '')}">
         </label>
       </div>
       <label class="repertorio-song-search-field">
         Buscar musica
         <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
       </label>
-    </section>
-
-    <section class="repertorio-form-section repertorio-music-fields">
       <div class="song-search-results" hidden></div>
       <div class="selected-repertorio-songs"></div>
     </section>
 
+    <section class="repertorio-form-section repertorio-music-fields">
+    </section>
+
     <div class="repertorio-save-bar">
-      <button class="button" type="submit" disabled>Salvar repertorio</button>
+      <button class="button" type="submit" disabled>${isEditing ? 'Salvar alteracoes' : 'Salvar repertorio'}</button>
       <p class="form-message" aria-live="polite"></p>
     </div>
+    <section class="repertorio-history-panel" hidden>
+      <div class="repertorio-history-dialog" role="dialog" aria-modal="false" aria-label="Historico de alteracoes">
+        <h2>Historico de alteracoes</h2>
+        <div class="history-slot"></div>
+      </div>
+    </section>
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
   form.querySelector('.repertorio-title-date-grid').append(RepertorioPrivacyFields({
     users,
     initialValues: {
-      visibilidade: 'publico',
-      permite_edicao_compartilhada: false,
+      visibilidade: selectedRepertorio?.visibilidade || 'publico',
+      permite_edicao_compartilhada: Boolean(selectedRepertorio?.permite_edicao_compartilhada),
+      compartilhado_com: (options.compartilhamentos || []).map((item) => item.user_id),
     },
   }));
   const searchInput = form.querySelector('.song-search-input');
@@ -133,12 +199,24 @@ function createNewRepertorioComposer(musicas, users) {
   const selectedSlot = form.querySelector('.selected-repertorio-songs');
   const submitButton = form.querySelector('button[type="submit"]');
   const message = form.querySelector('.form-message');
-  const selectedMusicas = [];
+  const selectedMusicas = (options.musicasAssociadas || [])
+    .filter((item) => item.musica_id && item.musicas)
+    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
+    .map((item) => ({
+      ...item.musicas,
+      tom: item.tom || item.musicas?.tom || '',
+      observacao: item.observacao || '',
+    }));
   const sortedMusicas = sortMusicasByName(musicas);
+  const existingNames = new Set(existingRepertorios
+    .filter((repertorio) => !isEditing || repertorio.id !== selectedRepertorio.id)
+    .map((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name']))));
   let isPointerInsideResults = false;
 
+  renderInlineActions();
+
   function updateSubmitState() {
-    submitButton.disabled = !nomeInput.value.trim() || selectedMusicas.length === 0;
+    submitButton.disabled = !nomeInput.value.trim();
   }
 
   function renderResults() {
@@ -207,10 +285,28 @@ function createNewRepertorioComposer(musicas, users) {
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
           <small>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</small>
         </div>
+        <div class="selected-repertorio-song-actions">
+          <button class="nav-button" type="button" data-action="up" ${index === 0 ? 'disabled' : ''}>Subir</button>
+          <button class="nav-button" type="button" data-action="down" ${index === selectedMusicas.length - 1 ? 'disabled' : ''}>Descer</button>
+        </div>
         <button class="danger-button icon-button" type="button" aria-label="Remover musica">&#128465;</button>
       `;
 
-      row.querySelector('button').addEventListener('click', () => {
+      row.querySelector('[data-action="up"]').addEventListener('click', () => {
+        if (index === 0) return;
+
+        [selectedMusicas[index - 1], selectedMusicas[index]] = [selectedMusicas[index], selectedMusicas[index - 1]];
+        renderSelected();
+      });
+
+      row.querySelector('[data-action="down"]').addEventListener('click', () => {
+        if (index >= selectedMusicas.length - 1) return;
+
+        [selectedMusicas[index], selectedMusicas[index + 1]] = [selectedMusicas[index + 1], selectedMusicas[index]];
+        renderSelected();
+      });
+
+      row.querySelector('.danger-button').addEventListener('click', () => {
         selectedMusicas.splice(index, 1);
         renderSelected();
         renderResults();
@@ -266,6 +362,13 @@ function createNewRepertorioComposer(musicas, users) {
       return;
     }
 
+    if (existingNames.has(normalizeText(nomeInput.value))) {
+      message.className = 'form-message error';
+      message.textContent = 'Ja existe um repertorio cadastrado com esse nome.';
+      nomeInput.focus();
+      return;
+    }
+
     if (!selectedMusicas.length) {
       message.className = 'form-message error';
       message.textContent = 'Inclua pelo menos uma musica antes de salvar o repertorio.';
@@ -284,6 +387,44 @@ function createNewRepertorioComposer(musicas, users) {
       message.className = 'form-message error';
       message.textContent = 'Selecione pelo menos um usuario para o compartilhamento seletivo.';
       updateSubmitState();
+      return;
+    }
+
+    if (isEditing) {
+      const { error: updateError } = await updateRepertorio(selectedRepertorio.id, {
+        nome: String(formData.get('nome') || '').trim(),
+        data: String(formData.get('data') || '') || null,
+        ...privacyValues.repertorio,
+      });
+
+      if (updateError) {
+        message.className = 'form-message error';
+        message.textContent = updateError.message || 'Nao foi possivel salvar o repertorio.';
+        updateSubmitState();
+        return;
+      }
+
+      const { error: musicasError } = await replaceMusicasDoRepertorio(selectedRepertorio.id, selectedMusicas);
+
+      if (musicasError) {
+        message.className = 'form-message error';
+        message.textContent = musicasError.message || 'Nao foi possivel salvar as musicas do repertorio.';
+        updateSubmitState();
+        return;
+      }
+
+      const { error: compartilhamentoError } = await replaceRepertorioCompartilhamentos(selectedRepertorio.id, privacyValues.compartilhadoCom);
+
+      if (compartilhamentoError) {
+        message.className = 'form-message error';
+        message.textContent = compartilhamentoError.message || 'Nao foi possivel salvar o compartilhamento.';
+        updateSubmitState();
+        return;
+      }
+
+      message.className = 'form-message success';
+      message.textContent = 'Repertorio atualizado com sucesso.';
+      window.location.href = '/repertorios';
       return;
     }
 
@@ -310,6 +451,105 @@ function createNewRepertorioComposer(musicas, users) {
   updateSubmitState();
 
   return form;
+
+  function renderInlineActions() {
+    if (!isEditing) return;
+
+    const actions = form.querySelector('.repertorio-inline-actions');
+    actions.innerHTML = `
+      <button class="button-link secondary" type="button" data-action="new">Novo</button>
+      <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(selectedRepertorio.id)}">Execucao</a>
+      <button class="nav-button" type="button" data-action="duplicate">Duplicar</button>
+      <button class="nav-button" type="button" data-action="history">Historico</button>
+      <button class="danger-button" type="button" data-action="delete">Excluir</button>
+    `;
+
+    actions.querySelector('[data-action="new"]').addEventListener('click', () => {
+      if (options.onNew) options.onNew();
+    });
+
+    actions.querySelector('[data-action="duplicate"]').addEventListener('click', async () => {
+      const confirmed = window.confirm('Duplicar este repertorio com as mesmas musicas e ordem?');
+      if (!confirmed) return;
+
+      const { error } = await duplicateRepertorio(selectedRepertorio, options.musicasAssociadas || []);
+
+      if (error) {
+        window.alert(error.message || 'Nao foi possivel duplicar o repertorio.');
+        return;
+      }
+
+      window.location.href = '/repertorios';
+    });
+
+    actions.querySelector('[data-action="history"]').addEventListener('click', () => {
+      const panel = form.querySelector('.repertorio-history-panel');
+      const isOpening = panel.hidden;
+      panel.hidden = !isOpening;
+      actions.querySelector('[data-action="history"]').textContent = isOpening ? 'Ocultar historico' : 'Historico';
+    });
+
+    actions.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+      const confirmed = window.confirm(`Excluir o repertorio "${selectedRepertorio.nome}"?`);
+      if (!confirmed) return;
+
+      const { error } = await deleteRepertorio(selectedRepertorio.id);
+
+      if (error) {
+        window.alert(error.message || 'Nao foi possivel excluir o repertorio.');
+        return;
+      }
+
+      window.location.href = '/repertorios';
+    });
+
+    form.querySelector('.history-slot').append(createHistoryList(options.historico || []));
+  }
+}
+
+function createHistoryList(items = []) {
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'page-status';
+    empty.textContent = 'Nenhuma alteracao registrada ainda.';
+    return empty;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'repertorio-history-list';
+
+  items.slice(0, 80).forEach((item) => {
+    const row = document.createElement('article');
+    row.className = 'repertorio-history-item';
+    row.innerHTML = `
+      <div>
+        <strong>${escapeHtml(item.acao || 'Alteracao')}</strong>
+        <span>${escapeHtml(formatHistoryDetails(item.detalhes))}</span>
+      </div>
+      <small>${escapeHtml([item.usuario_nome || 'Usuario', formatDateTime(item.created_at)].filter(Boolean).join(' - '))}</small>
+    `;
+    list.append(row);
+  });
+
+  return list;
+}
+
+function formatHistoryDetails(details) {
+  if (!details || typeof details !== 'object') {
+    return '';
+  }
+
+  const values = [
+    details.musica,
+    details.usuario,
+    details.nome_novo && details.nome_anterior !== details.nome_novo ? `Nome: ${details.nome_novo}` : '',
+    details.visibilidade_nova && details.visibilidade_anterior !== details.visibilidade_nova ? `Privacidade: ${details.visibilidade_nova}` : '',
+    details.ordem_nova && details.ordem_anterior !== details.ordem_nova ? `Ordem: ${details.ordem_nova}` : '',
+    details.tom_novo && details.tom_anterior !== details.tom_novo ? `Tom: ${details.tom_novo}` : '',
+    details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Obs.: ${details.observacao_nova}` : '',
+  ].filter(Boolean);
+
+  return values.join(' | ');
 }
 
 function createReadOnlyNotice(text, items = []) {
@@ -354,7 +594,7 @@ function normalizeText(value) {
     .trim();
 }
 
-function createRepertoriosBrowser(repertorios) {
+function createRepertoriosBrowser(repertorios, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser repertorios-browser';
   wrapper.innerHTML = `
@@ -371,6 +611,17 @@ function createRepertoriosBrowser(repertorios) {
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
   let currentResults = [];
+
+  function selectRepertorio(repertorio) {
+    if (!options.onSelect) {
+      window.location.href = getRepertorioUrl(repertorio);
+      return;
+    }
+
+    options.onSelect(repertorio);
+    searchInput.value = getField(repertorio, ['nome', 'titulo', 'name']);
+    tableSlot.hidden = true;
+  }
 
   function render() {
     const query = normalizeText(searchInput.value);
@@ -391,7 +642,10 @@ function createRepertoriosBrowser(repertorios) {
       return;
     }
 
-    tableSlot.replaceChildren(createRepertoriosTable(currentResults));
+    tableSlot.replaceChildren(createRepertoriosTable(currentResults, {
+      ...options,
+      onSelect: options.onSelect ? selectRepertorio : null,
+    }));
   }
 
   searchInput.addEventListener('input', () => {
@@ -416,7 +670,7 @@ function createRepertoriosBrowser(repertorios) {
     if (event.key !== 'Enter' || !currentResults.length) return;
 
     event.preventDefault();
-    window.location.href = getRepertorioUrl(currentResults[0]);
+    selectRepertorio(currentResults[0]);
   });
 
   tableSlot.addEventListener('mouseenter', () => {
@@ -452,7 +706,7 @@ function matchesRepertorioSearch(repertorio, query) {
   ].join(' ')).includes(query);
 }
 
-function createRepertoriosTable(repertorios) {
+function createRepertoriosTable(repertorios, options = {}) {
   const table = document.createElement('table');
   table.className = 'data-table';
   table.innerHTML = `
@@ -460,6 +714,7 @@ function createRepertoriosTable(repertorios) {
       <tr>
         <th>Nome</th>
         <th>Data</th>
+        ${options.onSelect ? '<th>Acao</th>' : ''}
       </tr>
     </thead>
     <tbody></tbody>
@@ -469,13 +724,34 @@ function createRepertoriosTable(repertorios) {
 
   repertorios.forEach((repertorio) => {
     const row = document.createElement('tr');
-    const id = getField(repertorio, ['id']);
     const nome = getField(repertorio, ['nome', 'titulo', 'name']);
 
+    row.className = options.onSelect ? 'clickable-row' : '';
+    row.tabIndex = options.onSelect ? 0 : -1;
     row.innerHTML = `
-      <td><a href="${escapeHtml(getRepertorioUrl(repertorio))}">${escapeHtml(nome)}</a></td>
+      <td>${options.onSelect
+        ? `<button class="link-button repertorio-select-link" type="button">${escapeHtml(nome)}</button>`
+        : `<a href="${escapeHtml(getRepertorioUrl(repertorio))}">${escapeHtml(nome)}</a>`}</td>
       <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
+      ${options.onSelect ? '<td><button class="nav-button" type="button">Editar</button></td>' : ''}
     `;
+
+    if (options.onSelect) {
+      const select = () => options.onSelect(repertorio);
+      row.addEventListener('click', select);
+      row.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        select();
+      });
+      row.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          select();
+        });
+      });
+    }
+
     body.append(row);
   });
 
@@ -499,6 +775,12 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = value.split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('pt-BR');
 }
 
 function escapeHtml(value) {
