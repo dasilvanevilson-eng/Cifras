@@ -34,11 +34,14 @@ as $$
         r.visibilidade = 'publico'
         or r.criado_por = auth.uid()
         or public.current_user_role() = 'admin'
-        or exists (
-          select 1
-          from public.repertorio_compartilhamentos rc
-          where rc.repertorio_id = r.id
-            and rc.user_id = auth.uid()
+        or (
+          r.visibilidade = 'seletivo'
+          and exists (
+            select 1
+            from public.repertorio_compartilhamentos rc
+            where rc.repertorio_id = r.id
+              and rc.user_id = auth.uid()
+          )
         )
       )
   )
@@ -63,11 +66,14 @@ as $$
           r.permite_edicao_compartilhada
           and (
             r.visibilidade = 'publico'
-            or exists (
-              select 1
-              from public.repertorio_compartilhamentos rc
-              where rc.repertorio_id = r.id
-                and rc.user_id = auth.uid()
+            or (
+              r.visibilidade = 'seletivo'
+              and exists (
+                select 1
+                from public.repertorio_compartilhamentos rc
+                where rc.repertorio_id = r.id
+                  and rc.user_id = auth.uid()
+              )
             )
           )
         )
