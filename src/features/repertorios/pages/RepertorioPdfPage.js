@@ -129,12 +129,14 @@ function printWithSuggestedFilename(filename, originalTitle) {
 
 function createSummaryItem(item, number) {
   const title = getSongTitle(item);
+  const momento = getSongMoment(item);
   const deletedLabel = isMusicaExcluida(item) ? ' - excluida do acervo' : '';
 
   return `
     <li>
       <a href="#musica-${number}">
         <span>${number}. ${escapeHtml(title)}${escapeHtml(deletedLabel)}</span>
+        ${momento ? `<small>${escapeHtml(momento)}</small>` : ''}
       </a>
     </li>
   `;
@@ -146,6 +148,7 @@ function createSongSection(item, number) {
   const artist = getSongArtist(item);
   const key = getSongKey(item);
   const link = getSongLink(item);
+  const momento = getSongMoment(item);
   const cifra = deleted ? '' : getCifraExibicao(item.musicas || {});
 
   return `
@@ -155,6 +158,7 @@ function createSongSection(item, number) {
         <div>
           <h2>${escapeHtml(deleted ? `${title} (excluida)` : title)}</h2>
           <span>${escapeHtml(artist)} - Tom: ${escapeHtml(key)}</span>
+          ${momento ? `<small class="repertorio-song-moment">Momento: ${escapeHtml(momento)}</small>` : ''}
           ${link ? `<a class="pdf-index-link pdf-song-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Link</a>` : ''}
           <a class="pdf-index-link" href="#indice">Voltar ao indice</a>
         </div>
@@ -190,6 +194,11 @@ function getSongLink(item) {
 
   const link = getField(item.musicas || {}, ['musica_link']);
   return link !== '-' ? link : '';
+}
+
+function getSongMoment(item) {
+  const momento = getField(item, ['observacao']);
+  return momento !== '-' ? momento : '';
 }
 
 function isMusicaExcluida(item) {

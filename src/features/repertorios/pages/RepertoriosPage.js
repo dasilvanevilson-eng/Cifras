@@ -251,7 +251,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       `;
 
       item.addEventListener('click', () => {
-        selectedMusicas.push(musica);
+        selectedMusicas.push({
+          ...musica,
+          observacao: '',
+        });
         searchInput.value = '';
         message.textContent = '';
         message.className = 'form-message';
@@ -289,6 +292,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
           <small>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</small>
         </div>
+        <label class="selected-repertorio-song-moment">
+          <span>Momento</span>
+          <input type="text" maxlength="80" value="${escapeHtml(musica.observacao || '')}" placeholder="Entrada, louvor...">
+        </label>
         <button class="danger-button icon-button" type="button" aria-label="Remover musica">&#128465;</button>
       `;
 
@@ -331,6 +338,12 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         renderSelected();
         renderResults();
         updateSubmitState();
+      });
+      row.querySelector('.selected-repertorio-song-moment input').addEventListener('input', (event) => {
+        selectedMusicas[index].observacao = event.target.value.trim();
+      });
+      row.querySelector('.selected-repertorio-song-moment input').addEventListener('pointerdown', (event) => {
+        event.stopPropagation();
       });
 
       list.append(row);
@@ -586,7 +599,7 @@ function formatHistoryDetails(details) {
     details.visibilidade_nova && details.visibilidade_anterior !== details.visibilidade_nova ? `Privacidade: ${details.visibilidade_nova}` : '',
     details.ordem_nova && details.ordem_anterior !== details.ordem_nova ? `Ordem: ${details.ordem_nova}` : '',
     details.tom_novo && details.tom_anterior !== details.tom_novo ? `Tom: ${details.tom_novo}` : '',
-    details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Obs.: ${details.observacao_nova}` : '',
+    details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Momento: ${details.observacao_nova}` : '',
   ].filter(Boolean);
 
   return values.join(' | ');

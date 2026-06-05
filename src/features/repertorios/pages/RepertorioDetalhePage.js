@@ -220,7 +220,7 @@ function formatHistoryDetails(details) {
     details.visibilidade_nova && details.visibilidade_anterior !== details.visibilidade_nova ? `Privacidade: ${details.visibilidade_nova}` : '',
     details.ordem_nova && details.ordem_anterior !== details.ordem_nova ? `Ordem: ${details.ordem_nova}` : '',
     details.tom_novo && details.tom_anterior !== details.tom_novo ? `Tom: ${details.tom_novo}` : '',
-    details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Obs.: ${details.observacao_nova}` : '',
+    details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Momento: ${details.observacao_nova}` : '',
   ].filter(Boolean);
 
   return values.join(' | ');
@@ -327,7 +327,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
       <input name="musica_id" type="hidden" required>
     </label>
     <label class="repertorio-song-observation-add">
-      <input name="observacao" type="text" size="1" maxlength="80" placeholder="Obs." aria-label="Observacao da musica no repertorio">
+      <input name="observacao" type="text" size="1" maxlength="80" placeholder="Momento" aria-label="Momento da musica no repertorio">
     </label>
     <div class="song-search-results" hidden></div>
     <button class="button" type="submit">Adicionar ao repertorio</button>
@@ -521,8 +521,8 @@ function createMusicasList(items, options = {}) {
             ? `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(musicaNome)}</a>`
             : `<span>${escapeHtml(musicaNome)}</span>`}
           ${options.canEdit
-            ? `<input class="repertorio-song-observation" type="text" size="1" maxlength="80" value="${escapeHtml(item.observacao || '')}" placeholder="Obs." aria-label="Observacao de ${escapeHtml(musicaNome)}" data-association-id="${escapeHtml(item.id)}">`
-            : `${item.observacao ? `<small>${escapeHtml(item.observacao)}</small>` : ''}`}
+            ? `<input class="repertorio-song-observation" type="text" size="1" maxlength="80" value="${escapeHtml(item.observacao || '')}" placeholder="Momento" aria-label="Momento de ${escapeHtml(musicaNome)}" data-association-id="${escapeHtml(item.id)}">`
+            : `${item.observacao ? `<small class="repertorio-song-moment">Momento: ${escapeHtml(item.observacao)}</small>` : ''}`}
         </span>
         ${!musicaUrl ? '<small>Musica excluida do acervo</small>' : ''}
       </td>
@@ -557,7 +557,7 @@ function setupObservationInput(input) {
     if (nextValue === lastSavedValue) return;
 
     input.disabled = true;
-    input.title = 'Salvando observacao...';
+    input.title = 'Salvando momento...';
 
     const { error } = await updateObservacaoMusicaRepertorio(
       input.dataset.associationId,
@@ -568,13 +568,13 @@ function setupObservationInput(input) {
 
     if (error) {
       input.value = lastSavedValue;
-      input.title = 'Nao foi possivel salvar a observacao.';
-      window.alert(error.message || 'Nao foi possivel salvar a observacao.');
+      input.title = 'Nao foi possivel salvar o momento.';
+      window.alert(error.message || 'Nao foi possivel salvar o momento.');
       return;
     }
 
     lastSavedValue = nextValue;
-    input.title = nextValue || 'Observacao da musica no repertorio';
+    input.title = nextValue || 'Momento da musica no repertorio';
   });
 }
 

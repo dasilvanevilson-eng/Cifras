@@ -466,8 +466,8 @@ a {
 
 .repertorio-song-observation,
 .repertorio-song-observation-add input {
-  width: 54px;
-  min-width: 54px;
+  width: 118px;
+  min-width: 118px;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
   padding: 4px 6px;
@@ -773,7 +773,7 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) minmax(150px, 210px) auto;
   gap: 0.65rem;
   align-items: center;
   border: 1px solid #ddd6c8;
@@ -818,6 +818,32 @@ a {
 
 .selected-repertorio-song small {
   color: #6f675c;
+}
+
+.selected-repertorio-song-moment {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selected-repertorio-song-moment input {
+  width: 100%;
+  border: 1px solid #cfc7b8;
+  padding: 7px 8px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.repertorio-song-moment,
+.repertorio-song-moment-inline {
+  color: #8a4d14;
+  font-weight: 700;
 }
 
 .link-button {
@@ -1988,6 +2014,11 @@ a {
   color: #5f594f;
 }
 
+.pdf-song header small.repertorio-song-moment {
+  display: block;
+  margin-top: 4px;
+}
+
 .pdf-index-link {
   display: inline-block;
   margin-top: 6px;
@@ -2968,6 +2999,10 @@ a {
 
   .selected-repertorio-song {
     grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .selected-repertorio-song-moment {
+    grid-column: 2 / -1;
   }
 
   .new-repertorio-form .selected-repertorio-songs {

@@ -118,6 +118,7 @@ function createSongBlockLegacy(item, number) {
   const artist = musicaExcluida ? getField(item, ['musica_artista']) : getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
   const cifraOriginal = getCifraExibicao(musica);
+  const momento = getField(item, ['observacao']);
 
   const block = document.createElement('section');
   block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
@@ -129,6 +130,7 @@ function createSongBlockLegacy(item, number) {
       <div>
         <h2>${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</h2>
         <p>${escapeHtml(artist)} - Tom: <span class="current-key" data-original-key="${escapeHtml(key)}">${escapeHtml(key)}</span></p>
+        ${momento !== '-' ? `<p class="repertorio-song-moment">Momento: ${escapeHtml(momento)}</p>` : ''}
       </div>
     </header>
     ${musicaExcluida
@@ -426,6 +428,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   const baseSemitones = getTransposeSemitones(originalKey, repertorioKey);
   const cifraOriginal = getCifraExibicao(musica);
   const link = musicaExcluida ? '-' : getField(musica, ['musica_link']);
+  const momento = getField(item, ['observacao']);
 
   const block = document.createElement('section');
   block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
@@ -438,6 +441,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
       <span class="repertorio-current-song-title">${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</span>
       <span class="title-separator" aria-hidden="true">/</span>
       <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
+      ${momento !== '-' ? `<span class="title-separator" aria-hidden="true">/</span><span class="repertorio-song-moment-inline">${escapeHtml(momento)}</span>` : ''}
       <data class="current-key" data-original-key="${escapeHtml(originalKey)}" data-base-semitones="${baseSemitones}" hidden>${escapeHtml(repertorioKey)}</data>
     </header>
     ${musicaExcluida
