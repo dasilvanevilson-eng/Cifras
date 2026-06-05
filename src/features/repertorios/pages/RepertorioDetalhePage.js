@@ -4,6 +4,7 @@ import {
   deleteRepertorio,
   duplicateRepertorio,
   getRepertorioById,
+  listRepertorioCompartilhamentos,
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
   updateObservacaoMusicaRepertorio,
@@ -29,14 +30,21 @@ export async function RepertorioDetalhePage({ session } = {}) {
   }
 
   try {
-    const [{ data: repertorio, error: repertorioError }, musicasAssociadas, { data: musicas, error: musicasError }] = await Promise.all([
+    const [
+      { data: repertorio, error: repertorioError },
+      musicasAssociadas,
+      { data: musicas, error: musicasError },
+      { data: compartilhamentos, error: compartilhamentosError },
+    ] = await Promise.all([
       getRepertorioById(id),
       loadMusicasDoRepertorio(id),
       listMusicas(),
+      listRepertorioCompartilhamentos(id),
     ]);
 
     if (repertorioError) throw repertorioError;
     if (musicasError) throw musicasError;
+    if (compartilhamentosError) throw compartilhamentosError;
 
     addRecentItem({
       type: 'repertorio',
@@ -49,7 +57,7 @@ export async function RepertorioDetalhePage({ session } = {}) {
       repertorio,
       musicasAssociadas,
       musicas: musicas || [],
-      canEdit: canEditContent(session?.profile?.papel),
+      canEdit: canEditRepertorio(repertorio, compartilhamentos || [], session),
       returnTo,
     }));
   } catch (error) {
@@ -116,6 +124,34 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, canEdit,
   listSlot.append(createMusicasList(normalizeOrder(musicasAssociadas), { canEdit }));
 
   return wrapper;
+}
+
+function canEditRepertorio(repertorio, compartilhamentos, session = {}) {
+  if (!canEditContent(session?.profile?.papel)) {
+    return false;
+  }
+
+  if (session?.profile?.papel === 'admin') {
+    return true;
+  }
+
+  if (repertorio?.criado_por && repertorio.criado_por === session?.user?.id) {
+    return true;
+  }
+
+  if (!repertorio?.permite_edicao_compartilhada) {
+    return false;
+  }
+
+  if (repertorio.visibilidade === 'publico') {
+    return true;
+  }
+
+  if (repertorio.visibilidade === 'seletivo') {
+    return compartilhamentos.some((item) => item.user_id === session?.user?.id);
+  }
+
+  return false;
 }
 
 function createEditLink(repertorioId) {

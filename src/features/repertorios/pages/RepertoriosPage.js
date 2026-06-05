@@ -1,4 +1,6 @@
+import { RepertorioPrivacyFields, getRepertorioPrivacyValues } from '../components/RepertorioPrivacyFields.js';
 import { listMusicas } from '../../../services/musicasService.js';
+import { listShareableProfiles } from '../../../services/profilesService.js';
 import { createRepertorioComMusicas, listRepertorios } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 
@@ -64,18 +66,28 @@ async function createNewRepertorioForm() {
   wrapper.className = 'new-repertorio-panel';
   wrapper.innerHTML = '<p class="page-status">Carregando musicas...</p>';
 
-  const { data: musicas, error } = await listMusicas();
+  const [
+    { data: musicas, error },
+    { data: users, error: usersError },
+  ] = await Promise.all([
+    listMusicas(),
+    listShareableProfiles(),
+  ]);
 
   if (error) {
     wrapper.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar as musicas.')}</p>`;
     return wrapper;
   }
+  if (usersError) {
+    wrapper.innerHTML = `<p class="page-status error">${escapeHtml(usersError.message || 'Nao foi possivel carregar os usuarios.')}</p>`;
+    return wrapper;
+  }
 
-  wrapper.replaceChildren(createNewRepertorioComposer(musicas || []));
+  wrapper.replaceChildren(createNewRepertorioComposer(musicas || [], users || []));
   return wrapper;
 }
 
-function createNewRepertorioComposer(musicas) {
+function createNewRepertorioComposer(musicas, users) {
   const form = document.createElement('form');
   form.className = 'form new-repertorio-form';
   form.innerHTML = `
@@ -100,6 +112,13 @@ function createNewRepertorioComposer(musicas) {
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
+  form.querySelector('label:nth-of-type(2)').after(RepertorioPrivacyFields({
+    users,
+    initialValues: {
+      visibilidade: 'publico',
+      permite_edicao_compartilhada: false,
+    },
+  }));
   const searchInput = form.querySelector('.song-search-input');
   const resultsSlot = form.querySelector('.song-search-results');
   const selectedSlot = form.querySelector('.selected-repertorio-songs');
@@ -250,10 +269,19 @@ function createNewRepertorioComposer(musicas) {
     message.textContent = 'Salvando...';
 
     const formData = new FormData(form);
+    const privacyValues = getRepertorioPrivacyValues(form);
+    if (privacyValues.repertorio.visibilidade === 'seletivo' && !privacyValues.compartilhadoCom.length) {
+      message.className = 'form-message error';
+      message.textContent = 'Selecione pelo menos um usuario para o compartilhamento seletivo.';
+      updateSubmitState();
+      return;
+    }
+
     const { error: saveError } = await createRepertorioComMusicas({
       nome: String(formData.get('nome') || '').trim(),
       data: String(formData.get('data') || '') || null,
-    }, selectedMusicas);
+      ...privacyValues.repertorio,
+    }, selectedMusicas, privacyValues.compartilhadoCom);
 
     if (saveError) {
       message.className = 'form-message error';

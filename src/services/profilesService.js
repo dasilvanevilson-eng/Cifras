@@ -24,3 +24,11 @@ export async function getProfileByUserId(userId) {
 
   return data;
 }
+
+export async function listShareableProfiles() {
+  assertSupabaseConfig();
+  return supabase
+    .from('profiles')
+    .select('id, nome, papel')
+    .order('nome', { ascending: true });
+}

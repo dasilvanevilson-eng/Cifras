@@ -810,6 +810,66 @@ a {
   color: #6f675c;
 }
 
+.repertorio-privacy-fields {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid #ddd6c8;
+  padding: 0.85rem;
+  background: #ffffff;
+}
+
+.repertorio-privacy-fields legend {
+  padding: 0 0.35rem;
+  color: #5f594f;
+  font-weight: 700;
+}
+
+.checkbox-label {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.checkbox-label input {
+  width: auto;
+  margin-top: 0.15rem;
+}
+
+.selective-share-users {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.share-user-list {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid #ddd6c8;
+  padding: 0.5rem;
+  background: #f9f6ef;
+}
+
+.share-user-option {
+  border-bottom: 1px solid #e8e0d2;
+  padding-bottom: 0.35rem;
+}
+
+.share-user-option:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.share-user-option span {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.share-user-option small {
+  color: #6f675c;
+}
+
 .list-browser {
   position: relative;
   display: grid;

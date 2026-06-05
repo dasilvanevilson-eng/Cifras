@@ -15,7 +15,7 @@ export async function createRepertorio(repertorio) {
   return supabase.from('repertorios').insert(repertorio).select().single();
 }
 
-export async function createRepertorioComMusicas(repertorio, musicas = []) {
+export async function createRepertorioComMusicas(repertorio, musicas = [], compartilhadoCom = []) {
   assertSupabaseConfig();
 
   const { data: novoRepertorio, error: repertorioError } = await createRepertorio(repertorio);
@@ -44,7 +44,51 @@ export async function createRepertorioComMusicas(repertorio, musicas = []) {
     return { data: null, error: associacoesError };
   }
 
+  const { error: compartilhamentoError } = await replaceRepertorioCompartilhamentos(
+    novoRepertorio.id,
+    repertorio.visibilidade === 'seletivo' ? compartilhadoCom : [],
+  );
+
+  if (compartilhamentoError) {
+    await deleteRepertorio(novoRepertorio.id);
+    return { data: null, error: compartilhamentoError };
+  }
+
   return { data: novoRepertorio, error: null };
+}
+
+export async function listRepertorioCompartilhamentos(repertorioId) {
+  assertSupabaseConfig();
+  return supabase
+    .from('repertorio_compartilhamentos')
+    .select('user_id')
+    .eq('repertorio_id', repertorioId);
+}
+
+export async function replaceRepertorioCompartilhamentos(repertorioId, userIds = []) {
+  assertSupabaseConfig();
+
+  const { error: deleteError } = await supabase
+    .from('repertorio_compartilhamentos')
+    .delete()
+    .eq('repertorio_id', repertorioId);
+
+  if (deleteError) {
+    return { error: deleteError };
+  }
+
+  const uniqueUserIds = [...new Set(userIds.filter(Boolean))];
+
+  if (!uniqueUserIds.length) {
+    return { error: null };
+  }
+
+  return supabase
+    .from('repertorio_compartilhamentos')
+    .insert(uniqueUserIds.map((userId) => ({
+      repertorio_id: repertorioId,
+      user_id: userId,
+    })));
 }
 
 export async function updateRepertorio(id, repertorio) {
