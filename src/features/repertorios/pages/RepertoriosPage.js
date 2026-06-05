@@ -32,10 +32,12 @@ export async function RepertoriosPage({ session } = {}) {
     formSlot.append(createReadOnlyNotice(
       'No momento seu acesso e restrito nesta opcao.',
       [
-        'Consulte todos os repertorios;',
+        'Consultar todos os repertorios;',
         'Incluir e editar novos repertorios;',
         'Alterar facilmente a sequencia das musicas;',
         'Usar os controles de execucao para ajustar tom, fonte, tema, capo e rolagem automatica.',
+        'Definir regras de privacidade do repertorio criado;',
+        'Consultar historico de alteracoes.',
       ],
     ));
   }
