@@ -6,6 +6,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
   removeMusicaDoRepertorio,
+  updateObservacaoMusicaRepertorio,
   updateOrdemMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
@@ -189,6 +190,9 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
       <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista para acrescentar ao repertorio" autocomplete="off" aria-label="Buscar musica">
       <input name="musica_id" type="hidden" required>
     </label>
+    <label class="repertorio-song-observation-add">
+      <input name="observacao" type="text" size="1" maxlength="80" placeholder="Obs." aria-label="Observacao da musica no repertorio">
+    </label>
     <div class="song-search-results" hidden></div>
     <button class="button" type="submit">Adicionar ao repertorio</button>
     <p class="form-message" aria-live="polite"></p>
@@ -291,6 +295,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
 
     const formData = new FormData(form);
     const musicaId = String(formData.get('musica_id') || '');
+    const observacao = String(formData.get('observacao') || '').trim();
     const musicaSelecionada = musicas.find((musica) => musica.id === musicaId);
     const tom = getField(musicaSelecionada || {}, ['tom', 'key']);
 
@@ -314,7 +319,13 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
     message.textContent = 'Adicionando...';
 
     try {
-      const { error } = await addMusicaToRepertorio(repertorioId, musicaId, proximaOrdem, tom !== '-' ? tom : null);
+      const { error } = await addMusicaToRepertorio(
+        repertorioId,
+        musicaId,
+        proximaOrdem,
+        tom !== '-' ? tom : null,
+        observacao || null,
+      );
 
       if (error) {
         throw error;
@@ -368,9 +379,17 @@ function createMusicasList(items, options = {}) {
     row.dataset.index = String(index);
     row.innerHTML = `
       <td>${escapeHtml(item.ordem || '-')}</td>
-      <td>${musicaUrl
-        ? `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(musicaNome)}</a>`
-        : `<span>${escapeHtml(musicaNome)}</span><small>Musica excluida do acervo</small>`}</td>
+      <td>
+        <span class="repertorio-song-title-cell">
+          ${musicaUrl
+            ? `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(musicaNome)}</a>`
+            : `<span>${escapeHtml(musicaNome)}</span>`}
+          ${options.canEdit
+            ? `<input class="repertorio-song-observation" type="text" size="1" maxlength="80" value="${escapeHtml(item.observacao || '')}" placeholder="Obs." aria-label="Observacao de ${escapeHtml(musicaNome)}" data-association-id="${escapeHtml(item.id)}">`
+            : `${item.observacao ? `<small>${escapeHtml(item.observacao)}</small>` : ''}`}
+        </span>
+        ${!musicaUrl ? '<small>Musica excluida do acervo</small>' : ''}
+      </td>
       ${options.canEdit ? '<td></td>' : ''}
     `;
 
@@ -378,6 +397,7 @@ function createMusicasList(items, options = {}) {
       const actionsCell = row.querySelector('td:last-child');
       actionsCell.className = 'table-actions';
       actionsCell.append(createRemoveButton(item.id));
+      setupObservationInput(row.querySelector('.repertorio-song-observation'));
     }
 
     body.append(row);
@@ -388,6 +408,38 @@ function createMusicasList(items, options = {}) {
   }
 
   return table;
+}
+
+function setupObservationInput(input) {
+  if (!input) return;
+
+  let lastSavedValue = input.value;
+
+  input.addEventListener('change', async () => {
+    const nextValue = input.value.trim();
+
+    if (nextValue === lastSavedValue) return;
+
+    input.disabled = true;
+    input.title = 'Salvando observacao...';
+
+    const { error } = await updateObservacaoMusicaRepertorio(
+      input.dataset.associationId,
+      nextValue || null,
+    );
+
+    input.disabled = false;
+
+    if (error) {
+      input.value = lastSavedValue;
+      input.title = 'Nao foi possivel salvar a observacao.';
+      window.alert(error.message || 'Nao foi possivel salvar a observacao.');
+      return;
+    }
+
+    lastSavedValue = nextValue;
+    input.title = nextValue || 'Observacao da musica no repertorio';
+  });
 }
 
 function normalizeOrder(items) {

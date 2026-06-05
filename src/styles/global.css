@@ -415,6 +415,24 @@ a {
   gap: 10px;
 }
 
+.repertorio-detail-page .add-repertorio-song-form {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+}
+
+.repertorio-detail-page .add-repertorio-song-form > label:first-child {
+  min-width: 0;
+}
+
+.repertorio-detail-page .add-repertorio-song-form .song-search-results,
+.repertorio-detail-page .add-repertorio-song-form .form-message {
+  grid-column: 1 / -1;
+}
+
+.repertorio-detail-page .add-repertorio-song-form .button {
+  white-space: nowrap;
+}
+
 .repertorio-detail-page .song-search-results {
   top: 46px;
 }
@@ -432,6 +450,40 @@ a {
 .repertorio-detail-page .data-table td:last-child,
 .repertorio-detail-page .data-table th:last-child {
   width: 82px;
+}
+
+.repertorio-song-title-cell {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  max-width: 100%;
+}
+
+.repertorio-song-title-cell > a,
+.repertorio-song-title-cell > span {
+  min-width: 0;
+}
+
+.repertorio-song-observation,
+.repertorio-song-observation-add input {
+  width: 54px;
+  min-width: 54px;
+  border: 1px solid #cfc7b8;
+  border-radius: var(--border-radius-default);
+  padding: 4px 6px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+  font-size: 13px;
+  transition: width 0.16s ease, min-width 0.16s ease;
+}
+
+.repertorio-song-observation:focus,
+.repertorio-song-observation-add input:focus {
+  width: min(320px, 46vw);
+  min-width: min(320px, 46vw);
+  outline: 2px solid #c8792b;
+  outline-offset: 0;
 }
 
 .repertorio-detail-grid .editor-panel .form {
@@ -2198,6 +2250,25 @@ a {
 
   .performance-page .chordpro-view {
     padding: 14px;
+  }
+
+  .repertorio-detail-page .add-repertorio-song-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .repertorio-detail-page .add-repertorio-song-form .button {
+    grid-column: 1 / -1;
+  }
+
+  .repertorio-song-title-cell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .repertorio-song-observation:focus,
+  .repertorio-song-observation-add input:focus {
+    width: min(260px, 58vw);
+    min-width: min(260px, 58vw);
   }
 
   .musica-form {
