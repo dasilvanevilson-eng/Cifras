@@ -1387,3 +1387,77 @@ Validacao:
 Estado atual:
 - O usuario pediu `salvar chat`.
 - Este registro resume o estado atual para permitir retomar o projeto a partir daqui.
+
+## Registro de continuidade - transposicao, pre-visualizacao e observacao no repertorio
+
+Data: 2026-06-05
+
+Pedidos recentes do usuario:
+- Ajustar a contagem de transposicao de semitons em todos os locais que possuem transposicao.
+- Na pre-visualizacao de `Cifras`, retirar botoes antigos `Original` e `Numeros`.
+- Substituir `Original` por `Tom` quando a musica estiver no tom original.
+- Substituir textos `-1 semitom` e `+1 semitom` por `-1/2` e `+1/2`.
+- Fazer a pre-visualizacao de `Cifras` ocupar a tela inteira abaixo do menu principal.
+- Retirar titulo da musica e tom da tela de pre-visualizacao.
+- Adicionar visualizacao em duas colunas na execucao de repertorio e musica individual.
+- Em novo repertorio/edicao de repertorio, criar observacao para a musica dentro daquele repertorio, como `Entrada`, `Aclamacao`, `Ofertorio`, etc.
+- Campo de observacao deve ficar pequeno e expandir quando receber foco.
+
+Alteracoes feitas em `src/features/musicas/components/MusicaForm.js`:
+- A barra de pre-visualizacao agora tem seta de voltar, `-1/2`, status `Tom`, `+1/2` e `Imprimir`.
+- Removidos os botoes `Original` e `Numeros` da pre-visualizacao.
+- Removido o cabecalho da pre-visualizacao com titulo, artista e tom.
+- A contagem de transposicao da edicao de Cifras passou a usar estado interno explicito.
+- Quando sem transposicao, o status exibido e `Tom`.
+- Quando transposto, o status exibe `+1 semitom`, `-1 semitom`, `+2 semitons`, etc.
+- Os botoes visiveis de transposicao usam `-1/2` e `+1/2`.
+
+Alteracoes feitas em `src/features/musicas/pages/MusicaExecucaoPage.js`:
+- A execucao individual de musica passou a usar o mesmo padrao de status de transposicao.
+- Quando sem transposicao, mostra `Tom`.
+- Quando transposto, mostra a quantidade de semitons aplicada.
+- Adicionada opcao `2 col` para visualizacao em duas colunas.
+- A opcao alterna para `1 col` quando esta ativa.
+
+Alteracoes feitas em `src/features/repertorios/pages/RepertorioExecucaoPage.js`:
+- A execucao de repertorio passou a usar o mesmo padrao de status de transposicao.
+- Quando sem ajuste manual de transposicao, mostra `Tom`.
+- Quando transposto, mostra a quantidade de semitons aplicada.
+- Os botoes visiveis de transposicao usam `-1/2` e `+1/2`.
+- Adicionada opcao `2 col` para visualizacao em duas colunas.
+- A opcao alterna para `1 col` quando esta ativa.
+
+Alteracoes feitas em `src/services/repertoriosService.js`:
+- `listMusicasDoRepertorio` agora carrega o campo `observacao` de `repertorio_musicas`.
+- `addMusicaToRepertorio` agora aceita `observacao`.
+- `duplicateRepertorio` preserva `observacao` nas musicas duplicadas.
+- Criada funcao `updateObservacaoMusicaRepertorio`.
+
+Alteracoes feitas em `src/features/repertorios/pages/RepertorioDetalhePage.js`:
+- No formulario de adicionar musica ao repertorio, foi criado campo pequeno `Obs.`.
+- A observacao e salva junto com a associacao da musica ao repertorio.
+- Na lista de musicas do repertorio, a observacao aparece ao lado do titulo da musica.
+- O campo fica pequeno por padrao e expande ao receber foco.
+- Ao alterar a observacao e sair do campo, ela e salva automaticamente.
+- A observacao pertence ao vinculo da musica com o repertorio; a mesma musica pode ter observacoes diferentes em repertorios diferentes.
+
+Alteracoes feitas em `src/styles/global.css`:
+- A pre-visualizacao de Cifras ocupa a area abaixo do menu principal.
+- A barra da pre-visualizacao fica fixa/visivel no topo da area de pre-visualizacao.
+- A visualizacao em duas colunas foi estilizada para telas maiores.
+- Em telas moveis, a visualizacao em duas colunas volta para uma coluna para preservar leitura.
+- Adicionados estilos para o campo compacto de observacao das musicas do repertorio.
+- O campo de observacao expande ao receber foco, tanto na inclusao quanto na lista.
+
+Migration criada e aplicada pelo usuario:
+- Criada `supabase/migrations/014_add_observacao_repertorio_musicas.sql`.
+- A migration adiciona `observacao text` em `repertorio_musicas`.
+- O usuario informou que a migration 014 foi aplicada no Supabase.
+
+Validacao:
+- `npm test` executou com sucesso apos os ajustes.
+- `npm run build` executou com sucesso apos os ajustes, usando permissao elevada quando o sandbox do Windows bloqueou o build.
+
+Estado atual:
+- O usuario pediu `salvar chat`.
+- Este registro resume o estado recente para permitir retomar a partir da observacao em musicas de repertorio e refinamentos de transposicao/pre-visualizacao.
