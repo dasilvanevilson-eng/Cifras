@@ -212,6 +212,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     .filter((repertorio) => !isEditing || repertorio.id !== selectedRepertorio.id)
     .map((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name']))));
   let isPointerInsideResults = false;
+  let draggedMusicaIndex = null;
 
   renderInlineActions();
 
@@ -279,30 +280,49 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     selectedMusicas.forEach((musica, index) => {
       const row = document.createElement('article');
       row.className = 'selected-repertorio-song';
+      row.draggable = true;
+      row.dataset.index = String(index);
+      row.title = 'Arraste para reposicionar';
       row.innerHTML = `
-        <span>${index + 1}</span>
+        <span class="selected-repertorio-song-order">${index + 1}</span>
         <div>
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
           <small>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</small>
         </div>
-        <div class="selected-repertorio-song-actions">
-          <button class="nav-button" type="button" data-action="up" ${index === 0 ? 'disabled' : ''}>Subir</button>
-          <button class="nav-button" type="button" data-action="down" ${index === selectedMusicas.length - 1 ? 'disabled' : ''}>Descer</button>
-        </div>
         <button class="danger-button icon-button" type="button" aria-label="Remover musica">&#128465;</button>
       `;
 
-      row.querySelector('[data-action="up"]').addEventListener('click', () => {
-        if (index === 0) return;
-
-        [selectedMusicas[index - 1], selectedMusicas[index]] = [selectedMusicas[index], selectedMusicas[index - 1]];
-        renderSelected();
+      row.addEventListener('dragstart', (event) => {
+        draggedMusicaIndex = index;
+        row.classList.add('is-dragging');
+        event.dataTransfer.effectAllowed = 'move';
       });
 
-      row.querySelector('[data-action="down"]').addEventListener('click', () => {
-        if (index >= selectedMusicas.length - 1) return;
+      row.addEventListener('dragend', () => {
+        draggedMusicaIndex = null;
+        row.classList.remove('is-dragging');
+        selectedSlot.querySelectorAll('.selected-repertorio-song').forEach((item) => {
+          item.classList.remove('is-drop-target');
+        });
+      });
 
-        [selectedMusicas[index], selectedMusicas[index + 1]] = [selectedMusicas[index + 1], selectedMusicas[index]];
+      row.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        if (draggedMusicaIndex === null || draggedMusicaIndex === index) return;
+
+        selectedSlot.querySelectorAll('.selected-repertorio-song').forEach((item) => {
+          item.classList.remove('is-drop-target');
+        });
+        row.classList.add('is-drop-target');
+      });
+
+      row.addEventListener('drop', (event) => {
+        event.preventDefault();
+        if (draggedMusicaIndex === null || draggedMusicaIndex === index) return;
+
+        const [draggedMusica] = selectedMusicas.splice(draggedMusicaIndex, 1);
+        selectedMusicas.splice(index, 0, draggedMusica);
+        draggedMusicaIndex = null;
         renderSelected();
       });
 

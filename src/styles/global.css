@@ -773,15 +773,25 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.65rem;
   align-items: center;
   border: 1px solid #ddd6c8;
   padding: 0.55rem;
   background: #ffffff;
+  cursor: grab;
 }
 
-.selected-repertorio-song > span {
+.selected-repertorio-song.is-dragging {
+  opacity: 0.55;
+}
+
+.selected-repertorio-song.is-drop-target {
+  outline: 2px solid #c8792b;
+  outline-offset: -2px;
+}
+
+.selected-repertorio-song-order {
   display: inline-grid;
   place-items: center;
   width: 28px;
@@ -808,19 +818,6 @@ a {
 
 .selected-repertorio-song small {
   color: #6f675c;
-}
-
-.selected-repertorio-song-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  justify-content: flex-end;
-}
-
-.selected-repertorio-song-actions .nav-button {
-  min-height: 32px;
-  padding: 5px 8px;
-  font-size: 13px;
 }
 
 .link-button {
@@ -908,6 +905,7 @@ a {
 .repertorio-privacy-wrapper {
   display: grid;
   gap: 0.75rem;
+  position: relative;
 }
 
 .privacy-toggle-button {
@@ -916,6 +914,17 @@ a {
 
 .repertorio-privacy-fields[hidden] {
   display: none;
+}
+
+.repertorio-privacy-wrapper .repertorio-privacy-fields {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 18;
+  width: min(520px, calc(100vw - 48px));
+  max-height: min(620px, calc(100vh - 150px));
+  overflow: auto;
+  box-shadow: 0 16px 34px rgba(24, 24, 24, 0.18);
 }
 
 .repertorio-privacy-fields legend {
@@ -2959,11 +2968,6 @@ a {
 
   .selected-repertorio-song {
     grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .selected-repertorio-song-actions {
-    grid-column: 2 / -1;
-    justify-content: flex-start;
   }
 
   .new-repertorio-form .selected-repertorio-songs {
