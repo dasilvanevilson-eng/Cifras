@@ -1,5 +1,5 @@
-import { RepertorioForm } from '../components/RepertorioForm.js';
-import { createRepertorio, listRepertorios } from '../../../services/repertoriosService.js';
+import { listMusicas } from '../../../services/musicasService.js';
+import { createRepertorioComMusicas, listRepertorios } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 
 export async function RepertoriosPage({ session } = {}) {
@@ -25,20 +25,10 @@ export async function RepertoriosPage({ session } = {}) {
   const status = page.querySelector('.page-status');
 
   if (canEdit) {
-    formSlot.append(RepertorioForm({
-      onSubmit: async (repertorio) => {
-        const { error } = await createRepertorio(repertorio);
-
-        if (error) {
-          throw error;
-        }
-
-        window.location.reload();
-      },
-    }));
+    formSlot.append(await createNewRepertorioForm());
   } else {
     formSlot.append(createReadOnlyNotice(
-      'No momento voce nao tem acesso a essas funcionalidades:',
+      'No momento seu acesso e restrito nesta opcao.',
       [
         'Consulte todos os repertorios;',
         'Incluir e editar novos repertorios;',
@@ -69,6 +59,221 @@ export async function RepertoriosPage({ session } = {}) {
   return page;
 }
 
+async function createNewRepertorioForm() {
+  const wrapper = document.createElement('section');
+  wrapper.className = 'new-repertorio-panel';
+  wrapper.innerHTML = '<p class="page-status">Carregando musicas...</p>';
+
+  const { data: musicas, error } = await listMusicas();
+
+  if (error) {
+    wrapper.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar as musicas.')}</p>`;
+    return wrapper;
+  }
+
+  wrapper.replaceChildren(createNewRepertorioComposer(musicas || []));
+  return wrapper;
+}
+
+function createNewRepertorioComposer(musicas) {
+  const form = document.createElement('form');
+  form.className = 'form new-repertorio-form';
+  form.innerHTML = `
+    <label>
+      Nome
+      <input name="nome" type="text" required>
+    </label>
+
+    <label>
+      Data
+      <input name="data" type="date">
+    </label>
+
+    <label>
+      Musicas do repertorio
+      <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
+    </label>
+    <div class="song-search-results" hidden></div>
+    <div class="selected-repertorio-songs"></div>
+    <button class="button" type="submit" disabled>Salvar repertorio</button>
+    <p class="form-message" aria-live="polite"></p>
+  `;
+
+  const nomeInput = form.querySelector('[name="nome"]');
+  const searchInput = form.querySelector('.song-search-input');
+  const resultsSlot = form.querySelector('.song-search-results');
+  const selectedSlot = form.querySelector('.selected-repertorio-songs');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const message = form.querySelector('.form-message');
+  const selectedMusicas = [];
+  const sortedMusicas = sortMusicasByName(musicas);
+  let isPointerInsideResults = false;
+
+  function updateSubmitState() {
+    submitButton.disabled = !nomeInput.value.trim() || selectedMusicas.length === 0;
+  }
+
+  function renderResults() {
+    const query = normalizeText(searchInput.value);
+    const selectedIds = new Set(selectedMusicas.map((musica) => musica.id));
+    const filtered = sortedMusicas
+      .filter((musica) => !selectedIds.has(musica.id))
+      .filter((musica) => matchesMusicaSearch(musica, query))
+      .slice(0, 60);
+
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.className = 'page-status';
+      empty.textContent = selectedMusicas.length === musicas.length
+        ? 'Todas as musicas ja foram incluidas.'
+        : 'Nenhuma musica encontrada.';
+      resultsSlot.replaceChildren(empty);
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'song-search-list';
+
+    filtered.forEach((musica) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'song-search-item';
+      item.innerHTML = `
+        <strong>${escapeHtml(formatMusicaName(musica))}</strong>
+        <span>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</span>
+      `;
+
+      item.addEventListener('click', () => {
+        selectedMusicas.push(musica);
+        searchInput.value = '';
+        message.textContent = '';
+        message.className = 'form-message';
+        renderSelected();
+        renderResults();
+        resultsSlot.hidden = false;
+        searchInput.focus();
+        updateSubmitState();
+      });
+
+      list.append(item);
+    });
+
+    resultsSlot.replaceChildren(list);
+  }
+
+  function renderSelected() {
+    if (!selectedMusicas.length) {
+      selectedSlot.innerHTML = '<p class="page-status">Inclua pelo menos uma musica antes de salvar.</p>';
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'selected-repertorio-song-list';
+
+    selectedMusicas.forEach((musica, index) => {
+      const row = document.createElement('article');
+      row.className = 'selected-repertorio-song';
+      row.innerHTML = `
+        <span>${index + 1}</span>
+        <div>
+          <strong>${escapeHtml(formatMusicaName(musica))}</strong>
+          <small>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</small>
+        </div>
+        <button class="danger-button icon-button" type="button" aria-label="Remover musica">&#128465;</button>
+      `;
+
+      row.querySelector('button').addEventListener('click', () => {
+        selectedMusicas.splice(index, 1);
+        renderSelected();
+        renderResults();
+        updateSubmitState();
+      });
+
+      list.append(row);
+    });
+
+    selectedSlot.replaceChildren(list);
+  }
+
+  nomeInput.addEventListener('input', updateSubmitState);
+
+  searchInput.addEventListener('input', () => {
+    renderResults();
+    resultsSlot.hidden = false;
+  });
+
+  searchInput.addEventListener('focus', () => {
+    renderResults();
+    resultsSlot.hidden = false;
+  });
+
+  searchInput.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (!isPointerInsideResults) {
+        resultsSlot.hidden = true;
+      }
+    }, 120);
+  });
+
+  resultsSlot.addEventListener('mouseenter', () => {
+    isPointerInsideResults = true;
+    resultsSlot.hidden = false;
+  });
+
+  resultsSlot.addEventListener('mouseleave', () => {
+    isPointerInsideResults = false;
+
+    if (document.activeElement !== searchInput) {
+      resultsSlot.hidden = true;
+    }
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (!nomeInput.value.trim()) {
+      message.className = 'form-message error';
+      message.textContent = 'Informe o nome do repertorio.';
+      nomeInput.focus();
+      return;
+    }
+
+    if (!selectedMusicas.length) {
+      message.className = 'form-message error';
+      message.textContent = 'Inclua pelo menos uma musica antes de salvar o repertorio.';
+      searchInput.focus();
+      return;
+    }
+
+    submitButton.disabled = true;
+    message.className = 'form-message';
+    message.textContent = 'Salvando...';
+
+    const formData = new FormData(form);
+    const { error: saveError } = await createRepertorioComMusicas({
+      nome: String(formData.get('nome') || '').trim(),
+      data: String(formData.get('data') || '') || null,
+    }, selectedMusicas);
+
+    if (saveError) {
+      message.className = 'form-message error';
+      message.textContent = saveError.message || 'Nao foi possivel salvar o repertorio.';
+      updateSubmitState();
+      return;
+    }
+
+    message.className = 'form-message success';
+    message.textContent = 'Repertorio salvo com sucesso.';
+    window.location.reload();
+  });
+
+  renderSelected();
+  renderResults();
+  updateSubmitState();
+
+  return form;
+}
+
 function createReadOnlyNotice(text, items = []) {
   const notice = document.createElement('section');
   notice.className = 'page-status role-notice';
@@ -79,6 +284,36 @@ function createReadOnlyNotice(text, items = []) {
     </ul>
   `;
   return notice;
+}
+
+function sortMusicasByName(musicas) {
+  return [...musicas].sort((a, b) => (
+    formatMusicaName(a).localeCompare(formatMusicaName(b), 'pt-BR', { sensitivity: 'base' })
+  ));
+}
+
+function matchesMusicaSearch(musica, query) {
+  if (!query) return true;
+
+  return normalizeText([
+    getField(musica, ['titulo', 'nome', 'title']),
+    getField(musica, ['artista', 'autor', 'artist']),
+    getField(musica, ['tags']),
+  ].join(' ')).includes(query);
+}
+
+function formatMusicaName(musica) {
+  const titulo = getField(musica, ['titulo', 'nome', 'title']);
+  const artista = getField(musica, ['artista', 'autor', 'artist']);
+  return artista && artista !== '-' ? `${titulo} - ${artista}` : titulo;
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function createRepertoriosTable(repertorios) {

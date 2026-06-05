@@ -15,6 +15,38 @@ export async function createRepertorio(repertorio) {
   return supabase.from('repertorios').insert(repertorio).select().single();
 }
 
+export async function createRepertorioComMusicas(repertorio, musicas = []) {
+  assertSupabaseConfig();
+
+  const { data: novoRepertorio, error: repertorioError } = await createRepertorio(repertorio);
+
+  if (repertorioError) {
+    return { data: null, error: repertorioError };
+  }
+
+  const associacoes = musicas.map((musica, index) => ({
+    repertorio_id: novoRepertorio.id,
+    musica_id: musica.id,
+    ordem: index + 1,
+    tom: musica.tom || null,
+    observacao: musica.observacao || null,
+  }));
+
+  if (!associacoes.length) {
+    await deleteRepertorio(novoRepertorio.id);
+    return { data: null, error: new Error('Inclua pelo menos uma musica no repertorio.') };
+  }
+
+  const { error: associacoesError } = await supabase.from('repertorio_musicas').insert(associacoes);
+
+  if (associacoesError) {
+    await deleteRepertorio(novoRepertorio.id);
+    return { data: null, error: associacoesError };
+  }
+
+  return { data: novoRepertorio, error: null };
+}
+
 export async function updateRepertorio(id, repertorio) {
   assertSupabaseConfig();
   return supabase.from('repertorios').update(repertorio).eq('id', id).select().single();

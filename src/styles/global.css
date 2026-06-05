@@ -757,6 +757,59 @@ a {
   margin-top: 0.25rem;
 }
 
+.new-repertorio-form {
+  position: relative;
+}
+
+.selected-repertorio-songs {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.selected-repertorio-song-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.selected-repertorio-song {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  border: 1px solid #ddd6c8;
+  padding: 0.55rem;
+  background: #ffffff;
+}
+
+.selected-repertorio-song > span {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  background: #f4f1ea;
+  color: #5f594f;
+  font-weight: 700;
+}
+
+.selected-repertorio-song div {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.selected-repertorio-song strong,
+.selected-repertorio-song small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-repertorio-song small {
+  color: #6f675c;
+}
+
 .list-browser {
   position: relative;
   display: grid;
