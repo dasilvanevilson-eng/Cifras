@@ -110,7 +110,6 @@ function createNewRepertorioComposer(musicas, users) {
     </section>
 
     <section class="repertorio-form-section repertorio-music-fields">
-      <h2>Musicas</h2>
       <div class="song-search-results" hidden></div>
       <div class="selected-repertorio-songs"></div>
     </section>
@@ -122,7 +121,7 @@ function createNewRepertorioComposer(musicas, users) {
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
-  form.querySelector('.repertorio-music-fields h2').after(RepertorioPrivacyFields({
+  form.querySelector('.repertorio-title-date-grid').append(RepertorioPrivacyFields({
     users,
     initialValues: {
       visibilidade: 'publico',
@@ -192,7 +191,7 @@ function createNewRepertorioComposer(musicas, users) {
 
   function renderSelected() {
     if (!selectedMusicas.length) {
-      selectedSlot.innerHTML = '<p class="page-status">Inclua pelo menos uma musica antes de salvar.</p>';
+      selectedSlot.replaceChildren();
       return;
     }
 
@@ -270,6 +269,7 @@ function createNewRepertorioComposer(musicas, users) {
     if (!selectedMusicas.length) {
       message.className = 'form-message error';
       message.textContent = 'Inclua pelo menos uma musica antes de salvar o repertorio.';
+      selectedSlot.innerHTML = '<p class="page-status error">Inclua pelo menos uma musica antes de salvar.</p>';
       searchInput.focus();
       return;
     }

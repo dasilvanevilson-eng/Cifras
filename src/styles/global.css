@@ -2849,8 +2849,9 @@ a {
 
 .repertorio-title-date-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.45fr);
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.35fr) auto;
   gap: 0.75rem;
+  align-items: end;
 }
 
 .repertorio-music-fields {
@@ -2860,6 +2861,14 @@ a {
 .new-repertorio-form .repertorio-privacy-wrapper,
 .new-repertorio-form .repertorio-privacy-fields {
   min-width: 0;
+}
+
+.repertorio-title-date-grid .repertorio-privacy-wrapper {
+  align-self: end;
+}
+
+.repertorio-title-date-grid .repertorio-privacy-fields {
+  grid-column: 1 / -1;
 }
 
 .new-repertorio-form .selected-repertorio-songs {
