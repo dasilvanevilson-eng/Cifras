@@ -30,15 +30,18 @@ export async function createRepertorio(repertorio) {
     .eq('id', user.id)
     .maybeSingle();
 
-  return supabase
+  const repertorioData = {
+    id: crypto.randomUUID(),
+    ...repertorio,
+    criado_por: user.id,
+    criado_por_nome: repertorio.criado_por_nome || profile?.nome || user.email || 'Usuario',
+  };
+
+  const { error } = await supabase
     .from('repertorios')
-    .insert({
-      ...repertorio,
-      criado_por: user.id,
-      criado_por_nome: repertorio.criado_por_nome || profile?.nome || user.email || 'Usuario',
-    })
-    .select()
-    .single();
+    .insert(repertorioData);
+
+  return { data: error ? null : repertorioData, error };
 }
 
 export async function createRepertorioComMusicas(repertorio, musicas = [], compartilhadoCom = []) {
