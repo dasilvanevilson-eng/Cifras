@@ -360,6 +360,23 @@ a {
   margin: 0;
 }
 
+.dashboard-mini-song-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: baseline;
+}
+
+.dashboard-mini-song-title span {
+  min-width: 0;
+}
+
+.dashboard-mini-song-title small {
+  color: #8a4d14;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 .dashboard-mini-list {
   display: grid;
   gap: 6px;
