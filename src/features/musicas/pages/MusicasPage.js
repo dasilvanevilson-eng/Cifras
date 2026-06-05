@@ -53,7 +53,7 @@ export async function MusicasPage({ session } = {}) {
       });
     } else {
       formSlot.append(createReadOnlyNotice(
-        'No momento voce nao tem acesso a essa opcao:',
+        'No momento seu acesso e restrito nesta opcao.',
         [
           'Incluir novas cifras;',
           'Editar cifras cadastradas;',
