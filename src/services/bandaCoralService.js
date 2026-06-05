@@ -186,6 +186,24 @@ export async function listMusicasSessaoRepertorio(repertorioId) {
     .order('ordem');
 }
 
+export async function listMusicasAvulsasBanda() {
+  assertSupabaseConfig();
+
+  return supabase
+    .from('musicas')
+    .select(`
+      id,
+      titulo,
+      artista,
+      tom,
+      cifra_original,
+      cifra_chordpro,
+      cifra_exibicao,
+      musica_link
+    `)
+    .order('titulo', { ascending: true });
+}
+
 export function subscribeSessaoBanda(sessaoId, callback) {
   assertSupabaseConfig();
 
