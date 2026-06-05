@@ -21,9 +21,11 @@ import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
+import { BandaCoralPage } from '../features/bandaCoral/pages/BandaCoralPage.js';
 
 const routes = {
   '/dashboard': DashboardPage,
+  '/banda-coral': BandaCoralPage,
   '/login': LoginPage,
   '/alterar-senha': AlterarSenhaPage,
   '/minha-conta': MinhaContaPage,

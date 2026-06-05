@@ -2911,6 +2911,165 @@ a {
   line-height: 1.45;
 }
 
+.banda-coral-page {
+  max-width: 1180px;
+}
+
+.banda-coral-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.banda-coral-header h1 {
+  margin: 0;
+}
+
+.banda-mode-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.banda-mode-switch .nav-button.is-active {
+  border-color: #1d4f45;
+  background: #1d4f45;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.banda-mode-panel {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.banda-create-panel,
+.banda-live-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.banda-create-panel h2,
+.banda-live-card h2 {
+  margin: 0;
+}
+
+.banda-session-form {
+  max-width: none;
+}
+
+.banda-session-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(52vh, 420px);
+  overflow: auto;
+}
+
+.banda-session-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ddd6c8;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.banda-session-item div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.banda-session-item span,
+.banda-live-header p {
+  margin: 0;
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.banda-live-card {
+  border: 1px solid #ddd6c8;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.banda-live-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.banda-live-role {
+  border: 1px solid #c8792b;
+  padding: 5px 8px;
+  color: #8a4d14;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.banda-control-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(90px, 120px);
+  gap: 10px;
+  align-items: end;
+}
+
+.banda-control-grid label,
+.banda-follow-toggle {
+  display: grid;
+  gap: 6px;
+}
+
+.banda-control-grid input,
+.banda-control-grid select,
+.banda-session-form input,
+.banda-session-form select {
+  width: 100%;
+  border: 1px solid #cfc7b8;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+}
+
+.banda-song-slot:empty {
+  display: none;
+}
+
+.banda-song-card {
+  display: grid;
+  gap: 12px;
+}
+
+.banda-song-card header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5dece;
+  padding-bottom: 8px;
+}
+
+.banda-song-card header span {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.banda-song-card .chordpro-view {
+  margin: 0;
+}
+
 .repertorios-page {
   display: grid;
   gap: 1.25rem;
@@ -3021,8 +3180,13 @@ a {
 }
 
 @media (max-width: 860px) {
+  .banda-mode-panel,
   .new-repertorio-form,
   .repertorio-title-date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .banda-control-grid {
     grid-template-columns: 1fr;
   }
 
