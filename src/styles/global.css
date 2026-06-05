@@ -1027,6 +1027,20 @@ a {
   white-space: pre;
 }
 
+.repertorio-song-view.is-two-columns .chordpro-view {
+  column-count: 2;
+  column-gap: 28px;
+  column-rule: 1px solid #ddd6c8;
+  white-space: pre-wrap;
+}
+
+.repertorio-song-view .nav-button.is-active {
+  border-color: #1d4f45;
+  background: #1d4f45;
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .theme-toggle-button {
   display: inline-grid;
   place-items: center;
@@ -1081,6 +1095,10 @@ a {
   border-color: #3d443f;
   background: #111513;
   color: #f6f2e8;
+}
+
+.repertorio-song-view.is-dark.is-two-columns .chordpro-view {
+  column-rule-color: #3d443f;
 }
 
 .repertorio-song-view.is-dark .chord-token,
@@ -1463,6 +1481,13 @@ a {
   white-space: pre;
 }
 
+.repertorio-performance-view.is-two-columns .chordpro-view {
+  column-count: 2;
+  column-gap: 28px;
+  column-rule: 1px solid #ddd6c8;
+  white-space: pre-wrap;
+}
+
 .repertorio-performance-view.is-dark .performance-toolbar .button-link.secondary {
   border-color: #536159;
   background: #1a211e;
@@ -1475,6 +1500,10 @@ a {
 
 .repertorio-performance-view.is-dark .performance-toolbar::-webkit-scrollbar-thumb {
   background: #536159;
+}
+
+.repertorio-performance-view.is-dark.is-two-columns .chordpro-view {
+  column-rule-color: #3d443f;
 }
 
 .repertorio-performance-view.is-dark .performance-song header.repertorio-song-title-bar::-webkit-scrollbar-track {
@@ -2211,6 +2240,13 @@ a {
     width: 44px;
     min-width: 44px;
     max-width: 44px;
+  }
+
+  .repertorio-song-view.is-two-columns .chordpro-view,
+  .repertorio-performance-view.is-two-columns .chordpro-view {
+    column-count: 1;
+    column-rule: 0;
+    white-space: pre;
   }
 }
 

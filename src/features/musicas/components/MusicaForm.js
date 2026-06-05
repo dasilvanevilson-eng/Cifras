@@ -72,8 +72,8 @@ export function MusicaForm(options = {}) {
         <p><span data-preview="artista"></span> - Tom: <span class="current-key" data-preview="tom"></span></p>
       </header>
       <div class="transpose-toolbar">
-        <button class="nav-button" type="button" data-preview-action="transpose-down">-1 semitom</button>
         <button class="nav-button preview-back" type="button" data-action="preview-back" aria-label="Voltar" title="Voltar">&larr;</button>
+        <button class="nav-button" type="button" data-preview-action="transpose-down">-1 semitom</button>
         <span data-preview="transpose-status">Original</span>
         <button class="nav-button" type="button" data-preview-action="transpose-up">+1 semitom</button>
         <button class="nav-button" type="button" data-preview-action="print">Imprimir</button>

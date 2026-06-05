@@ -48,6 +48,7 @@ function createPerformanceView({ musica, returnTo }) {
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
       <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
       <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+      <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
       <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
       <label>
@@ -79,6 +80,7 @@ function setupPerformanceControls(wrapper) {
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');
+  const twoColumnsButton = wrapper.querySelector('[data-action="two-columns"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
   const speedInput = wrapper.querySelector('[data-action="speed"]');
   const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
@@ -93,6 +95,7 @@ function setupPerformanceControls(wrapper) {
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   let fontSize = 18;
   let fitFontToMobileWidth = true;
+  let twoColumns = false;
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
@@ -120,6 +123,12 @@ function setupPerformanceControls(wrapper) {
     fitFontToMobileWidth = false;
     fontSize = Math.min(30, fontSize + 1);
     setPerformanceFontSize(wrapper, fontSize);
+    renderPerformance();
+  });
+
+  twoColumnsButton.addEventListener('click', () => {
+    twoColumns = !twoColumns;
+    setTwoColumnView(wrapper, twoColumnsButton, twoColumns);
     renderPerformance();
   });
 
@@ -254,6 +263,14 @@ function setPerformanceTheme(wrapper, button, theme) {
 
 function setPerformanceFontSize(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
+}
+
+function setTwoColumnView(wrapper, button, enabled) {
+  wrapper.classList.toggle('is-two-columns', enabled);
+  button.classList.toggle('is-active', enabled);
+  button.textContent = enabled ? '1 col' : '2 col';
+  button.title = enabled ? 'Visualizacao em uma coluna' : 'Visualizacao em duas colunas';
+  button.setAttribute('aria-label', button.title);
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
