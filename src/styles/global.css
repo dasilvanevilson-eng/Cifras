@@ -2849,9 +2849,17 @@ a {
 
 .repertorio-title-date-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.35fr) auto;
+  grid-template-columns: minmax(260px, 1fr) minmax(170px, 190px) minmax(180px, auto);
   gap: 0.75rem;
   align-items: end;
+}
+
+.repertorio-title-date-grid label {
+  min-width: 0;
+}
+
+.repertorio-title-date-grid input {
+  min-width: 0;
 }
 
 .repertorio-music-fields {
