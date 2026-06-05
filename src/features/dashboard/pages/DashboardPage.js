@@ -57,6 +57,9 @@ function createDashboardView({ musicas, repertorios }) {
       <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
     </div>
+    <footer class="dashboard-test-notice">
+      Este sistema esta em fase de teste/implementacao e podem ocorrer instabilidades no uso.
+    </footer>
   `;
 
   setupDashboardSearch({

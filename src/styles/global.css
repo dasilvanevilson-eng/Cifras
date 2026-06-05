@@ -2722,3 +2722,13 @@ a {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.dashboard-test-notice {
+  margin-top: 28px;
+  border: 2px solid #a12a2a;
+  padding: 14px 16px;
+  background: #fff0df;
+  color: #7d1f1f;
+  font-weight: 800;
+  text-align: center;
+}
