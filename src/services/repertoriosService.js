@@ -18,11 +18,24 @@ export async function createRepertorio(repertorio) {
     return { data: null, error: authError };
   }
 
+  const user = authData.user;
+
+  if (!user?.id) {
+    return { data: null, error: new Error('Usuario autenticado nao encontrado.') };
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('nome')
+    .eq('id', user.id)
+    .maybeSingle();
+
   return supabase
     .from('repertorios')
     .insert({
       ...repertorio,
-      criado_por: repertorio.criado_por || authData.user?.id,
+      criado_por: user.id,
+      criado_por_nome: repertorio.criado_por_nome || profile?.nome || user.email || 'Usuario',
     })
     .select()
     .single();
