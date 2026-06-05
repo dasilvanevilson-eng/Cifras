@@ -107,8 +107,10 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
       </section>
     </div>
     <section class="repertorio-history-panel" hidden>
-      <h2>Historico de alteracoes</h2>
-      <div class="history-slot"></div>
+      <div class="repertorio-history-dialog" role="dialog" aria-modal="false" aria-label="Historico de alteracoes">
+        <h2>Historico de alteracoes</h2>
+        <div class="history-slot"></div>
+      </div>
     </section>
   `;
 
@@ -150,10 +152,6 @@ function createHistoryButton(wrapper) {
     const isOpening = panel.hidden;
     panel.hidden = !isOpening;
     button.textContent = isOpening ? 'Ocultar historico' : 'Historico';
-
-    if (isOpening) {
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   });
 
   return button;
