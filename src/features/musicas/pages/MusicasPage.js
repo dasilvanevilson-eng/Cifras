@@ -52,7 +52,14 @@ export async function MusicasPage({ session } = {}) {
         session,
       });
     } else {
-      formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar musicas cifradas, mas nao cadastrar ou editar.'));
+      formSlot.append(createReadOnlyNotice(
+        'No momento voce nao tem acesso a essa opcao:',
+        [
+          'Incluir novas cifras;',
+          'Editar cifras cadastradas;',
+          'Alterar e salvar tom da musica.',
+        ],
+      ));
     }
 
     if (!musicas.length) {
@@ -234,10 +241,15 @@ function clearPendingSugestaoMusica() {
   window.sessionStorage.removeItem('masterCifras.pendingSugestaoMusica');
 }
 
-function createReadOnlyNotice(text) {
-  const notice = document.createElement('p');
-  notice.className = 'page-status';
-  notice.textContent = text;
+function createReadOnlyNotice(text, items = []) {
+  const notice = document.createElement('section');
+  notice.className = 'page-status role-notice';
+  notice.innerHTML = `
+    <p>${escapeHtml(text)}</p>
+    <ul>
+      ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+    </ul>
+  `;
   return notice;
 }
 

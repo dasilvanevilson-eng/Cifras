@@ -738,6 +738,25 @@ a {
   color: #a12a2a;
 }
 
+.role-notice {
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+.role-notice p,
+.role-notice ul {
+  margin: 0;
+}
+
+.role-notice ul {
+  padding-left: 1.2rem;
+}
+
+.role-notice li + li {
+  margin-top: 0.25rem;
+}
+
 .list-browser {
   position: relative;
   display: grid;

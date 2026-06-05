@@ -37,7 +37,15 @@ export async function RepertoriosPage({ session } = {}) {
       },
     }));
   } else {
-    formSlot.append(createReadOnlyNotice('Seu perfil pode visualizar repertorios, mas nao cadastrar ou editar.'));
+    formSlot.append(createReadOnlyNotice(
+      'No momento voce nao tem acesso a essas funcionalidades:',
+      [
+        'Consulte todos os repertorios;',
+        'Incluir e editar novos repertorios;',
+        'Alterar facilmente a sequencia das musicas;',
+        'Usar os controles de execucao para ajustar tom, fonte, tema, capo e rolagem automatica.',
+      ],
+    ));
   }
 
   try {
@@ -61,10 +69,15 @@ export async function RepertoriosPage({ session } = {}) {
   return page;
 }
 
-function createReadOnlyNotice(text) {
-  const notice = document.createElement('p');
-  notice.className = 'page-status';
-  notice.textContent = text;
+function createReadOnlyNotice(text, items = []) {
+  const notice = document.createElement('section');
+  notice.className = 'page-status role-notice';
+  notice.innerHTML = `
+    <p>${escapeHtml(text)}</p>
+    <ul>
+      ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+    </ul>
+  `;
   return notice;
 }
 
