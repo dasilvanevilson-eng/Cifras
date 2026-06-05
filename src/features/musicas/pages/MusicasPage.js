@@ -131,22 +131,8 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
         clearPendingSugestaoMusica();
       }
 
-      if (!selectedMusica) {
-        if (result.data) {
-          musicas.unshift(result.data);
-        }
-
-        renderForm(formSlot, { musicas, session });
-        return;
-      }
-
-      const index = musicas.findIndex((item) => item.id === selectedMusica.id);
-
-      if (index >= 0) {
-        musicas[index] = { ...musicas[index], ...musica, id: selectedMusica.id };
-      }
-
-      renderForm(formSlot, { musicas, session });
+      window.location.href = '/musicas';
+      return;
     },
   }));
 }
