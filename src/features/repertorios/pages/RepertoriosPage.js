@@ -103,14 +103,14 @@ function createNewRepertorioComposer(musicas, users) {
           <input name="data" type="date">
         </label>
       </div>
+      <label class="repertorio-song-search-field">
+        Buscar musica
+        <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
+      </label>
     </section>
 
     <section class="repertorio-form-section repertorio-music-fields">
       <h2>Musicas</h2>
-      <label>
-        Buscar musica
-        <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
-      </label>
       <div class="song-search-results" hidden></div>
       <div class="selected-repertorio-songs"></div>
     </section>
@@ -122,7 +122,7 @@ function createNewRepertorioComposer(musicas, users) {
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
-  form.querySelector('.repertorio-basic-fields').append(RepertorioPrivacyFields({
+  form.querySelector('.repertorio-music-fields h2').after(RepertorioPrivacyFields({
     users,
     initialValues: {
       visibilidade: 'publico',
