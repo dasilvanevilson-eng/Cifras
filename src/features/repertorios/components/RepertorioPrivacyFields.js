@@ -35,11 +35,29 @@ export function RepertorioPrivacyFields(options = {}) {
   const fieldset = wrapper.querySelector('.repertorio-privacy-fields');
   const visibilitySelect = wrapper.querySelector('[name="visibilidade"]');
 
+  function closePrivacyPanel() {
+    fieldset.hidden = true;
+    toggleButton.setAttribute('aria-expanded', 'false');
+    toggleButton.textContent = 'Configurar privacidade';
+  }
+
   toggleButton.addEventListener('click', () => {
     const isOpening = fieldset.hidden;
     fieldset.hidden = !isOpening;
     toggleButton.setAttribute('aria-expanded', String(isOpening));
     toggleButton.textContent = isOpening ? 'Ocultar privacidade' : 'Configurar privacidade';
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (fieldset.hidden || wrapper.contains(event.target)) return;
+
+    closePrivacyPanel();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || fieldset.hidden) return;
+
+    closePrivacyPanel();
   });
 
   function updateSelectiveUsersVisibility() {

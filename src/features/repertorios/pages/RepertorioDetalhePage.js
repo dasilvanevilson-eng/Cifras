@@ -146,12 +146,31 @@ function createHistoryButton(wrapper) {
   button.type = 'button';
   button.className = 'nav-button';
   button.textContent = 'Historico';
+  const panel = wrapper.querySelector('.repertorio-history-panel');
+
+  function closeHistoryPanel() {
+    if (!panel || panel.hidden) return;
+
+    panel.hidden = true;
+    button.textContent = 'Historico';
+  }
 
   button.addEventListener('click', () => {
-    const panel = wrapper.querySelector('.repertorio-history-panel');
     const isOpening = panel.hidden;
     panel.hidden = !isOpening;
     button.textContent = isOpening ? 'Ocultar historico' : 'Historico';
+  });
+
+  panel.addEventListener('click', (event) => {
+    if (event.target !== event.currentTarget) return;
+
+    closeHistoryPanel();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+
+    closeHistoryPanel();
   });
 
   return button;

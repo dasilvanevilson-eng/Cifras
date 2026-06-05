@@ -509,6 +509,18 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       actions.querySelector('[data-action="history"]').textContent = isOpening ? 'Ocultar historico' : 'Historico';
     });
 
+    form.querySelector('.repertorio-history-panel').addEventListener('click', (event) => {
+      if (event.target !== event.currentTarget) return;
+
+      closeHistoryPanel();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+
+      closeHistoryPanel();
+    });
+
     actions.querySelector('[data-action="delete"]').addEventListener('click', async () => {
       const confirmed = window.confirm(`Excluir o repertorio "${selectedRepertorio.nome}"?`);
       if (!confirmed) return;
@@ -524,6 +536,14 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     });
 
     form.querySelector('.history-slot').append(createHistoryList(options.historico || []));
+
+    function closeHistoryPanel() {
+      const panel = form.querySelector('.repertorio-history-panel');
+      if (!panel || panel.hidden) return;
+
+      panel.hidden = true;
+      actions.querySelector('[data-action="history"]').textContent = 'Historico';
+    }
   }
 }
 
