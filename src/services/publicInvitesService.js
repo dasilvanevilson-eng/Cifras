@@ -19,10 +19,10 @@ export async function createDashboardPublicInvite({ title, expiresAt, maxUses, c
       module_key: 'dashboard',
       target_type: 'module',
       target_id: null,
-      allowed_actions: ['view'],
+      allowed_actions: ['view', 'execute'],
       metadata: {
         version: 1,
-        description: 'Acesso publico temporario ao painel em modo visualizacao.',
+        description: 'Acesso publico temporario ao painel e execucao em modo visualizacao.',
       },
       expires_at: expiresAt,
       max_uses: maxUses || null,
@@ -63,6 +63,48 @@ export async function listPublicRepertorioMusicas(token, repertorioId) {
   }
 
   return { data: data.musicas || [], error: null };
+}
+
+export async function getPublicMusicaData(token, musicaId) {
+  assertSupabaseConfig();
+  const { data, error } = await supabase.rpc('get_public_musica_data', {
+    p_token: token,
+    p_musica_id: musicaId,
+  });
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  if (!data?.valid) {
+    return { data: null, error: new Error('Convite expirado, invalido ou musica nao encontrada.') };
+  }
+
+  return { data: data.musica, error: null };
+}
+
+export async function getPublicRepertorioExecutionData(token, repertorioId) {
+  assertSupabaseConfig();
+  const { data, error } = await supabase.rpc('get_public_repertorio_execution_data', {
+    p_token: token,
+    p_repertorio_id: repertorioId,
+  });
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  if (!data?.valid) {
+    return { data: null, error: new Error('Convite expirado, invalido ou repertorio nao encontrado.') };
+  }
+
+  return {
+    data: {
+      repertorio: data.repertorio,
+      musicas: data.musicas || [],
+    },
+    error: null,
+  };
 }
 
 function createPublicToken() {

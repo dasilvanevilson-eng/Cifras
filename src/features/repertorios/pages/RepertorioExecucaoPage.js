@@ -360,7 +360,7 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo, initialMusicaId }) {
+export function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo, initialMusicaId }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);

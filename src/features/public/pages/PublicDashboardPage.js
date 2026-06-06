@@ -33,6 +33,7 @@ export async function PublicDashboardPage() {
       musicas: data.musicas || [],
       repertorios: data.repertorios || [],
       publicMode: true,
+      publicToken: token,
       inviteTitle: data.invite?.title,
       listMusicasDoRepertorioFn: (repertorioId) => listPublicRepertorioMusicas(token, repertorioId),
     }));

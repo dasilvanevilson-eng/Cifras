@@ -33,6 +33,7 @@ export function createDashboardView({
   musicas,
   repertorios,
   publicMode = false,
+  publicToken = '',
   inviteTitle = '',
   listMusicasDoRepertorioFn = listMusicasDoRepertorio,
 } = {}) {
@@ -83,11 +84,12 @@ export function createDashboardView({
     slot: wrapper.querySelector('[data-slot="repertorios"]'),
     items: repertoriosOrdenados,
     render: createRepertoriosList,
-    getUrl: publicMode ? null : getRepertorioUrl,
+    getUrl: publicMode ? (repertorio) => getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl,
     renderContext: {
       musicasSlot: wrapper.querySelector('[data-slot="repertorio-musicas"]'),
       wrapper,
       publicMode,
+      publicToken,
       listMusicasDoRepertorioFn,
     },
   });
@@ -98,13 +100,14 @@ export function createDashboardView({
     selectedMusicas: musicasSelecionadas,
     onSelectionChange: null,
     publicMode,
+    publicToken,
   };
   const musicasSearch = setupDashboardSearch({
     input: wrapper.querySelector('[data-search="musicas"]'),
     slot: wrapper.querySelector('[data-slot="musicas"]'),
     items: musicasOrdenadas,
     render: createMusicasList,
-    getUrl: publicMode ? null : getMusicaUrl,
+    getUrl: publicMode ? (musica) => getPublicMusicaUrl(musica, publicToken) : getMusicaUrl,
     renderContext: musicasSearchContext,
   });
   musicasSearchContext.onSelectionChange = musicasSearch.update;
@@ -204,6 +207,7 @@ function createRepertoriosList(repertorios, {
   musicasSlot,
   wrapper,
   publicMode = false,
+  publicToken = '',
   listMusicasDoRepertorioFn = listMusicasDoRepertorio,
 } = {}) {
   if (!repertorios.length) {
@@ -223,20 +227,18 @@ function createRepertoriosList(repertorios, {
         <p>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</p>
       </div>
       <div class="dashboard-item-actions">
-        ${publicMode ? '' : `<a class="button-link secondary" href="${escapeHtml(getRepertorioUrl(repertorio))}">Executar</a>`}
+        <a class="button-link secondary" href="${escapeHtml(publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio))}">Executar</a>
         <button class="nav-button" type="button" data-action="show-repertorio-songs">Musicas</button>
       </div>
     `;
 
     item.addEventListener('click', (event) => {
-      if (publicMode) return;
       if (event.target.closest('a, button')) return;
-      window.location.href = getRepertorioUrl(repertorio);
+      window.location.href = publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio);
     });
     item.addEventListener('keydown', (event) => {
-      if (publicMode) return;
       if (event.key !== 'Enter') return;
-      window.location.href = getRepertorioUrl(repertorio);
+      window.location.href = publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio);
     });
 
     item.querySelector('[data-action="show-repertorio-songs"]').addEventListener('click', async () => {
@@ -255,7 +257,7 @@ function createRepertoriosList(repertorios, {
         return;
       }
 
-      musicasSlot.replaceChildren(createRepertorioMusicasList(repertorio, data || [], { publicMode }));
+      musicasSlot.replaceChildren(createRepertorioMusicasList(repertorio, data || [], { publicMode, publicToken }));
     });
 
     list.append(item);
@@ -264,7 +266,7 @@ function createRepertoriosList(repertorios, {
   return list;
 }
 
-function createRepertorioMusicasList(repertorio, musicasAssociadas, { publicMode = false } = {}) {
+function createRepertorioMusicasList(repertorio, musicasAssociadas, { publicMode = false, publicToken = '' } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'dashboard-selected-panel';
 
@@ -282,7 +284,7 @@ function createRepertorioMusicasList(repertorio, musicasAssociadas, { publicMode
   wrapper.innerHTML = `
     <div class="dashboard-selected-header">
       <h3>${escapeHtml(repertorioNome)}</h3>
-      ${publicMode ? '' : `<a class="button-link secondary" href="${escapeHtml(getRepertorioUrl(repertorio))}">Executar repertorio</a>`}
+      <a class="button-link secondary" href="${escapeHtml(publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio))}">Executar repertorio</a>
     </div>
     <div class="dashboard-mini-list"></div>
   `;
@@ -300,7 +302,7 @@ function createRepertorioMusicasList(repertorio, musicasAssociadas, { publicMode
           ${item.observacao ? `<small>${escapeHtml(item.observacao)}</small>` : ''}
         </h4>
       </div>
-      ${publicMode ? '' : `<a class="button-link secondary" href="${escapeHtml(getRepertorioMusicaUrl(repertorio, item))}">Executar</a>`}
+      <a class="button-link secondary" href="${escapeHtml(publicMode ? getPublicRepertorioMusicaUrl(repertorio, item, publicToken) : getRepertorioMusicaUrl(repertorio, item))}">Executar</a>
     `;
     list.append(row);
   });
@@ -332,19 +334,17 @@ function createMusicasList(musicas, context = {}) {
         </h3>
       </div>
       <div class="dashboard-item-actions">
-        ${context.publicMode ? '' : `<a class="button-link secondary" data-action="execute-song" href="${escapeHtml(getMusicaUrl(musica))}">Executar</a>`}
+        <a class="button-link secondary" data-action="execute-song" href="${escapeHtml(context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica))}">Executar</a>
       </div>
     `;
     item.addEventListener('click', (event) => {
-      if (context.publicMode) return;
       if (event.target.closest('a, button')) return;
-      window.location.href = getMusicaUrl(musica);
+      window.location.href = context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica);
     });
     item.addEventListener('keydown', (event) => {
-      if (context.publicMode) return;
       if (event.key !== 'Enter') return;
       if (event.target.closest('a, button')) return;
-      window.location.href = getMusicaUrl(musica);
+      window.location.href = context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica);
     });
     item.querySelector('[data-action="toggle-song-selection"]')?.addEventListener('click', () => {
       toggleMusicaSelection(context.selectedMusicas, musica);
@@ -491,6 +491,18 @@ function getSelecaoExecucaoUrl(musicas) {
 
 function getRepertorioMusicaUrl(repertorio, item) {
   return `/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}&musicaId=${encodeURIComponent(item.musica_id)}&returnTo=/dashboard`;
+}
+
+function getPublicRepertorioUrl(repertorio, token) {
+  return `/publico/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}&token=${encodeURIComponent(token)}`;
+}
+
+function getPublicMusicaUrl(musica, token) {
+  return `/publico/musicas/execucao?id=${encodeURIComponent(musica.id)}&token=${encodeURIComponent(token)}`;
+}
+
+function getPublicRepertorioMusicaUrl(repertorio, item, token) {
+  return `/publico/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}&musicaId=${encodeURIComponent(item.musica_id)}&token=${encodeURIComponent(token)}`;
 }
 
 function getRepertoriosOrdenados(repertorios) {

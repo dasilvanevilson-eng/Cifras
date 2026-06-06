@@ -31,7 +31,7 @@ export async function MusicaExecucaoPage() {
   return page;
 }
 
-function createPerformanceView({ musica, returnTo }) {
+export function createPerformanceView({ musica, returnTo }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const title = getField(musica, ['titulo', 'nome', 'title']);

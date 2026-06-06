@@ -21,6 +21,8 @@ import { PermissoesPage } from '../features/usuarios/pages/PermissoesPage.js';
 import { PersonalizacaoPage } from '../features/system/pages/PersonalizacaoPage.js';
 import { ConvitesPublicosPage } from '../features/public/pages/ConvitesPublicosPage.js';
 import { PublicDashboardPage } from '../features/public/pages/PublicDashboardPage.js';
+import { PublicMusicaExecucaoPage } from '../features/public/pages/PublicMusicaExecucaoPage.js';
+import { PublicRepertorioExecucaoPage } from '../features/public/pages/PublicRepertorioExecucaoPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
@@ -54,9 +56,17 @@ const routes = {
   '/personalizacao': PersonalizacaoPage,
   '/convites-publicos': ConvitesPublicosPage,
   '/publico': PublicDashboardPage,
+  '/publico/musicas/execucao': PublicMusicaExecucaoPage,
+  '/publico/repertorios/execucao': PublicRepertorioExecucaoPage,
 };
 
-const publicRoutes = new Set(['/login', '/alterar-senha', '/publico']);
+const publicRoutes = new Set([
+  '/login',
+  '/alterar-senha',
+  '/publico',
+  '/publico/musicas/execucao',
+  '/publico/repertorios/execucao',
+]);
 
 const protectedRoutes = {
   '/usuarios': canManageUsers,
