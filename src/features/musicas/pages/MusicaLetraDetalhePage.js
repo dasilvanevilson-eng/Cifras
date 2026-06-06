@@ -1,5 +1,5 @@
 import { getMusicaById } from '../../../services/musicasService.js';
-import { extractLyricsFromCifraOriginal } from '../../../utils/chordpro.js';
+import { extractLyricsFromCifraOriginal, getCifraExibicao } from '../../../utils/chordpro.js';
 import { downloadTextFile, slugifyFilename } from '../../../utils/download.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
@@ -46,7 +46,7 @@ function createLetraView(musica) {
 
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const artist = getField(musica, ['artista', 'autor', 'artist']);
-  const letra = extractLyricsFromCifraOriginal(getField(musica, ['cifra_original']));
+  const letra = getLyricsFromMusica(musica);
 
   wrapper.innerHTML = `
     <a class="back-link" href="/musicas-letras">Voltar para musicas letras</a>
@@ -73,6 +73,11 @@ function createLetraView(musica) {
   });
 
   return wrapper;
+}
+
+function getLyricsFromMusica(musica = {}) {
+  const source = musica.cifra_chordpro || getCifraExibicao(musica);
+  return extractLyricsFromCifraOriginal(source);
 }
 
 function getField(record, names) {
