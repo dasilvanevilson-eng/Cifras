@@ -298,13 +298,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       row.dataset.index = String(index);
       row.title = 'Arraste para reposicionar';
       row.innerHTML = `
-        <span class="selected-repertorio-song-order">${index + 1}</span>
         <div>
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
-          <small>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</small>
         </div>
         <label class="selected-repertorio-song-moment">
-          <span>Momento</span>
           <input type="text" maxlength="80" value="${escapeHtml(musica.observacao || '')}" placeholder="Entrada, louvor...">
         </label>
         <button class="danger-button icon-button" type="button" aria-label="Remover musica">&#128465;</button>

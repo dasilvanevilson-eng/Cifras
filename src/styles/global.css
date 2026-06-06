@@ -1427,13 +1427,13 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(150px, 210px) auto;
-  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 190px) auto;
+  gap: 0.5rem;
   align-items: center;
   border: 1px solid #ddd6c8;
   border-radius: 8px;
-  min-height: 60px;
-  padding: 0.6rem;
+  min-height: 48px;
+  padding: 0.45rem 0.5rem;
   background: #ffffff;
   box-shadow: 0 6px 16px rgba(32, 33, 31, 0.04);
   cursor: grab;
@@ -1480,7 +1480,6 @@ a {
 
 .selected-repertorio-song-moment {
   display: grid;
-  gap: 0.2rem;
   min-width: 0;
   color: #5f594f;
   font-size: 12px;
@@ -1491,8 +1490,8 @@ a {
   width: 100%;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
-  min-height: 38px;
-  padding: 7px 8px;
+  min-height: 34px;
+  padding: 6px 8px;
   background: #ffffff;
   color: #20211f;
   font: inherit;
@@ -4322,12 +4321,12 @@ a {
   }
 
   .selected-repertorio-song {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
   }
 
   .selected-repertorio-song-moment {
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
   }
 
   .selected-repertorio-song .danger-button {
