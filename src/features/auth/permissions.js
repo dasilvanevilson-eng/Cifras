@@ -23,6 +23,19 @@ export const PERMISSION_MODULES = [
   { key: 'permissoes', label: 'Permissoes', description: 'Configuracao de acessos por usuario.' },
 ];
 
+const MENU_ROUTE_ORDER = [
+  { href: '/dashboard', moduleKey: 'dashboard' },
+  { href: '/banda-coral', moduleKey: 'banda_coral' },
+  { href: '/musicas', moduleKey: 'musicas' },
+  { href: '/musicas-letras', moduleKey: 'letras' },
+  { href: '/repertorios', moduleKey: 'repertorios' },
+  { href: '/repertorios-pdf', moduleKey: 'pdf_repertorio' },
+  { href: '/sugestoes', moduleKey: 'sugestoes' },
+  { href: '/minha-conta', moduleKey: 'minha_conta' },
+  { href: '/usuarios', moduleKey: 'usuarios', adminOnly: true },
+  { href: '/permissoes', moduleKey: 'permissoes', adminOnly: true },
+];
+
 const EMPTY_ACTIONS = createActions(false);
 
 const ROLE_DEFAULTS = {
@@ -78,6 +91,16 @@ export function resolvePermissions(role, overrides = []) {
 
 export function canViewModule(session, moduleKey) {
   return hasPermission(session, moduleKey, 'can_view');
+}
+
+export function getFirstVisibleMenuRoute(session) {
+  const role = normalizeRole(session?.profile?.papel);
+  const route = MENU_ROUTE_ORDER.find((item) => (
+    (!item.adminOnly || role === USER_ROLES.ADMIN)
+    && canViewModule(session, item.moduleKey)
+  ));
+
+  return route?.href || '/minha-conta';
 }
 
 export function hasPermission(session, moduleKey, actionKey) {

@@ -23,6 +23,7 @@ import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { BandaCoralPage } from '../features/bandaCoral/pages/BandaCoralPage.js';
+import { getFirstVisibleMenuRoute } from '../features/auth/permissions.js';
 
 const routes = {
   '/dashboard': DashboardPage,
@@ -73,7 +74,7 @@ export function createRouter() {
       }
 
       if (session.user && (path === '/' || path === '/login')) {
-        window.history.replaceState(null, '', '/dashboard');
+        window.history.replaceState(null, '', getFirstVisibleMenuRoute(session));
       }
 
       const Page = routes[window.location.pathname];
