@@ -3143,6 +3143,18 @@ a {
   display: none;
 }
 
+.banda-participants-content {
+  display: grid;
+  gap: 8px;
+}
+
+.banda-participants-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .banda-participants-items {
   display: grid;
   gap: 6px;

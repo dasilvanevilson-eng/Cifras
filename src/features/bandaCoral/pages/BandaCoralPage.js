@@ -338,11 +338,24 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   const stageLayer = wrapper.querySelector('.banda-stage-layer');
   const songSlot = wrapper.querySelector('.banda-song-slot');
   const participantesSlot = wrapper.querySelector('[data-role="participantes-list"]');
+  const participantesButton = wrapper.querySelector('[data-action="consultar-participantes"]');
   let currentItem = getCurrentSessionItem(sessao, musicasAssociadas);
   const repertorioTitle = getField(sessao.repertorios || {}, ['nome', 'titulo', 'name']) || 'Repertorio';
 
-  wrapper.querySelector('[data-action="consultar-participantes"]').addEventListener('click', async () => {
+  function closeParticipantes() {
+    participantesSlot.hidden = true;
+    participantesSlot.replaceChildren();
+    participantesButton.textContent = 'Consultar participantes';
+  }
+
+  participantesButton.addEventListener('click', async () => {
+    if (!participantesSlot.hidden) {
+      closeParticipantes();
+      return;
+    }
+
     participantesSlot.hidden = false;
+    participantesButton.textContent = 'Fechar participantes';
     participantesSlot.innerHTML = '<p class="page-status">Carregando participantes...</p>';
 
     const { data, error } = await listParticipantesSessaoBanda(sessao.id);
@@ -353,6 +366,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
     }
 
     participantesSlot.replaceChildren(createParticipantesList(data || []));
+    participantesSlot.querySelector('[data-action="close-participants"]')?.addEventListener('click', closeParticipantes);
   });
 
   async function saveSession(values) {
@@ -528,28 +542,58 @@ function hydrateSessaoRepertorio(sessao, repertorios) {
 }
 
 function createParticipantesList(participantes) {
+  const panel = document.createElement('div');
+  panel.className = 'banda-participants-content';
+  panel.innerHTML = `
+    <div class="banda-participants-header">
+      <strong>Participantes</strong>
+      <button class="nav-button" type="button" data-action="close-participants">Fechar</button>
+    </div>
+  `;
+
   if (!participantes.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
     empty.textContent = 'Nenhum participante conectado nesta sessao.';
-    return empty;
+    panel.append(empty);
+    return panel;
   }
 
   const list = document.createElement('div');
   list.className = 'banda-participants-items';
 
-  participantes.forEach((participante, index) => {
+  sortParticipantes(participantes).forEach((participante, index) => {
     const item = document.createElement('article');
     item.className = 'banda-participant-item';
+    const role = formatParticipantRole(participante.papel);
+    const name = getParticipantName(participante);
     item.innerHTML = `
-      <strong>${index + 1}. ${escapeHtml(formatParticipantRole(participante.papel))}</strong>
+      <strong>${index + 1}. ${escapeHtml(role)}: ${escapeHtml(name)}</strong>
       <span>${participante.seguir_lider ? 'Seguindo lider' : 'Livre'}</span>
       <small>${escapeHtml(formatParticipantDate(participante.entrou_em))}</small>
     `;
     list.append(item);
   });
 
-  return list;
+  panel.append(list);
+  return panel;
+}
+
+function sortParticipantes(participantes) {
+  return [...participantes].sort((a, b) => {
+    const leaderOrder = Number(String(b.papel || '') === 'lider') - Number(String(a.papel || '') === 'lider');
+    if (leaderOrder) return leaderOrder;
+    return new Date(a.entrou_em || 0).getTime() - new Date(b.entrou_em || 0).getTime();
+  });
+}
+
+function getParticipantName(participante) {
+  return participante.profile?.nome
+    || participante.nome
+    || participante.usuario_nome
+    || participante.email
+    || participante.usuario_id
+    || 'Participante';
 }
 
 function formatParticipantRole(role) {

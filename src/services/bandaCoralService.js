@@ -150,10 +150,40 @@ export async function updateSeguirLider(participanteId, seguirLider) {
 
 export async function listParticipantesSessaoBanda(sessaoId) {
   assertSupabaseConfig();
-  return supabase
+  const { data: participantes, error } = await supabase
     .from('sessoes_banda_participantes')
     .select('*')
-    .eq('sessao_id', sessaoId);
+    .eq('sessao_id', sessaoId)
+    .order('entrou_em', { ascending: true });
+
+  if (error || !participantes?.length) {
+    return { data: participantes || [], error };
+  }
+
+  const userIds = [...new Set(participantes.map((participante) => participante.usuario_id).filter(Boolean))];
+
+  if (!userIds.length) {
+    return { data: participantes, error: null };
+  }
+
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id,nome,papel')
+    .in('id', userIds);
+
+  if (profilesError) {
+    return { data: participantes, error: null };
+  }
+
+  const profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+
+  return {
+    data: participantes.map((participante) => ({
+      ...participante,
+      profile: profilesById.get(participante.usuario_id) || null,
+    })),
+    error: null,
+  };
 }
 
 export async function listMusicasSessaoRepertorio(repertorioId) {
