@@ -1427,7 +1427,7 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(130px, 190px) auto;
+  grid-template-columns: auto minmax(0, 1fr) minmax(130px, 190px);
   gap: 0.5rem;
   align-items: center;
   border: 1px solid #ddd6c8;
@@ -1437,6 +1437,28 @@ a {
   background: #ffffff;
   box-shadow: 0 6px 16px rgba(32, 33, 31, 0.04);
   cursor: grab;
+}
+
+.selected-repertorio-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0;
+  color: #a12a2a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.selected-repertorio-remove:hover,
+.selected-repertorio-remove:focus {
+  border-color: #a12a2a;
+  background: #fff0f0;
+  color: #7d1f1f;
+  outline: 0;
 }
 
 .selected-repertorio-song.is-dragging {
@@ -4321,17 +4343,12 @@ a {
   }
 
   .selected-repertorio-song {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 8px;
   }
 
   .selected-repertorio-song-moment {
-    grid-column: 1 / -1;
-  }
-
-  .selected-repertorio-song .danger-button {
-    min-width: 42px;
-    min-height: 42px;
+    grid-column: 2 / -1;
   }
 
   .new-repertorio-form .selected-repertorio-songs {

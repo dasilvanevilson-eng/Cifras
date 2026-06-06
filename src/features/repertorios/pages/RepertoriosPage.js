@@ -298,13 +298,13 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       row.dataset.index = String(index);
       row.title = 'Arraste para reposicionar';
       row.innerHTML = `
+        <button class="danger-button selected-repertorio-remove" type="button" aria-label="Remover musica">X</button>
         <div>
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
         </div>
         <label class="selected-repertorio-song-moment">
           <input type="text" maxlength="80" value="${escapeHtml(musica.observacao || '')}" placeholder="Entrada, louvor...">
         </label>
-        <button class="danger-button icon-button" type="button" aria-label="Remover musica">&#128465;</button>
       `;
 
       row.addEventListener('dragstart', (event) => {
@@ -341,7 +341,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         renderSelected();
       });
 
-      row.querySelector('.danger-button').addEventListener('click', () => {
+      row.querySelector('.selected-repertorio-remove').addEventListener('click', () => {
         selectedMusicas.splice(index, 1);
         renderSelected();
         renderResults();
