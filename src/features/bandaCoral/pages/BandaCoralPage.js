@@ -128,14 +128,34 @@ function createLeaderMode({ sessoes, repertorios, musicasAvulsas }) {
   const message = form.querySelector('.form-message');
   const sessionsSlot = wrapper.querySelector('.banda-active-sessions');
   const livePanel = wrapper.querySelector('.banda-live-panel');
+  let activeSessions = [...sessoes];
 
-  sessionsSlot.replaceChildren(createSessionsList(sessoes, {
-    emptyText: 'Nenhuma sessao ativa.',
-    actionLabel: 'Abrir como lider',
-    onSelect: async (sessao) => {
-      await openLeaderSession(sessao.id, repertorios, musicasAvulsas, livePanel);
-    },
-  }));
+  function renderSessionsList() {
+    sessionsSlot.replaceChildren(createSessionsList(activeSessions, {
+      emptyText: 'Nenhuma sessao ativa.',
+      actionLabel: 'Abrir',
+      canDelete: true,
+      onSelect: async (sessao) => {
+        await openLeaderSession(sessao.id, repertorios, musicasAvulsas, livePanel);
+      },
+      onDelete: async (sessao) => {
+        if (!window.confirm(`Excluir o ensaio "${sessao.nome || 'Sessao'}"?`)) return;
+
+        const { error } = await updateSessaoBanda(sessao.id, { ativa: false });
+
+        if (error) {
+          window.alert(error.message || 'Nao foi possivel excluir o ensaio.');
+          return;
+        }
+
+        activeSessions = activeSessions.filter((item) => item.id !== sessao.id);
+        renderSessionsList();
+        livePanel.innerHTML = '<p class="page-status">Ensaio excluido.</p>';
+      },
+    }));
+  }
+
+  renderSessionsList();
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -156,6 +176,8 @@ function createLeaderMode({ sessoes, repertorios, musicasAvulsas }) {
 
     message.className = 'form-message success';
     message.textContent = 'Sessao criada.';
+    activeSessions = [data, ...activeSessions];
+    renderSessionsList();
     await openLeaderSession(data.id, repertorios, musicasAvulsas, livePanel);
   });
 
@@ -208,10 +230,16 @@ function createSessionsList(sessoes, options = {}) {
         <strong>${escapeHtml(sessao.nome || 'Sessao')}</strong>
         <span>${escapeHtml(sessao.repertorios?.nome || 'Sem repertorio')}</span>
       </div>
-      <button class="nav-button" type="button">${escapeHtml(options.actionLabel || 'Abrir')}</button>
+      <div class="banda-session-actions">
+        <button class="nav-button" type="button" data-action="open-session">${escapeHtml(options.actionLabel || 'Abrir')}</button>
+        ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete-session">Excluir</button>' : ''}
+      </div>
     `;
-    item.querySelector('button').addEventListener('click', () => {
+    item.querySelector('[data-action="open-session"]').addEventListener('click', () => {
       if (options.onSelect) options.onSelect(sessao);
+    });
+    item.querySelector('[data-action="delete-session"]')?.addEventListener('click', () => {
+      if (options.onDelete) options.onDelete(sessao);
     });
     list.append(item);
   });
@@ -303,6 +331,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   const message = wrapper.querySelector('.form-message');
   const songSlot = wrapper.querySelector('.banda-song-slot');
   let currentItem = getCurrentSessionItem(sessao, musicasAssociadas);
+  const repertorioTitle = getField(sessao.repertorios || {}, ['nome', 'titulo', 'name']) || 'Repertorio';
 
   async function saveSession(values) {
     message.className = 'form-message';
@@ -340,16 +369,40 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   });
 
   musicaSelect.addEventListener('change', async () => {
-    const selectedOption = musicaSelect.selectedOptions[0];
-    const nextTom = selectedOption?.dataset.tom || '';
+    await selectRepertorioItem(findSelectedMusica(musicasAssociadas, musicaSelect.value));
+  });
+
+  async function selectRepertorioItem(item) {
+    if (!item) {
+      await saveSession({
+        musica_atual_id: null,
+        tom_atual: null,
+      });
+      currentItem = null;
+      musicaSelect.value = '';
+      tomInput.value = '';
+      renderCurrentBandaSong();
+      return;
+    }
+
+    const nextTom = getAssocTom(item);
     tomInput.value = nextTom;
+    musicaSelect.value = item.musica_id || '';
     await saveSession({
-      musica_atual_id: musicaSelect.value || null,
+      musica_atual_id: item.musica_id || null,
       tom_atual: nextTom || null,
     });
-    currentItem = findSelectedMusica(musicasAssociadas, musicaSelect.value);
-    renderBandaSong(songSlot, currentItem, tomInput.value);
-  });
+    currentItem = item;
+    renderCurrentBandaSong();
+  }
+
+  function renderCurrentBandaSong() {
+    renderBandaSong(songSlot, currentItem, tomInput.value, {
+      playlist: musicasAssociadas,
+      repertorioTitle,
+      onSelectItem: selectRepertorioItem,
+    });
+  }
 
   function renderAvulsas(query = '') {
     const term = normalizeText(query);
@@ -393,7 +446,9 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
         avulsaSearch.value = '';
         avulsaResults.innerHTML = '<p class="page-status success">Musica avulsa em execucao.</p>';
         currentItem = createSongItem(musica, nextTom);
-        renderBandaSong(songSlot, currentItem, nextTom);
+        renderBandaSong(songSlot, currentItem, nextTom, {
+          repertorioTitle: 'Musica avulsa',
+        });
       });
       list.append(button);
     });
@@ -408,11 +463,11 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
     await saveSession({
       tom_atual: tomInput.value.trim() || null,
     });
-    renderBandaSong(songSlot, currentItem, tomInput.value);
+    renderCurrentBandaSong();
   });
 
   renderAvulsas('');
-  renderBandaSong(songSlot, currentItem, sessao.tom_atual);
+  renderCurrentBandaSong();
 
   return wrapper;
 }
@@ -482,12 +537,14 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
     musicas: sessao.musicas,
     musica_id: sessao.musica_atual_id,
     tom: sessao.tom_atual,
-  }, sessao.tom_atual);
+  }, sessao.tom_atual, {
+    repertorioTitle: sessao.repertorios?.nome || 'Sessao',
+  });
 
   slot.replaceChildren(wrapper);
 }
 
-function renderBandaSong(slot, item, tomAtual) {
+function renderBandaSong(slot, item, tomAtual, options = {}) {
   const musica = item?.musicas || null;
 
   if (!musica) {
@@ -502,6 +559,12 @@ function renderBandaSong(slot, item, tomAtual) {
   const cifraAtual = transposeCifraOriginal(cifraOriginal, semitones);
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const link = getField(musica, ['musica_link']);
+  const playlist = options.playlist || [];
+  const currentIndex = item?.musica_id
+    ? playlist.findIndex((playlistItem) => playlistItem.musica_id === item.musica_id)
+    : -1;
+  const hasPlaylistNavigation = playlist.length > 1 && currentIndex >= 0;
+  const repertorioTitle = options.repertorioTitle || 'Sessao';
 
   slot.innerHTML = `
     <article class="repertorio-performance-view repertorio-song-view banda-performance-view">
@@ -509,6 +572,9 @@ function renderBandaSong(slot, item, tomAtual) {
         <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
         <span class="transpose-status" data-role="transpose-status">Tom</span>
         <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+        <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior"${hasPlaylistNavigation ? '' : ' disabled'}>&lsaquo;</button>
+        <span class="performance-position" data-role="song-position">${hasPlaylistNavigation ? `${currentIndex + 1}/${playlist.length}` : '1/1'}</span>
+        <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${hasPlaylistNavigation ? '' : ' disabled'}>&rsaquo;</button>
         <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
         <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
@@ -529,15 +595,29 @@ function renderBandaSong(slot, item, tomAtual) {
       </div>
       <section class="performance-song">
         <header class="repertorio-song-title-bar">
-          <h2>${escapeHtml(title)}</h2>
-          <data class="current-key" data-original-key="${escapeHtml(currentKey || '')}">Tom: ${escapeHtml(currentKey || '-')}</data>
+          <span class="repertorio-current-song-title">${escapeHtml(title)}</span>
+          <span class="title-separator" aria-hidden="true">/</span>
+          <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
+          <data class="current-key" data-original-key="${escapeHtml(currentKey || '')}" hidden>${escapeHtml(currentKey || '-')}</data>
         </header>
         <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraAtual)}">${renderCifraOriginalForDisplayHtml(cifraAtual)}</pre>
       </section>
     </article>
   `;
 
-  setupPerformanceControls(slot.querySelector('.banda-performance-view'));
+  setupPerformanceControls(slot.querySelector('.banda-performance-view'), {
+    canNavigate: hasPlaylistNavigation,
+    onPrevious: () => {
+      if (!options.onSelectItem || !hasPlaylistNavigation) return;
+      const previousIndex = Math.max(0, currentIndex - 1);
+      options.onSelectItem(playlist[previousIndex]);
+    },
+    onNext: () => {
+      if (!options.onSelectItem || !hasPlaylistNavigation) return;
+      const nextIndex = Math.min(playlist.length - 1, currentIndex + 1);
+      options.onSelectItem(playlist[nextIndex]);
+    },
+  });
 }
 
 function findSelectedMusica(items, musicaId) {
@@ -557,7 +637,7 @@ function createSongItem(musica, tom = '') {
   };
 }
 
-function setupPerformanceControls(wrapper) {
+function setupPerformanceControls(wrapper, options = {}) {
   if (!wrapper) return;
 
   const themeButton = wrapper.querySelector('[data-action="theme"]');
@@ -567,6 +647,8 @@ function setupPerformanceControls(wrapper) {
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
   const speedInput = wrapper.querySelector('[data-action="speed"]');
   const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
+  const previousSongButton = wrapper.querySelector('[data-action="previous-song"]');
+  const nextSongButton = wrapper.querySelector('[data-action="next-song"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
   const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
   const transposeUpButton = wrapper.querySelector('[data-action="transpose-up"]');
@@ -588,6 +670,15 @@ function setupPerformanceControls(wrapper) {
   setPerformanceFontSize(wrapper, fontSize);
   renderPerformance();
   window.requestAnimationFrame(renderPerformance);
+
+  if (previousSongButton && nextSongButton) {
+    previousSongButton.addEventListener('click', () => {
+      if (options.onPrevious) options.onPrevious();
+    });
+    nextSongButton.addEventListener('click', () => {
+      if (options.onNext) options.onNext();
+    });
+  }
 
   themeButton.addEventListener('click', () => {
     theme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -663,7 +754,15 @@ function setupPerformanceControls(wrapper) {
     renderPerformance();
   });
 
-  setupDoubleTapFullscreen(wrapper, toggleFullscreen);
+  setupSongGestureNavigation(wrapper, {
+    onPrevious: () => {
+      if (options.canNavigate && options.onPrevious) options.onPrevious();
+    },
+    onNext: () => {
+      if (options.canNavigate && options.onNext) options.onNext();
+    },
+    onToggleFullscreen: toggleFullscreen,
+  });
   window.addEventListener('resize', renderPerformance);
 
   async function toggleFullscreen() {
@@ -686,7 +785,7 @@ function setupPerformanceControls(wrapper) {
   }
 }
 
-function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
+function setupSongGestureNavigation(wrapper, { onPrevious, onNext, onToggleFullscreen }) {
   let pointerStart = null;
   let lastTap = null;
 
@@ -711,6 +810,19 @@ function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
     const elapsed = Date.now() - pointerStart.time;
     pointerStart = null;
 
+    if (Math.abs(deltaY) > 90 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      return;
+    }
+
+    if (Math.abs(deltaX) >= 56) {
+      if (deltaX < 0) {
+        onNext();
+      } else {
+        onPrevious();
+      }
+      return;
+    }
+
     if (elapsed > 450 || Math.abs(deltaX) > 12 || Math.abs(deltaY) > 12) return;
 
     const now = Date.now();
@@ -730,6 +842,16 @@ function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
       y: event.clientY,
       time: now,
     };
+
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+    const leftLimit = screenWidth * 0.28;
+    const rightLimit = screenWidth * 0.72;
+
+    if (event.clientX <= leftLimit) {
+      onPrevious();
+    } else if (event.clientX >= rightLimit) {
+      onNext();
+    }
   });
 
   wrapper.addEventListener('pointercancel', () => {
