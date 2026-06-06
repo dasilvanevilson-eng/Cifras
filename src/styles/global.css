@@ -2304,6 +2304,11 @@ a {
   overflow: hidden;
 }
 
+.pdf-index-target {
+  color: inherit;
+  text-decoration: none;
+}
+
 .field-with-action {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

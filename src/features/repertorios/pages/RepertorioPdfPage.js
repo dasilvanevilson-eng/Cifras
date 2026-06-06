@@ -106,8 +106,7 @@ function createPdfView({
     </section>
 
     <nav class="pdf-summary" aria-label="Sumario">
-      <a class="pdf-anchor" id="indice" name="indice" aria-hidden="true"></a>
-      <h2>Sumario</h2>
+      <h2 id="indice"><a class="pdf-index-target" name="indice">Sumario</a></h2>
       <ol>
         ${musicasAssociadas.map((item, index) => createSummaryItem(item, index + 1)).join('')}
       </ol>
