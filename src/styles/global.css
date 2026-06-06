@@ -1280,10 +1280,11 @@ a {
   z-index: 12;
   max-height: 320px;
   overflow: auto;
-  border: 1px solid #ddd6c8;
-  border-radius: var(--border-radius-default);
+  border: 1px solid #d5cabb;
+  border-radius: 8px;
+  padding: 6px;
   background: #ffffff;
-  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
+  box-shadow: 0 18px 34px rgba(24, 24, 24, 0.14);
 }
 
 .song-search-results[hidden] {
@@ -1301,7 +1302,8 @@ a {
   border: 0;
   border-radius: var(--border-radius-default);
   border-bottom: 1px solid #e5dece;
-  padding: 12px;
+  min-height: 52px;
+  padding: 11px 12px;
   background: #ffffff;
   color: #20211f;
   font: inherit;
@@ -1429,8 +1431,11 @@ a {
   gap: 0.65rem;
   align-items: center;
   border: 1px solid #ddd6c8;
-  padding: 0.55rem;
+  border-radius: 8px;
+  min-height: 60px;
+  padding: 0.6rem;
   background: #ffffff;
+  box-shadow: 0 6px 16px rgba(32, 33, 31, 0.04);
   cursor: grab;
 }
 
@@ -1450,9 +1455,10 @@ a {
   min-width: 28px;
   min-height: 28px;
   border-radius: 999px;
-  background: #f4f1ea;
-  color: #5f594f;
-  font-weight: 700;
+  background: #eef4ef;
+  color: #1d4f45;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .selected-repertorio-song div {
@@ -1484,12 +1490,20 @@ a {
 .selected-repertorio-song-moment input {
   width: 100%;
   border: 1px solid #cfc7b8;
+  border-radius: var(--border-radius-default);
+  min-height: 38px;
   padding: 7px 8px;
   background: #ffffff;
   color: #20211f;
   font: inherit;
   font-size: 13px;
   font-weight: 400;
+}
+
+.selected-repertorio-song-moment input:focus {
+  border-color: #1d4f45;
+  box-shadow: 0 0 0 3px rgba(29, 79, 69, 0.14);
+  outline: 0;
 }
 
 .repertorio-song-moment,
@@ -1536,7 +1550,8 @@ a {
   width: min(820px, 100%);
   max-height: min(720px, calc(100vh - 48px));
   overflow: auto;
-  border: 1px solid #ddd6c8;
+  border: 1px solid #d5cabb;
+  border-radius: 8px;
   padding: 1rem;
   background: #f9f6ef;
   box-shadow: 0 24px 70px rgba(32, 33, 31, 0.28);
@@ -1553,6 +1568,7 @@ a {
   gap: 0.75rem;
   align-items: start;
   border: 1px solid #ddd6c8;
+  border-radius: 8px;
   padding: 0.65rem;
   background: #ffffff;
 }
@@ -1575,7 +1591,8 @@ a {
 .repertorio-privacy-fields {
   display: grid;
   gap: 0.75rem;
-  border: 1px solid #ddd6c8;
+  border: 1px solid #d5cabb;
+  border-radius: 8px;
   padding: 0.85rem;
   background: #ffffff;
 }
@@ -4086,16 +4103,75 @@ a {
 
 .repertorios-page {
   display: grid;
-  gap: 1.25rem;
+  gap: 18px;
+}
+
+.repertorios-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid #e1dacd;
+  padding-bottom: 18px;
+}
+
+.repertorios-header h1 {
+  margin: 0;
+  color: #1d3f38;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1;
+}
+
+.repertorios-header p {
+  max-width: 46rem;
+  margin: 8px 0 0;
+  color: #635d52;
+  font-size: 15px;
+}
+
+.repertorios-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.repertorios-summary span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  border: 1px solid #dcd3c3;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #ffffff;
+  color: #61594d;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.repertorios-summary strong {
+  color: #1d4f45;
+  font-size: 15px;
 }
 
 .repertorios-search-panel {
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfaf7;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .repertorios-form-panel {
   min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .new-repertorio-panel {
@@ -4105,7 +4181,7 @@ a {
 .new-repertorio-form {
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
-  gap: 1rem;
+  gap: 16px;
   align-items: start;
 }
 
@@ -4113,11 +4189,17 @@ a {
   display: grid;
   gap: 0.85rem;
   min-width: 0;
+  border: 1px solid #eee7da;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfaf7;
 }
 
 .repertorio-form-section h2 {
   margin: 0;
+  color: #243b34;
   font-size: 1.1rem;
+  line-height: 1.2;
 }
 
 .repertorio-form-heading {
@@ -4184,8 +4266,8 @@ a {
   gap: 0.75rem;
   align-items: center;
   justify-content: flex-end;
-  border-top: 1px solid #ddd6c8;
-  padding-top: 0.9rem;
+  border-top: 1px solid #eee7da;
+  padding-top: 14px;
 }
 
 .repertorio-save-bar .form-message {
@@ -4194,6 +4276,41 @@ a {
 }
 
 @media (max-width: 860px) {
+  .repertorios-page {
+    gap: 14px;
+  }
+
+  .repertorios-header {
+    gap: 12px;
+    align-items: flex-start;
+    padding-bottom: 14px;
+  }
+
+  .repertorios-header h1 {
+    font-size: 30px;
+  }
+
+  .repertorios-header p {
+    font-size: 14px;
+  }
+
+  .repertorios-summary {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .repertorios-summary span {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .repertorios-search-panel,
+  .repertorios-form-panel,
+  .repertorio-form-section {
+    border-radius: 7px;
+    padding: 10px;
+  }
+
   .banda-mode-panel,
   .new-repertorio-form,
   .repertorio-title-date-grid {
@@ -4206,10 +4323,16 @@ a {
 
   .selected-repertorio-song {
     grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
   }
 
   .selected-repertorio-song-moment {
     grid-column: 2 / -1;
+  }
+
+  .selected-repertorio-song .danger-button {
+    min-width: 42px;
+    min-height: 42px;
   }
 
   .new-repertorio-form .selected-repertorio-songs {
@@ -4222,5 +4345,41 @@ a {
 
   .repertorio-save-bar .button {
     width: 100%;
+  }
+
+  .repertorio-inline-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .repertorio-inline-actions .button-link,
+  .repertorio-inline-actions .nav-button,
+  .repertorio-inline-actions .danger-button {
+    flex: 1 1 120px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .repertorio-history-panel {
+    padding: 12px;
+  }
+
+  .repertorio-history-dialog {
+    max-height: calc(100svh - 24px);
+  }
+
+  .repertorio-history-item {
+    grid-template-columns: 1fr;
+  }
+
+  .repertorio-history-item small {
+    white-space: normal;
+  }
+
+  .repertorio-privacy-wrapper .repertorio-privacy-fields {
+    right: auto;
+    left: 0;
+    width: min(520px, calc(100vw - 32px));
+    max-height: min(620px, calc(100svh - 120px));
   }
 }

@@ -20,6 +20,15 @@ export async function RepertoriosPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page repertorios-page';
   page.innerHTML = `
+    <header class="repertorios-header">
+      <div>
+        <h1>Repertorios</h1>
+        <p>Montagem, edicao e execucao dos repertorios do ministerio.</p>
+      </div>
+      <div class="repertorios-summary" aria-live="polite">
+        <span><strong data-count="repertorios">0</strong> repertorios</span>
+      </div>
+    </header>
     <section class="repertorios-search-panel">
       <div class="list-slot">
         <div class="page-status">Carregando repertorios...</div>
@@ -33,6 +42,7 @@ export async function RepertoriosPage({ session } = {}) {
   const formSlot = page.querySelector('.form-slot');
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
+  const repertoriosCount = page.querySelector('[data-count="repertorios"]');
   let loadedRepertorios = [];
 
   async function renderForm(selectedRepertorio = null) {
@@ -54,6 +64,7 @@ export async function RepertoriosPage({ session } = {}) {
     }
 
     loadedRepertorios = data || [];
+    repertoriosCount.textContent = String(loadedRepertorios.length);
 
     if (!loadedRepertorios.length) {
       listSlot.replaceChildren(createRepertoriosBrowser([], { onSelect: renderForm }));
