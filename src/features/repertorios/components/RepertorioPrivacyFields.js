@@ -4,9 +4,12 @@ export function RepertorioPrivacyFields(options = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'repertorio-privacy-wrapper';
   wrapper.innerHTML = `
-    <button class="nav-button privacy-toggle-button" type="button" aria-expanded="false">Configurar privacidade</button>
-    <fieldset class="repertorio-privacy-fields" hidden>
-      <legend>Privacidade</legend>
+    <button class="nav-button privacy-toggle-button" type="button" aria-expanded="false">Privacidade</button>
+    <fieldset class="repertorio-privacy-fields" role="dialog" aria-modal="true" aria-label="Privacidade" hidden>
+      <div class="repertorio-privacy-header">
+        <legend>Privacidade</legend>
+        <button class="nav-button privacy-close-button" type="button">Fechar</button>
+      </div>
       <label>
         Tipo de compartilhamento
         <select name="visibilidade">
@@ -32,21 +35,26 @@ export function RepertorioPrivacyFields(options = {}) {
   `;
 
   const toggleButton = wrapper.querySelector('.privacy-toggle-button');
+  const closeButton = wrapper.querySelector('.privacy-close-button');
   const fieldset = wrapper.querySelector('.repertorio-privacy-fields');
   const visibilitySelect = wrapper.querySelector('[name="visibilidade"]');
 
   function closePrivacyPanel() {
+    wrapper.classList.remove('is-privacy-open');
     fieldset.hidden = true;
     toggleButton.setAttribute('aria-expanded', 'false');
-    toggleButton.textContent = 'Configurar privacidade';
+    toggleButton.textContent = 'Privacidade';
   }
 
   toggleButton.addEventListener('click', () => {
     const isOpening = fieldset.hidden;
     fieldset.hidden = !isOpening;
+    wrapper.classList.toggle('is-privacy-open', isOpening);
     toggleButton.setAttribute('aria-expanded', String(isOpening));
-    toggleButton.textContent = isOpening ? 'Ocultar privacidade' : 'Configurar privacidade';
+    toggleButton.textContent = 'Privacidade';
   });
+
+  closeButton.addEventListener('click', closePrivacyPanel);
 
   document.addEventListener('pointerdown', (event) => {
     if (fieldset.hidden || wrapper.contains(event.target)) return;

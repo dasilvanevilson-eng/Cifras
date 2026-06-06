@@ -1691,6 +1691,13 @@ a {
   background: #ffffff;
 }
 
+.repertorio-privacy-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .repertorio-privacy-wrapper {
   display: grid;
   gap: 0.75rem;
@@ -4396,7 +4403,6 @@ a {
 }
 
 .repertorio-title-date-grid .repertorio-privacy-wrapper {
-  grid-column: 1 / -1;
   align-self: end;
 }
 
@@ -4404,11 +4410,24 @@ a {
   grid-column: 1 / -1;
 }
 
+.new-repertorio-form .repertorio-privacy-wrapper.is-privacy-open::before {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  background: rgba(32, 33, 31, 0.48);
+  content: "";
+}
+
 .new-repertorio-form .repertorio-privacy-wrapper .repertorio-privacy-fields {
-  position: static;
-  width: 100%;
-  max-height: none;
-  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.06);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 80;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(680px, calc(100svh - 32px));
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 24px 70px rgba(32, 33, 31, 0.28);
 }
 
 .new-repertorio-form .repertorio-basic-fields > .song-search-results {
@@ -4540,10 +4559,4 @@ a {
     white-space: normal;
   }
 
-  .repertorio-privacy-wrapper .repertorio-privacy-fields {
-    right: auto;
-    left: 0;
-    width: min(520px, calc(100vw - 32px));
-    max-height: min(620px, calc(100svh - 120px));
-  }
 }
