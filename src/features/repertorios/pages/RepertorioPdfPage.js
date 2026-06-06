@@ -2,7 +2,11 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
-import { getCifraExibicao, renderCifraOriginalForDisplayHtml } from '../../../utils/chordpro.js';
+import {
+  extractLyricsFromCifraOriginal,
+  getCifraExibicao,
+  renderCifraOriginalForDisplayHtml,
+} from '../../../utils/chordpro.js';
 
 export async function RepertorioPdfPage() {
   const page = document.createElement('section');
@@ -14,6 +18,7 @@ export async function RepertorioPdfPage() {
   const id = params.get('id');
   const shouldAutoPrint = params.get('autoPrint') === '1';
   const order = params.get('order') === 'alfabetica' ? 'alfabetica' : 'repertorio';
+  const contentType = params.get('tipo') === 'letras' ? 'letras' : 'cifras';
 
   if (!id) {
     status.className = 'page-status error';
@@ -35,6 +40,7 @@ export async function RepertorioPdfPage() {
       musicasAssociadas: orderMusicas(musicasAssociadas || [], order),
       shouldAutoPrint,
       order,
+      contentType,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -44,13 +50,21 @@ export async function RepertorioPdfPage() {
   return page;
 }
 
-function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false, order = 'repertorio' }) {
+function createPdfView({
+  repertorio,
+  musicasAssociadas,
+  shouldAutoPrint = false,
+  order = 'repertorio',
+  contentType = 'cifras',
+}) {
   const wrapper = document.createElement('article');
-  wrapper.className = 'pdf-repertorio';
+  wrapper.className = `pdf-repertorio ${contentType === 'letras' ? 'is-lyrics-only' : ''}`;
 
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
-  const suggestedFilename = `repertorio-${slugifyFilename(nome)}`;
+  const isLyricsOnly = contentType === 'letras';
+  const contentLabel = isLyricsOnly ? 'Letras' : 'Musicas cifradas';
+  const suggestedFilename = `repertorio-${isLyricsOnly ? 'letras-' : ''}${slugifyFilename(nome)}`;
   const originalTitle = document.title;
   const generatedAt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
@@ -77,6 +91,10 @@ function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false,
           <dd>${musicasAssociadas.length}</dd>
         </div>
         <div>
+          <dt>Conteudo</dt>
+          <dd>${escapeHtml(contentLabel)}</dd>
+        </div>
+        <div>
           <dt>Gerado em</dt>
           <dd>${escapeHtml(generatedAt)}</dd>
         </div>
@@ -96,7 +114,7 @@ function createPdfView({ repertorio, musicasAssociadas, shouldAutoPrint = false,
 
     <div class="pdf-song-list">
       ${musicasAssociadas.length
-        ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1)).join('')
+        ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1, contentType)).join('')
         : '<p class="page-status">Nenhuma musica adicionada a este repertorio.</p>'}
     </div>
   `;
@@ -142,14 +160,15 @@ function createSummaryItem(item, number) {
   `;
 }
 
-function createSongSection(item, number) {
+function createSongSection(item, number, contentType = 'cifras') {
   const deleted = isMusicaExcluida(item);
   const title = getSongTitle(item);
   const artist = getSongArtist(item);
   const key = getSongKey(item);
   const link = getSongLink(item);
   const momento = getSongMoment(item);
-  const cifra = deleted ? '' : getCifraExibicao(item.musicas || {});
+  const content = deleted ? '' : getSongPrintableContent(item, contentType);
+  const isLyricsOnly = contentType === 'letras';
 
   return `
     <section class="pdf-song ${deleted ? 'deleted-repertorio-song' : ''}" id="musica-${number}">
@@ -165,9 +184,20 @@ function createSongSection(item, number) {
       </header>
       ${deleted
         ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
-        : `<pre class="chordpro-view">${renderCifraOriginalForDisplayHtml(cifra)}</pre>`}
+        : `<pre class="${isLyricsOnly ? 'lyrics-view' : 'chordpro-view'}">${renderCifraOriginalForDisplayHtml(content)}</pre>`}
     </section>
   `;
+}
+
+function getSongPrintableContent(item, contentType) {
+  const musica = item.musicas || {};
+
+  if (contentType !== 'letras') {
+    return getCifraExibicao(musica);
+  }
+
+  const source = musica.cifra_chordpro || getCifraExibicao(musica);
+  return extractLyricsFromCifraOriginal(source) || 'Letra nao informada.';
 }
 
 function getSongTitle(item) {

@@ -114,12 +114,17 @@ function createRepertoriosTable(repertorios) {
       <td>${escapeHtml(nome)}</td>
       <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
       <td class="table-actions">
-        <button class="button-link secondary" type="button" data-action="print" data-id="${escapeHtml(id)}">Imprimir/Gerar PDF</button>
+        <button class="button-link secondary" type="button" data-action="print-cifras" data-id="${escapeHtml(id)}">Cifradas</button>
+        <button class="button-link secondary" type="button" data-action="print-letras" data-id="${escapeHtml(id)}">Letras</button>
       </td>
     `;
 
-    row.querySelector('[data-action="print"]').addEventListener('click', () => {
-      openPdfPage(id, false);
+    row.querySelector('[data-action="print-cifras"]').addEventListener('click', () => {
+      openPdfPage(id, false, 'cifras');
+    });
+
+    row.querySelector('[data-action="print-letras"]').addEventListener('click', () => {
+      openPdfPage(id, false, 'letras');
     });
 
     body.append(row);
@@ -128,7 +133,7 @@ function createRepertoriosTable(repertorios) {
   return table;
 }
 
-function openPdfPage(repertorioId, autoPrint) {
+function openPdfPage(repertorioId, autoPrint, contentType = 'cifras') {
   const order = window.confirm([
     'Deseja gerar em ordem alfabetica pelo titulo da musica?',
     '',
@@ -139,6 +144,7 @@ function openPdfPage(repertorioId, autoPrint) {
   const params = new URLSearchParams({
     id: repertorioId,
     order,
+    tipo: contentType === 'letras' ? 'letras' : 'cifras',
   });
 
   if (autoPrint) {

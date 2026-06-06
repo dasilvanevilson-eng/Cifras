@@ -43,6 +43,7 @@ a {
   .pdf-index-link,
   .pdf-song header > p,
   .pdf-cover,
+  .lyrics-view,
   .tag-list span
 ) {
   border-radius: var(--border-radius-default);
@@ -2283,6 +2284,19 @@ a {
   color: #c8792b;
 }
 
+.lyrics-view {
+  overflow: auto;
+  border: 1px solid #ddd6c8;
+  padding: 16px;
+  background: #ffffff;
+  color: #20211f;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .field-with-action {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2733,6 +2747,7 @@ a {
   }
 
   .chordpro-view,
+  .lyrics-view,
   .performance-page article.is-dark .chordpro-view {
     overflow: visible;
     padding: 0;
@@ -2798,6 +2813,11 @@ a {
   .pdf-song .chordpro-view {
     font-size: 10.5pt;
     line-height: 1.28;
+  }
+
+  .pdf-song .lyrics-view {
+    font-size: 12pt;
+    line-height: 1.45;
   }
 
   .pdf-song:first-child {
