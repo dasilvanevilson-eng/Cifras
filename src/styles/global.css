@@ -171,6 +171,126 @@ a {
   padding: 32px 24px 56px;
 }
 
+.login-page {
+  min-height: 100svh;
+  background: #120d08;
+}
+
+.login-hero {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(8, 6, 4, 0.42), rgba(8, 6, 4, 0.08) 48%, rgba(8, 6, 4, 0.52)),
+    linear-gradient(180deg, rgba(8, 6, 4, 0.18), rgba(8, 6, 4, 0.58)),
+    var(--login-background-image) center / cover no-repeat,
+    radial-gradient(circle at 70% 22%, #7b4b1c 0, #21150c 44%, #090704 100%);
+}
+
+.login-entry-panel {
+  position: absolute;
+  top: 50%;
+  right: clamp(18px, 5vw, 74px);
+  z-index: 2;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  transform: translateY(-50%);
+}
+
+.login-app-name {
+  color: rgba(255, 248, 232, 0.86);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.login-entry-button {
+  min-width: 112px;
+  min-height: 48px;
+  border: 1px solid rgba(255, 236, 194, 0.68);
+  border-radius: var(--border-radius-default);
+  padding: 12px 18px;
+  background: rgba(18, 13, 8, 0.58);
+  color: #fff8e8;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.login-entry-button:hover,
+.login-entry-button:focus {
+  border-color: #ffe3a4;
+  background: rgba(34, 23, 12, 0.74);
+  outline: 0;
+}
+
+.login-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center end;
+  padding: 24px clamp(18px, 6vw, 96px) 24px 24px;
+  background: rgba(10, 7, 5, 0.28);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.login-modal-backdrop[hidden] {
+  display: none;
+}
+
+.login-modal-backdrop.is-open {
+  opacity: 1;
+}
+
+.login-modal {
+  position: relative;
+  width: min(100%, 390px);
+  border: 1px solid rgba(255, 236, 194, 0.34);
+  border-radius: var(--border-radius-default);
+  padding: 24px;
+  background: rgba(255, 250, 241, 0.94);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.login-modal h1 {
+  margin: 0 0 18px;
+  font-size: 24px;
+}
+
+.login-modal .login-form {
+  max-width: none;
+}
+
+.login-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #5f594f;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.login-modal-close:hover,
+.login-modal-close:focus {
+  border-color: #ddd6c8;
+  background: #f4f1ea;
+  outline: 0;
+}
+
 .musicas-page {
   max-width: none;
 }
@@ -2576,6 +2696,37 @@ a {
   .page {
     width: 100%;
     padding: 20px 14px 40px;
+  }
+
+  .login-hero {
+    background-position: center;
+  }
+
+  .login-entry-panel {
+    top: auto;
+    right: 0;
+    bottom: max(22px, env(safe-area-inset-bottom));
+    left: 0;
+    padding: 0 18px;
+    transform: none;
+  }
+
+  .login-entry-button {
+    width: min(100%, 320px);
+    min-height: 52px;
+  }
+
+  .login-modal-backdrop {
+    align-items: end;
+    justify-items: stretch;
+    padding: 12px;
+  }
+
+  .login-modal {
+    width: 100%;
+    max-height: calc(100svh - 24px);
+    overflow: auto;
+    padding: 22px 18px calc(18px + env(safe-area-inset-bottom));
   }
 
   .page-grid {

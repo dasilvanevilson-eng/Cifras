@@ -2,30 +2,72 @@ import { sendPasswordResetEmail, signInWithPassword } from '../../../services/au
 
 export function LoginPage() {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'login-page';
   page.innerHTML = `
-    <h1>Login</h1>
-    <form class="form login-form">
-      <label>
-        E-mail
-        <input name="email" type="email" autocomplete="email" required>
-      </label>
+    <div class="login-hero" style="--login-background-image: url('/assets/login-background.jpg')" aria-label="Tela inicial do Master Cifras">
+      <div class="login-entry-panel">
+        <span class="login-app-name">Master Cifras</span>
+        <button class="login-entry-button" type="button" data-action="open-login">Entrar</button>
+      </div>
+      <div class="login-modal-backdrop" data-role="login-modal" hidden>
+        <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+          <button class="login-modal-close" type="button" data-action="close-login" aria-label="Fechar login">&times;</button>
+          <h1 id="login-title">Entrar</h1>
+          <form class="form login-form">
+            <label>
+              E-mail
+              <input name="email" type="email" autocomplete="email" required>
+            </label>
 
-      <label>
-        Senha
-        <input name="password" type="password" autocomplete="current-password" required>
-      </label>
+            <label>
+              Senha
+              <input name="password" type="password" autocomplete="current-password" required>
+            </label>
 
-      <button class="button" type="submit">Entrar</button>
-      <button class="button-link secondary" type="button" data-action="forgot-password">Esqueci minha senha</button>
-      <p class="form-message" aria-live="polite"></p>
-    </form>
+            <button class="button" type="submit">Acessar sistema</button>
+            <button class="button-link secondary" type="button" data-action="forgot-password">Esqueci minha senha</button>
+            <p class="form-message" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </div>
   `;
 
   const form = page.querySelector('.login-form');
+  const modal = page.querySelector('[data-role="login-modal"]');
+  const openButton = page.querySelector('[data-action="open-login"]');
+  const closeButton = page.querySelector('[data-action="close-login"]');
+  const emailInput = page.querySelector('input[name="email"]');
   const message = page.querySelector('.form-message');
   const button = page.querySelector('button[type="submit"]');
   const forgotButton = page.querySelector('[data-action="forgot-password"]');
+
+  function openLogin() {
+    modal.hidden = false;
+    window.requestAnimationFrame(() => {
+      modal.classList.add('is-open');
+      emailInput.focus();
+    });
+  }
+
+  function closeLogin() {
+    modal.classList.remove('is-open');
+    modal.hidden = true;
+    openButton.focus();
+  }
+
+  openButton.addEventListener('click', openLogin);
+  closeButton.addEventListener('click', closeLogin);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeLogin();
+    }
+  });
+  page.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hidden) {
+      closeLogin();
+    }
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -47,7 +89,7 @@ export function LoginPage() {
 
       message.className = 'form-message success';
       message.textContent = 'Login realizado com sucesso.';
-      window.location.href = '/dashboard';
+      window.location.href = '/';
     } catch (error) {
       message.className = 'form-message error';
       message.textContent = error.message || 'Nao foi possivel fazer login.';
