@@ -1,3 +1,5 @@
+import { canViewModule } from '../../features/auth/permissions.js';
+
 export function MainNav(options = {}) {
   const nav = document.createElement('nav');
   nav.className = 'main-nav';
@@ -10,18 +12,21 @@ export function MainNav(options = {}) {
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
     const links = [
-      { href: '/dashboard', label: 'Painel', match: ['/dashboard'] },
-      { href: '/banda-coral', label: 'Modo Banda/Coral', match: ['/banda-coral'] },
-      { href: '/musicas', label: 'Cifras', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
-      { href: '/musicas-letras', label: 'Letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
-      { href: '/repertorios', label: 'Repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
-      { href: '/repertorios-pdf', label: 'PDF Repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
-      { href: '/sugestoes', label: 'Sugestao', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
-      { href: '/minha-conta', label: 'Minha conta', match: ['/minha-conta'] },
+      { href: '/dashboard', label: 'Painel', moduleKey: 'dashboard', match: ['/dashboard'] },
+      { href: '/banda-coral', label: 'Modo Banda/Coral', moduleKey: 'banda_coral', match: ['/banda-coral'] },
+      { href: '/musicas', label: 'Cifras', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
+      { href: '/musicas-letras', label: 'Letras', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
+      { href: '/repertorios', label: 'Repertorios', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
+      { href: '/repertorios-pdf', label: 'PDF Repertorio', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
+      { href: '/sugestoes', label: 'Sugestao', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
+      { href: '/minha-conta', label: 'Minha conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
       ...(options.profile?.papel === 'admin'
-        ? [{ href: '/usuarios', label: 'Usuarios', match: ['/usuarios'] }]
+        ? [
+          { href: '/usuarios', label: 'Usuarios', moduleKey: 'usuarios', match: ['/usuarios'] },
+          { href: '/permissoes', label: 'Permissoes', moduleKey: 'permissoes', match: ['/permissoes'] },
+        ]
         : []),
-    ];
+    ].filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
 
     linksArea.innerHTML = `
       ${links.map(createNavLink).join('')}

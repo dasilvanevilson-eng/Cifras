@@ -4,6 +4,8 @@ import { getCurrentUser, signOut } from '../services/authService.js';
 import { createDefaultProfile, getProfileByUserId } from '../services/profilesService.js';
 import { countSugestoesPendentes } from '../services/sugestoesMusicasService.js';
 import { canEditContent } from '../features/auth/roles.js';
+import { resolvePermissions } from '../features/auth/permissions.js';
+import { listCurrentUserPermissionOverrides } from '../services/permissionsService.js';
 
 export async function startApp() {
   const root = document.querySelector('#app');
@@ -20,6 +22,7 @@ export async function startApp() {
   root.replaceChildren(AppLayout(page, {
     user: session.user,
     profile: session.profile,
+    permissions: session.permissions,
     pendingSuggestionsCount,
     onLogout: async () => {
       await signOut();
@@ -55,7 +58,8 @@ async function loadSession() {
     }
 
     const profile = await loadProfile(user);
-    return { user, profile };
+    const permissions = await loadPermissions(user.id, profile);
+    return { user, profile, permissions };
   } catch (error) {
     return { user: null, profile: null };
   }
@@ -67,5 +71,19 @@ async function loadProfile(user) {
     return profile || createDefaultProfile(user);
   } catch (error) {
     return createDefaultProfile(user);
+  }
+}
+
+async function loadPermissions(userId, profile) {
+  try {
+    const { data, error } = await listCurrentUserPermissionOverrides(userId);
+
+    if (error) {
+      throw error;
+    }
+
+    return resolvePermissions(profile?.papel, data || []);
+  } catch (_error) {
+    return resolvePermissions(profile?.papel);
   }
 }
