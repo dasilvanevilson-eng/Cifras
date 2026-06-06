@@ -1729,6 +1729,16 @@ a {
   font-weight: 700;
 }
 
+.repertorio-privacy-fields .checkbox-label input {
+  flex: 0 0 16px;
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  margin-top: 0.2rem;
+  padding: 0;
+}
+
 .checkbox-label {
   display: flex;
   flex-direction: row;
@@ -4410,19 +4420,23 @@ a {
   grid-column: 1 / -1;
 }
 
-.new-repertorio-form .repertorio-privacy-wrapper.is-privacy-open::before {
+.new-repertorio-form:has(.repertorio-privacy-wrapper.is-privacy-open)::before {
   position: fixed;
   inset: 0;
-  z-index: 79;
+  z-index: 998;
   background: rgba(32, 33, 31, 0.48);
   content: "";
+}
+
+.new-repertorio-form .repertorio-privacy-wrapper.is-privacy-open::before {
+  display: none;
 }
 
 .new-repertorio-form .repertorio-privacy-wrapper .repertorio-privacy-fields {
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 80;
+  z-index: 999;
   width: min(560px, calc(100vw - 32px));
   max-height: min(680px, calc(100svh - 32px));
   overflow: auto;
