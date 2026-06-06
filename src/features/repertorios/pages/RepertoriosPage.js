@@ -224,6 +224,8 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     .map((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name']))));
   let isPointerInsideResults = false;
   let draggedMusicaIndex = null;
+  let dragAutoScrollFrame = null;
+  let dragAutoScrollClientY = 0;
 
   renderInlineActions();
 
@@ -290,6 +292,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
     const list = document.createElement('div');
     list.className = 'selected-repertorio-song-list';
+    list.addEventListener('dragover', updateDragAutoScroll);
 
     selectedMusicas.forEach((musica, index) => {
       const row = document.createElement('article');
@@ -315,6 +318,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
       row.addEventListener('dragend', () => {
         draggedMusicaIndex = null;
+        stopDragAutoScroll();
         row.classList.remove('is-dragging');
         selectedSlot.querySelectorAll('.selected-repertorio-song').forEach((item) => {
           item.classList.remove('is-drop-target');
@@ -323,6 +327,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
       row.addEventListener('dragover', (event) => {
         event.preventDefault();
+        updateDragAutoScroll(event);
         if (draggedMusicaIndex === null || draggedMusicaIndex === index) return;
 
         selectedSlot.querySelectorAll('.selected-repertorio-song').forEach((item) => {
@@ -333,6 +338,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
       row.addEventListener('drop', (event) => {
         event.preventDefault();
+        stopDragAutoScroll();
         if (draggedMusicaIndex === null || draggedMusicaIndex === index) return;
 
         const [draggedMusica] = selectedMusicas.splice(draggedMusicaIndex, 1);
@@ -358,6 +364,60 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     });
 
     selectedSlot.replaceChildren(list);
+  }
+
+  function updateDragAutoScroll(event) {
+    if (draggedMusicaIndex === null) return;
+
+    dragAutoScrollClientY = event.clientY;
+
+    if (dragAutoScrollFrame) return;
+
+    dragAutoScrollFrame = window.requestAnimationFrame(runDragAutoScroll);
+  }
+
+  function runDragAutoScroll() {
+    dragAutoScrollFrame = null;
+
+    if (draggedMusicaIndex === null) return;
+
+    const scrollTarget = getDragScrollTarget();
+    const edgeSize = 72;
+    const maxSpeed = 18;
+    const top = scrollTarget.isWindow ? 0 : scrollTarget.element.getBoundingClientRect().top;
+    const bottom = scrollTarget.isWindow ? window.innerHeight : scrollTarget.element.getBoundingClientRect().bottom;
+    let delta = 0;
+
+    if (dragAutoScrollClientY < top + edgeSize) {
+      delta = -Math.ceil(((top + edgeSize - dragAutoScrollClientY) / edgeSize) * maxSpeed);
+    } else if (dragAutoScrollClientY > bottom - edgeSize) {
+      delta = Math.ceil(((dragAutoScrollClientY - (bottom - edgeSize)) / edgeSize) * maxSpeed);
+    }
+
+    if (delta !== 0) {
+      if (scrollTarget.isWindow) {
+        window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+      } else {
+        scrollTarget.element.scrollTop += delta;
+      }
+    }
+
+    dragAutoScrollFrame = window.requestAnimationFrame(runDragAutoScroll);
+  }
+
+  function getDragScrollTarget() {
+    if (selectedSlot.scrollHeight > selectedSlot.clientHeight + 1) {
+      return { element: selectedSlot, isWindow: false };
+    }
+
+    return { element: document.scrollingElement || document.documentElement, isWindow: true };
+  }
+
+  function stopDragAutoScroll() {
+    if (!dragAutoScrollFrame) return;
+
+    window.cancelAnimationFrame(dragAutoScrollFrame);
+    dragAutoScrollFrame = null;
   }
 
   nomeInput.addEventListener('input', updateSubmitState);

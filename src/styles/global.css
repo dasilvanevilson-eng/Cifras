@@ -1427,7 +1427,7 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(130px, 190px);
+  grid-template-columns: auto minmax(0, 1fr) minmax(120px, 170px);
   gap: 0.5rem;
   align-items: center;
   border: 1px solid #ddd6c8;
@@ -1512,12 +1512,12 @@ a {
   width: 100%;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
-  min-height: 34px;
-  padding: 6px 8px;
+  min-height: 30px;
+  padding: 4px 7px;
   background: #ffffff;
   color: #20211f;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
 }
 
@@ -4343,12 +4343,18 @@ a {
   }
 
   .selected-repertorio-song {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) minmax(88px, 34%);
     gap: 8px;
   }
 
   .selected-repertorio-song-moment {
-    grid-column: 2 / -1;
+    grid-column: auto;
+  }
+
+  .selected-repertorio-song-moment input {
+    min-height: 30px;
+    padding: 4px 6px;
+    font-size: 12px;
   }
 
   .new-repertorio-form .selected-repertorio-songs {
