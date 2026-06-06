@@ -31,22 +31,32 @@ export async function DashboardPage() {
 
 function createDashboardView({ musicas, repertorios }) {
   const wrapper = document.createElement('section');
+  wrapper.className = 'dashboard-shell';
   const repertoriosOrdenados = getRepertoriosOrdenados(repertorios);
   const musicasOrdenadas = getMusicasOrdenadas(musicas);
   const musicasSelecionadas = [];
 
   wrapper.innerHTML = `
     <header class="dashboard-header">
-      <h1>Painel</h1>
+      <div>
+        <h1>Painel</h1>
+        <p>Repertorios e musicas para execucao.</p>
+      </div>
+      <div class="dashboard-summary">
+        <span><strong>${repertorios.length}</strong> repertorios</span>
+        <span><strong>${musicas.length}</strong> musicas</span>
+      </div>
     </header>
     <div class="dashboard-grid">
       <section class="dashboard-search-column" data-dashboard-column="repertorios">
+        <h2>Repertorios</h2>
         <label class="dashboard-search">
           Buscar repertorio
           <input type="search" data-search="repertorios" placeholder="Nome ou data">
         </label>
       </section>
       <section class="dashboard-search-column" data-dashboard-column="musicas">
+        <h2>Musicas avulsas</h2>
         <label class="dashboard-search">
           Buscar musica
           <input type="search" data-search="musicas" placeholder="Titulo ou artista">
