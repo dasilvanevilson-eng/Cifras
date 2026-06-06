@@ -3223,6 +3223,37 @@ a {
   display: none;
 }
 
+.banda-stage-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: auto;
+  padding: 10px;
+  background: #f4f1ea;
+}
+
+.banda-stage-layer[hidden] {
+  display: none;
+}
+
+.banda-stage-actions {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+  background: #f4f1ea;
+}
+
+.banda-stage-layer .banda-performance-view {
+  min-height: calc(100vh - 20px);
+}
+
+.has-banda-stage-open {
+  overflow: hidden;
+}
+
 .banda-song-card {
   display: grid;
   gap: 12px;

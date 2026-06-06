@@ -176,7 +176,7 @@ function createLeaderMode({ sessoes, repertorios, musicasAvulsas }) {
 
     message.className = 'form-message success';
     message.textContent = 'Sessao criada.';
-    activeSessions = [data, ...activeSessions];
+    activeSessions = [hydrateSessaoRepertorio(data, repertorios), ...activeSessions];
     renderSessionsList();
     await openLeaderSession(data.id, repertorios, musicasAvulsas, livePanel);
   });
@@ -248,6 +248,7 @@ function createSessionsList(sessoes, options = {}) {
 }
 
 async function openLeaderSession(sessaoId, repertorios, musicasAvulsas, slot) {
+  document.body.classList.remove('has-banda-stage-open');
   slot.innerHTML = '<p class="page-status">Abrindo sessao...</p>';
   const { error: participantError } = await upsertSessaoBandaParticipante(sessaoId, 'lider');
 
@@ -320,7 +321,12 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
       <div class="banda-standalone-results" aria-live="polite"></div>
     </div>
     <p class="form-message" aria-live="polite"></p>
-    <div class="banda-song-slot"></div>
+    <div class="banda-stage-layer" hidden>
+      <div class="banda-stage-actions">
+        <button class="nav-button" type="button" data-action="close-stage">Sair da execucao</button>
+      </div>
+      <div class="banda-song-slot"></div>
+    </div>
   `;
 
   const repertorioSelect = wrapper.querySelector('[data-field="repertorio"]');
@@ -329,6 +335,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   const avulsaSearch = wrapper.querySelector('[data-field="musica-avulsa-search"]');
   const avulsaResults = wrapper.querySelector('.banda-standalone-results');
   const message = wrapper.querySelector('.form-message');
+  const stageLayer = wrapper.querySelector('.banda-stage-layer');
   const songSlot = wrapper.querySelector('.banda-song-slot');
   let currentItem = getCurrentSessionItem(sessao, musicasAssociadas);
   const repertorioTitle = getField(sessao.repertorios || {}, ['nome', 'titulo', 'name']) || 'Repertorio';
@@ -360,7 +367,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
     if (!updated) return;
 
     const fresh = await createLeaderControls({
-      sessao: updated,
+      sessao: hydrateSessaoRepertorio(updated, repertorios),
       repertorios,
       musicasAvulsas,
       participantes,
@@ -402,7 +409,21 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
       repertorioTitle,
       onSelectItem: selectRepertorioItem,
     });
+    openStageIfHasSong();
   }
+
+  function openStageIfHasSong() {
+    if (!currentItem?.musicas) return;
+    stageLayer.hidden = false;
+    document.body.classList.add('has-banda-stage-open');
+  }
+
+  function closeStage() {
+    stageLayer.hidden = true;
+    document.body.classList.remove('has-banda-stage-open');
+  }
+
+  wrapper.querySelector('[data-action="close-stage"]').addEventListener('click', closeStage);
 
   function renderAvulsas(query = '') {
     const term = normalizeText(query);
@@ -449,6 +470,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
         renderBandaSong(songSlot, currentItem, nextTom, {
           repertorioTitle: 'Musica avulsa',
         });
+        openStageIfHasSong();
       });
       list.append(button);
     });
@@ -467,9 +489,27 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   });
 
   renderAvulsas('');
-  renderCurrentBandaSong();
+  if (currentItem?.musicas) {
+    renderCurrentBandaSong();
+  } else {
+    songSlot.innerHTML = '<p class="page-status">Selecione uma musica para iniciar a execucao.</p>';
+  }
 
   return wrapper;
+}
+
+function hydrateSessaoRepertorio(sessao, repertorios) {
+  if (!sessao?.repertorio_id) {
+    return {
+      ...sessao,
+      repertorios: null,
+    };
+  }
+
+  return {
+    ...sessao,
+    repertorios: sessao.repertorios || repertorios.find((repertorio) => repertorio.id === sessao.repertorio_id) || null,
+  };
 }
 
 async function openMemberSession(sessaoId, slot) {
