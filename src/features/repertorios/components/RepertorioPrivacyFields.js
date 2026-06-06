@@ -5,72 +5,65 @@ export function RepertorioPrivacyFields(options = {}) {
   wrapper.className = 'repertorio-privacy-wrapper';
   wrapper.innerHTML = `
     <button class="nav-button privacy-toggle-button" type="button" aria-expanded="false">Privacidade</button>
-    <fieldset class="repertorio-privacy-fields" role="dialog" aria-modal="true" aria-label="Privacidade" hidden>
-      <div class="repertorio-privacy-header">
-        <legend>Privacidade</legend>
-        <button class="nav-button privacy-close-button" type="button">Fechar</button>
-      </div>
-      <label>
-        Tipo de compartilhamento
-        <select name="visibilidade">
-          <option value="privado"${initialValues.visibilidade === 'privado' ? ' selected' : ''}>Privado</option>
-          <option value="publico"${(initialValues.visibilidade || 'publico') === 'publico' ? ' selected' : ''}>Compartilhamento publico</option>
-          <option value="seletivo"${initialValues.visibilidade === 'seletivo' ? ' selected' : ''}>Compartilhamento seletivo</option>
-        </select>
-      </label>
-      <label class="checkbox-label shared-edit-option">
-        <input name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
-        <span>
-          <strong>Autorizar alteracoes por outros usuarios</strong>
-          <small>Quando marcado, usuarios autorizados por esta privacidade tambem poderao editar este repertorio.</small>
-        </span>
-      </label>
-      <div class="selective-share-users" data-role="selective-users">
-        <strong>Usuarios com acesso</strong>
-        <div class="share-user-list">
-          ${users.map((user) => createUserOption(user, initialValues.compartilhado_com || [])).join('')}
+    <div class="repertorio-privacy-modal" hidden>
+      <button class="repertorio-privacy-backdrop" type="button" aria-label="Fechar privacidade"></button>
+      <fieldset class="repertorio-privacy-fields" role="dialog" aria-modal="true" aria-label="Privacidade">
+        <div class="repertorio-privacy-header">
+          <legend>Privacidade</legend>
+          <button class="nav-button privacy-close-button" type="button">Fechar</button>
         </div>
-      </div>
-    </fieldset>
+        <label>
+          Tipo de compartilhamento
+          <select name="visibilidade">
+            <option value="privado"${initialValues.visibilidade === 'privado' ? ' selected' : ''}>Privado</option>
+            <option value="publico"${(initialValues.visibilidade || 'publico') === 'publico' ? ' selected' : ''}>Compartilhamento publico</option>
+            <option value="seletivo"${initialValues.visibilidade === 'seletivo' ? ' selected' : ''}>Compartilhamento seletivo</option>
+          </select>
+        </label>
+        <label class="checkbox-label shared-edit-option">
+          <input name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
+          <span>
+            <strong>Autorizar alteracoes por outros usuarios</strong>
+            <small>Quando marcado, usuarios autorizados por esta privacidade tambem poderao editar este repertorio.</small>
+          </span>
+        </label>
+        <div class="selective-share-users" data-role="selective-users">
+          <strong>Usuarios com acesso</strong>
+          <div class="share-user-list">
+            ${users.map((user) => createUserOption(user, initialValues.compartilhado_com || [])).join('')}
+          </div>
+        </div>
+      </fieldset>
+    </div>
   `;
 
   const toggleButton = wrapper.querySelector('.privacy-toggle-button');
   const closeButton = wrapper.querySelector('.privacy-close-button');
+  const backdrop = wrapper.querySelector('.repertorio-privacy-backdrop');
+  const modal = wrapper.querySelector('.repertorio-privacy-modal');
   const fieldset = wrapper.querySelector('.repertorio-privacy-fields');
   const visibilitySelect = wrapper.querySelector('[name="visibilidade"]');
 
   function closePrivacyPanel() {
     wrapper.classList.remove('is-privacy-open');
-    fieldset.hidden = true;
+    modal.hidden = true;
     toggleButton.setAttribute('aria-expanded', 'false');
     toggleButton.textContent = 'Privacidade';
   }
 
   toggleButton.addEventListener('click', () => {
-    const isOpening = fieldset.hidden;
-    fieldset.hidden = !isOpening;
+    const isOpening = modal.hidden;
+    modal.hidden = !isOpening;
     wrapper.classList.toggle('is-privacy-open', isOpening);
     toggleButton.setAttribute('aria-expanded', String(isOpening));
     toggleButton.textContent = 'Privacidade';
   });
 
   closeButton.addEventListener('click', closePrivacyPanel);
-  fieldset.addEventListener('pointerdown', (event) => {
-    event.stopPropagation();
-  });
-
-  document.addEventListener('pointerdown', (event) => {
-    if (
-      fieldset.hidden
-      || fieldset.contains(event.target)
-      || toggleButton.contains(event.target)
-    ) return;
-
-    closePrivacyPanel();
-  });
+  backdrop.addEventListener('click', closePrivacyPanel);
 
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || fieldset.hidden) return;
+    if (event.key !== 'Escape' || modal.hidden) return;
 
     closePrivacyPanel();
   });
