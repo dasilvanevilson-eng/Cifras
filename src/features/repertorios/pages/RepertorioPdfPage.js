@@ -106,7 +106,8 @@ function createPdfView({
     </section>
 
     <nav class="pdf-summary" aria-label="Sumario">
-      <h2 id="indice">Sumario</h2>
+      <a class="pdf-anchor" id="indice" name="indice" aria-hidden="true"></a>
+      <h2>Sumario</h2>
       <ol>
         ${musicasAssociadas.map((item, index) => createSummaryItem(item, index + 1)).join('')}
       </ol>
@@ -149,10 +150,11 @@ function createSummaryItem(item, number) {
   const title = getSongTitle(item);
   const momento = getSongMoment(item);
   const deletedLabel = isMusicaExcluida(item) ? ' - excluida do acervo' : '';
+  const targetId = getSongAnchorId(number);
 
   return `
     <li>
-      <a href="#musica-${number}">
+      <a href="#${targetId}">
         <span>${number}. ${escapeHtml(title)}${escapeHtml(deletedLabel)}</span>
         ${momento ? `<small>${escapeHtml(momento)}</small>` : ''}
       </a>
@@ -169,9 +171,11 @@ function createSongSection(item, number, contentType = 'cifras') {
   const momento = getSongMoment(item);
   const content = deleted ? '' : getSongPrintableContent(item, contentType);
   const isLyricsOnly = contentType === 'letras';
+  const targetId = getSongAnchorId(number);
 
   return `
-    <section class="pdf-song ${deleted ? 'deleted-repertorio-song' : ''}" id="musica-${number}">
+    <section class="pdf-song ${deleted ? 'deleted-repertorio-song' : ''}">
+      <a class="pdf-anchor" id="${targetId}" name="${targetId}" aria-hidden="true"></a>
       <header>
         <p>${number}</p>
         <div>
@@ -187,6 +191,10 @@ function createSongSection(item, number, contentType = 'cifras') {
         : `<pre class="${isLyricsOnly ? 'lyrics-view' : 'chordpro-view'}">${renderCifraOriginalForDisplayHtml(content)}</pre>`}
     </section>
   `;
+}
+
+function getSongAnchorId(number) {
+  return `musica-${number}`;
 }
 
 function getSongPrintableContent(item, contentType) {
