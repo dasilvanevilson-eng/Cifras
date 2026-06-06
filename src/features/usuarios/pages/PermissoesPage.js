@@ -9,6 +9,7 @@ import {
   listUserPermissionOverrides,
   resetUserPermissions,
   saveUserPermissions,
+  saveUsersPermissions,
 } from '../../../services/permissionsService.js';
 
 export async function PermissoesPage({ session } = {}) {
@@ -48,7 +49,7 @@ export async function PermissoesPage({ session } = {}) {
     usersSlot.replaceChildren(createUsersList(users, searchInput.value, async (user) => {
       selectedUser = user;
       renderUsers();
-      await renderEditor(editorSlot, selectedUser);
+      await renderEditor(editorSlot, selectedUser, users);
     }, selectedUser?.id));
   }
 
@@ -102,7 +103,7 @@ function createUsersList(users, query, onSelect, selectedUserId) {
   return list;
 }
 
-async function renderEditor(slot, user) {
+async function renderEditor(slot, user, users = []) {
   slot.innerHTML = '<p class="page-status">Carregando permissoes...</p>';
 
   const { data, error } = await listUserPermissionOverrides(user.id);
@@ -128,6 +129,32 @@ async function renderEditor(slot, user) {
       return;
     }
 
+    const sameRoleUsers = getSameRoleUsers(users, user);
+
+    if (sameRoleUsers.length) {
+      const confirmed = window.confirm(`Aplicar estas mesmas permissoes aos outros ${sameRoleUsers.length} usuario${sameRoleUsers.length === 1 ? '' : 's'} com papel "${formatRole(user.papel)}"?`);
+
+      if (confirmed) {
+        button.disabled = true;
+        message.className = 'form-message';
+        message.textContent = 'Aplicando permissoes aos usuarios do mesmo papel...';
+
+        const { error: bulkSaveError } = await saveUsersPermissions(sameRoleUsers.map((sameRoleUser) => sameRoleUser.id), nextPermissions);
+
+        button.disabled = false;
+
+        if (bulkSaveError) {
+          message.className = 'form-message error';
+          message.textContent = bulkSaveError.message || 'Permissoes salvas para o usuario, mas nao foi possivel aplicar aos demais.';
+          return;
+        }
+
+        message.className = 'form-message success';
+        message.textContent = `Permissoes salvas e aplicadas a ${sameRoleUsers.length} usuario${sameRoleUsers.length === 1 ? '' : 's'} com o mesmo papel.`;
+        return;
+      }
+    }
+
     message.className = 'form-message success';
     message.textContent = 'Permissoes salvas com sucesso.';
   }, async (message) => {
@@ -145,10 +172,19 @@ async function renderEditor(slot, user) {
       return;
     }
 
-    await renderEditor(slot, user);
+    await renderEditor(slot, user, users);
   });
 
   slot.replaceChildren(editor);
+}
+
+function getSameRoleUsers(users, currentUser) {
+  const currentRole = normalizeText(currentUser?.papel);
+  return (users || []).filter((user) => (
+    user.id
+    && user.id !== currentUser?.id
+    && normalizeText(user.papel) === currentRole
+  ));
 }
 
 function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave, onReset) {

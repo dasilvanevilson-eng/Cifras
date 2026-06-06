@@ -25,17 +25,19 @@ export async function saveUserPermissions(userId, permissions) {
     return { data: null, error: new Error('Usuario nao informado.') };
   }
 
-  const rows = PERMISSION_MODULES.map((module) => {
-    const modulePermissions = permissions?.[module.key] || {};
-    return {
-      user_id: userId,
-      module_key: module.key,
-      ...Object.fromEntries(PERMISSION_ACTIONS.map((action) => [
-        action.key,
-        Boolean(modulePermissions[action.key]),
-      ])),
-    };
-  });
+  return saveUsersPermissions([userId], permissions);
+}
+
+export async function saveUsersPermissions(userIds, permissions) {
+  assertSupabaseConfig();
+
+  const uniqueUserIds = [...new Set((userIds || []).filter(Boolean))];
+
+  if (!uniqueUserIds.length) {
+    return { data: null, error: new Error('Nenhum usuario informado.') };
+  }
+
+  const rows = uniqueUserIds.flatMap((userId) => createPermissionRows(userId, permissions));
 
   return supabase
     .from('user_permissions')
@@ -54,4 +56,18 @@ export async function resetUserPermissions(userId) {
     .from('user_permissions')
     .delete()
     .eq('user_id', userId);
+}
+
+function createPermissionRows(userId, permissions) {
+  return PERMISSION_MODULES.map((module) => {
+    const modulePermissions = permissions?.[module.key] || {};
+    return {
+      user_id: userId,
+      module_key: module.key,
+      ...Object.fromEntries(PERMISSION_ACTIONS.map((action) => [
+        action.key,
+        Boolean(modulePermissions[action.key]),
+      ])),
+    };
+  });
 }
