@@ -120,12 +120,12 @@ a {
   position: fixed;
   top: max(10px, env(safe-area-inset-top));
   right: max(10px, env(safe-area-inset-right));
-  bottom: max(10px, env(safe-area-inset-bottom));
   z-index: 80;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: min(360px, calc(100vw - 20px));
-  height: auto;
+  height: calc(100svh - max(20px, env(safe-area-inset-top)) - max(10px, env(safe-area-inset-bottom)));
+  max-height: calc(100svh - 20px);
   border-left: 1px solid #ddd6c8;
   border-radius: 14px;
   background: #fbf8f1;

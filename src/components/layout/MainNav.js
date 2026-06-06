@@ -92,6 +92,12 @@ export function MainNav(options = {}) {
     openButton.focus();
   }
 
+  openButton.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
+  drawer.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
   openButton.addEventListener('click', openMenu);
   closeButton.addEventListener('click', closeMenu);
   backdrop.addEventListener('click', closeMenu);
