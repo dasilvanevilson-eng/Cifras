@@ -23,7 +23,6 @@ import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { BandaCoralPage } from '../features/bandaCoral/pages/BandaCoralPage.js';
-import { canViewModule, moduleForPath } from '../features/auth/permissions.js';
 
 const routes = {
   '/dashboard': DashboardPage,
@@ -86,12 +85,6 @@ export function createRouter() {
       const canAccessRoute = protectedRoutes[window.location.pathname];
 
       if (canAccessRoute && !canAccessRoute(session.profile?.papel)) {
-        return AccessDeniedPage({ session });
-      }
-
-      const moduleKey = moduleForPath(window.location.pathname);
-
-      if (moduleKey && !canViewModule(session, moduleKey)) {
         return AccessDeniedPage({ session });
       }
 

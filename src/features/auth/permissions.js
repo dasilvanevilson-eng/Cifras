@@ -23,29 +23,6 @@ export const PERMISSION_MODULES = [
   { key: 'permissoes', label: 'Permissoes', description: 'Configuracao de acessos por usuario.' },
 ];
 
-export const ROUTE_MODULES = {
-  '/dashboard': 'dashboard',
-  '/banda-coral': 'banda_coral',
-  '/musicas': 'musicas',
-  '/musicas/detalhe': 'musicas',
-  '/musicas/editar': 'musicas',
-  '/musicas/execucao': 'musicas',
-  '/musicas/selecao-execucao': 'musicas',
-  '/musicas-letras': 'letras',
-  '/musicas-letras/detalhe': 'letras',
-  '/repertorios': 'repertorios',
-  '/repertorios/detalhe': 'repertorios',
-  '/repertorios/editar': 'repertorios',
-  '/repertorios/execucao': 'repertorios',
-  '/repertorios-pdf': 'pdf_repertorio',
-  '/repertorios-pdf/gerar': 'pdf_repertorio',
-  '/sugestoes': 'sugestoes',
-  '/sugestoes/enviar': 'sugestoes',
-  '/minha-conta': 'minha_conta',
-  '/usuarios': 'usuarios',
-  '/permissoes': 'permissoes',
-};
-
 const EMPTY_ACTIONS = createActions(false);
 
 const ROLE_DEFAULTS = {
@@ -107,10 +84,6 @@ export function hasPermission(session, moduleKey, actionKey) {
   if (!moduleKey || !actionKey) return false;
   const permissions = session?.permissions || resolvePermissions(session?.profile?.papel);
   return Boolean(permissions?.[moduleKey]?.[actionKey]);
-}
-
-export function moduleForPath(path) {
-  return ROUTE_MODULES[path] || null;
 }
 
 function createActions(value, overrides = {}) {
