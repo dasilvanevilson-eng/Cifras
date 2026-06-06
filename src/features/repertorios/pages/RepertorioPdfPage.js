@@ -105,8 +105,8 @@ function createPdfView({
       </dl>
     </section>
 
-    <nav class="pdf-summary" aria-label="Sumario">
-      <h2 id="indice"><a class="pdf-index-target" name="indice">Sumario</a></h2>
+    <nav class="pdf-summary" id="indice" aria-label="Sumario">
+      <h2><a class="pdf-index-target" href="#indice" name="indice">Sumario</a></h2>
       <ol>
         ${musicasAssociadas.map((item, index) => createSummaryItem(item, index + 1)).join('')}
       </ol>
@@ -173,8 +173,8 @@ function createSongSection(item, number, contentType = 'cifras') {
   const targetId = getSongAnchorId(number);
 
   return `
-    <section class="pdf-song ${deleted ? 'deleted-repertorio-song' : ''}">
-      <a class="pdf-anchor" id="${targetId}" name="${targetId}" aria-hidden="true"></a>
+    <section class="pdf-song ${deleted ? 'deleted-repertorio-song' : ''}" id="${targetId}">
+      <a class="pdf-anchor" name="${targetId}" aria-hidden="true"></a>
       <header>
         <p>${number}</p>
         <div>
