@@ -1515,13 +1515,13 @@ a {
 .selected-repertorio-remove {
   display: inline-grid;
   place-items: center;
-  width: 30px;
-  min-width: 30px;
-  min-height: 30px;
+  width: 1.55rem;
+  min-width: 1.55rem;
+  min-height: 1.55rem;
   border-radius: 999px;
   padding: 0;
   color: #a12a2a;
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -1585,12 +1585,12 @@ a {
   width: 100%;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
-  min-height: 30px;
-  padding: 4px 7px;
+  min-height: 1.55rem;
+  padding: 0.15rem 0.45rem;
   background: #ffffff;
   color: #20211f;
   font: inherit;
-  font-size: 12px;
+  font-size: 0.85rem;
   font-weight: 400;
 }
 
@@ -1762,13 +1762,17 @@ a {
 }
 
 .repertorio-privacy-fields .checkbox-label input {
+  appearance: auto;
   flex: 0 0 16px;
-  width: 16px;
-  min-width: 16px;
-  height: 16px;
-  min-height: 16px;
+  box-sizing: border-box;
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  min-height: 16px !important;
   margin-top: 0.2rem;
-  padding: 0;
+  padding: 0 !important;
+  cursor: pointer;
+  accent-color: #1d4f45;
 }
 
 .checkbox-label {
@@ -1805,9 +1809,10 @@ a {
   align-items: start;
 }
 
-.shared-edit-option span {
+.shared-edit-option label {
   display: grid;
   gap: 0.25rem;
+  cursor: pointer;
 }
 
 .shared-edit-option strong {
@@ -4574,9 +4579,9 @@ a {
   }
 
   .selected-repertorio-song-moment input {
-    min-height: 30px;
-    padding: 4px 6px;
-    font-size: 12px;
+    min-height: 1.55rem;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.85rem;
   }
 
   .new-repertorio-form .selected-repertorio-songs {

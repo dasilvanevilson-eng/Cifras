@@ -1,6 +1,7 @@
 export function RepertorioPrivacyFields(options = {}) {
   const users = options.users || [];
   const initialValues = options.initialValues || {};
+  const sharedEditId = `shared-edit-${Math.random().toString(36).slice(2)}`;
   const wrapper = document.createElement('section');
   wrapper.className = 'repertorio-privacy-wrapper';
   wrapper.innerHTML = `
@@ -20,13 +21,13 @@ export function RepertorioPrivacyFields(options = {}) {
             <option value="seletivo"${initialValues.visibilidade === 'seletivo' ? ' selected' : ''}>Compartilhamento seletivo</option>
           </select>
         </label>
-        <label class="checkbox-label shared-edit-option">
-          <input name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
-          <span>
+        <div class="checkbox-label shared-edit-option">
+          <input id="${sharedEditId}" name="permite_edicao_compartilhada" type="checkbox"${initialValues.permite_edicao_compartilhada ? ' checked' : ''}>
+          <label for="${sharedEditId}">
             <strong>Autorizar alteracoes por outros usuarios</strong>
             <small>Quando marcado, usuarios autorizados por esta privacidade tambem poderao editar este repertorio.</small>
-          </span>
-        </label>
+          </label>
+        </div>
         <div class="selective-share-users" data-role="selective-users">
           <strong>Usuarios com acesso</strong>
           <div class="share-user-list">
