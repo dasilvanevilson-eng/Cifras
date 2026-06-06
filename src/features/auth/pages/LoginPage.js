@@ -1,12 +1,15 @@
 import { sendPasswordResetEmail, signInWithPassword } from '../../../services/authService.js';
+import { DEFAULT_SYSTEM_SETTINGS, getPublicSystemSettings } from '../../../services/settingsService.js';
 
-export function LoginPage() {
+export async function LoginPage() {
+  const settings = await loadLoginSettings();
   const page = document.createElement('section');
   page.className = 'login-page';
   page.innerHTML = `
-    <div class="login-hero" style="--login-background-image: url('/assets/login-background.jpg')" aria-label="Tela inicial do Master Cifras">
+    <div class="login-hero" style="--login-background-image: url('${escapeAttribute(settings.login_background_url)}')" aria-label="Tela inicial do ${escapeAttribute(settings.app_name)}">
       <div class="login-entry-panel">
-        <span class="login-app-name">Master Cifras</span>
+        ${settings.show_app_name_on_login ? `<span class="login-app-name">${escapeHtml(settings.app_name)}</span>` : ''}
+        ${settings.login_subtitle ? `<span class="login-subtitle">${escapeHtml(settings.login_subtitle)}</span>` : ''}
         <button class="login-entry-button" type="button" data-action="open-login">Entrar</button>
       </div>
       <div class="login-modal-backdrop" data-role="login-modal" hidden>
@@ -130,4 +133,29 @@ export function LoginPage() {
   });
 
   return page;
+}
+
+async function loadLoginSettings() {
+  try {
+    const { data } = await getPublicSystemSettings();
+    return {
+      ...DEFAULT_SYSTEM_SETTINGS,
+      ...(data || {}),
+    };
+  } catch (_error) {
+    return { ...DEFAULT_SYSTEM_SETTINGS };
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(String(value || '').replaceAll('\\', '/'));
 }

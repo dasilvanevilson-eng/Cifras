@@ -18,6 +18,7 @@ import { EnviarSugestaoPage } from '../features/sugestoes/pages/EnviarSugestaoPa
 import { SugestoesPage } from '../features/sugestoes/pages/SugestoesPage.js';
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 import { PermissoesPage } from '../features/usuarios/pages/PermissoesPage.js';
+import { PersonalizacaoPage } from '../features/system/pages/PersonalizacaoPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
@@ -48,6 +49,7 @@ const routes = {
   '/sugestoes': SugestoesPage,
   '/usuarios': UsuariosPage,
   '/permissoes': PermissoesPage,
+  '/personalizacao': PersonalizacaoPage,
 };
 
 const publicRoutes = new Set(['/login', '/alterar-senha']);
@@ -55,6 +57,7 @@ const publicRoutes = new Set(['/login', '/alterar-senha']);
 const protectedRoutes = {
   '/usuarios': canManageUsers,
   '/permissoes': canManageUsers,
+  '/personalizacao': canManageUsers,
 };
 
 export function createRouter() {

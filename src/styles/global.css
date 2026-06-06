@@ -207,6 +207,15 @@ a {
   text-transform: uppercase;
 }
 
+.login-subtitle {
+  max-width: 240px;
+  color: rgba(255, 248, 232, 0.78);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.38);
+}
+
 .login-entry-button {
   min-width: 112px;
   min-height: 48px;
@@ -693,6 +702,84 @@ a {
 .permissoes-page {
   width: min(100%, 1440px);
   max-width: none;
+}
+
+.personalizacao-page {
+  max-width: 1180px;
+}
+
+.personalization-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(320px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.personalization-form {
+  max-width: none;
+}
+
+.personalization-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.personalization-form .field-full {
+  grid-column: 1 / -1;
+}
+
+.personalization-form input[type="color"] {
+  min-height: 44px;
+  padding: 4px;
+}
+
+.personalization-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.personalization-preview-hero {
+  display: grid;
+  min-height: 420px;
+  place-items: center end;
+  overflow: hidden;
+  border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
+  padding: 24px;
+  background:
+    linear-gradient(90deg, rgba(8, 6, 4, 0.42), rgba(8, 6, 4, 0.08) 48%, rgba(8, 6, 4, 0.52)),
+    linear-gradient(180deg, rgba(8, 6, 4, 0.18), rgba(8, 6, 4, 0.58)),
+    var(--preview-background-image) center / cover no-repeat,
+    radial-gradient(circle at 70% 22%, #7b4b1c 0, #21150c 44%, #090704 100%);
+}
+
+.personalization-preview-hero > div {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.personalization-preview-hero strong,
+.personalization-preview-hero span {
+  color: #fff8e8;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.42);
+}
+
+.personalization-preview-hero span:empty,
+.personalization-preview-hero strong:empty {
+  display: none;
+}
+
+.personalization-preview-hero button {
+  min-width: 112px;
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--preview-accent-color, #c8792b), #ffffff 34%);
+  border-radius: var(--border-radius-default);
+  padding: 10px 16px;
+  background: rgba(18, 13, 8, 0.58);
+  color: #fff8e8;
+  font: inherit;
+  font-weight: 700;
 }
 
 .permissions-layout {
@@ -3060,6 +3147,16 @@ a {
 
   .permissions-layout {
     grid-template-columns: 1fr;
+  }
+
+  .personalization-layout,
+  .personalization-form {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-preview-hero {
+    min-height: 320px;
+    place-items: end center;
   }
 }
 
