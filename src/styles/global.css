@@ -56,59 +56,159 @@ a {
 .main-nav {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 24px;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 18px;
   border-bottom: 1px solid #ddd6c8;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
 }
 
-.main-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.main-nav-links {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 4px;
-  white-space: nowrap;
-}
-
-.main-nav-links::-webkit-scrollbar {
-  height: 6px;
-}
-
-.main-nav-links::-webkit-scrollbar-track {
-  background: #f4f1ea;
-}
-
-.main-nav-links::-webkit-scrollbar-thumb {
-  background: #c7bca9;
-}
-
-.main-nav-links a {
-  flex: 0 0 auto;
-  border-bottom: 3px solid transparent;
-  padding: 8px 2px 6px;
-  color: #4f4a42;
+.main-nav-brand {
+  color: #1d4f45;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  font-weight: 700;
   text-decoration: none;
 }
 
+.main-menu-button {
+  display: inline-grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid #cfc7b8;
+  border-radius: var(--border-radius-default);
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.main-menu-button span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #1d4f45;
+}
+
+.main-menu-button:hover,
+.main-menu-button:focus {
+  border-color: #1d4f45;
+  outline: 0;
+}
+
+.main-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(32, 33, 31, 0.32);
+}
+
+.main-menu-backdrop[hidden],
+.main-menu-drawer[hidden] {
+  display: none;
+}
+
+.main-menu-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(360px, calc(100vw - 28px));
+  height: 100svh;
+  border-left: 1px solid #ddd6c8;
+  background: #fffaf1;
+  box-shadow: -24px 0 64px rgba(32, 33, 31, 0.28);
+}
+
+.main-menu-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #e5dece;
+  padding: 18px;
+}
+
+.main-menu-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.main-menu-header strong {
+  color: #1d4f45;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 20px;
+}
+
+.main-menu-header span {
+  color: #5f594f;
+  font-size: 14px;
+}
+
+.main-menu-close {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-default);
+  background: transparent;
+  color: #5f594f;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.main-menu-close:hover,
+.main-menu-close:focus {
+  border-color: #ddd6c8;
+  background: #ffffff;
+  outline: 0;
+}
+
+.main-nav-links {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  overflow: auto;
+  padding: 14px;
+}
+
+.main-nav-links a,
+.main-nav-links .nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-default);
+  padding: 11px 12px;
+  background: transparent;
+  color: #4f4a42;
+  text-decoration: none;
+  text-align: left;
+}
+
 .main-nav-links a:hover,
-.main-nav-links a:focus {
+.main-nav-links a:focus,
+.main-nav-links .nav-button:hover,
+.main-nav-links .nav-button:focus {
+  border-color: #ddd6c8;
+  background: #ffffff;
   color: #1d4f45;
   outline: 0;
 }
 
 .main-nav-links a.is-active {
-  border-bottom-color: #c8792b;
+  border-color: #1d4f45;
+  background: #eef5ef;
   color: #1d4f45;
   font-weight: 700;
 }
@@ -120,6 +220,10 @@ a {
 .nav-user-name {
   flex: 0 0 auto;
   margin-left: auto;
+}
+
+.has-main-menu-open {
+  overflow: hidden;
 }
 
 .user-email {
@@ -2782,22 +2886,26 @@ a {
 
 @media (max-width: 760px) {
   .main-nav {
-    position: static;
-    align-items: flex-start;
-    padding: 12px 14px;
+    min-height: 58px;
+    padding: 8px 12px;
   }
 
-  .main-nav-links {
-    width: 100%;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 2px;
+  .main-nav-brand {
+    font-size: 17px;
+  }
+
+  .main-menu-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .main-menu-drawer {
+    width: min(340px, calc(100vw - 18px));
   }
 
   .main-nav-links a,
-  .main-nav-links .nav-button,
-  .nav-user-name {
-    flex: 0 0 auto;
+  .main-nav-links .nav-button {
+    min-height: 50px;
   }
 
   .page {

@@ -4,10 +4,31 @@ export function MainNav(options = {}) {
   const nav = document.createElement('nav');
   nav.className = 'main-nav';
   nav.innerHTML = `
-    <div class="main-nav-links"></div>
+    <a class="main-nav-brand" href="/">Master Cifras</a>
+    <button class="main-menu-button" type="button" data-action="open-main-menu" aria-label="Abrir menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+    <div class="main-menu-backdrop" data-role="main-menu-backdrop" hidden></div>
+    <aside class="main-menu-drawer" data-role="main-menu-drawer" aria-label="Menu principal" hidden>
+      <header class="main-menu-header">
+        <div>
+          <strong>Master Cifras</strong>
+          <span data-role="drawer-user"></span>
+        </div>
+        <button class="main-menu-close" type="button" data-action="close-main-menu" aria-label="Fechar menu">&times;</button>
+      </header>
+      <div class="main-nav-links"></div>
+    </aside>
   `;
 
   const linksArea = nav.querySelector('.main-nav-links');
+  const openButton = nav.querySelector('[data-action="open-main-menu"]');
+  const closeButton = nav.querySelector('[data-action="close-main-menu"]');
+  const backdrop = nav.querySelector('[data-role="main-menu-backdrop"]');
+  const drawer = nav.querySelector('[data-role="main-menu-drawer"]');
+  const drawerUser = nav.querySelector('[data-role="drawer-user"]');
 
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
@@ -33,9 +54,7 @@ export function MainNav(options = {}) {
       ${links.map(createNavLink).join('')}
     `;
 
-    const userName = document.createElement('span');
-    userName.className = 'user-email nav-user-name';
-    userName.textContent = getFirstName(options.profile?.nome) || options.user.email;
+    drawerUser.textContent = getFirstName(options.profile?.nome) || options.user.email;
 
     const logoutButton = document.createElement('button');
     logoutButton.className = 'nav-button';
@@ -46,13 +65,45 @@ export function MainNav(options = {}) {
       logoutButton.addEventListener('click', options.onLogout);
     }
 
-    linksArea.append(userName, logoutButton);
+    linksArea.append(logoutButton);
   } else {
     const loginLink = document.createElement('a');
     loginLink.href = '/login';
     loginLink.textContent = 'Login';
     linksArea.append(loginLink);
   }
+
+  function openMenu() {
+    backdrop.hidden = false;
+    drawer.hidden = false;
+    openButton.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('has-main-menu-open');
+    window.requestAnimationFrame(() => {
+      nav.classList.add('is-menu-open');
+      drawer.querySelector('a, button')?.focus();
+    });
+  }
+
+  function closeMenu() {
+    nav.classList.remove('is-menu-open');
+    openButton.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('has-main-menu-open');
+    backdrop.hidden = true;
+    drawer.hidden = true;
+    openButton.focus();
+  }
+
+  openButton.addEventListener('click', openMenu);
+  closeButton.addEventListener('click', closeMenu);
+  backdrop.addEventListener('click', closeMenu);
+  linksArea.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+  nav.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !drawer.hidden) {
+      closeMenu();
+    }
+  });
 
   return nav;
 }
