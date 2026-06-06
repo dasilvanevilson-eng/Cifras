@@ -115,7 +115,10 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
     </div>
     <section class="repertorio-history-panel" hidden>
       <div class="repertorio-history-dialog" role="dialog" aria-modal="false" aria-label="Historico de alteracoes">
-        <h2>Historico de alteracoes</h2>
+        <div class="repertorio-history-header">
+          <h2>Historico de alteracoes</h2>
+          <button class="nav-button" type="button" data-action="close-history">Fechar</button>
+        </div>
         <div class="history-slot"></div>
       </div>
     </section>
@@ -167,6 +170,8 @@ function createHistoryButton(wrapper) {
     panel.hidden = !isOpening;
     button.textContent = isOpening ? 'Ocultar historico' : 'Historico';
   });
+
+  panel.querySelector('[data-action="close-history"]').addEventListener('click', closeHistoryPanel);
 
   panel.addEventListener('click', (event) => {
     if (event.target !== event.currentTarget) return;

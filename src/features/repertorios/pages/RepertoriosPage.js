@@ -190,7 +190,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     </div>
     <section class="repertorio-history-panel" hidden>
       <div class="repertorio-history-dialog" role="dialog" aria-modal="false" aria-label="Historico de alteracoes">
-        <h2>Historico de alteracoes</h2>
+        <div class="repertorio-history-header">
+          <h2>Historico de alteracoes</h2>
+          <button class="nav-button" type="button" data-action="close-history">Fechar</button>
+        </div>
         <div class="history-slot"></div>
       </div>
     </section>
@@ -589,6 +592,8 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       panel.hidden = !isOpening;
       actions.querySelector('[data-action="history"]').textContent = isOpening ? 'Ocultar historico' : 'Historico';
     });
+
+    form.querySelector('[data-action="close-history"]').addEventListener('click', closeHistoryPanel);
 
     form.querySelector('.repertorio-history-panel').addEventListener('click', (event) => {
       if (event.target !== event.currentTarget) return;
