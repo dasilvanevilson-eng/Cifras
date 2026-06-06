@@ -2540,10 +2540,15 @@ a {
   gap: 6px;
   align-items: center;
   margin-top: 0;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 10px 10px 8px;
+  padding: 8px;
+  border-color: rgba(207, 199, 184, 0.92);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 10px 24px rgba(29, 79, 69, 0.08);
+  scrollbar-width: thin;
+  touch-action: pan-x;
   white-space: nowrap;
 }
 
@@ -2560,18 +2565,39 @@ a {
 }
 
 .repertorio-performance-view .performance-toolbar .nav-button,
+.repertorio-performance-view .performance-toolbar .button-link {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.repertorio-performance-view .performance-toolbar label,
+.repertorio-performance-view .performance-toolbar span {
+  min-height: 36px;
+}
+
+.repertorio-performance-view .performance-toolbar .nav-button,
 .repertorio-performance-view .performance-toolbar .button-link,
 .repertorio-performance-view .performance-toolbar label,
 .repertorio-performance-view .performance-toolbar span {
   flex: 0 0 auto;
 }
 
+.repertorio-performance-view .performance-toolbar label {
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid #ddd6c8;
+  border-radius: var(--border-radius-default);
+  background: #ffffff;
+}
+
 .repertorio-performance-view .performance-toolbar [data-action="transpose-down"],
 .repertorio-performance-view .performance-toolbar [data-action="transpose-up"],
 .repertorio-performance-view .performance-toolbar [data-action="font-down"],
 .repertorio-performance-view .performance-toolbar [data-action="font-up"] {
-  width: 44px;
-  min-width: 44px;
+  width: 40px;
+  min-width: 40px;
   padding-right: 6px;
   padding-left: 6px;
   text-align: center;
@@ -2582,15 +2608,25 @@ a {
 }
 
 .repertorio-performance-view .performance-toolbar .toolbar-link {
-  min-height: 40px;
-  padding: 10px 12px;
+  min-height: 36px;
+  padding: 8px 10px;
 }
 
 .repertorio-performance-view .performance-position {
-  width: 44px;
-  min-width: 44px;
-  max-width: 44px;
-  min-height: 40px;
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  min-height: 36px;
+  font-size: 13px;
+}
+
+.repertorio-performance-view .performance-toolbar input[type="range"] {
+  width: 82px;
+}
+
+.repertorio-performance-view .performance-toolbar select {
+  min-height: 30px;
+  padding: 4px 8px;
 }
 
 .repertorio-performance-view .performance-list {
@@ -2606,10 +2642,15 @@ a {
 .repertorio-performance-view .performance-song header.repertorio-song-title-bar {
   flex-wrap: nowrap;
   gap: 6px;
-  margin: 0 0 2px;
+  align-items: center;
+  margin: 0 0 6px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 4px;
+  padding: 2px 0 5px;
+  color: #5f594f;
+  font-size: 14px;
+  line-height: 1.25;
+  scrollbar-width: thin;
   white-space: nowrap;
 }
 
@@ -2650,7 +2691,6 @@ a {
   display: inline;
   flex: 0 0 auto;
   color: #1d4f45;
-  font: inherit;
   font-weight: 700;
 }
 
@@ -2658,13 +2698,12 @@ a {
   flex: 0 0 auto;
   margin: 0;
   color: #1d4f45;
-  font: inherit;
   font-weight: 700;
 }
 
 .repertorio-performance-view .performance-song .current-key {
   color: #5f594f;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .repertorio-performance-view .chordpro-view {
@@ -2672,6 +2711,8 @@ a {
   font-size: var(--performance-font-size, 18px);
   font-weight: 700;
   line-height: 1.55;
+  min-height: calc(100svh - 184px);
+  padding: 18px;
   white-space: pre;
 }
 
@@ -2683,6 +2724,18 @@ a {
 }
 
 .repertorio-performance-view.is-dark .performance-toolbar .button-link.secondary {
+  border-color: #536159;
+  background: #1a211e;
+  color: #f6f2e8;
+}
+
+.repertorio-performance-view.is-dark .performance-toolbar {
+  border-color: #3d443f;
+  background: rgba(17, 21, 19, 0.96);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+}
+
+.repertorio-performance-view.is-dark .performance-toolbar label {
   border-color: #536159;
   background: #1a211e;
   color: #f6f2e8;
@@ -3739,6 +3792,12 @@ a {
     grid-template-columns: none;
     flex-wrap: nowrap;
     gap: 6px;
+    margin-right: -10px;
+    margin-left: -10px;
+    padding: 7px 10px;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
   }
 
   .repertorio-performance-view .performance-toolbar label {
@@ -3754,13 +3813,41 @@ a {
 
   .repertorio-performance-view .performance-toolbar .nav-button {
     width: auto;
-    padding: 8px 6px;
+    min-height: 34px;
+    padding: 7px 8px;
   }
 
   .repertorio-performance-view .performance-position {
-    width: 44px;
-    min-width: 44px;
-    max-width: 44px;
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 34px;
+  }
+
+  .repertorio-performance-view .performance-toolbar [data-action="transpose-down"],
+  .repertorio-performance-view .performance-toolbar [data-action="transpose-up"],
+  .repertorio-performance-view .performance-toolbar [data-action="font-down"],
+  .repertorio-performance-view .performance-toolbar [data-action="font-up"] {
+    width: 38px;
+    min-width: 38px;
+  }
+
+  .repertorio-performance-view .performance-toolbar input[type="range"] {
+    width: 72px;
+  }
+
+  .repertorio-performance-view .performance-song header.repertorio-song-title-bar {
+    margin-bottom: 4px;
+    padding-right: 10px;
+    padding-left: 2px;
+    font-size: 13px;
+  }
+
+  .repertorio-performance-view .chordpro-view {
+    min-height: calc(100svh - 136px);
+    padding: 12px;
+    font-size: var(--performance-font-size, 17px);
+    line-height: 1.5;
   }
 
   .repertorio-song-view.is-two-columns .chordpro-view,
