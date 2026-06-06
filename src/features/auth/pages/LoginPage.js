@@ -10,12 +10,12 @@ export async function LoginPage() {
       <div class="login-entry-panel">
         ${settings.show_app_name_on_login ? `<span class="login-app-name">${escapeHtml(settings.app_name)}</span>` : ''}
         ${settings.login_subtitle ? `<span class="login-subtitle">${escapeHtml(settings.login_subtitle)}</span>` : ''}
-        <button class="login-entry-button" type="button" data-action="open-login">Entrar</button>
+        <button class="login-entry-button" type="button" data-action="open-login">Acessar</button>
       </div>
       <div class="login-modal-backdrop" data-role="login-modal" hidden>
         <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
           <button class="login-modal-close" type="button" data-action="close-login" aria-label="Fechar login">&times;</button>
-          <h1 id="login-title">Entrar</h1>
+          <h1 id="login-title">Acessar</h1>
           <form class="form login-form">
             <label>
               E-mail
