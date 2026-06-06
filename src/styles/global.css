@@ -571,7 +571,8 @@ a {
 }
 
 .permissoes-page {
-  max-width: 1180px;
+  width: min(100%, 1440px);
+  max-width: none;
 }
 
 .permissions-layout {
@@ -642,11 +643,16 @@ a {
 }
 
 .permissions-table-wrap {
+  width: 100%;
   overflow-x: auto;
 }
 
+.permissions-table {
+  min-width: 920px;
+}
+
 .permissions-table th:first-child {
-  min-width: 220px;
+  min-width: 240px;
 }
 
 .permissions-table th small {
