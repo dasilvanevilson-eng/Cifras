@@ -33,32 +33,30 @@ export function MainNav(options = {}) {
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
     const links = [
-      { href: '/dashboard', label: 'Painel', moduleKey: 'dashboard', match: ['/dashboard'] },
-      { href: '/banda-coral', label: 'Modo Banda/Coral', moduleKey: 'banda_coral', match: ['/banda-coral'] },
-      { href: '/musicas', label: 'Cifras', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
-      { href: '/musicas-letras', label: 'Letras', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
-      { href: '/repertorios', label: 'Repertorios', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
-      { href: '/repertorios-pdf', label: 'PDF Repertorio', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
-      { href: '/sugestoes', label: 'Sugestao', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
-      { href: '/minha-conta', label: 'Minha conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
+      { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
+      { href: '/banda-coral', label: 'Modo Banda/Coral', group: 'Uso', moduleKey: 'banda_coral', match: ['/banda-coral'] },
+      { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
+      { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
+      { href: '/musicas-letras', label: 'Letras', group: 'Acervo', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
+      { href: '/repertorios-pdf', label: 'PDF Repertorio', group: 'Acervo', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
+      { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
+      { href: '/minha-conta', label: 'Minha conta', group: 'Conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
       ...(options.profile?.papel === 'admin'
         ? [
-          { href: '/usuarios', label: 'Usuarios', moduleKey: 'usuarios', match: ['/usuarios'] },
-          { href: '/permissoes', label: 'Permissoes', moduleKey: 'permissoes', match: ['/permissoes'] },
-          { href: '/personalizacao', label: 'Personalizacao', moduleKey: 'personalizacao', match: ['/personalizacao'] },
-          { href: '/convites-publicos', label: 'Convites publicos', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
+          { href: '/usuarios', label: 'Usuarios', group: 'Administracao', moduleKey: 'usuarios', match: ['/usuarios'] },
+          { href: '/permissoes', label: 'Permissoes', group: 'Administracao', moduleKey: 'permissoes', match: ['/permissoes'] },
+          { href: '/personalizacao', label: 'Personalizacao', group: 'Administracao', moduleKey: 'personalizacao', match: ['/personalizacao'] },
+          { href: '/convites-publicos', label: 'Convites publicos', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
         ]
         : []),
     ].filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
 
-    linksArea.innerHTML = `
-      ${links.map(createNavLink).join('')}
-    `;
+    linksArea.innerHTML = createGroupedNavLinks(links);
 
     drawerUser.textContent = getFirstName(options.profile?.nome) || options.user.email;
 
     const logoutButton = document.createElement('button');
-    logoutButton.className = 'nav-button';
+    logoutButton.className = 'nav-button main-menu-logout';
     logoutButton.type = 'button';
     logoutButton.textContent = 'Sair';
 
@@ -122,6 +120,29 @@ function createNavLink(link) {
   ].filter(Boolean).join(' ');
 
   return `<a${classes ? ` class="${classes}"` : ''} href="${link.href}">${link.label}</a>`;
+}
+
+function createGroupedNavLinks(links) {
+  const groups = [];
+
+  links.forEach((link) => {
+    const groupLabel = link.group || 'Menu';
+    let group = groups.find((item) => item.label === groupLabel);
+
+    if (!group) {
+      group = { label: groupLabel, links: [] };
+      groups.push(group);
+    }
+
+    group.links.push(link);
+  });
+
+  return groups.map((group) => `
+    <section class="main-menu-section" aria-label="${group.label}">
+      <span class="main-menu-section-title">${group.label}</span>
+      ${group.links.map(createNavLink).join('')}
+    </section>
+  `).join('');
 }
 
 function isActiveNavLink(paths = []) {
