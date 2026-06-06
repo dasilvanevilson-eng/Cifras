@@ -588,7 +588,7 @@ a {
   gap: 12px;
 }
 
-.permissions-editor {
+.permissions-editor.form {
   width: 100%;
   max-width: none;
 }
