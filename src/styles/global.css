@@ -1515,12 +1515,14 @@ a {
 .selected-repertorio-remove {
   display: inline-grid;
   place-items: center;
-  width: 1.25em;
-  min-width: 1.25em;
-  height: 1.25em;
-  min-height: 1.25em;
-  border-radius: 999px;
-  padding: 0;
+  width: 1.25em !important;
+  min-width: 1.25em !important;
+  height: 1.25em !important;
+  min-height: 1.25em !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: 0 !important;
+  background: transparent !important;
   color: #a12a2a;
   font-size: 1em;
   font-weight: 900;
@@ -1529,10 +1531,13 @@ a {
 
 .selected-repertorio-remove:hover,
 .selected-repertorio-remove:focus {
-  border-color: #a12a2a;
-  background: #fff0f0;
+  background: transparent !important;
   color: #7d1f1f;
   outline: 0;
+}
+
+.selected-repertorio-song .selected-repertorio-remove {
+  min-height: 1.25em !important;
 }
 
 .selected-repertorio-song.is-dragging {
