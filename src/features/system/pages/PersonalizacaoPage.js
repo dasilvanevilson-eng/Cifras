@@ -3,6 +3,7 @@ import {
   DEFAULT_SYSTEM_SETTINGS,
   listSystemSettings,
   saveSystemSettings,
+  uploadLoginBackgroundImage,
 } from '../../../services/settingsService.js';
 
 export async function PersonalizacaoPage({ session } = {}) {
@@ -26,9 +27,11 @@ export async function PersonalizacaoPage({ session } = {}) {
           Subtitulo da tela inicial
           <input name="login_subtitle" type="text" maxlength="140" placeholder="Opcional">
         </label>
-        <label class="field-full">
+        <label class="field-full personalization-file-field">
           Imagem de fundo do login
-          <input name="login_background_url" type="text" placeholder="/assets/login-background.jpg">
+          <input name="login_background_file" type="file" accept="image/jpeg,image/png,image/webp">
+          <input name="login_background_url" type="hidden">
+          <small data-role="background-file-status">Imagem atual mantida.</small>
         </label>
         <label>
           Cor principal
@@ -63,20 +66,45 @@ export async function PersonalizacaoPage({ session } = {}) {
   const form = page.querySelector('.personalization-form');
   const message = page.querySelector('.form-message');
   const restoreButton = page.querySelector('[data-action="restore-defaults"]');
+  const fileStatus = page.querySelector('[data-role="background-file-status"]');
   let settings = { ...DEFAULT_SYSTEM_SETTINGS };
+  let selectedBackgroundFile = null;
+  let selectedBackgroundPreviewUrl = '';
 
   function fillForm(nextSettings) {
     form.elements.app_name.value = nextSettings.app_name || DEFAULT_SYSTEM_SETTINGS.app_name;
     form.elements.login_subtitle.value = nextSettings.login_subtitle || '';
     form.elements.login_background_url.value = nextSettings.login_background_url || DEFAULT_SYSTEM_SETTINGS.login_background_url;
+    form.elements.login_background_file.value = '';
     form.elements.primary_color.value = nextSettings.primary_color || DEFAULT_SYSTEM_SETTINGS.primary_color;
     form.elements.accent_color.value = nextSettings.accent_color || DEFAULT_SYSTEM_SETTINGS.accent_color;
     form.elements.show_app_name_on_login.checked = Boolean(nextSettings.show_app_name_on_login);
+    selectedBackgroundFile = null;
+    revokeBackgroundPreviewUrl();
+    fileStatus.textContent = nextSettings.login_background_url ? 'Imagem atual mantida.' : 'Nenhuma imagem configurada.';
     renderPreview(page, readSettingsFromForm(form));
   }
 
   form.addEventListener('input', () => {
     renderPreview(page, readSettingsFromForm(form));
+  });
+
+  form.elements.login_background_file.addEventListener('change', () => {
+    selectedBackgroundFile = form.elements.login_background_file.files?.[0] || null;
+    revokeBackgroundPreviewUrl();
+
+    if (!selectedBackgroundFile) {
+      fileStatus.textContent = 'Imagem atual mantida.';
+      renderPreview(page, readSettingsFromForm(form));
+      return;
+    }
+
+    selectedBackgroundPreviewUrl = URL.createObjectURL(selectedBackgroundFile);
+    fileStatus.textContent = selectedBackgroundFile.name;
+    renderPreview(page, {
+      ...readSettingsFromForm(form),
+      login_background_url: selectedBackgroundPreviewUrl,
+    });
   });
 
   restoreButton.addEventListener('click', () => {
@@ -95,6 +123,22 @@ export async function PersonalizacaoPage({ session } = {}) {
     message.className = 'form-message field-full';
     message.textContent = 'Salvando personalizacao...';
 
+    if (selectedBackgroundFile) {
+      message.textContent = 'Enviando imagem...';
+      const { data: uploadedUrl, error: uploadError } = await uploadLoginBackgroundImage(selectedBackgroundFile);
+
+      if (uploadError) {
+        button.disabled = false;
+        message.className = 'form-message error field-full';
+        message.textContent = uploadError.message || 'Nao foi possivel enviar a imagem.';
+        return;
+      }
+
+      nextSettings.login_background_url = uploadedUrl;
+      form.elements.login_background_url.value = uploadedUrl;
+      message.textContent = 'Salvando personalizacao...';
+    }
+
     const { error } = await saveSystemSettings(nextSettings);
 
     button.disabled = false;
@@ -106,6 +150,10 @@ export async function PersonalizacaoPage({ session } = {}) {
     }
 
     settings = nextSettings;
+    selectedBackgroundFile = null;
+    revokeBackgroundPreviewUrl();
+    form.elements.login_background_file.value = '';
+    fileStatus.textContent = 'Imagem atual mantida.';
     message.className = 'form-message success field-full';
     message.textContent = 'Personalizacao salva com sucesso.';
   });
@@ -128,6 +176,13 @@ export async function PersonalizacaoPage({ session } = {}) {
   fillForm(settings);
 
   return page;
+
+  function revokeBackgroundPreviewUrl() {
+    if (selectedBackgroundPreviewUrl) {
+      URL.revokeObjectURL(selectedBackgroundPreviewUrl);
+      selectedBackgroundPreviewUrl = '';
+    }
+  }
 }
 
 function readSettingsFromForm(form) {

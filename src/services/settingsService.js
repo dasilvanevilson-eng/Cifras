@@ -61,6 +61,38 @@ export async function saveSystemSettings(settings) {
     .select();
 }
 
+export async function uploadLoginBackgroundImage(file) {
+  assertSupabaseConfig();
+
+  if (!file) {
+    return { data: null, error: new Error('Imagem nao informada.') };
+  }
+
+  if (!file.type?.startsWith('image/')) {
+    return { data: null, error: new Error('Selecione um arquivo de imagem.') };
+  }
+
+  const extension = getFileExtension(file.name, file.type);
+  const fileName = `login-background-${Date.now()}.${extension}`;
+  const filePath = `login/${fileName}`;
+  const { error } = await supabase.storage
+    .from('system-assets')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  const { data } = supabase.storage
+    .from('system-assets')
+    .getPublicUrl(filePath);
+
+  return { data: data.publicUrl, error: null };
+}
+
 function normalizeSettings(rows = []) {
   return rows.reduce((settings, row) => ({
     ...settings,
@@ -96,4 +128,20 @@ function getSettingDescription(key) {
   };
 
   return descriptions[key] || '';
+}
+
+function getFileExtension(fileName, mimeType) {
+  const extension = String(fileName || '').split('.').pop()?.toLowerCase();
+
+  if (['jpg', 'jpeg', 'png', 'webp'].includes(extension)) {
+    return extension === 'jpeg' ? 'jpg' : extension;
+  }
+
+  const mimeExtensions = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+
+  return mimeExtensions[mimeType] || 'jpg';
 }

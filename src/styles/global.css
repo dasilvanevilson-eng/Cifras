@@ -732,6 +732,17 @@ a {
   padding: 4px;
 }
 
+.personalization-file-field small {
+  color: #5f594f;
+  font-size: 13px;
+}
+
+.personalization-file-field input[type="file"] {
+  min-height: 44px;
+  padding: 8px;
+  background: #ffffff;
+}
+
 .personalization-preview {
   display: grid;
   gap: 10px;
