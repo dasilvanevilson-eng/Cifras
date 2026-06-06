@@ -57,9 +57,6 @@ function createBandaCoralView({ session, sessoes, repertorios, musicasAvulsas })
   const canLead = canEditContent(session?.profile?.papel);
 
   wrapper.innerHTML = `
-    <header class="banda-coral-header">
-      <h1>Modo Banda/Coral</h1>
-    </header>
     <div class="banda-mode-switch">
       <button class="nav-button" type="button" data-mode="lider"${canLead ? '' : ' disabled'}>Entrar como Lider</button>
       <button class="nav-button" type="button" data-mode="integrante">Entrar como Integrante</button>
@@ -99,7 +96,6 @@ function createLeaderMode({ sessoes, repertorios, musicasAvulsas }) {
   wrapper.className = 'banda-mode-panel';
   wrapper.innerHTML = `
     <section class="banda-create-panel">
-      <h2>Sessao ao vivo</h2>
       <form class="form banda-session-form">
         <label>
           Nome da sessao
@@ -289,6 +285,10 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
       </div>
       <span class="banda-live-role">Lider</span>
     </div>
+    <div class="banda-participants-panel">
+      <button class="nav-button" type="button" data-action="consultar-participantes">Consultar participantes</button>
+      <div class="banda-participants-list" data-role="participantes-list" hidden></div>
+    </div>
     <div class="banda-control-grid">
       <label>
         Repertorio
@@ -337,8 +337,23 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   const message = wrapper.querySelector('.form-message');
   const stageLayer = wrapper.querySelector('.banda-stage-layer');
   const songSlot = wrapper.querySelector('.banda-song-slot');
+  const participantesSlot = wrapper.querySelector('[data-role="participantes-list"]');
   let currentItem = getCurrentSessionItem(sessao, musicasAssociadas);
   const repertorioTitle = getField(sessao.repertorios || {}, ['nome', 'titulo', 'name']) || 'Repertorio';
+
+  wrapper.querySelector('[data-action="consultar-participantes"]').addEventListener('click', async () => {
+    participantesSlot.hidden = false;
+    participantesSlot.innerHTML = '<p class="page-status">Carregando participantes...</p>';
+
+    const { data, error } = await listParticipantesSessaoBanda(sessao.id);
+
+    if (error) {
+      participantesSlot.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar participantes.')}</p>`;
+      return;
+    }
+
+    participantesSlot.replaceChildren(createParticipantesList(data || []));
+  });
 
   async function saveSession(values) {
     message.className = 'form-message';
@@ -510,6 +525,48 @@ function hydrateSessaoRepertorio(sessao, repertorios) {
     ...sessao,
     repertorios: sessao.repertorios || repertorios.find((repertorio) => repertorio.id === sessao.repertorio_id) || null,
   };
+}
+
+function createParticipantesList(participantes) {
+  if (!participantes.length) {
+    const empty = document.createElement('p');
+    empty.className = 'page-status';
+    empty.textContent = 'Nenhum participante conectado nesta sessao.';
+    return empty;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'banda-participants-items';
+
+  participantes.forEach((participante, index) => {
+    const item = document.createElement('article');
+    item.className = 'banda-participant-item';
+    item.innerHTML = `
+      <strong>${index + 1}. ${escapeHtml(formatParticipantRole(participante.papel))}</strong>
+      <span>${participante.seguir_lider ? 'Seguindo lider' : 'Livre'}</span>
+      <small>${escapeHtml(formatParticipantDate(participante.entrou_em))}</small>
+    `;
+    list.append(item);
+  });
+
+  return list;
+}
+
+function formatParticipantRole(role) {
+  return String(role || 'integrante') === 'lider' ? 'Lider' : 'Integrante';
+}
+
+function formatParticipantDate(value) {
+  if (!value) return '';
+
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch (_error) {
+    return String(value);
+  }
 }
 
 async function openMemberSession(sessaoId, slot) {

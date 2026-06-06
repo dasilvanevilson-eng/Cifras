@@ -3134,6 +3134,34 @@ a {
   font-weight: 700;
 }
 
+.banda-participants-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.banda-participants-list[hidden] {
+  display: none;
+}
+
+.banda-participants-items {
+  display: grid;
+  gap: 6px;
+}
+
+.banda-participant-item {
+  display: grid;
+  gap: 2px;
+  border: 1px solid #ddd6c8;
+  padding: 8px 10px;
+  background: #fffaf1;
+}
+
+.banda-participant-item span,
+.banda-participant-item small {
+  color: #5f594f;
+  font-size: 13px;
+}
+
 .banda-control-grid {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(90px, 120px);
