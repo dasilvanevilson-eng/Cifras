@@ -1729,7 +1729,7 @@ a {
 .repertorio-privacy-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 998;
+  z-index: 9998;
   border: 0;
   padding: 0;
   background: rgba(32, 33, 31, 0.48);
@@ -4456,7 +4456,7 @@ a {
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 999;
+  z-index: 9999;
   width: min(560px, calc(100vw - 32px));
   max-height: min(680px, calc(100svh - 32px));
   overflow: auto;
