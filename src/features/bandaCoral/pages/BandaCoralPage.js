@@ -70,6 +70,7 @@ function createBandaCoralView({ session, sessoes, repertorios, musicasAvulsas })
   const memberButton = wrapper.querySelector('[data-mode="integrante"]');
 
   function setMode(mode) {
+    document.body.classList.remove('has-banda-stage-open');
     leaderButton.classList.toggle('is-active', mode === 'lider');
     memberButton.classList.toggle('is-active', mode === 'integrante');
 
@@ -614,6 +615,7 @@ function formatParticipantDate(value) {
 }
 
 async function openMemberSession(sessaoId, slot) {
+  document.body.classList.remove('has-banda-stage-open');
   slot.innerHTML = '<p class="page-status">Entrando na sessao...</p>';
   const { data: participante, error: participantError } = await upsertSessaoBandaParticipante(sessaoId, 'integrante', true);
 
@@ -647,6 +649,7 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
   const shouldFollow = previousToggle ? previousToggle.checked : Boolean(participante.seguir_lider);
   const wrapper = document.createElement('section');
   wrapper.className = 'banda-live-card';
+  const hasSong = Boolean(sessao.musicas);
   wrapper.innerHTML = `
     <div class="banda-live-header">
       <div>
@@ -659,10 +662,30 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
       <input type="checkbox" data-action="seguir-lider"${shouldFollow ? ' checked' : ''}>
       <span>Seguir lider</span>
     </label>
-    <div class="banda-song-slot"></div>
+    <p class="page-status">${hasSong ? 'Execucao aberta em tela cheia.' : 'Aguardando o lider selecionar uma musica.'}</p>
+    <div class="banda-stage-layer banda-member-stage-layer">
+      <div class="banda-stage-actions">
+        <button class="nav-button" type="button" data-action="close-stage">Sair da execucao</button>
+      </div>
+      <div class="banda-song-slot"></div>
+    </div>
   `;
 
   const toggle = wrapper.querySelector('[data-action="seguir-lider"]');
+  const stageLayer = wrapper.querySelector('.banda-stage-layer');
+  const songSlot = wrapper.querySelector('.banda-song-slot');
+
+  function closeStage() {
+    stageLayer.hidden = true;
+    document.body.classList.remove('has-banda-stage-open');
+  }
+
+  function openStage() {
+    stageLayer.hidden = false;
+    document.body.classList.add('has-banda-stage-open');
+  }
+
+  wrapper.querySelector('[data-action="close-stage"]').addEventListener('click', closeStage);
   toggle.addEventListener('change', async () => {
     await updateSeguirLider(participante.id, toggle.checked);
 
@@ -674,7 +697,7 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
     }
   });
 
-  renderBandaSong(wrapper.querySelector('.banda-song-slot'), {
+  renderBandaSong(songSlot, {
     musicas: sessao.musicas,
     musica_id: sessao.musica_atual_id,
     tom: sessao.tom_atual,
@@ -683,6 +706,7 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
   });
 
   slot.replaceChildren(wrapper);
+  openStage();
 }
 
 function renderBandaSong(slot, item, tomAtual, options = {}) {
