@@ -1793,9 +1793,16 @@ a {
 }
 
 .shared-edit-option {
-  border: 2px solid #c4a35d;
-  padding: 0.75rem;
+  border: 1px solid #c4a35d;
+  padding: 0.65rem 0.75rem;
   background: #fff8e8;
+}
+
+.shared-edit-option.checkbox-label {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
 }
 
 .shared-edit-option span {
@@ -4462,6 +4469,18 @@ a {
   overflow: auto;
   transform: translate(-50%, -50%);
   box-shadow: 0 24px 70px rgba(32, 33, 31, 0.28);
+}
+
+.repertorios-page:has(.repertorio-privacy-wrapper.is-privacy-open) .repertorios-search-panel {
+  background: #fbfaf7;
+  box-shadow: none;
+}
+
+.repertorios-page:has(.repertorio-privacy-wrapper.is-privacy-open) .repertorios-search-panel input,
+.repertorios-page:has(.repertorio-privacy-wrapper.is-privacy-open) .repertorios-search-panel select {
+  border-color: #d8d0c2;
+  box-shadow: none;
+  outline: 0;
 }
 
 .new-repertorio-form .repertorio-basic-fields > .song-search-results {
