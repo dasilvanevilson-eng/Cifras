@@ -46,6 +46,7 @@ export function MainNav(options = {}) {
           { href: '/usuarios', label: 'Usuarios', moduleKey: 'usuarios', match: ['/usuarios'] },
           { href: '/permissoes', label: 'Permissoes', moduleKey: 'permissoes', match: ['/permissoes'] },
           { href: '/personalizacao', label: 'Personalizacao', moduleKey: 'personalizacao', match: ['/personalizacao'] },
+          { href: '/convites-publicos', label: 'Convites publicos', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
         ]
         : []),
     ].filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));

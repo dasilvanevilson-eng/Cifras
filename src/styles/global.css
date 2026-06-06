@@ -1058,6 +1058,86 @@ a {
   padding: 4px;
 }
 
+.public-invites-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.public-invite-form,
+.public-invites-list-panel {
+  min-width: 0;
+}
+
+.public-invites-list-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.public-invites-list {
+  display: grid;
+  gap: 10px;
+}
+
+.public-invite-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #ddd6c8;
+  border-left: 4px solid #1d4f45;
+  border-radius: var(--border-radius-default);
+  background: #ffffff;
+}
+
+.public-invite-card.is-expired,
+.public-invite-card.is-revoked {
+  border-left-color: #9b9488;
+  opacity: 0.78;
+}
+
+.public-invite-card h3 {
+  margin: 0 0 4px;
+  color: #183c35;
+  font-size: 18px;
+}
+
+.public-invite-card p,
+.public-invite-card small {
+  margin: 0;
+  color: #5f594f;
+}
+
+.public-invite-card input[readonly] {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ddd6c8;
+  background: #f8f5ef;
+  color: #5f594f;
+  font-size: 13px;
+}
+
+.public-invite-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.public-access-page {
+  min-height: 100svh;
+  padding-top: 18px;
+}
+
+.public-dashboard-shell .dashboard-header h1 {
+  color: #183c35;
+}
+
+.public-dashboard-shell .dashboard-test-notice {
+  display: none;
+}
+
 .personalization-file-field small {
   color: #5f594f;
   font-size: 13px;
@@ -3862,8 +3942,19 @@ a {
   }
 
   .personalization-layout,
+  .public-invites-layout,
   .personalization-form {
     grid-template-columns: 1fr;
+  }
+
+  .public-invite-card,
+  .public-invite-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .public-invite-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .personalization-preview-hero {

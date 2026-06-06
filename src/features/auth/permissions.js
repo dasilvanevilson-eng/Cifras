@@ -22,6 +22,7 @@ export const PERMISSION_MODULES = [
   { key: 'usuarios', label: 'Usuarios', description: 'Cadastro e manutencao de usuarios.' },
   { key: 'permissoes', label: 'Permissoes', description: 'Configuracao de acessos por usuario.' },
   { key: 'personalizacao', label: 'Personalizacao', description: 'Ajustes globais de aparencia e identidade do sistema.' },
+  { key: 'convites_publicos', label: 'Convites publicos', description: 'Links temporarios para acesso publico controlado.' },
 ];
 
 const MENU_ROUTE_ORDER = [
@@ -36,6 +37,7 @@ const MENU_ROUTE_ORDER = [
   { href: '/usuarios', moduleKey: 'usuarios', adminOnly: true },
   { href: '/permissoes', moduleKey: 'permissoes', adminOnly: true },
   { href: '/personalizacao', moduleKey: 'personalizacao', adminOnly: true },
+  { href: '/convites-publicos', moduleKey: 'convites_publicos', adminOnly: true },
 ];
 
 const EMPTY_ACTIONS = createActions(false);
@@ -54,6 +56,7 @@ const ROLE_DEFAULTS = {
     usuarios: createActions(false),
     permissoes: createActions(false),
     personalizacao: createActions(false),
+    convites_publicos: createActions(false),
   },
   [USER_ROLES.MUSICO]: {
     dashboard: createActions(true, { can_create: false, can_edit: false, can_delete: false, can_execute: false, can_export: false, can_manage: false }),
@@ -67,6 +70,7 @@ const ROLE_DEFAULTS = {
     usuarios: createActions(false),
     permissoes: createActions(false),
     personalizacao: createActions(false),
+    convites_publicos: createActions(false),
   },
 };
 

@@ -19,6 +19,8 @@ import { SugestoesPage } from '../features/sugestoes/pages/SugestoesPage.js';
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 import { PermissoesPage } from '../features/usuarios/pages/PermissoesPage.js';
 import { PersonalizacaoPage } from '../features/system/pages/PersonalizacaoPage.js';
+import { ConvitesPublicosPage } from '../features/public/pages/ConvitesPublicosPage.js';
+import { PublicDashboardPage } from '../features/public/pages/PublicDashboardPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
@@ -50,14 +52,17 @@ const routes = {
   '/usuarios': UsuariosPage,
   '/permissoes': PermissoesPage,
   '/personalizacao': PersonalizacaoPage,
+  '/convites-publicos': ConvitesPublicosPage,
+  '/publico': PublicDashboardPage,
 };
 
-const publicRoutes = new Set(['/login', '/alterar-senha']);
+const publicRoutes = new Set(['/login', '/alterar-senha', '/publico']);
 
 const protectedRoutes = {
   '/usuarios': canManageUsers,
   '/permissoes': canManageUsers,
   '/personalizacao': canManageUsers,
+  '/convites-publicos': canManageUsers,
 };
 
 export function createRouter() {
