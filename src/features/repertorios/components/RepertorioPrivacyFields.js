@@ -46,6 +46,7 @@ export function RepertorioPrivacyFields(options = {}) {
 
   function closePrivacyPanel() {
     wrapper.classList.remove('is-privacy-open');
+    document.body.classList.remove('has-privacy-modal-open');
     modal.hidden = true;
     toggleButton.setAttribute('aria-expanded', 'false');
     toggleButton.textContent = 'Privacidade';
@@ -55,6 +56,7 @@ export function RepertorioPrivacyFields(options = {}) {
     const isOpening = modal.hidden;
     modal.hidden = !isOpening;
     wrapper.classList.toggle('is-privacy-open', isOpening);
+    document.body.classList.toggle('has-privacy-modal-open', isOpening);
     toggleButton.setAttribute('aria-expanded', String(isOpening));
     toggleButton.textContent = 'Privacidade';
   });
@@ -66,6 +68,10 @@ export function RepertorioPrivacyFields(options = {}) {
     if (event.key !== 'Escape' || modal.hidden) return;
 
     closePrivacyPanel();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    document.body.classList.remove('has-privacy-modal-open');
   });
 
   function updateSelectiveUsersVisibility() {

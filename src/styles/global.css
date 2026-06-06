@@ -4476,6 +4476,11 @@ a {
   box-shadow: none;
 }
 
+.has-privacy-modal-open .repertorios-search-panel {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .repertorios-page:has(.repertorio-privacy-wrapper.is-privacy-open) .repertorios-search-panel input,
 .repertorios-page:has(.repertorio-privacy-wrapper.is-privacy-open) .repertorios-search-panel select {
   border-color: #d8d0c2;
