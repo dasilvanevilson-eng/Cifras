@@ -55,9 +55,16 @@ export function RepertorioPrivacyFields(options = {}) {
   });
 
   closeButton.addEventListener('click', closePrivacyPanel);
+  fieldset.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
 
   document.addEventListener('pointerdown', (event) => {
-    if (fieldset.hidden || wrapper.contains(event.target)) return;
+    if (
+      fieldset.hidden
+      || fieldset.contains(event.target)
+      || toggleButton.contains(event.target)
+    ) return;
 
     closePrivacyPanel();
   });
