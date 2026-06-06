@@ -89,20 +89,27 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
 
   wrapper.innerHTML = `
+    <header class="song-header repertorio-header">
+      <div>
+        <h1>${escapeHtml(nome)}</h1>
+        <p>${escapeHtml(formatCreator(repertorio))}</p>
+      </div>
+      <div class="repertorio-detail-summary">
+        <span><strong>${musicasAssociadas.length}</strong> musicas</span>
+      </div>
+    </header>
     <div class="page-actions">
       <a class="button-link secondary icon-action back-icon-action" href="${escapeHtml(returnTo || '/repertorios')}" aria-label="Voltar" title="Voltar">&larr;</a>
       <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(repertorio.id)}">Execucao</a>
     </div>
-    <header class="song-header repertorio-header">
-      <h1>${escapeHtml(nome)}</h1>
-      <p>${escapeHtml(formatCreator(repertorio))}</p>
-    </header>
     <div class="page-grid repertorio-detail-grid">
       <section class="editor-panel">
         <div class="form-slot"></div>
       </section>
-      <section>
-        <h2>Musicas do repertorio</h2>
+      <section class="repertorio-songs-panel">
+        <div class="repertorio-songs-heading">
+          <h2>Musicas do repertorio</h2>
+        </div>
         <div class="list-slot"></div>
       </section>
     </div>

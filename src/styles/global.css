@@ -854,11 +854,88 @@ a {
 }
 
 .repertorio-detail-page .repertorio-detail-grid {
-  gap: 14px;
+  gap: 16px;
 }
 
 .repertorio-detail-page .page-actions {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.repertorio-detail-page {
+  display: grid;
+  gap: 14px;
+}
+
+.repertorio-detail-page .repertorio-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid #e1dacd;
+  padding-bottom: 18px;
+}
+
+.repertorio-detail-page .repertorio-header h1 {
+  margin: 0;
+  color: #1d3f38;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1;
+}
+
+.repertorio-detail-page .repertorio-header p {
+  margin-top: 8px;
+}
+
+.repertorio-detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.repertorio-detail-summary span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  border: 1px solid #dcd3c3;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #ffffff;
+  color: #61594d;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.repertorio-detail-summary strong {
+  color: #1d4f45;
+  font-size: 15px;
+}
+
+.repertorio-detail-page .editor-panel,
+.repertorio-songs-panel {
+  min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfaf7;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
+}
+
+.repertorio-songs-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.repertorio-songs-heading h2 {
+  margin: 0;
+  color: #243b34;
+  font-size: 18px;
+  line-height: 1.2;
 }
 
 .repertorio-detail-page .form {
@@ -889,7 +966,7 @@ a {
 
 .repertorio-detail-page .data-table th,
 .repertorio-detail-page .data-table td {
-  padding: 4px 10px;
+  padding: 7px 10px;
 }
 
 .repertorio-detail-page .data-table td:first-child,
@@ -938,10 +1015,6 @@ a {
 
 .repertorio-detail-grid .editor-panel .form {
   max-width: 560px;
-}
-
-.repertorio-header h1 {
-  font-size: 20px;
 }
 
 .usuarios-grid {
@@ -1442,9 +1515,9 @@ a {
 .selected-repertorio-remove {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: 30px;
+  min-width: 30px;
+  min-height: 30px;
   border-radius: 999px;
   padding: 0;
   color: #a12a2a;
@@ -3408,6 +3481,56 @@ a {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
+  .repertorio-detail-page {
+    gap: 12px;
+  }
+
+  .repertorio-detail-page .repertorio-header {
+    gap: 12px;
+    align-items: flex-start;
+    padding-bottom: 14px;
+  }
+
+  .repertorio-detail-page .repertorio-header h1 {
+    font-size: 30px;
+  }
+
+  .repertorio-detail-summary {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .repertorio-detail-summary span {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .repertorio-detail-page .page-actions {
+    gap: 8px;
+  }
+
+  .repertorio-detail-page .page-actions .button-link,
+  .repertorio-detail-page .page-actions .nav-button,
+  .repertorio-detail-page .page-actions .danger-button {
+    flex: 1 1 120px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .repertorio-detail-page .editor-panel,
+  .repertorio-songs-panel {
+    border-radius: 7px;
+    padding: 10px;
+  }
+
+  .repertorio-songs-panel .list-slot {
+    overflow-x: auto;
+  }
+
+  .repertorio-detail-page .data-table {
+    min-width: 560px;
+  }
+
   .repertorio-detail-page .add-repertorio-song-form .button {
     grid-column: 1 / -1;
   }
@@ -4272,6 +4395,18 @@ a {
 
 .repertorio-title-date-grid .repertorio-privacy-fields {
   grid-column: 1 / -1;
+}
+
+.new-repertorio-form .repertorio-privacy-wrapper .repertorio-privacy-fields {
+  position: static;
+  width: 100%;
+  max-height: none;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.06);
+}
+
+.new-repertorio-form .repertorio-basic-fields > .song-search-results {
+  position: static;
+  max-height: min(46vh, 360px);
 }
 
 .new-repertorio-form .selected-repertorio-songs {
