@@ -588,6 +588,11 @@ a {
   gap: 12px;
 }
 
+.permissions-editor {
+  width: 100%;
+  max-width: none;
+}
+
 .permissions-users-panel label {
   display: grid;
   gap: 6px;
@@ -674,6 +679,10 @@ a {
 .permission-toggle input {
   width: 18px;
   height: 18px;
+}
+
+.permissions-editor .permission-toggle input {
+  width: 18px;
 }
 
 .user-search-panel {
