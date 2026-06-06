@@ -6,7 +6,7 @@ values (
   'system-assets',
   true,
   5242880,
-  array['image/jpeg', 'image/png', 'image/webp']
+  array['image/jpeg']
 )
 on conflict (id) do update
 set

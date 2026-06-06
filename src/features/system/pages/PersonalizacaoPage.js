@@ -29,8 +29,9 @@ export async function PersonalizacaoPage({ session } = {}) {
         </label>
         <label class="field-full personalization-file-field">
           Imagem de fundo do login
-          <input name="login_background_file" type="file" accept="image/jpeg,image/png,image/webp">
+          <input name="login_background_file" type="file" accept="image/jpeg" hidden>
           <input name="login_background_url" type="hidden">
+          <button class="button-link secondary" type="button" data-action="select-background-image">Buscar imagem .jpg no seu dispositivo</button>
           <small data-role="background-file-status">Imagem atual mantida.</small>
         </label>
         <label>
@@ -66,6 +67,7 @@ export async function PersonalizacaoPage({ session } = {}) {
   const form = page.querySelector('.personalization-form');
   const message = page.querySelector('.form-message');
   const restoreButton = page.querySelector('[data-action="restore-defaults"]');
+  const selectBackgroundButton = page.querySelector('[data-action="select-background-image"]');
   const fileStatus = page.querySelector('[data-role="background-file-status"]');
   let settings = { ...DEFAULT_SYSTEM_SETTINGS };
   let selectedBackgroundFile = null;
@@ -87,6 +89,10 @@ export async function PersonalizacaoPage({ session } = {}) {
 
   form.addEventListener('input', () => {
     renderPreview(page, readSettingsFromForm(form));
+  });
+
+  selectBackgroundButton.addEventListener('click', () => {
+    form.elements.login_background_file.click();
   });
 
   form.elements.login_background_file.addEventListener('change', () => {

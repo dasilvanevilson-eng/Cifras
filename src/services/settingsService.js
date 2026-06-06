@@ -68,8 +68,8 @@ export async function uploadLoginBackgroundImage(file) {
     return { data: null, error: new Error('Imagem nao informada.') };
   }
 
-  if (!file.type?.startsWith('image/')) {
-    return { data: null, error: new Error('Selecione um arquivo de imagem.') };
+  if (file.type !== 'image/jpeg') {
+    return { data: null, error: new Error('Selecione uma imagem .jpg.') };
   }
 
   const extension = getFileExtension(file.name, file.type);
