@@ -15,13 +15,22 @@ export async function MusicasPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page musicas-page';
   page.innerHTML = `
+    <header class="musicas-header">
+      <div>
+        <h1>Cifras</h1>
+        <p>Cadastro, revisao e edicao das musicas do acervo.</p>
+      </div>
+      <div class="musicas-summary" aria-live="polite">
+        <span><strong data-count="musicas">0</strong> musicas</span>
+      </div>
+    </header>
     <section class="music-search-panel">
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>
       </div>
     </section>
     <div class="page-grid">
-      <section>
+      <section class="music-editor-panel">
         <div class="form-slot"></div>
       </section>
     </div>
@@ -30,6 +39,7 @@ export async function MusicasPage({ session } = {}) {
   const formSlot = page.querySelector('.form-slot');
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
+  const musicasCount = page.querySelector('[data-count="musicas"]');
 
   try {
     const { data, error } = await listMusicas();
@@ -39,6 +49,7 @@ export async function MusicasPage({ session } = {}) {
     }
 
     const musicas = data || [];
+    musicasCount.textContent = String(musicas.length);
     const pendingSugestao = canEdit ? readPendingSugestaoMusica() : null;
     const pendingSugestaoMusica = pendingSugestao?.tipo_sugestao === 'ajuste'
       ? musicas.find((musica) => musica.id === pendingSugestao.musica_origem_id)

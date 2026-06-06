@@ -417,18 +417,85 @@ a {
 
 .musicas-page {
   max-width: none;
+  display: grid;
+  gap: 18px;
 }
 
 .musicas-page .page-grid {
   grid-template-columns: 1fr;
 }
 
+.musicas-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid #e1dacd;
+  padding-bottom: 18px;
+}
+
+.musicas-header h1 {
+  margin: 0;
+  color: #1d3f38;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1;
+}
+
+.musicas-header p {
+  max-width: 44rem;
+  margin: 8px 0 0;
+  color: #635d52;
+  font-size: 15px;
+}
+
+.musicas-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.musicas-summary span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  border: 1px solid #dcd3c3;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #ffffff;
+  color: #61594d;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.musicas-summary strong {
+  color: #1d4f45;
+  font-size: 15px;
+}
+
 .music-search-panel {
-  margin-bottom: 24px;
+  position: relative;
+  z-index: 3;
+  margin-bottom: 2px;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfaf7;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .music-search-panel h2 {
   margin-bottom: 12px;
+}
+
+.music-editor-panel {
+  min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .dashboard-page {
@@ -1634,6 +1701,9 @@ a {
 .list-toolbar label {
   display: grid;
   gap: 6px;
+  color: #514a40;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .list-toolbar input,
@@ -1641,9 +1711,17 @@ a {
   width: 100%;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
-  padding: 10px 12px;
+  min-height: 46px;
+  padding: 11px 12px;
   font: inherit;
   background: #ffffff;
+}
+
+.list-toolbar input:focus,
+.list-toolbar select:focus {
+  border-color: #1d4f45;
+  box-shadow: 0 0 0 3px rgba(29, 79, 69, 0.14);
+  outline: 0;
 }
 
 .list-summary {
@@ -1660,10 +1738,11 @@ a {
   z-index: 10;
   max-height: 360px;
   overflow: auto;
-  border: 1px solid #ddd6c8;
-  border-radius: var(--border-radius-default);
+  border: 1px solid #d5cabb;
+  border-radius: 8px;
+  padding: 6px;
   background: #ffffff;
-  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
+  box-shadow: 0 18px 34px rgba(24, 24, 24, 0.14);
 }
 
 .search-results[hidden] {
@@ -1680,14 +1759,20 @@ a {
 .data-table th,
 .data-table td {
   border-bottom: 1px solid #e5dece;
-  padding: 12px;
+  padding: 11px 12px;
   text-align: left;
+  vertical-align: middle;
 }
 
 .data-table th {
   color: #5f594f;
   font-size: 13px;
+  letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.data-table td {
+  color: #2f312d;
 }
 
 .clickable-row {
@@ -2652,6 +2737,7 @@ a {
 .musica-form {
   grid-template-columns: repeat(4, minmax(140px, 1fr));
   align-items: end;
+  gap: 14px;
 }
 
 .musica-form label:nth-of-type(1) {
@@ -2693,9 +2779,11 @@ a {
 .music-form-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-start;
   align-items: center;
+  border-top: 1px solid #eee7da;
+  padding-top: 14px;
 }
 
 .inline-transpose-controls {
@@ -2804,9 +2892,18 @@ a {
   width: 100%;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
+  min-height: 44px;
   padding: 10px 12px;
   font: inherit;
   background: #ffffff;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  border-color: #1d4f45;
+  box-shadow: 0 0 0 3px rgba(29, 79, 69, 0.14);
+  outline: 0;
 }
 
 .form textarea {
@@ -2839,8 +2936,9 @@ a {
 }
 
 .chordpro-editor:focus {
-  outline: 2px solid #c8792b;
-  outline-offset: 0;
+  border-color: #1d4f45;
+  box-shadow: 0 0 0 3px rgba(29, 79, 69, 0.14);
+  outline: 0;
 }
 
 .chord-token {
@@ -2890,7 +2988,7 @@ a {
 .cifra-editor-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
   width: 100%;
 }
 
@@ -3291,6 +3389,49 @@ a {
     grid-template-columns: minmax(82px, 110px) minmax(0, 1fr);
   }
 
+  .musicas-page {
+    gap: 14px;
+  }
+
+  .musicas-header {
+    gap: 12px;
+    align-items: flex-start;
+    padding-bottom: 14px;
+  }
+
+  .musicas-header h1 {
+    font-size: 30px;
+  }
+
+  .musicas-header p {
+    font-size: 14px;
+  }
+
+  .musicas-summary {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .musicas-summary span {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .music-search-panel,
+  .music-editor-panel {
+    border-radius: 7px;
+    padding: 10px;
+  }
+
+  .musicas-page .search-results {
+    max-height: 62vh;
+    overflow-x: auto;
+  }
+
+  .musicas-page .data-table {
+    min-width: 640px;
+  }
+
   .musica-form label:nth-of-type(1),
   .musica-form label:nth-of-type(2),
   .musica-form label:nth-of-type(5),
@@ -3310,6 +3451,23 @@ a {
 
   .musica-form .field-tags {
     grid-column: 2;
+  }
+
+  .music-form-actions {
+    align-items: stretch;
+  }
+
+  .music-form-actions .button,
+  .music-form-actions .button-link,
+  .music-form-actions .danger-button {
+    flex: 1 1 150px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .music-form-actions .inline-transpose-controls {
+    flex: 1 1 100%;
+    justify-content: space-between;
   }
 
   .musicas-page:has(.musica-form.is-previewing) {

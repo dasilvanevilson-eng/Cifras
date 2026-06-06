@@ -96,6 +96,12 @@ export function MainNav(options = {}) {
   openButton.addEventListener('click', openMenu);
   closeButton.addEventListener('click', closeMenu);
   backdrop.addEventListener('click', closeMenu);
+  document.addEventListener('pointerdown', (event) => {
+    if (drawer.hidden) return;
+    if (drawer.contains(event.target) || openButton.contains(event.target)) return;
+
+    closeMenu();
+  });
   linksArea.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', closeMenu);
   });
