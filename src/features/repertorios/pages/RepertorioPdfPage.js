@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import {
   getRepertorioById,
   listMusicasDoRepertorio,
@@ -65,7 +66,6 @@ function createPdfView({
   const isLyricsOnly = contentType === 'letras';
   const contentLabel = isLyricsOnly ? 'Letras' : 'Musicas cifradas';
   const suggestedFilename = `repertorio-${isLyricsOnly ? 'letras-' : ''}${slugifyFilename(nome)}`;
-  const originalTitle = document.title;
   const generatedAt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
     timeStyle: 'short',
@@ -124,25 +124,232 @@ function createPdfView({
   });
 
   wrapper.querySelector('[data-action="generate-pdf"]').addEventListener('click', () => {
-    printWithSuggestedFilename(suggestedFilename, originalTitle);
+    generateCompatiblePdf({
+      filename: suggestedFilename,
+      repertorio,
+      musicasAssociadas,
+      order,
+      contentType,
+      contentLabel,
+      generatedAt,
+    });
   });
 
   if (shouldAutoPrint) {
     window.setTimeout(() => {
-      printWithSuggestedFilename(suggestedFilename, originalTitle);
+      generateCompatiblePdf({
+        filename: suggestedFilename,
+        repertorio,
+        musicasAssociadas,
+        order,
+        contentType,
+        contentLabel,
+        generatedAt,
+      });
     }, 250);
   }
 
   return wrapper;
 }
 
-function printWithSuggestedFilename(filename, originalTitle) {
-  document.title = filename;
-  window.print();
+function generateCompatiblePdf({
+  filename,
+  repertorio,
+  musicasAssociadas,
+  order,
+  contentType,
+  contentLabel,
+  generatedAt,
+}) {
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const layout = createPdfLayout(doc);
+  const nome = getField(repertorio, ['nome', 'titulo', 'name']);
+  const data = formatDate(getField(repertorio, ['data', 'date']));
+  const summaryPages = Math.max(1, Math.ceil(Math.max(musicasAssociadas.length, 1) / 28));
+  const summaryStartPage = 2;
+  const songPageByNumber = new Map();
 
-  window.setTimeout(() => {
-    document.title = originalTitle;
-  }, 1000);
+  renderPdfCover(doc, layout, {
+    nome,
+    data,
+    totalMusicas: musicasAssociadas.length,
+    contentLabel,
+    generatedAt,
+    order,
+  });
+
+  for (let index = 0; index < summaryPages; index += 1) {
+    doc.addPage();
+  }
+
+  musicasAssociadas.forEach((item, index) => {
+    const number = index + 1;
+    doc.addPage();
+    songPageByNumber.set(number, doc.getNumberOfPages());
+    renderPdfSongPage(doc, layout, {
+      item,
+      number,
+      contentType,
+      summaryPage: summaryStartPage,
+    });
+  });
+
+  renderPdfSummary(doc, layout, {
+    musicasAssociadas,
+    songPageByNumber,
+    summaryStartPage,
+    summaryPages,
+  });
+
+  doc.setProperties({
+    title: filename,
+    subject: contentLabel,
+    creator: 'Master Cifras',
+  });
+  doc.save(`${filename}.pdf`);
+}
+
+function createPdfLayout(doc) {
+  return {
+    pageWidth: doc.internal.pageSize.getWidth(),
+    pageHeight: doc.internal.pageSize.getHeight(),
+    marginX: 48,
+    marginTop: 52,
+    marginBottom: 52,
+  };
+}
+
+function renderPdfCover(doc, layout, { nome, data, totalMusicas, contentLabel, generatedAt, order }) {
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.text('Repertorio', layout.marginX, 96);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(28);
+  doc.text(doc.splitTextToSize(nome, layout.pageWidth - layout.marginX * 2), layout.marginX, 136);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  const details = [
+    `Data: ${data}`,
+    `Musicas: ${totalMusicas}`,
+    `Conteudo: ${contentLabel}`,
+    `Gerado em: ${generatedAt}`,
+    `Ordem: ${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}`,
+  ];
+  doc.text(details, layout.marginX, 250);
+}
+
+function renderPdfSummary(doc, layout, { musicasAssociadas, songPageByNumber, summaryStartPage, summaryPages }) {
+  const itemsPerPage = 28;
+
+  for (let pageIndex = 0; pageIndex < summaryPages; pageIndex += 1) {
+    doc.setPage(summaryStartPage + pageIndex);
+    renderPdfPageTitle(doc, layout, 'Sumario');
+
+    const start = pageIndex * itemsPerPage;
+    const pageItems = musicasAssociadas.slice(start, start + itemsPerPage);
+    let y = 98;
+
+    if (!pageItems.length) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.text('Nenhuma musica adicionada a este repertorio.', layout.marginX, y);
+      continue;
+    }
+
+    pageItems.forEach((item, index) => {
+      const number = start + index + 1;
+      const title = getSongTitle(item);
+      const momento = getSongMoment(item);
+      const deletedLabel = isMusicaExcluida(item) ? ' - excluida do acervo' : '';
+      const text = `${number}. ${title}${deletedLabel}${momento ? ` - ${momento}` : ''}`;
+      const targetPage = songPageByNumber.get(number);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(20, 72, 62);
+      doc.textWithLink(text, layout.marginX, y, {
+        pageNumber: targetPage,
+        top: layout.pageHeight,
+        zoom: 'FitH',
+      });
+      doc.setTextColor(0, 0, 0);
+      y += 24;
+    });
+  }
+}
+
+function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage }) {
+  const deleted = isMusicaExcluida(item);
+  const title = getSongTitle(item);
+  const artist = getSongArtist(item);
+  const key = getSongKey(item);
+  const link = getSongLink(item);
+  const momento = getSongMoment(item);
+  const content = deleted
+    ? 'Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.'
+    : getSongPrintableContent(item, contentType);
+  const bodyFont = contentType === 'letras' ? 'helvetica' : 'courier';
+  const bodyFontSize = contentType === 'letras' ? 12 : 10;
+  const bodyLineHeight = contentType === 'letras' ? 16 : 13;
+  let y = layout.marginTop;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text(`${number}. ${title}${deleted ? ' (excluida)' : ''}`, layout.marginX, y);
+  y += 20;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(`${artist} - Tom: ${key}`, layout.marginX, y);
+  y += 18;
+
+  if (momento) {
+    doc.text(`Momento: ${momento}`, layout.marginX, y);
+    y += 18;
+  }
+
+  doc.setTextColor(20, 72, 62);
+  doc.textWithLink('Voltar ao indice', layout.marginX, y, {
+    pageNumber: summaryPage,
+    top: layout.pageHeight,
+    zoom: 'FitH',
+  });
+
+  if (link) {
+    doc.textWithLink('Link', layout.marginX + 96, y, { url: link });
+  }
+
+  doc.setTextColor(0, 0, 0);
+  y += 28;
+
+  doc.setFont(bodyFont, contentType === 'letras' ? 'normal' : 'bold');
+  doc.setFontSize(bodyFontSize);
+
+  const maxWidth = layout.pageWidth - layout.marginX * 2;
+  const lines = String(content || '')
+    .split('\n')
+    .flatMap((line) => doc.splitTextToSize(line || ' ', maxWidth));
+
+  lines.forEach((line) => {
+    if (y > layout.pageHeight - layout.marginBottom) {
+      doc.addPage();
+      y = layout.marginTop;
+      doc.setFont(bodyFont, contentType === 'letras' ? 'normal' : 'bold');
+      doc.setFontSize(bodyFontSize);
+    }
+
+    doc.text(line, layout.marginX, y);
+    y += bodyLineHeight;
+  });
+}
+
+function renderPdfPageTitle(doc, layout, title) {
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(0, 0, 0);
+  doc.text(title, layout.marginX, layout.marginTop);
 }
 
 function createSummaryItem(item, number) {
