@@ -218,6 +218,56 @@ a {
   grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
 }
 
+.letras-page {
+  max-width: 1180px;
+}
+
+.lyrics-search-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.lyrics-search-grid:has([data-lyrics-column="musicas"].is-active-search) {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+}
+
+.lyrics-search-grid:has([data-lyrics-column="repertorios"].is-active-search) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
+}
+
+.lyrics-search-column {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lyrics-sort-control {
+  display: grid;
+  gap: 4px;
+  color: #5f594f;
+  font-size: 13px;
+}
+
+.lyrics-sort-control select {
+  width: 100%;
+  border: 1px solid #cfc7b8;
+  padding: 8px 10px;
+  background: #ffffff;
+  color: #20211f;
+  font: inherit;
+}
+
+.lyrics-results {
+  grid-column: 1 / -1;
+}
+
+.lyrics-results-panel {
+  display: grid;
+  gap: 10px;
+}
+
 .dashboard-grid > section {
   display: grid;
   align-content: start;
@@ -2424,6 +2474,34 @@ a {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .lyrics-search-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .lyrics-search-grid:has(.lyrics-search-column.is-active-search) {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+  }
+
+  .lyrics-search-grid:has([data-lyrics-column="repertorios"].is-active-search) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
+  }
+
+  .lyrics-search-column.is-inactive-search .dashboard-search {
+    gap: 3px;
+  }
+
+  .lyrics-search-column.is-inactive-search .dashboard-search input,
+  .lyrics-search-column.is-inactive-search .lyrics-sort-control select {
+    padding-right: 4px;
+    padding-left: 4px;
+    font-size: 11px;
+  }
+
+  .lyrics-search-column.is-inactive-search .lyrics-sort-control {
+    font-size: 11px;
   }
 
   .suggestions-review-grid {

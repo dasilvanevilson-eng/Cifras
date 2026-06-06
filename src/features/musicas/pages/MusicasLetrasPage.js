@@ -5,11 +5,12 @@ import { downloadTextFile, slugifyFilename } from '../../../utils/download.js';
 
 export async function MusicasLetrasPage() {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page letras-page';
   page.innerHTML = `
-    <h1>Musicas Letras</h1>
-    <section>
-      <h2>Consultar letras</h2>
+    <header class="dashboard-header">
+      <h1>Textos</h1>
+    </header>
+    <section class="text-search-panel">
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>
       </div>
@@ -89,14 +90,14 @@ function createMusicRepertorioMap(repertoriosComMusicas) {
 
 function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMap }) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'list-browser';
+  wrapper.className = 'lyrics-search-grid';
   wrapper.innerHTML = `
-    <div class="list-toolbar">
-      <label>
-        Buscar
-        <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da letra">
+    <section class="dashboard-search-column lyrics-search-column" data-lyrics-column="musicas">
+      <label class="dashboard-search">
+        Buscar texto
+        <input class="search-input" type="search" placeholder="Titulo, artista, repertorio ou trecho da letra">
       </label>
-      <label>
+      <label class="lyrics-sort-control">
         Ordenar
         <select class="sort-select">
           <option value="titulo">Titulo</option>
@@ -104,46 +105,37 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
           <option value="recentes">Mais recentes</option>
         </select>
       </label>
-    </div>
-    <p class="list-summary"></p>
-    <div class="table-slot"></div>
-    <section class="lyrics-repertorio-panel">
-      <h2>Repertorios</h2>
-      <div class="list-toolbar">
-        <label>
-          Buscar repertorio
-          <input class="repertorio-search-input" type="search" placeholder="Nome, data, musica ou artista">
-        </label>
-        <label>
-          Ordenar
-          <select class="repertorio-sort-select">
-            <option value="recentes">Mais recentes</option>
-            <option value="nome">Nome</option>
-            <option value="data">Data</option>
-          </select>
-        </label>
-      </div>
-      <p class="repertorio-list-summary"></p>
-      <div class="repertorio-table-slot"></div>
     </section>
+    <section class="dashboard-search-column lyrics-search-column" data-lyrics-column="repertorios">
+      <label class="dashboard-search">
+        Buscar repertorio
+        <input class="repertorio-search-input" type="search" placeholder="Nome, data, musica ou artista">
+      </label>
+      <label class="lyrics-sort-control">
+        Ordenar
+        <select class="repertorio-sort-select">
+          <option value="recentes">Mais recentes</option>
+          <option value="nome">Nome</option>
+          <option value="data">Data</option>
+        </select>
+      </label>
+    </section>
+    <div class="dashboard-list-slot dashboard-cascade-results lyrics-results" data-slot="musicas" hidden></div>
+    <div class="dashboard-list-slot dashboard-cascade-results lyrics-results" data-slot="repertorios" hidden></div>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
   const sortSelect = wrapper.querySelector('.sort-select');
-  const summary = wrapper.querySelector('.list-summary');
-  const tableSlot = wrapper.querySelector('.table-slot');
+  const tableSlot = wrapper.querySelector('[data-slot="musicas"]');
   const repertorioSearchInput = wrapper.querySelector('.repertorio-search-input');
   const repertorioSortSelect = wrapper.querySelector('.repertorio-sort-select');
-  const repertorioSummary = wrapper.querySelector('.repertorio-list-summary');
-  const repertorioTableSlot = wrapper.querySelector('.repertorio-table-slot');
+  const repertorioTableSlot = wrapper.querySelector('[data-slot="repertorios"]');
 
   function renderMusicas() {
     const query = normalizeText(searchInput.value);
     const filtered = musicas
       .filter((musica) => matchesSearch(musica, query, musicRepertorioMap))
       .sort((a, b) => compareMusicas(a, b, sortSelect.value));
-
-    summary.textContent = formatSummary(filtered.length, musicas.length);
 
     if (!filtered.length) {
       const empty = document.createElement('p');
@@ -153,7 +145,7 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
       return;
     }
 
-    tableSlot.replaceChildren(createLetrasTable(filtered));
+    tableSlot.replaceChildren(createLetrasList(filtered, filtered.length, musicas.length));
   }
 
   function renderRepertorios() {
@@ -161,8 +153,6 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
     const filtered = repertoriosComMusicas
       .filter((entry) => matchesRepertorioSearch(entry, query))
       .sort((a, b) => compareRepertorios(a.repertorio, b.repertorio, repertorioSortSelect.value));
-
-    repertorioSummary.textContent = formatRepertorioSummary(filtered.length, repertoriosComMusicas.length);
 
     if (!filtered.length) {
       const empty = document.createElement('p');
@@ -172,91 +162,152 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
       return;
     }
 
-    repertorioTableSlot.replaceChildren(createRepertoriosTable(filtered));
+    repertorioTableSlot.replaceChildren(createRepertoriosList(filtered, filtered.length, repertoriosComMusicas.length));
   }
 
   searchInput.addEventListener('input', renderMusicas);
   sortSelect.addEventListener('change', renderMusicas);
   repertorioSearchInput.addEventListener('input', renderRepertorios);
   repertorioSortSelect.addEventListener('change', renderRepertorios);
-  renderMusicas();
-  renderRepertorios();
+  setupLyricsSearch({
+    input: searchInput,
+    slot: tableSlot,
+    wrapper,
+    render: renderMusicas,
+  });
+  setupLyricsSearch({
+    input: repertorioSearchInput,
+    slot: repertorioTableSlot,
+    wrapper,
+    render: renderRepertorios,
+  });
 
   return wrapper;
 }
 
-function createLetrasTable(musicas) {
-  const table = document.createElement('table');
-  table.className = 'data-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Titulo</th>
-        <th>Artista</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
+function setupLyricsSearch({ input, slot, wrapper, render }) {
+  let isFocused = false;
 
-  const body = table.querySelector('tbody');
+  function closeResults() {
+    isFocused = false;
+    slot.hidden = true;
+    clearActiveLyricsColumn(wrapper);
+  }
 
-  musicas.forEach((musica) => {
-    const row = document.createElement('tr');
-    const id = getField(musica, ['id']);
-    const title = getField(musica, ['titulo', 'nome', 'title']);
-
-    row.innerHTML = `
-      <td><a href="/musicas-letras/detalhe?id=${encodeURIComponent(id)}">${escapeHtml(title)}</a></td>
-      <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
-    `;
-    body.append(row);
+  input.addEventListener('input', () => {
+    if (isFocused) render();
   });
+  input.addEventListener('focus', () => {
+    isFocused = true;
+    setActiveLyricsColumn(input, wrapper);
+    render();
+    slot.hidden = false;
+  });
+  input.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (slot.contains(document.activeElement)) return;
+      closeResults();
+    }, 140);
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (slot.hidden || input.contains(event.target) || slot.contains(event.target)) return;
 
-  return table;
+    closeResults();
+  });
 }
 
-function createRepertoriosTable(repertoriosComMusicas) {
-  const table = document.createElement('table');
-  table.className = 'data-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Repertorio</th>
-        <th>Data</th>
-        <th>Musicas</th>
-        <th>Acoes</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
+function setActiveLyricsColumn(input, wrapper) {
+  const activeColumn = input.closest('.lyrics-search-column');
+
+  wrapper.querySelectorAll('.lyrics-search-column').forEach((column) => {
+    column.classList.toggle('is-active-search', column === activeColumn);
+    column.classList.toggle('is-inactive-search', column !== activeColumn);
+  });
+}
+
+function clearActiveLyricsColumn(wrapper) {
+  wrapper.querySelectorAll('.lyrics-search-column').forEach((column) => {
+    column.classList.remove('is-active-search', 'is-inactive-search');
+  });
+}
+
+function createLetrasList(musicas, filteredCount, totalCount) {
+  const wrapper = document.createElement('section');
+  wrapper.className = 'lyrics-results-panel';
+  wrapper.innerHTML = `
+    <p class="list-summary">${escapeHtml(formatSummary(filteredCount, totalCount))}</p>
+    <div class="dashboard-list"></div>
   `;
 
-  const body = table.querySelector('tbody');
+  const list = wrapper.querySelector('.dashboard-list');
+
+  musicas.forEach((musica) => {
+    const id = getField(musica, ['id']);
+    const title = getField(musica, ['titulo', 'nome', 'title']);
+    const artist = getField(musica, ['artista', 'autor', 'artist']);
+    const item = document.createElement('article');
+    item.className = 'dashboard-list-item';
+    item.tabIndex = 0;
+    item.innerHTML = `
+      <div>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(artist)}</p>
+      </div>
+      <div class="dashboard-item-actions">
+        <a class="button-link secondary" href="/musicas-letras/detalhe?id=${encodeURIComponent(id)}">Abrir</a>
+      </div>
+    `;
+    item.addEventListener('click', (event) => {
+      if (event.target.closest('a, button')) return;
+      window.location.href = `/musicas-letras/detalhe?id=${encodeURIComponent(id)}`;
+    });
+    item.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      window.location.href = `/musicas-letras/detalhe?id=${encodeURIComponent(id)}`;
+    });
+    list.append(item);
+  });
+
+  return wrapper;
+}
+
+function createRepertoriosList(repertoriosComMusicas, filteredCount, totalCount) {
+  const wrapper = document.createElement('section');
+  wrapper.className = 'lyrics-results-panel';
+  wrapper.innerHTML = `
+    <p class="list-summary">${escapeHtml(formatRepertorioSummary(filteredCount, totalCount))}</p>
+    <div class="dashboard-list"></div>
+  `;
+
+  const list = wrapper.querySelector('.dashboard-list');
 
   repertoriosComMusicas.forEach((entry) => {
     const { repertorio, musicasAssociadas } = entry;
     const nome = getField(repertorio, ['nome', 'titulo', 'name']);
-    const row = document.createElement('tr');
+    const item = document.createElement('article');
+    item.className = 'dashboard-list-item';
 
-    row.innerHTML = `
-      <td>${escapeHtml(nome)}</td>
-      <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
-      <td>${musicasAssociadas.length}</td>
-      <td class="table-actions">
+    item.innerHTML = `
+      <div>
+        <h3>${escapeHtml(nome)}</h3>
+        <p>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))} - ${musicasAssociadas.length} musica${musicasAssociadas.length === 1 ? '' : 's'}</p>
+      </div>
+      <div class="dashboard-item-actions">
         <button class="button-link secondary" type="button" data-action="export-txt">Gerar TXT</button>
-      </td>
+      </div>
     `;
 
-    row.querySelector('[data-action="export-txt"]').addEventListener('click', () => {
+    item.querySelector('[data-action="export-txt"]').addEventListener('click', () => {
       downloadTextFile({
         filename: `${slugifyFilename(nome, 'repertorio-letras')}.txt`,
         content: createRepertorioLyricsText(entry),
       });
     });
 
-    body.append(row);
+    list.append(item);
   });
 
-  return table;
+  return wrapper;
 }
 
 function matchesSearch(musica, query, musicRepertorioMap) {
