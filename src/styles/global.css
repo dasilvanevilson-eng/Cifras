@@ -4352,6 +4352,8 @@ a {
   gap: 0.75rem;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  z-index: 2;
 }
 
 .repertorio-inline-actions {
@@ -4359,9 +4361,13 @@ a {
   flex-wrap: wrap;
   gap: 0.45rem;
   justify-content: flex-end;
+  position: relative;
+  z-index: 3;
 }
 
 .repertorio-title-date-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(170px, 190px) minmax(180px, auto);
   gap: 0.75rem;
@@ -4390,6 +4396,7 @@ a {
 }
 
 .repertorio-title-date-grid .repertorio-privacy-wrapper {
+  grid-column: 1 / -1;
   align-self: end;
 }
 
