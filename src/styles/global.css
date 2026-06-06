@@ -4417,8 +4417,6 @@ a {
   flex-wrap: wrap;
   gap: 0.45rem;
   justify-content: flex-end;
-  position: relative;
-  z-index: 3;
 }
 
 .repertorio-title-date-grid {
@@ -4478,6 +4476,11 @@ a {
 
 .has-privacy-modal-open .repertorios-search-panel {
   opacity: 0;
+  pointer-events: none;
+}
+
+.new-repertorio-form:has(.repertorio-privacy-wrapper.is-privacy-open) .repertorio-inline-actions {
+  visibility: hidden;
   pointer-events: none;
 }
 
