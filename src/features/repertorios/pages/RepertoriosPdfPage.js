@@ -2,8 +2,14 @@ import { listRepertorios } from '../../../services/repertoriosService.js';
 
 export async function RepertoriosPdfPage() {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page repertorios-pdf-page';
   page.innerHTML = `
+    <header class="dashboard-header">
+      <div>
+        <h1>PDF Repertorio</h1>
+        <p>Gere arquivos do repertorio com cifras ou somente letras.</p>
+      </div>
+    </header>
     <section class="music-search-panel">
       <div class="list-slot">
         <div class="page-status">Carregando repertorios...</div>

@@ -603,6 +603,12 @@ a {
   gap: 16px;
 }
 
+.repertorios-pdf-page {
+  max-width: 1180px;
+  display: grid;
+  gap: 16px;
+}
+
 .lyrics-search-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));
