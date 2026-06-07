@@ -67,7 +67,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
           Buscar musica
           <input data-action="search-musica" type="search" placeholder="Titulo ou artista">
         </label>
-        <div data-role="musicas-results"></div>
+        <div class="public-banda-cascade-results" data-role="musicas-results" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="repertorios">
         <h2>Repertorios liberados</h2>
@@ -75,7 +75,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
           Buscar repertorio
           <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
         </label>
-        <div data-role="repertorios-results"></div>
+        <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
     </section>
     <section class="public-banda-execution" data-role="execution-slot">
@@ -89,6 +89,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   const musicasSlot = wrapper.querySelector('[data-role="musicas-results"]');
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
+  let activeCascade = null;
 
   function setMode(mode) {
     currentMode = mode;
@@ -102,11 +103,13 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   });
 
   function executeMusica(musica) {
+    hideCascade(musicasSlot);
     executionSlot.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     executionSlot.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function executeRepertorio(repertorio) {
+    hideCascade(repertoriosSlot);
     const musicasAssociadas = repertorioMusicas.filter((item) => item.repertorio_id === repertorio.id);
     executionSlot.replaceChildren(createRepertorioPerformanceView({
       repertorio,
@@ -128,6 +131,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
       getSubtitle: (musica) => getField(musica, ['artista', 'artist']) || 'Musica',
       onExecute: executeMusica,
     }));
+    showCascade(musicasSlot);
   }
 
   function renderRepertorios() {
@@ -142,16 +146,54 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
       getSubtitle: (repertorio) => formatDate(getField(repertorio, ['data', 'date'])),
       onExecute: executeRepertorio,
     }));
+    showCascade(repertoriosSlot);
   }
 
   musicSearch.addEventListener('input', renderMusicas);
+  musicSearch.addEventListener('focus', renderMusicas);
   repertorioSearch.addEventListener('input', renderRepertorios);
+  repertorioSearch.addEventListener('focus', renderRepertorios);
+
+  wrapper.addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (wrapper.contains(document.activeElement)
+        && document.activeElement?.closest('.public-banda-cascade-results')) {
+        return;
+      }
+
+      if (activeCascade && !document.activeElement?.closest('.public-banda-shell')) {
+        hideCascade(activeCascade);
+      }
+    }, 120);
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!activeCascade) return;
+    if (event.target.closest('.public-banda-cascade-results, .dashboard-search')) return;
+    hideCascade(activeCascade);
+  });
 
   setMode(currentMode);
-  renderMusicas();
-  renderRepertorios();
+  hideCascade(musicasSlot);
+  hideCascade(repertoriosSlot);
 
   return wrapper;
+
+  function showCascade(slot) {
+    if (activeCascade && activeCascade !== slot) {
+      hideCascade(activeCascade);
+    }
+
+    slot.hidden = false;
+    activeCascade = slot;
+  }
+
+  function hideCascade(slot) {
+    slot.hidden = true;
+    if (activeCascade === slot) {
+      activeCascade = null;
+    }
+  }
 }
 
 function createResultList(items, options) {
