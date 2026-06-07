@@ -4171,6 +4171,10 @@ a {
 }
 
 .dashboard-selection-slot {
+  margin-top: 0;
+}
+
+.dashboard-selection-slot:not(:empty) {
   margin-top: 0.75rem;
 }
 
