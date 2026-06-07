@@ -1312,6 +1312,10 @@ a {
   display: block;
 }
 
+.public-banda-shell.is-member-mode [data-member-restricted-config="true"] {
+  display: none !important;
+}
+
 .public-banda-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(220px, 1fr));

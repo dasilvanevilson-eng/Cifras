@@ -118,6 +118,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       button.classList.toggle('is-active', button.dataset.mode === mode);
     });
     wrapper.classList.toggle('is-member-mode', mode === 'integrante');
+    refreshExecutionControlsForMode();
     stopMemberMirror();
 
     if (mode === 'integrante') {
@@ -132,6 +133,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeMusica(musica, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
     executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
+    refreshExecutionControlsForMode();
     openExecutionLayer();
     currentExecutionState = normalizeState({
       itemType: 'musica',
@@ -154,6 +156,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       musicasAssociadas,
       returnTo,
     }));
+    refreshExecutionControlsForMode();
     openExecutionLayer();
     currentExecutionState = normalizeState({
       itemType: 'repertorio',
@@ -179,6 +182,38 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     currentExecutionState = null;
     document.body.classList.remove('has-banda-stage-open');
   }
+
+  function refreshExecutionControlsForMode() {
+    executionContent
+      .querySelectorAll('[data-action="transpose-down"], [data-action="transpose-up"]')
+      .forEach((control) => {
+        control.dataset.memberRestrictedConfig = 'true';
+      });
+
+    executionContent.querySelectorAll('[data-action="capo"]').forEach((control) => {
+      control.dataset.memberRestrictedConfig = 'true';
+      const controlWrapper = control.closest('label');
+      if (controlWrapper) {
+        controlWrapper.dataset.memberRestrictedConfig = 'true';
+      }
+    });
+  }
+
+  executionContent.addEventListener('click', (event) => {
+    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (!event.target.closest('[data-member-restricted-config="true"]')) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
+  executionContent.addEventListener('change', (event) => {
+    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (!event.target.closest('[data-member-restricted-config="true"]')) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
 
   executionContent.addEventListener('click', (event) => {
     const backLink = event.target.closest('.song-toolbar-back');
