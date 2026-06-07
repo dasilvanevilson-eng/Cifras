@@ -1449,59 +1449,6 @@ a {
   font-size: 14px;
 }
 
-.registered-users-panel {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-  border: 1px solid #e1dacd;
-  border-radius: 8px;
-  padding: 14px;
-  background: #ffffff;
-  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
-}
-
-.registered-users-panel h2 {
-  margin: 0;
-  color: #243b34;
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-.registered-users-list {
-  display: grid;
-  gap: 8px;
-  max-height: min(48vh, 420px);
-  overflow: auto;
-  padding-right: 4px;
-}
-
-.registered-user-item {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-  border: 1px solid #ddd6c8;
-  border-radius: 7px;
-  padding: 11px 12px;
-  background: #ffffff;
-  color: #20211f;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.registered-user-item:hover,
-.registered-user-item:focus {
-  border-color: #1d4f45;
-  background: #fbfaf7;
-  box-shadow: 0 8px 20px rgba(32, 33, 31, 0.08);
-  outline: 0;
-}
-
-.registered-user-item span {
-  color: #5f594f;
-  font-size: 14px;
-}
-
 .user-form-panel {
   display: grid;
   gap: 12px;
@@ -4873,7 +4820,6 @@ a {
   }
 
   .user-search-panel,
-  .registered-users-panel,
   .user-form-panel {
     border-radius: 7px;
     padding: 10px;
