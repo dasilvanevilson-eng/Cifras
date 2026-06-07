@@ -32,6 +32,39 @@ export async function createDashboardPublicInvite({ title, expiresAt, maxUses, c
     .single();
 }
 
+export async function createBandaCoralPublicInvite({
+  title,
+  expiresAt,
+  maxUses,
+  createdBy,
+  accessMode = 'ambos',
+  repertorioIds = [],
+}) {
+  assertSupabaseConfig();
+
+  return supabase
+    .from('public_invites')
+    .insert({
+      title,
+      token: createPublicToken(),
+      module_key: 'banda_coral',
+      target_type: 'module',
+      target_id: null,
+      allowed_actions: ['view', 'execute'],
+      metadata: {
+        version: 1,
+        access_mode: accessMode,
+        repertorio_ids: repertorioIds,
+        description: 'Acesso publico temporario ao Modo Banda/Coral em busca e execucao.',
+      },
+      expires_at: expiresAt,
+      max_uses: maxUses || null,
+      created_by: createdBy,
+    })
+    .select()
+    .single();
+}
+
 export async function revokePublicInvite(id) {
   assertSupabaseConfig();
   return supabase
@@ -53,6 +86,11 @@ export async function deletePublicInvite(id) {
 export async function getPublicDashboardData(token) {
   assertSupabaseConfig();
   return supabase.rpc('get_public_dashboard_data', { p_token: token });
+}
+
+export async function getPublicBandaCoralData(token) {
+  assertSupabaseConfig();
+  return supabase.rpc('get_public_banda_coral_data', { p_token: token });
 }
 
 export async function listPublicRepertorioMusicas(token, repertorioId) {

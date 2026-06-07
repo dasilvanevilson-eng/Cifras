@@ -1141,6 +1141,48 @@ a {
   line-height: 1.2;
 }
 
+.public-invite-repertorios {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid #ddd6c8;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fbfaf7;
+}
+
+.public-invite-repertorios[hidden] {
+  display: none;
+}
+
+.public-invite-repertorios legend {
+  padding: 0 4px;
+  color: #514a40;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.public-invite-repertorios-list {
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.public-invite-repertorio-option {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  border: 1px solid #e5dece;
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #ffffff;
+}
+
+.public-invite-repertorio-option input {
+  width: 18px;
+  height: 18px;
+}
+
 .public-invites-list-panel {
   display: grid;
   gap: 12px;
@@ -1247,6 +1289,39 @@ a {
 .public-access-page {
   min-height: 100svh;
   padding-top: 18px;
+}
+
+.public-banda-page {
+  max-width: 1240px;
+}
+
+.public-banda-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.public-banda-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.public-banda-results {
+  max-height: min(58vh, 520px);
+}
+
+.public-banda-result-item {
+  width: 100%;
+  text-align: left;
+}
+
+.public-banda-result-item .button-link {
+  pointer-events: none;
+}
+
+.public-banda-execution {
+  min-width: 0;
 }
 
 .public-dashboard-shell .dashboard-header h1 {
@@ -4238,6 +4313,19 @@ a {
   .public-invite-actions .button-link {
     justify-content: center;
     text-align: center;
+  }
+
+  .public-banda-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .public-banda-mode-switch {
+    width: 100%;
+  }
+
+  .public-banda-results {
+    max-height: none;
   }
 
   .personalization-preview-hero {

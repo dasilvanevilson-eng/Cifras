@@ -21,6 +21,7 @@ import { PermissoesPage } from '../features/usuarios/pages/PermissoesPage.js';
 import { PersonalizacaoPage } from '../features/system/pages/PersonalizacaoPage.js';
 import { ConvitesPublicosPage } from '../features/public/pages/ConvitesPublicosPage.js';
 import { PublicDashboardPage } from '../features/public/pages/PublicDashboardPage.js';
+import { PublicBandaCoralPage } from '../features/public/pages/PublicBandaCoralPage.js';
 import { PublicMusicaExecucaoPage } from '../features/public/pages/PublicMusicaExecucaoPage.js';
 import { PublicRepertorioExecucaoPage } from '../features/public/pages/PublicRepertorioExecucaoPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
@@ -56,6 +57,7 @@ const routes = {
   '/personalizacao': PersonalizacaoPage,
   '/convites-publicos': ConvitesPublicosPage,
   '/publico': PublicDashboardPage,
+  '/publico/banda-coral': PublicBandaCoralPage,
   '/publico/musicas/execucao': PublicMusicaExecucaoPage,
   '/publico/repertorios/execucao': PublicRepertorioExecucaoPage,
 };
@@ -64,6 +66,7 @@ const publicRoutes = new Set([
   '/login',
   '/alterar-senha',
   '/publico',
+  '/publico/banda-coral',
   '/publico/musicas/execucao',
   '/publico/repertorios/execucao',
 ]);
