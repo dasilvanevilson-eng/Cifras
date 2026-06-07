@@ -244,7 +244,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   executionContent.addEventListener('click', (event) => {
-    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
     if (!event.target.closest('[data-member-restricted-config="true"]')) return;
 
     event.preventDefault();
@@ -252,7 +252,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }, true);
 
   executionContent.addEventListener('change', (event) => {
-    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
     if (!event.target.closest('[data-member-restricted-config="true"]')) return;
 
     event.preventDefault();

@@ -1315,7 +1315,7 @@ a {
   gap: 10px;
 }
 
-.public-banda-shell.is-member-mode [data-member-restricted-config="true"] {
+.public-banda-shell.is-member-following [data-member-restricted-config="true"] {
   display: none !important;
 }
 
