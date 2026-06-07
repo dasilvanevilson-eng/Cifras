@@ -4667,9 +4667,14 @@ a {
 
 .banda-control-grid {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(90px, 120px);
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
   gap: 10px;
   align-items: end;
+}
+
+.banda-execute-button {
+  min-height: 42px;
+  white-space: nowrap;
 }
 
 .banda-control-grid label,
@@ -5140,6 +5145,10 @@ a {
 
   .banda-control-grid {
     grid-template-columns: 1fr;
+  }
+
+  .banda-execute-button {
+    width: 100%;
   }
 
   .banda-coral-page {

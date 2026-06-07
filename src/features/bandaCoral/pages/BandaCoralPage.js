@@ -309,10 +309,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
           )).join('')}
         </select>
       </label>
-      <label>
-        Tom
-        <input data-field="tom" type="text" value="${escapeHtml(sessao.tom_atual || '')}" placeholder="Tom atual">
-      </label>
+      <button class="button banda-execute-button" type="button" data-action="execute-selected-song">Executar</button>
     </div>
     <div class="banda-standalone-search">
       <label>
@@ -332,7 +329,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
 
   const repertorioSelect = wrapper.querySelector('[data-field="repertorio"]');
   const musicaSelect = wrapper.querySelector('[data-field="musica"]');
-  const tomInput = wrapper.querySelector('[data-field="tom"]');
+  const executeButton = wrapper.querySelector('[data-action="execute-selected-song"]');
   const avulsaSearch = wrapper.querySelector('[data-field="musica-avulsa-search"]');
   const avulsaResults = wrapper.querySelector('.banda-standalone-results');
   const message = wrapper.querySelector('.form-message');
@@ -341,6 +338,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   const participantesSlot = wrapper.querySelector('[data-role="participantes-list"]');
   const participantesButton = wrapper.querySelector('[data-action="consultar-participantes"]');
   let currentItem = getCurrentSessionItem(sessao, musicasAssociadas);
+  let currentTom = sessao.tom_atual || getAssocTom(currentItem);
   const repertorioTitle = getField(sessao.repertorios || {}, ['nome', 'titulo', 'name']) || 'Repertorio';
 
   function closeParticipantes() {
@@ -406,38 +404,52 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   });
 
   musicaSelect.addEventListener('change', async () => {
-    await selectRepertorioItem(findSelectedMusica(musicasAssociadas, musicaSelect.value));
+    setPendingRepertorioItem(findSelectedMusica(musicasAssociadas, musicaSelect.value));
   });
 
-  async function selectRepertorioItem(item) {
+  function setPendingRepertorioItem(item) {
+    if (!item) {
+      currentItem = null;
+      currentTom = '';
+      musicaSelect.value = '';
+      songSlot.innerHTML = '<p class="page-status">Selecione uma musica para iniciar a execucao.</p>';
+      return;
+    }
+
+    currentTom = getAssocTom(item);
+    musicaSelect.value = item.musica_id || '';
+    currentItem = item;
+    songSlot.innerHTML = '<p class="page-status">Musica selecionada. Toque em Executar para abrir a visualizacao.</p>';
+  }
+
+  async function executeRepertorioItem(item) {
     if (!item) {
       await saveSession({
         musica_atual_id: null,
         tom_atual: null,
       });
       currentItem = null;
+      currentTom = '';
       musicaSelect.value = '';
-      tomInput.value = '';
-      renderCurrentBandaSong();
+      songSlot.innerHTML = '<p class="page-status">Selecione uma musica para iniciar a execucao.</p>';
       return;
     }
 
-    const nextTom = getAssocTom(item);
-    tomInput.value = nextTom;
+    currentTom = getAssocTom(item);
     musicaSelect.value = item.musica_id || '';
     await saveSession({
       musica_atual_id: item.musica_id || null,
-      tom_atual: nextTom || null,
+      tom_atual: currentTom || null,
     });
     currentItem = item;
     renderCurrentBandaSong();
   }
 
   function renderCurrentBandaSong() {
-    renderBandaSong(songSlot, currentItem, tomInput.value, {
+    renderBandaSong(songSlot, currentItem, currentTom, {
       playlist: musicasAssociadas,
       repertorioTitle,
-      onSelectItem: selectRepertorioItem,
+      onSelectItem: executeRepertorioItem,
     });
     openStageIfHasSong();
   }
@@ -454,6 +466,10 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   }
 
   wrapper.querySelector('[data-action="close-stage"]').addEventListener('click', closeStage);
+
+  executeButton.addEventListener('click', async () => {
+    await executeRepertorioItem(currentItem || findSelectedMusica(musicasAssociadas, musicaSelect.value));
+  });
 
   function renderAvulsas(query = '') {
     const term = normalizeText(query);
@@ -485,7 +501,7 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
       `;
       button.addEventListener('click', async () => {
         const nextTom = getField(musica, ['tom', 'key']);
-        tomInput.value = nextTom;
+        currentTom = nextTom;
         musicaSelect.value = '';
         const updated = await saveSession({
           musica_atual_id: musica.id,
@@ -511,16 +527,9 @@ async function createLeaderControls({ sessao, repertorios, musicasAvulsas, parti
   avulsaSearch.addEventListener('input', () => renderAvulsas(avulsaSearch.value));
   avulsaSearch.addEventListener('focus', () => renderAvulsas(avulsaSearch.value));
 
-  tomInput.addEventListener('change', async () => {
-    await saveSession({
-      tom_atual: tomInput.value.trim() || null,
-    });
-    renderCurrentBandaSong();
-  });
-
   renderAvulsas('');
   if (currentItem?.musicas) {
-    renderCurrentBandaSong();
+    songSlot.innerHTML = '<p class="page-status">Musica selecionada. Toque em Executar para abrir a visualizacao.</p>';
   } else {
     songSlot.innerHTML = '<p class="page-status">Selecione uma musica para iniciar a execucao.</p>';
   }
