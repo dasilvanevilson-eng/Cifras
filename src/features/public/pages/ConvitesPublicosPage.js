@@ -125,8 +125,12 @@ function createInvitesList(invites, onChange) {
     item.innerHTML = `
       <div>
         <h3>${escapeHtml(invite.title)}</h3>
-        <p>${escapeHtml(formatModule(invite.module_key))} - ${escapeHtml(status.label)}</p>
+        <p class="public-invite-meta">
+          <span>${escapeHtml(formatModule(invite.module_key))}</span>
+          <strong>${escapeHtml(status.label)}</strong>
+        </p>
         <small>Valido ate ${escapeHtml(formatDateTime(invite.expires_at))}</small>
+        <small>${escapeHtml(formatUses(invite))}</small>
         <input type="text" readonly value="${escapeHtml(url)}" aria-label="Link publico">
       </div>
       <div class="public-invite-actions">
@@ -211,6 +215,12 @@ function formatDateTime(value) {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(value));
+}
+
+function formatUses(invite) {
+  const count = Number(invite.use_count || 0);
+  if (!invite.max_uses) return `${count} acesso${count === 1 ? '' : 's'} registrados`;
+  return `${count} de ${Number(invite.max_uses)} acesso${Number(invite.max_uses) === 1 ? '' : 's'}`;
 }
 
 function escapeHtml(value) {
