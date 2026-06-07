@@ -456,31 +456,32 @@ a {
 .musicas-header {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
-  align-items: flex-end;
+  gap: 12px;
+  align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e1dacd;
-  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(225, 218, 205, 0.86);
+  padding-bottom: 14px;
 }
 
 .musicas-header h1 {
   margin: 0;
   color: #1d3f38;
-  font-size: clamp(28px, 4vw, 40px);
-  line-height: 1;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.05;
 }
 
 .musicas-header p {
   max-width: 44rem;
-  margin: 8px 0 0;
+  margin: 5px 0 0;
   color: #635d52;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .musicas-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
 }
 
@@ -490,16 +491,16 @@ a {
   gap: 5px;
   border: 1px solid #dcd3c3;
   border-radius: 999px;
-  padding: 7px 11px;
-  background: #ffffff;
+  padding: 6px 10px;
+  background: #fffdf8;
   color: #61594d;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
 }
 
 .musicas-summary strong {
   color: #1d4f45;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .music-search-panel {
@@ -3800,27 +3801,29 @@ a {
   }
 
   .musicas-header {
-    gap: 12px;
-    align-items: flex-start;
-    padding-bottom: 14px;
+    gap: 8px;
+    align-items: center;
+    padding-bottom: 10px;
   }
 
   .musicas-header h1 {
-    font-size: 30px;
+    font-size: 24px;
   }
 
   .musicas-header p {
-    font-size: 14px;
+    margin-top: 3px;
+    font-size: 12px;
   }
 
   .musicas-summary {
-    width: 100%;
-    justify-content: flex-start;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    margin-left: auto;
   }
 
   .musicas-summary span {
-    padding: 6px 9px;
-    font-size: 12px;
+    padding: 5px 8px;
+    font-size: 11px;
   }
 
   .music-search-panel,
