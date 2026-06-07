@@ -183,9 +183,15 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   memberFollowButton.addEventListener('click', () => {
     if (currentMode !== 'integrante') return;
 
+    const willDisconnectFromLeader = memberFollowingLeader;
     memberFollowingLeader = !memberFollowingLeader;
     lastMirroredStateKey = '';
     stopMemberMirror();
+
+    if (willDisconnectFromLeader) {
+      closeExecutionLayer();
+    }
+
     updateMemberMirrorUi();
 
     if (memberFollowingLeader) {
