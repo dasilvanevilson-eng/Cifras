@@ -1304,12 +1304,15 @@ a {
   display: none;
 }
 
-.public-banda-shell.is-member-mode .public-banda-grid {
+.public-banda-shell.is-member-following .public-banda-grid {
   display: none;
 }
 
 .public-banda-shell.is-member-mode .public-banda-member-status {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .public-banda-shell.is-member-mode [data-member-restricted-config="true"] {
