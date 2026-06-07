@@ -88,9 +88,6 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
       </section>
     </section>
     <section class="public-banda-execution" data-role="execution-slot" hidden>
-      <div class="banda-stage-actions">
-        <button class="nav-button icon-button public-banda-close-execution" type="button" data-action="close-public-execution" aria-label="Voltar para a busca" title="Voltar para a busca">&larr;</button>
-      </div>
       <div data-role="execution-content"></div>
     </section>
   `;
@@ -104,7 +101,6 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   const executionContent = wrapper.querySelector('[data-role="execution-content"]');
-  const closeExecutionButton = wrapper.querySelector('[data-action="close-public-execution"]');
   let activeCascade = null;
 
   function setMode(mode) {
@@ -146,7 +142,13 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     document.body.classList.remove('has-banda-stage-open');
   }
 
-  closeExecutionButton.addEventListener('click', closeExecutionLayer);
+  executionContent.addEventListener('click', (event) => {
+    const backLink = event.target.closest('.song-toolbar-back');
+    if (!backLink) return;
+
+    event.preventDefault();
+    closeExecutionLayer();
+  });
 
   function renderMusicasRepertorio() {
     const query = normalizeText(repertorioMusicSearch.value);

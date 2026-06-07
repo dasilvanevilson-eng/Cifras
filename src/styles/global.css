@@ -1373,15 +1373,24 @@ a {
 }
 
 .public-banda-execution .song-toolbar-back {
-  display: none;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  min-width: 38px;
+  min-height: 34px;
+  padding: 0;
+  font-size: 20px;
 }
 
-.public-banda-close-execution {
-  width: 42px;
-  min-width: 42px;
-  height: 38px;
-  padding: 0;
-  font-size: 22px;
+.public-banda-execution .repertorio-song-title-bar {
+  margin-bottom: 4px;
+  padding: 6px 10px;
+}
+
+.public-banda-execution .repertorio-song-title-bar h2,
+.public-banda-execution .repertorio-current-song-title,
+.public-banda-execution .repertorio-title-inline {
+  line-height: 1.15;
 }
 
 .public-dashboard-shell .dashboard-header h1 {
