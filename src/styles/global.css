@@ -4880,14 +4880,12 @@ a {
   }
 
   .user-search-results {
-    position: fixed;
-    top: max(82px, calc(env(safe-area-inset-top) + 72px));
-    right: max(12px, env(safe-area-inset-right));
-    left: max(12px, env(safe-area-inset-left));
+    right: 10px;
+    left: 10px;
     z-index: 80;
-    max-height: calc(100svh - 108px);
+    max-height: min(58vh, 360px);
     border-radius: 10px;
-    box-shadow: 0 24px 60px rgba(24, 24, 24, 0.24);
+    box-shadow: 0 22px 50px rgba(24, 24, 24, 0.22);
   }
 
   .usuarios-page .form {
