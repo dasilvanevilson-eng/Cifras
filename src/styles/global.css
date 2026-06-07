@@ -4174,7 +4174,12 @@ a {
   margin-top: 0;
 }
 
+.dashboard-selection-slot:empty {
+  display: none;
+}
+
 .dashboard-selection-slot:not(:empty) {
+  display: block;
   margin-top: 0.75rem;
 }
 
