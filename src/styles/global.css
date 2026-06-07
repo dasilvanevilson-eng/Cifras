@@ -4553,10 +4553,10 @@ a {
 }
 
 .repertorios-header {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: flex-start;
+  align-items: start;
   justify-content: space-between;
   border-bottom: 1px solid rgba(225, 218, 205, 0.86);
   padding-bottom: 14px;
@@ -4581,8 +4581,10 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  grid-column: 2;
+  grid-row: 1;
   justify-content: flex-end;
-  padding-top: 2px;
+  padding-top: 3px;
 }
 
 .repertorios-summary span {
@@ -4772,6 +4774,7 @@ a {
   }
 
   .repertorios-header {
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     align-items: flex-start;
     padding-bottom: 10px;
@@ -4790,7 +4793,7 @@ a {
     flex: 0 0 auto;
     justify-content: flex-end;
     margin-left: auto;
-    padding-top: 1px;
+    padding-top: 2px;
   }
 
   .repertorios-summary span {
