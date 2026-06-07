@@ -4556,7 +4556,7 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   border-bottom: 1px solid rgba(225, 218, 205, 0.86);
   padding-bottom: 14px;
@@ -4582,6 +4582,7 @@ a {
   flex-wrap: wrap;
   gap: 6px;
   justify-content: flex-end;
+  padding-top: 2px;
 }
 
 .repertorios-summary span {
@@ -4772,7 +4773,7 @@ a {
 
   .repertorios-header {
     gap: 8px;
-    align-items: center;
+    align-items: flex-start;
     padding-bottom: 10px;
   }
 
@@ -4789,6 +4790,7 @@ a {
     flex: 0 0 auto;
     justify-content: flex-end;
     margin-left: auto;
+    padding-top: 1px;
   }
 
   .repertorios-summary span {
@@ -4812,6 +4814,27 @@ a {
   .new-repertorio-form,
   .repertorio-title-date-grid {
     grid-template-columns: 1fr;
+  }
+
+  .repertorio-title-date-grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem;
+  }
+
+  .repertorio-title-date-grid > label:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .repertorio-title-date-grid .repertorio-privacy-wrapper {
+    grid-column: 2;
+    align-self: end;
+  }
+
+  .repertorio-title-date-grid .privacy-toggle-button {
+    min-height: 42px;
+    padding-right: 10px;
+    padding-left: 10px;
+    white-space: nowrap;
   }
 
   .banda-control-grid {
