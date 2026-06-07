@@ -35,7 +35,8 @@ export async function PermissoesPage({ session } = {}) {
           <input type="search" data-action="search-user" placeholder="Nome, e-mail ou papel">
         </label>
         <p class="page-status" data-role="load-status">Carregando usuarios...</p>
-        <div data-role="users-list"></div>
+        <div class="permissions-user-results" data-role="users-list" hidden></div>
+        <p class="permissions-selected-user" data-role="selected-user" hidden></p>
       </aside>
       <section class="permissions-editor-panel">
         <p class="page-status">Selecione um usuario para configurar as permissoes.</p>
@@ -46,19 +47,40 @@ export async function PermissoesPage({ session } = {}) {
   const searchInput = page.querySelector('[data-action="search-user"]');
   const loadStatus = page.querySelector('[data-role="load-status"]');
   const usersSlot = page.querySelector('[data-role="users-list"]');
+  const selectedUserLabel = page.querySelector('[data-role="selected-user"]');
   const editorSlot = page.querySelector('.permissions-editor-panel');
   let users = [];
   let selectedUser = null;
+  let isSearchFocused = false;
 
   function renderUsers() {
     usersSlot.replaceChildren(createUsersList(users, searchInput.value, async (user) => {
       selectedUser = user;
-      renderUsers();
+      searchInput.value = formatUserLabel(user);
+      renderSelectedUser(selectedUserLabel, selectedUser);
+      hideUsersList(usersSlot);
       await renderEditor(editorSlot, selectedUser, users);
     }, selectedUser?.id));
+    usersSlot.hidden = false;
   }
 
-  searchInput.addEventListener('input', renderUsers);
+  searchInput.addEventListener('input', () => {
+    if (!isSearchFocused) return;
+    renderUsers();
+  });
+
+  searchInput.addEventListener('focus', () => {
+    isSearchFocused = true;
+    renderUsers();
+  });
+
+  searchInput.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (document.activeElement?.closest('.permissions-user-results')) return;
+      isSearchFocused = false;
+      hideUsersList(usersSlot);
+    }, 120);
+  });
 
   try {
     const { data, error } = await listProfiles();
@@ -67,7 +89,7 @@ export async function PermissoesPage({ session } = {}) {
 
     users = data || [];
     loadStatus.hidden = true;
-    renderUsers();
+    hideUsersList(usersSlot);
   } catch (error) {
     loadStatus.className = 'page-status error';
     loadStatus.textContent = error.message || 'Nao foi possivel carregar usuarios.';
@@ -80,7 +102,7 @@ function createUsersList(users, query, onSelect, selectedUserId) {
   const normalizedQuery = normalizeText(query);
   const filteredUsers = normalizedQuery
     ? users.filter((user) => matchesUserSearch(user, normalizedQuery))
-    : users;
+    : users.slice(0, 8);
 
   if (!filteredUsers.length) {
     const empty = document.createElement('p');
@@ -106,6 +128,15 @@ function createUsersList(users, query, onSelect, selectedUserId) {
   });
 
   return list;
+}
+
+function hideUsersList(slot) {
+  slot.hidden = true;
+}
+
+function renderSelectedUser(slot, user) {
+  slot.hidden = !user;
+  slot.textContent = user ? `Selecionado: ${formatUserLabel(user)}` : '';
 }
 
 async function renderEditor(slot, user, users = []) {
@@ -277,6 +308,10 @@ function matchesUserSearch(user, normalizedQuery) {
     user.email,
     user.papel,
   ].join(' ')).includes(normalizedQuery);
+}
+
+function formatUserLabel(user) {
+  return [user.nome, user.email].filter(Boolean).join(' - ');
 }
 
 function formatRole(role) {
