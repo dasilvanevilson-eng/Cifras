@@ -4855,6 +4855,34 @@ a {
   font-weight: 700;
 }
 
+.banda-session-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #ddd6c8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fffaf1;
+}
+
+.banda-session-statusbar > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.banda-session-statusbar strong {
+  color: #223c35;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.banda-member-local-panel[hidden] {
+  display: none;
+}
+
 .banda-participants-panel {
   display: grid;
   gap: 8px;
@@ -5375,6 +5403,23 @@ a {
 
   .banda-control-grid {
     grid-template-columns: 1fr;
+  }
+
+  .banda-session-statusbar,
+  .banda-session-statusbar > div {
+    align-items: stretch;
+  }
+
+  .banda-session-statusbar {
+    flex-direction: column;
+  }
+
+  .banda-session-statusbar > div {
+    flex-direction: column;
+  }
+
+  .banda-session-statusbar .nav-button {
+    width: 100%;
   }
 
   .banda-execute-button {

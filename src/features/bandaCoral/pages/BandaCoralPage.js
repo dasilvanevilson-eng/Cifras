@@ -79,7 +79,7 @@ function createBandaCoralView({ session, sessoes, repertorios, musicasAvulsas })
       return;
     }
 
-    slot.replaceChildren(createMemberMode({ sessoes }));
+    slot.replaceChildren(createMemberMode({ sessoes, musicasAvulsas }));
   }
 
   if (canLead) {
@@ -181,7 +181,7 @@ function createLeaderMode({ sessoes, repertorios, musicasAvulsas }) {
   return wrapper;
 }
 
-function createMemberMode({ sessoes }) {
+function createMemberMode({ sessoes, musicasAvulsas }) {
   const wrapper = document.createElement('section');
   wrapper.className = 'banda-mode-panel';
   wrapper.innerHTML = `
@@ -201,7 +201,7 @@ function createMemberMode({ sessoes }) {
     emptyText: 'Nenhuma sessao ativa no momento.',
     actionLabel: 'Entrar',
     onSelect: async (sessao) => {
-      await openMemberSession(sessao.id, livePanel);
+      await openMemberSession(sessao.id, livePanel, { musicasAvulsas });
     },
   }));
 
@@ -623,7 +623,7 @@ function formatParticipantDate(value) {
   }
 }
 
-async function openMemberSession(sessaoId, slot) {
+async function openMemberSession(sessaoId, slot, options = {}) {
   document.body.classList.remove('has-banda-stage-open');
   slot.innerHTML = '<p class="page-status">Entrando na sessao...</p>';
   const { data: participante, error: participantError } = await upsertSessaoBandaParticipante(sessaoId, 'integrante', true);
@@ -641,23 +641,29 @@ async function openMemberSession(sessaoId, slot) {
   }
 
   const unsubscribe = subscribeSessaoBanda(sessaoId, async () => {
-    const followToggle = slot.querySelector('[data-action="seguir-lider"]');
-    if (followToggle && !followToggle.checked) return;
+    const liveCard = slot.querySelector('.banda-live-card');
+    if (liveCard?.dataset.followingLeader === 'false') return;
 
     const { data: updated } = await getSessaoBandaById(sessaoId);
     if (updated) {
-      await renderMemberLive(slot, updated, participante, unsubscribe);
+      await renderMemberLive(slot, updated, participante, unsubscribe, options);
     }
   });
 
-  await renderMemberLive(slot, sessao, participante, unsubscribe);
+  await renderMemberLive(slot, sessao, participante, unsubscribe, options);
 }
 
-async function renderMemberLive(slot, sessao, participante, unsubscribe = null) {
-  const previousToggle = slot.querySelector('[data-action="seguir-lider"]');
-  const shouldFollow = previousToggle ? previousToggle.checked : Boolean(participante.seguir_lider);
+async function renderMemberLive(slot, sessao, participante, unsubscribe = null, options = {}) {
+  const previousLiveCard = slot.querySelector('.banda-live-card');
+  const shouldFollow = previousLiveCard
+    ? previousLiveCard.dataset.followingLeader !== 'false'
+    : Boolean(participante.seguir_lider);
+  const musicasResult = await listMusicasSessaoRepertorio(sessao.repertorio_id);
+  const musicasAssociadas = musicasResult.data || [];
+  const musicasAvulsas = options.musicasAvulsas || [];
   const wrapper = document.createElement('section');
   wrapper.className = 'banda-live-card';
+  wrapper.dataset.followingLeader = String(shouldFollow);
   const hasSong = Boolean(sessao.musicas);
   wrapper.innerHTML = `
     <div class="banda-live-header">
@@ -667,11 +673,33 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
       </div>
       <span class="banda-live-role">Integrante</span>
     </div>
-    <label class="checkbox-label banda-follow-toggle">
-      <input type="checkbox" data-action="seguir-lider"${shouldFollow ? ' checked' : ''}>
-      <span>Seguir lider</span>
-    </label>
-    <p class="page-status">${hasSong ? 'Execucao aberta em tela cheia.' : 'Aguardando o lider selecionar uma musica.'}</p>
+    <section class="banda-session-statusbar">
+      <div>
+        <span class="public-banda-mode-pill" data-role="member-mode-label">${shouldFollow ? 'Integrante conectado' : 'Integrante desconectado'}</span>
+        <strong data-role="member-status-text">${shouldFollow ? (hasSong ? 'Lider conectado' : 'Aguardando Lider') : 'Buscas e execucoes ficam apenas neste dispositivo.'}</strong>
+      </div>
+      <button class="nav-button" type="button" data-action="toggle-member-follow">${shouldFollow ? 'Desconectar do lider' : 'Reconectar ao lider'}</button>
+    </section>
+    <section class="banda-member-local-panel"${shouldFollow ? ' hidden' : ''}>
+      <div class="public-banda-grid">
+        <section class="dashboard-search-column">
+          <h2>Musicas do repertorio</h2>
+          <label class="dashboard-search">
+            Buscar musica repertorio
+            <input data-action="search-member-repertorio" type="search" placeholder="Titulo ou artista">
+          </label>
+          <div class="public-banda-cascade-results" data-role="member-repertorio-results" hidden></div>
+        </section>
+        <section class="dashboard-search-column">
+          <h2>Musicas do acervo</h2>
+          <label class="dashboard-search">
+            Buscar musica acervo
+            <input data-action="search-member-acervo" type="search" placeholder="Titulo ou artista">
+          </label>
+          <div class="public-banda-cascade-results" data-role="member-acervo-results" hidden></div>
+        </section>
+      </div>
+    </section>
     <div class="banda-stage-layer banda-member-stage-layer">
       <div class="banda-stage-actions">
         <button class="nav-button" type="button" data-action="close-stage">Sair da execucao</button>
@@ -680,9 +708,18 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
     </div>
   `;
 
-  const toggle = wrapper.querySelector('[data-action="seguir-lider"]');
+  const toggle = wrapper.querySelector('[data-action="toggle-member-follow"]');
+  const modeLabel = wrapper.querySelector('[data-role="member-mode-label"]');
+  const statusText = wrapper.querySelector('[data-role="member-status-text"]');
+  const localPanel = wrapper.querySelector('.banda-member-local-panel');
+  const repertorioSearch = wrapper.querySelector('[data-action="search-member-repertorio"]');
+  const acervoSearch = wrapper.querySelector('[data-action="search-member-acervo"]');
+  const repertorioResults = wrapper.querySelector('[data-role="member-repertorio-results"]');
+  const acervoResults = wrapper.querySelector('[data-role="member-acervo-results"]');
   const stageLayer = wrapper.querySelector('.banda-stage-layer');
   const songSlot = wrapper.querySelector('.banda-song-slot');
+  let activeCascade = null;
+  let followingLeader = shouldFollow;
 
   function closeStage() {
     stageLayer.hidden = true;
@@ -694,17 +731,103 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
     document.body.classList.add('has-banda-stage-open');
   }
 
-  wrapper.querySelector('[data-action="close-stage"]').addEventListener('click', closeStage);
-  toggle.addEventListener('change', async () => {
-    await updateSeguirLider(participante.id, toggle.checked);
+  function updateMemberUi() {
+    wrapper.dataset.followingLeader = String(followingLeader);
+    modeLabel.textContent = followingLeader ? 'Integrante conectado' : 'Integrante desconectado';
+    statusText.textContent = followingLeader
+      ? (hasSong ? 'Lider conectado' : 'Aguardando Lider')
+      : 'Buscas e execucoes ficam apenas neste dispositivo.';
+    toggle.textContent = followingLeader ? 'Desconectar do lider' : 'Reconectar ao lider';
+    localPanel.hidden = followingLeader;
+  }
 
-    if (toggle.checked) {
+  function showCascade(slotElement) {
+    if (activeCascade && activeCascade !== slotElement) {
+      hideCascade(activeCascade);
+    }
+    slotElement.hidden = false;
+    activeCascade = slotElement;
+  }
+
+  function hideCascade(slotElement) {
+    slotElement.hidden = true;
+    if (activeCascade === slotElement) {
+      activeCascade = null;
+    }
+  }
+
+  function executeLocalSong(item, repertorioTitle = 'Execucao local') {
+    renderBandaSong(songSlot, item, item.tom, { repertorioTitle });
+    openStage();
+  }
+
+  function renderMemberResults(slotElement, items, emptyText, repertorioTitle) {
+    if (!items.length) {
+      slotElement.innerHTML = `<p class="page-status">${escapeHtml(emptyText)}</p>`;
+      showCascade(slotElement);
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'dashboard-list public-banda-results';
+    items.slice(0, 30).forEach((item) => {
+      const musica = item.musicas || item;
+      const button = document.createElement('button');
+      button.className = 'dashboard-list-item public-banda-result-item';
+      button.type = 'button';
+      button.innerHTML = `
+        <h3>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</h3>
+        <p>${escapeHtml(getField(musica, ['artista', 'artist']))}</p>
+      `;
+      button.addEventListener('click', () => {
+        hideCascade(slotElement);
+        executeLocalSong(item.musicas ? item : createSongItem(item, getField(item, ['tom', 'key'])), repertorioTitle);
+      });
+      list.append(button);
+    });
+    slotElement.replaceChildren(list);
+    showCascade(slotElement);
+  }
+
+  function renderRepertorioSearch() {
+    const query = normalizeText(repertorioSearch.value);
+    const results = query
+      ? musicasAssociadas.filter((item) => matchesMusicaSearch(item.musicas || {}, query))
+      : musicasAssociadas.slice(0, 10);
+    renderMemberResults(repertorioResults, results, 'Nenhuma musica encontrada.', sessao.repertorios?.nome || 'Repertorio');
+  }
+
+  function renderAcervoSearch() {
+    const query = normalizeText(acervoSearch.value);
+    const results = query
+      ? musicasAvulsas.filter((musica) => matchesMusicaSearch(musica, query))
+      : musicasAvulsas.slice(0, 10);
+    renderMemberResults(acervoResults, results, 'Nenhuma musica encontrada.', 'Musica avulsa');
+  }
+
+  wrapper.querySelector('[data-action="close-stage"]').addEventListener('click', closeStage);
+  toggle.addEventListener('click', async () => {
+    followingLeader = !followingLeader;
+    await updateSeguirLider(participante.id, followingLeader);
+
+    if (!followingLeader) {
+      closeStage();
+      updateMemberUi();
+      return;
+    }
+
+    if (followingLeader) {
       const { data: updated } = await getSessaoBandaById(sessao.id);
       if (updated) {
-        await renderMemberLive(slot, updated, { ...participante, seguir_lider: true }, unsubscribe);
+        await renderMemberLive(slot, updated, { ...participante, seguir_lider: true }, unsubscribe, options);
       }
     }
   });
+
+  repertorioSearch.addEventListener('input', renderRepertorioSearch);
+  repertorioSearch.addEventListener('focus', renderRepertorioSearch);
+  acervoSearch.addEventListener('input', renderAcervoSearch);
+  acervoSearch.addEventListener('focus', renderAcervoSearch);
 
   renderBandaSong(songSlot, {
     musicas: sessao.musicas,
@@ -715,7 +838,10 @@ async function renderMemberLive(slot, sessao, participante, unsubscribe = null) 
   });
 
   slot.replaceChildren(wrapper);
-  openStage();
+  updateMemberUi();
+  if (followingLeader && hasSong) {
+    openStage();
+  }
 }
 
 function renderBandaSong(slot, item, tomAtual, options = {}) {
@@ -1084,6 +1210,10 @@ function formatTransposeStatus(semitones, capo) {
 
 function getAssocTom(item) {
   return item?.tom || item?.musicas?.tom || '';
+}
+
+function matchesMusicaSearch(musica, normalizedQuery) {
+  return normalizeText(`${getField(musica, ['titulo', 'nome', 'title'])} ${getField(musica, ['artista', 'artist'])}`).includes(normalizedQuery);
 }
 
 function normalizeText(value) {
