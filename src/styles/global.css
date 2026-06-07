@@ -1336,11 +1336,12 @@ a {
 
 .public-banda-result-item {
   width: 100%;
+  justify-content: flex-start;
   text-align: left;
 }
 
-.public-banda-result-item .button-link {
-  pointer-events: none;
+.public-banda-result-item h3 {
+  margin-bottom: 0;
 }
 
 .public-banda-execution {

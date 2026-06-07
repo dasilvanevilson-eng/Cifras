@@ -128,7 +128,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     musicasSlot.replaceChildren(createResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
       getTitle: (musica) => getField(musica, ['titulo', 'nome', 'title']),
-      getSubtitle: (musica) => getField(musica, ['artista', 'artist']) || 'Musica',
+      getSubtitle: (musica) => getField(musica, ['artista', 'artist']),
       onExecute: executeMusica,
     }));
     showCascade(musicasSlot);
@@ -211,12 +211,12 @@ function createResultList(items, options) {
     const button = document.createElement('button');
     button.className = 'dashboard-list-item public-banda-result-item';
     button.type = 'button';
+    const subtitle = options.getSubtitle(item);
     button.innerHTML = `
       <div>
         <h3>${escapeHtml(options.getTitle(item) || '-')}</h3>
-        <p>${escapeHtml(options.getSubtitle(item) || '-')}</p>
+        ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ''}
       </div>
-      <span class="button-link secondary">Executar</span>
     `;
     button.addEventListener('click', () => options.onExecute(item));
     list.append(button);
