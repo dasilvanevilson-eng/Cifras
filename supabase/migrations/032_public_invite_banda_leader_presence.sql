@@ -58,6 +58,7 @@ begin
     leader_client_id = case
       when public_invite_banda_state.leader_client_id is null
         or public_invite_banda_state.leader_client_id = p_client_id
+        or public_invite_banda_state.leader_connected_at is null
         or public_invite_banda_state.leader_connected_at < now() - interval '45 seconds'
       then p_client_id
       else public_invite_banda_state.leader_client_id
@@ -65,6 +66,7 @@ begin
     leader_connected_at = case
       when public_invite_banda_state.leader_client_id is null
         or public_invite_banda_state.leader_client_id = p_client_id
+        or public_invite_banda_state.leader_connected_at is null
         or public_invite_banda_state.leader_connected_at < now() - interval '45 seconds'
       then now()
       else public_invite_banda_state.leader_connected_at
@@ -184,6 +186,20 @@ begin
   into v_state
   from public.public_invite_banda_state
   where invite_id = v_invite.id;
+
+  if v_state.leader_client_id is not null
+    and (
+      v_state.leader_connected_at is null
+      or v_state.leader_connected_at < now() - interval '45 seconds'
+    )
+  then
+    update public.public_invite_banda_state
+    set
+      leader_client_id = null,
+      leader_connected_at = null
+    where invite_id = v_invite.id
+    returning * into v_state;
+  end if;
 
   return jsonb_build_object(
     'valid', true,

@@ -136,7 +136,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (mode === 'lider' && !options.skipClaim) {
       const claimed = await claimLeaderRole();
       if (!claimed) {
-        window.alert('Ja existe um lider conectado neste convite.');
+        if (leaderPresence.active && leaderPresence.client_id !== clientId) {
+          window.alert('Ja existe um lider conectado neste convite.');
+        }
         mode = 'integrante';
       }
     }
