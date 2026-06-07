@@ -5416,3 +5416,11 @@ a {
   }
 
 }
+
+.public-banda-execution .repertorio-song-view.is-two-columns .chordpro-view,
+.public-banda-execution .repertorio-performance-view.is-two-columns .chordpro-view {
+  column-count: 2;
+  column-gap: 28px;
+  column-rule: 1px solid #ddd6c8;
+  white-space: pre-wrap;
+}

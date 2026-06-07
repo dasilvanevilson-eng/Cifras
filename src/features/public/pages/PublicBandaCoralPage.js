@@ -131,6 +131,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const releaseLeaderButton = wrapper.querySelector('[data-action="release-leader"]');
   let activeCascade = null;
   let currentExecutionState = null;
+  let publicAutoscrollTimer = null;
 
   async function setMode(mode, options = {}) {
     if (mode === 'lider' && !options.skipClaim) {
@@ -207,6 +208,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function executeMusica(musica, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
+    stopPublicAutoscroll();
     executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     refreshExecutionControlsForMode();
     openExecutionLayer();
@@ -225,6 +227,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function executeRepertorio(repertorio, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
+    stopPublicAutoscroll();
     const musicasAssociadas = repertorioMusicas.filter((item) => item.repertorio_id === repertorio.id);
     executionContent.replaceChildren(createRepertorioPerformanceView({
       repertorio,
@@ -252,10 +255,39 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function closeExecutionLayer() {
+    stopPublicAutoscroll();
     executionSlot.hidden = true;
     executionContent.replaceChildren();
     currentExecutionState = null;
     document.body.classList.remove('has-banda-stage-open');
+  }
+
+  function stopPublicAutoscroll() {
+    if (!publicAutoscrollTimer) return;
+
+    window.clearInterval(publicAutoscrollTimer);
+    publicAutoscrollTimer = null;
+    executionContent
+      .querySelectorAll('[data-action="autoscroll"]')
+      .forEach((button) => {
+        button.innerHTML = '&#9654;';
+      });
+  }
+
+  function togglePublicAutoscroll(button) {
+    if (publicAutoscrollTimer) {
+      stopPublicAutoscroll();
+      return;
+    }
+
+    button.textContent = '||';
+    publicAutoscrollTimer = window.setInterval(() => {
+      const speedInput = executionContent.querySelector('[data-action="speed"]');
+      executionSlot.scrollBy({
+        top: Number(speedInput?.value || 3) * 0.7,
+        behavior: 'auto',
+      });
+    }, 80);
   }
 
   function refreshExecutionControlsForMode() {
@@ -305,6 +337,15 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     event.preventDefault();
     event.stopImmediatePropagation();
+  }, true);
+
+  executionContent.addEventListener('click', (event) => {
+    const autoscrollButton = event.target.closest('[data-action="autoscroll"]');
+    if (autoscrollButton) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      togglePublicAutoscroll(autoscrollButton);
+    }
   }, true);
 
   executionContent.addEventListener('click', (event) => {
