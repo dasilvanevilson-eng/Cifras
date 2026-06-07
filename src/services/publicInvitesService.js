@@ -42,6 +42,14 @@ export async function revokePublicInvite(id) {
     .single();
 }
 
+export async function deletePublicInvite(id) {
+  assertSupabaseConfig();
+  return supabase
+    .from('public_invites')
+    .delete()
+    .eq('id', id);
+}
+
 export async function getPublicDashboardData(token) {
   assertSupabaseConfig();
   return supabase.rpc('get_public_dashboard_data', { p_token: token });

@@ -1,6 +1,7 @@
 import { canManageUsers } from '../../auth/roles.js';
 import {
   createDashboardPublicInvite,
+  deletePublicInvite,
   listPublicInvites,
   revokePublicInvite,
 } from '../../../services/publicInvitesService.js';
@@ -136,6 +137,7 @@ function createInvitesList(invites, onChange) {
       <div class="public-invite-actions">
         <button class="button-link secondary" type="button" data-action="copy">Copiar</button>
         ${status.key === 'is-active' ? '<button class="button-link danger" type="button" data-action="revoke">Revogar</button>' : ''}
+        <button class="button-link danger" type="button" data-action="delete">Excluir</button>
       </div>
     `;
 
@@ -154,6 +156,19 @@ function createInvitesList(invites, onChange) {
       const { error } = await revokePublicInvite(invite.id);
       if (error) {
         window.alert(error.message || 'Nao foi possivel revogar o convite.');
+        return;
+      }
+
+      await onChange();
+    });
+
+    item.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+      const confirmed = window.confirm(`Excluir definitivamente o convite "${invite.title}"? Esta acao remove o link da lista.`);
+      if (!confirmed) return;
+
+      const { error } = await deletePublicInvite(invite.id);
+      if (error) {
+        window.alert(error.message || 'Nao foi possivel excluir o convite.');
         return;
       }
 
