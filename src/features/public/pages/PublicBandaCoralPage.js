@@ -78,7 +78,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       </div>
     </header>
     <div class="page-status public-banda-leader-status" data-role="leader-status" hidden>
-      <span>Lider conectado.</span>
+      <span>Voce esta como lider nesta sessao.</span>
       <button class="nav-button" type="button" data-action="release-leader">Desconectar lider</button>
     </div>
     <section class="public-banda-grid">
