@@ -278,7 +278,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (!isMemberMode) return;
 
     memberStatusText.textContent = memberFollowingLeader
-      ? 'Tela do integrante: execucao espelhada pelo lider.'
+      ? (leaderPresence.active ? 'Lider conectado' : 'Aguardando Lider')
       : 'Integrante desconectado: buscas e execucoes ficam apenas neste dispositivo.';
     memberFollowButton.textContent = memberFollowingLeader
       ? 'Desconectar do lider'
@@ -406,6 +406,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (data?.valid) {
       leaderPresence = data.leader || { active: false, client_id: null };
       updateLeaderPresenceUi();
+      updateMemberMirrorUi();
     }
   }
 
