@@ -12,7 +12,12 @@ export async function UsuariosPage({ session } = {}) {
   }
 
   page.innerHTML = `
-    <h1>Usuarios</h1>
+    <header class="dashboard-header">
+      <div>
+        <h1>Usuarios</h1>
+        <p>Cadastro e manutencao dos acessos do sistema.</p>
+      </div>
+    </header>
     <section class="user-account-warning">
       O sistema registra o historico das acoes realizadas por cada usuario. Mantenha sua senha em seguranca e nao compartilhe seu acesso com terceiros. O uso indevido da conta podera resultar na exclusao do usuario.
     </section>

@@ -1061,15 +1061,27 @@ a {
 
 .usuarios-page {
   max-width: 720px;
+  display: grid;
+  gap: 16px;
 }
 
 .permissoes-page {
+  display: grid;
+  gap: 16px;
   width: min(100%, 1440px);
   max-width: none;
 }
 
 .personalizacao-page {
   max-width: 1180px;
+  display: grid;
+  gap: 16px;
+}
+
+.public-invites-page {
+  max-width: 1180px;
+  display: grid;
+  gap: 16px;
 }
 
 .personalization-layout {

@@ -22,7 +22,12 @@ export async function PermissoesPage({ session } = {}) {
   }
 
   page.innerHTML = `
-    <h1>Permissoes</h1>
+    <header class="dashboard-header">
+      <div>
+        <h1>Permissoes</h1>
+        <p>Controle o que cada usuario pode ver e executar.</p>
+      </div>
+    </header>
     <section class="permissions-layout">
       <aside class="permissions-users-panel">
         <label>

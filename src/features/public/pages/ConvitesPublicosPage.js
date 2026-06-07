@@ -15,7 +15,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
   }
 
   page.innerHTML = `
-    <header class="page-header">
+    <header class="dashboard-header">
       <div>
         <h1>Convites publicos</h1>
         <p>Links temporarios para consulta controlada do sistema.</p>

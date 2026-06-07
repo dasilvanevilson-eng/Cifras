@@ -16,7 +16,12 @@ export async function PersonalizacaoPage({ session } = {}) {
   }
 
   page.innerHTML = `
-    <h1>Personalizacao</h1>
+    <header class="dashboard-header">
+      <div>
+        <h1>Personalizacao</h1>
+        <p>Ajustes visuais da porta de entrada do sistema.</p>
+      </div>
+    </header>
     <section class="personalization-layout">
       <form class="form personalization-form">
         <label>
