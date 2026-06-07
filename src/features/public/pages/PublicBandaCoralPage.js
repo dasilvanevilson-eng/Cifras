@@ -77,10 +77,16 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <button class="nav-button" type="button" data-mode="integrante">Integrante</button>
       </div>
     </header>
-    <div class="page-status public-banda-leader-status" data-role="leader-status" hidden>
-      <span>Voce esta como lider nesta sessao.</span>
-      <button class="nav-button" type="button" data-action="release-leader">Desconectar lider</button>
-    </div>
+    <section class="public-banda-statusbar" data-role="session-status">
+      <div>
+        <span class="public-banda-mode-pill" data-role="current-mode-label">Integrante</span>
+        <strong data-role="session-status-text">Aguardando Lider</strong>
+      </div>
+      <div class="public-banda-status-actions">
+        <button class="nav-button" type="button" data-action="toggle-member-follow">Desconectar do lider</button>
+        <button class="nav-button" type="button" data-action="release-leader">Desconectar lider</button>
+      </div>
+    </section>
     <section class="public-banda-grid">
       <section class="dashboard-search-column" data-public-banda-column="musicas">
         <h2>Musicas do repertorio</h2>
@@ -107,10 +113,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
     </section>
-    <div class="page-status public-banda-member-status">
-      <span data-role="member-status-text">Tela do integrante: a execucao sera espelhada quando o lider iniciar uma musica ou repertorio.</span>
-      <button class="nav-button" type="button" data-action="toggle-member-follow">Desconectar do lider</button>
-    </div>
     <section class="public-banda-execution" data-role="execution-slot" hidden>
       <div data-role="execution-content"></div>
     </section>
@@ -125,9 +127,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   const executionContent = wrapper.querySelector('[data-role="execution-content"]');
-  const memberStatusText = wrapper.querySelector('[data-role="member-status-text"]');
+  const currentModeLabel = wrapper.querySelector('[data-role="current-mode-label"]');
+  const sessionStatusText = wrapper.querySelector('[data-role="session-status-text"]');
   const memberFollowButton = wrapper.querySelector('[data-action="toggle-member-follow"]');
-  const leaderStatus = wrapper.querySelector('[data-role="leader-status"]');
   const releaseLeaderButton = wrapper.querySelector('[data-action="release-leader"]');
   let activeCascade = null;
   let currentExecutionState = null;
@@ -310,17 +312,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const isMemberMode = currentMode === 'integrante';
 
     wrapper.classList.toggle('is-member-following', isMemberMode && memberFollowingLeader);
-    if (!memberStatusText || !memberFollowButton) return;
-
-    memberFollowButton.hidden = !isMemberMode;
-    if (!isMemberMode) return;
-
-    memberStatusText.textContent = memberFollowingLeader
-      ? (leaderPresence.active ? 'Lider conectado' : 'Aguardando Lider')
-      : 'Integrante desconectado: buscas e execucoes ficam apenas neste dispositivo.';
-    memberFollowButton.textContent = memberFollowingLeader
-      ? 'Desconectar do lider'
-      : 'Reconectar ao lider';
+    updateStatusBarUi();
   }
 
   executionContent.addEventListener('click', (event) => {
@@ -480,8 +472,36 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (memberButton) {
       memberButton.hidden = !memberAvailable;
     }
-    if (leaderStatus) {
-      leaderStatus.hidden = currentMode !== 'lider';
+    updateStatusBarUi();
+  }
+
+  function updateStatusBarUi() {
+    const isLeaderMode = currentMode === 'lider';
+    const isMemberFollowing = currentMode === 'integrante' && memberFollowingLeader;
+
+    if (currentModeLabel) {
+      currentModeLabel.textContent = isLeaderMode
+        ? 'Lider'
+        : (isMemberFollowing ? 'Integrante conectado' : 'Integrante desconectado');
+    }
+
+    if (sessionStatusText) {
+      sessionStatusText.textContent = isLeaderMode
+        ? 'Voce esta como lider nesta sessao.'
+        : (isMemberFollowing
+          ? (leaderPresence.active ? 'Lider conectado' : 'Aguardando Lider')
+          : 'Buscas e execucoes ficam apenas neste dispositivo.');
+    }
+
+    if (memberFollowButton) {
+      memberFollowButton.hidden = currentMode !== 'integrante';
+      memberFollowButton.textContent = memberFollowingLeader
+        ? 'Desconectar do lider'
+        : 'Reconectar ao lider';
+    }
+
+    if (releaseLeaderButton) {
+      releaseLeaderButton.hidden = !isLeaderMode;
     }
   }
 
