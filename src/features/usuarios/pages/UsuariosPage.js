@@ -33,7 +33,7 @@ export async function UsuariosPage({ session } = {}) {
       <h2>Usuarios cadastrados</h2>
       <div data-role="registered-users"></div>
     </section>
-    <section>
+    <section class="user-form-panel">
       <h2 data-role="form-title">Novo usuario</h2>
       <div class="form-slot"></div>
     </section>

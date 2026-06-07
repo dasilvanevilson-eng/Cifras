@@ -1060,7 +1060,7 @@ a {
 }
 
 .usuarios-page {
-  max-width: 720px;
+  max-width: 980px;
   display: grid;
   gap: 16px;
 }
@@ -1361,35 +1361,49 @@ a {
   position: relative;
   display: grid;
   gap: 8px;
-  margin-bottom: 28px;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfaf7;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .user-search-panel label {
   display: grid;
   gap: 6px;
+  color: #514a40;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .user-search-panel input {
   width: 100%;
   border: 1px solid #cfc7b8;
   border-radius: var(--border-radius-default);
-  padding: 10px 12px;
+  min-height: 46px;
+  padding: 11px 12px;
   font: inherit;
   background: #ffffff;
 }
 
+.user-search-panel input:focus {
+  border-color: #1d4f45;
+  box-shadow: 0 0 0 3px rgba(29, 79, 69, 0.14);
+  outline: 0;
+}
+
 .user-search-results {
   position: absolute;
-  top: calc(100% - 2px);
-  right: 0;
-  left: 0;
+  top: calc(100% + 6px);
+  right: 14px;
+  left: 14px;
   z-index: 12;
   max-height: 320px;
   overflow: auto;
   border: 1px solid #ddd6c8;
-  border-radius: var(--border-radius-default);
+  border-radius: 8px;
   background: #ffffff;
-  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.16);
+  box-shadow: 0 18px 34px rgba(24, 24, 24, 0.14);
 }
 
 .user-search-results[hidden] {
@@ -1402,12 +1416,12 @@ a {
 
 .user-search-item {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
   border: 0;
   border-radius: var(--border-radius-default);
   border-bottom: 1px solid #e5dece;
-  padding: 12px;
+  padding: 11px 12px;
   background: #ffffff;
   color: #20211f;
   font: inherit;
@@ -1429,30 +1443,36 @@ a {
 .registered-users-panel {
   display: grid;
   gap: 10px;
-  margin-bottom: 28px;
+  min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .registered-users-panel h2 {
   margin: 0;
+  color: #243b34;
+  font-size: 18px;
+  line-height: 1.2;
 }
 
 .registered-users-list {
   display: grid;
-  gap: 6px;
-  max-height: 320px;
+  gap: 8px;
+  max-height: min(48vh, 420px);
   overflow: auto;
-  border: 1px solid #ddd6c8;
-  border-radius: var(--border-radius-default);
-  background: #ffffff;
+  padding-right: 4px;
 }
 
 .registered-user-item {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
-  border: 0;
-  border-bottom: 1px solid #e5dece;
-  padding: 10px 12px;
+  border: 1px solid #ddd6c8;
+  border-radius: 7px;
+  padding: 11px 12px;
   background: #ffffff;
   color: #20211f;
   font: inherit;
@@ -1462,13 +1482,44 @@ a {
 
 .registered-user-item:hover,
 .registered-user-item:focus {
-  background: #f8f5ee;
+  border-color: #1d4f45;
+  background: #fbfaf7;
+  box-shadow: 0 8px 20px rgba(32, 33, 31, 0.08);
   outline: 0;
 }
 
 .registered-user-item span {
   color: #5f594f;
   font-size: 14px;
+}
+
+.user-form-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
+}
+
+.user-form-panel h2 {
+  margin: 0;
+  color: #243b34;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.usuarios-page .form {
+  max-width: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.usuarios-page .form label:has(textarea),
+.usuarios-page .form .form-actions,
+.usuarios-page .form .form-message {
+  grid-column: 1 / -1;
 }
 
 .add-repertorio-song-form {
@@ -4262,12 +4313,15 @@ a {
 }
 
 .user-account-warning {
-  border: 2px solid #a12a2a;
-  padding: 14px 16px;
-  background: #fff0df;
-  color: #7d1f1f;
-  font-weight: 800;
-  line-height: 1.45;
+  border: 1px solid #e0c18e;
+  border-left: 4px solid #a66f22;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fff8e8;
+  color: #76551c;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .banda-coral-page {
@@ -4805,6 +4859,34 @@ a {
 }
 
 @media (max-width: 860px) {
+  .usuarios-page {
+    gap: 12px;
+  }
+
+  .user-search-panel,
+  .registered-users-panel,
+  .user-form-panel {
+    border-radius: 7px;
+    padding: 10px;
+  }
+
+  .usuarios-page .form {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .usuarios-page .form .form-actions {
+    align-items: stretch;
+  }
+
+  .usuarios-page .form .form-actions .button,
+  .usuarios-page .form .form-actions .button-link,
+  .usuarios-page .form .form-actions .danger-button {
+    flex: 1 1 140px;
+    justify-content: center;
+    text-align: center;
+  }
+
   .repertorios-page {
     gap: 14px;
   }
