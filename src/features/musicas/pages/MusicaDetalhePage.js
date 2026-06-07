@@ -272,7 +272,7 @@ function formatTransposeStatus(semitones, capo, useFractionStep = false, default
     ? defaultStatusLabel
     : useFractionStep
       ? `${semitones > 0 ? '+' : ''}${semitones}/2`
-      : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+      : `${semitones > 0 ? '+' : ''}${semitones}`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }

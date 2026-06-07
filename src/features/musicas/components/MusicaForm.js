@@ -411,7 +411,7 @@ function renderPreviewCifra(previewPanel, previewState) {
 function formatTransposeStatus(semitones) {
   if (semitones === 0) return 'Tom';
 
-  return `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+  return `${semitones > 0 ? '+' : ''}${semitones}`;
 }
 
 function setChordProValue(source, editor, value) {

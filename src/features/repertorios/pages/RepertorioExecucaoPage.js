@@ -323,7 +323,7 @@ function createCapoOptions() {
 function formatTransposeStatus(semitones, capo) {
   const transposeText = semitones === 0
     ? 'Tom'
-    : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+    : `${semitones > 0 ? '+' : ''}${semitones}`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
@@ -800,7 +800,7 @@ function createCapoOptionsV2() {
 function formatTransposeStatusV2(semitones, capo) {
   const transposeText = semitones === 0
     ? 'Tom'
-    : `${semitones > 0 ? '+' : ''}${semitones} semitom${Math.abs(semitones) === 1 ? '' : 's'}`;
+    : `${semitones > 0 ? '+' : ''}${semitones}`;
 
   return capo > 0 ? `${transposeText} | Capo ${capo}` : transposeText;
 }
