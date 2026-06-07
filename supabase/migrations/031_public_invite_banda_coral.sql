@@ -5,12 +5,21 @@ create table if not exists public_invite_banda_state (
   item_type text check (item_type in ('musica', 'repertorio')),
   musica_id uuid references musicas(id) on delete set null,
   repertorio_id uuid references repertorios(id) on delete set null,
+  transpose_semitones integer not null default 0,
+  capo integer not null default 0,
   updated_at timestamptz not null default now(),
   constraint public_invite_banda_state_item_check check (
     (item_type = 'musica' and musica_id is not null and repertorio_id is null)
     or (item_type = 'repertorio' and repertorio_id is not null and musica_id is null)
-  )
+  ),
+  constraint public_invite_banda_state_capo_check check (capo between 0 and 11)
 );
+
+alter table public_invite_banda_state
+add column if not exists transpose_semitones integer not null default 0;
+
+alter table public_invite_banda_state
+add column if not exists capo integer not null default 0;
 
 alter table public_invite_banda_state enable row level security;
 
@@ -127,7 +136,9 @@ create or replace function public.update_public_banda_coral_state(
   p_token text,
   p_item_type text,
   p_musica_id uuid default null,
-  p_repertorio_id uuid default null
+  p_repertorio_id uuid default null,
+  p_transpose_semitones integer default 0,
+  p_capo integer default 0
 )
 returns jsonb
 language plpgsql
@@ -174,11 +185,17 @@ begin
     return jsonb_build_object('valid', false, 'reason', 'invalid_item_type');
   end if;
 
+  if coalesce(p_capo, 0) < 0 or coalesce(p_capo, 0) > 11 then
+    return jsonb_build_object('valid', false, 'reason', 'invalid_capo');
+  end if;
+
   insert into public.public_invite_banda_state (
     invite_id,
     item_type,
     musica_id,
     repertorio_id,
+    transpose_semitones,
+    capo,
     updated_at
   )
   values (
@@ -186,6 +203,8 @@ begin
     p_item_type,
     case when p_item_type = 'musica' then p_musica_id else null end,
     case when p_item_type = 'repertorio' then p_repertorio_id else null end,
+    coalesce(p_transpose_semitones, 0),
+    coalesce(p_capo, 0),
     now()
   )
   on conflict (invite_id) do update
@@ -193,6 +212,8 @@ begin
     item_type = excluded.item_type,
     musica_id = excluded.musica_id,
     repertorio_id = excluded.repertorio_id,
+    transpose_semitones = excluded.transpose_semitones,
+    capo = excluded.capo,
     updated_at = now()
   returning * into v_state;
 
@@ -234,5 +255,5 @@ end;
 $$;
 
 grant execute on function public.get_public_banda_coral_data(text) to anon, authenticated;
-grant execute on function public.update_public_banda_coral_state(text, text, uuid, uuid) to anon, authenticated;
+grant execute on function public.update_public_banda_coral_state(text, text, uuid, uuid, integer, integer) to anon, authenticated;
 grant execute on function public.get_public_banda_coral_state(text) to anon, authenticated;

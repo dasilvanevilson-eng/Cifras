@@ -110,6 +110,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   const executionContent = wrapper.querySelector('[data-role="execution-content"]');
   let activeCascade = null;
+  let currentExecutionState = null;
 
   function setMode(mode) {
     currentMode = mode;
@@ -132,12 +133,16 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (activeCascade) hideCascade(activeCascade);
     executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     openExecutionLayer();
+    currentExecutionState = normalizeState({
+      itemType: 'musica',
+      musicaId: musica.id,
+      transposeSemitones: options.state?.transpose_semitones || 0,
+      capo: options.state?.capo || getCurrentCapo(),
+    });
+    applyPerformanceState(currentExecutionState);
 
     if (!options.mirrored && currentMode === 'lider') {
-      await publishLeaderState({
-        itemType: 'musica',
-        musicaId: musica.id,
-      });
+      await publishLeaderState(currentExecutionState);
     }
   }
 
@@ -150,12 +155,16 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       returnTo,
     }));
     openExecutionLayer();
+    currentExecutionState = normalizeState({
+      itemType: 'repertorio',
+      repertorioId: repertorio.id,
+      transposeSemitones: options.state?.transpose_semitones || 0,
+      capo: options.state?.capo || getCurrentCapo(),
+    });
+    applyPerformanceState(currentExecutionState);
 
     if (!options.mirrored && currentMode === 'lider') {
-      await publishLeaderState({
-        itemType: 'repertorio',
-        repertorioId: repertorio.id,
-      });
+      await publishLeaderState(currentExecutionState);
     }
   }
 
@@ -167,15 +176,38 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   function closeExecutionLayer() {
     executionSlot.hidden = true;
     executionContent.replaceChildren();
+    currentExecutionState = null;
     document.body.classList.remove('has-banda-stage-open');
   }
 
   executionContent.addEventListener('click', (event) => {
     const backLink = event.target.closest('.song-toolbar-back');
-    if (!backLink) return;
+    if (backLink) {
+      event.preventDefault();
+      closeExecutionLayer();
+      return;
+    }
 
-    event.preventDefault();
-    closeExecutionLayer();
+    if (currentMode !== 'lider' || !currentExecutionState) return;
+
+    if (event.target.closest('[data-action="transpose-down"]')) {
+      currentExecutionState.transposeSemitones -= 1;
+      publishLeaderState(currentExecutionState);
+      return;
+    }
+
+    if (event.target.closest('[data-action="transpose-up"]')) {
+      currentExecutionState.transposeSemitones += 1;
+      publishLeaderState(currentExecutionState);
+    }
+  });
+
+  executionContent.addEventListener('change', (event) => {
+    if (currentMode !== 'lider' || !currentExecutionState) return;
+    if (!event.target.matches('[data-action="capo"]')) return;
+
+    currentExecutionState.capo = Number(event.target.value || 0);
+    publishLeaderState(currentExecutionState);
   });
 
   async function publishLeaderState(state) {
@@ -212,7 +244,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (state.item_type === 'musica') {
       const musica = musicas.find((item) => item.id === state.musica_id);
       if (musica) {
-        executeMusica(musica, { mirrored: true });
+        executeMusica(musica, { mirrored: true, state });
       }
       return;
     }
@@ -220,9 +252,33 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (state.item_type === 'repertorio') {
       const repertorio = repertorios.find((item) => item.id === state.repertorio_id);
       if (repertorio) {
-        executeRepertorio(repertorio, { mirrored: true });
+        executeRepertorio(repertorio, { mirrored: true, state });
       }
     }
+  }
+
+  function getCurrentCapo() {
+    const capoSelect = executionContent.querySelector('[data-action="capo"]');
+    return Number(capoSelect?.value || 0);
+  }
+
+  function applyPerformanceState(state) {
+    window.requestAnimationFrame(() => {
+      const capoSelect = executionContent.querySelector('[data-action="capo"]');
+
+      if (capoSelect && String(capoSelect.value) !== String(state.capo || 0)) {
+        capoSelect.value = String(state.capo || 0);
+        capoSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const semitones = Number(state.transposeSemitones || 0);
+      const action = semitones > 0 ? 'transpose-up' : 'transpose-down';
+      const button = executionContent.querySelector(`[data-action="${action}"]`);
+
+      for (let index = 0; button && index < Math.abs(semitones); index += 1) {
+        button.click();
+      }
+    });
   }
 
   function renderMusicasRepertorio() {
@@ -337,10 +393,21 @@ function matchesMusicaSearch(musica, normalizedQuery) {
   return normalizeText(`${getField(musica, ['titulo', 'nome', 'title'])} ${getField(musica, ['artista', 'artist'])}`).includes(normalizedQuery);
 }
 
+function normalizeState(state) {
+  return {
+    itemType: state.itemType,
+    musicaId: state.musicaId || null,
+    repertorioId: state.repertorioId || null,
+    transposeSemitones: Number(state.transposeSemitones || 0),
+    capo: Number(state.capo || 0),
+  };
+}
+
 function getStateKey(state) {
   if (!state?.item_type) return '';
-  if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${state.updated_at || ''}`;
-  if (state.item_type === 'repertorio' && state.repertorio_id) return `repertorio:${state.repertorio_id}:${state.updated_at || ''}`;
+  const toneKey = `${state.transpose_semitones || 0}:${state.capo || 0}:${state.updated_at || ''}`;
+  if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${toneKey}`;
+  if (state.item_type === 'repertorio' && state.repertorio_id) return `repertorio:${state.repertorio_id}:${toneKey}`;
   return '';
 }
 
