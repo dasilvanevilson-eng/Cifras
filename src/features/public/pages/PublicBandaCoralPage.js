@@ -87,8 +87,11 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
         <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
     </section>
-    <section class="public-banda-execution" data-role="execution-slot">
-      <p class="page-status">Selecione uma musica ou repertorio para executar como ${escapeHtml(formatMode(currentMode))}.</p>
+    <section class="public-banda-execution" data-role="execution-slot" hidden>
+      <div class="banda-stage-actions">
+        <button class="nav-button" type="button" data-action="close-public-execution">Sair da execucao</button>
+      </div>
+      <div data-role="execution-content"></div>
     </section>
   `;
 
@@ -100,6 +103,8 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   const musicasAcervoSlot = wrapper.querySelector('[data-role="musicas-acervo-results"]');
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
+  const executionContent = wrapper.querySelector('[data-role="execution-content"]');
+  const closeExecutionButton = wrapper.querySelector('[data-action="close-public-execution"]');
   let activeCascade = null;
 
   function setMode(mode) {
@@ -115,20 +120,33 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
 
   function executeMusica(musica) {
     if (activeCascade) hideCascade(activeCascade);
-    executionSlot.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
-    executionSlot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
+    openExecutionLayer();
   }
 
   function executeRepertorio(repertorio) {
     if (activeCascade) hideCascade(activeCascade);
     const musicasAssociadas = repertorioMusicas.filter((item) => item.repertorio_id === repertorio.id);
-    executionSlot.replaceChildren(createRepertorioPerformanceView({
+    executionContent.replaceChildren(createRepertorioPerformanceView({
       repertorio,
       musicasAssociadas,
       returnTo,
     }));
-    executionSlot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    openExecutionLayer();
   }
+
+  function openExecutionLayer() {
+    executionSlot.hidden = false;
+    document.body.classList.add('has-banda-stage-open');
+  }
+
+  function closeExecutionLayer() {
+    executionSlot.hidden = true;
+    executionContent.replaceChildren();
+    document.body.classList.remove('has-banda-stage-open');
+  }
+
+  closeExecutionButton.addEventListener('click', closeExecutionLayer);
 
   function renderMusicasRepertorio() {
     const query = normalizeText(repertorioMusicSearch.value);
