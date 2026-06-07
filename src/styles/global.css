@@ -1302,7 +1302,7 @@ a {
 
 .public-banda-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
   gap: 16px;
   align-items: start;
 }
@@ -1332,16 +1332,26 @@ a {
 
 .public-banda-cascade-results .public-banda-results {
   max-height: none;
+  gap: 4px;
 }
 
 .public-banda-result-item {
   width: 100%;
+  min-height: 0;
   justify-content: flex-start;
+  padding: 6px 8px;
   text-align: left;
 }
 
 .public-banda-result-item h3 {
   margin-bottom: 0;
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.public-banda-result-item p {
+  font-size: 12px;
+  line-height: 1.15;
 }
 
 .public-banda-execution {

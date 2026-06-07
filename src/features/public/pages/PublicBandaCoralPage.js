@@ -46,6 +46,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   const wrapper = document.createElement('section');
   const returnTo = `/publico/banda-coral?token=${encodeURIComponent(token)}`;
   const allowedMode = invite.access_mode || 'ambos';
+  const musicasRepertorio = getUniqueRepertorioMusicas(repertorioMusicas);
   let currentMode = allowedMode === 'integrante' ? 'integrante' : 'lider';
 
   wrapper.className = 'public-banda-shell';
@@ -62,12 +63,20 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     </header>
     <section class="public-banda-grid">
       <section class="dashboard-search-column" data-public-banda-column="musicas">
-        <h2>Musicas</h2>
+        <h2>Musicas do repertorio</h2>
         <label class="dashboard-search">
-          Buscar musica
-          <input data-action="search-musica" type="search" placeholder="Titulo ou artista">
+          Buscar musica repertorio
+          <input data-action="search-musica-repertorio" type="search" placeholder="Titulo ou artista">
         </label>
-        <div class="public-banda-cascade-results" data-role="musicas-results" hidden></div>
+        <div class="public-banda-cascade-results" data-role="musicas-repertorio-results" hidden></div>
+      </section>
+      <section class="dashboard-search-column" data-public-banda-column="acervo">
+        <h2>Musicas do acervo</h2>
+        <label class="dashboard-search">
+          Buscar musica acervo
+          <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
+        </label>
+        <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="repertorios">
         <h2>Repertorios liberados</h2>
@@ -84,9 +93,11 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   `;
 
   const modeButtons = wrapper.querySelectorAll('[data-mode]');
-  const musicSearch = wrapper.querySelector('[data-action="search-musica"]');
+  const repertorioMusicSearch = wrapper.querySelector('[data-action="search-musica-repertorio"]');
+  const acervoMusicSearch = wrapper.querySelector('[data-action="search-musica-acervo"]');
   const repertorioSearch = wrapper.querySelector('[data-action="search-repertorio"]');
-  const musicasSlot = wrapper.querySelector('[data-role="musicas-results"]');
+  const musicasRepertorioSlot = wrapper.querySelector('[data-role="musicas-repertorio-results"]');
+  const musicasAcervoSlot = wrapper.querySelector('[data-role="musicas-acervo-results"]');
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   let activeCascade = null;
@@ -103,13 +114,13 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   });
 
   function executeMusica(musica) {
-    hideCascade(musicasSlot);
+    if (activeCascade) hideCascade(activeCascade);
     executionSlot.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     executionSlot.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function executeRepertorio(repertorio) {
-    hideCascade(repertoriosSlot);
+    if (activeCascade) hideCascade(activeCascade);
     const musicasAssociadas = repertorioMusicas.filter((item) => item.repertorio_id === repertorio.id);
     executionSlot.replaceChildren(createRepertorioPerformanceView({
       repertorio,
@@ -119,19 +130,34 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     executionSlot.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function renderMusicas() {
-    const query = normalizeText(musicSearch.value);
+  function renderMusicasRepertorio() {
+    const query = normalizeText(repertorioMusicSearch.value);
     const results = (query
-      ? musicas.filter((musica) => normalizeText(`${getField(musica, ['titulo', 'nome', 'title'])} ${getField(musica, ['artista', 'artist'])}`).includes(query))
-      : musicas.slice(0, 10)).slice(0, 30);
+      ? musicasRepertorio.filter((musica) => matchesMusicaSearch(musica, query))
+      : musicasRepertorio.slice(0, 10)).slice(0, 30);
 
-    musicasSlot.replaceChildren(createResultList(results, {
+    musicasRepertorioSlot.replaceChildren(createResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
       getTitle: (musica) => getField(musica, ['titulo', 'nome', 'title']),
       getSubtitle: (musica) => getField(musica, ['artista', 'artist']),
       onExecute: executeMusica,
     }));
-    showCascade(musicasSlot);
+    showCascade(musicasRepertorioSlot);
+  }
+
+  function renderMusicasAcervo() {
+    const query = normalizeText(acervoMusicSearch.value);
+    const results = (query
+      ? musicas.filter((musica) => matchesMusicaSearch(musica, query))
+      : musicas.slice(0, 10)).slice(0, 30);
+
+    musicasAcervoSlot.replaceChildren(createResultList(results, {
+      emptyText: 'Nenhuma musica encontrada.',
+      getTitle: (musica) => getField(musica, ['titulo', 'nome', 'title']),
+      getSubtitle: (musica) => getField(musica, ['artista', 'artist']),
+      onExecute: executeMusica,
+    }));
+    showCascade(musicasAcervoSlot);
   }
 
   function renderRepertorios() {
@@ -149,8 +175,10 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     showCascade(repertoriosSlot);
   }
 
-  musicSearch.addEventListener('input', renderMusicas);
-  musicSearch.addEventListener('focus', renderMusicas);
+  repertorioMusicSearch.addEventListener('input', renderMusicasRepertorio);
+  repertorioMusicSearch.addEventListener('focus', renderMusicasRepertorio);
+  acervoMusicSearch.addEventListener('input', renderMusicasAcervo);
+  acervoMusicSearch.addEventListener('focus', renderMusicasAcervo);
   repertorioSearch.addEventListener('input', renderRepertorios);
   repertorioSearch.addEventListener('focus', renderRepertorios);
 
@@ -174,7 +202,8 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
   });
 
   setMode(currentMode);
-  hideCascade(musicasSlot);
+  hideCascade(musicasRepertorioSlot);
+  hideCascade(musicasAcervoSlot);
   hideCascade(repertoriosSlot);
 
   return wrapper;
@@ -194,6 +223,23 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
       activeCascade = null;
     }
   }
+}
+
+function getUniqueRepertorioMusicas(repertorioMusicas) {
+  const unique = new Map();
+
+  repertorioMusicas.forEach((item) => {
+    const musica = item?.musicas;
+    const id = musica?.id || item?.musica_id;
+    if (!id || !musica || unique.has(id)) return;
+    unique.set(id, musica);
+  });
+
+  return [...unique.values()];
+}
+
+function matchesMusicaSearch(musica, normalizedQuery) {
+  return normalizeText(`${getField(musica, ['titulo', 'nome', 'title'])} ${getField(musica, ['artista', 'artist'])}`).includes(normalizedQuery);
 }
 
 function createResultList(items, options) {
