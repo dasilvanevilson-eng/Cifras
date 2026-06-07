@@ -89,7 +89,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     </section>
     <section class="public-banda-execution" data-role="execution-slot" hidden>
       <div class="banda-stage-actions">
-        <button class="nav-button" type="button" data-action="close-public-execution">Sair da execucao</button>
+        <button class="nav-button icon-button public-banda-close-execution" type="button" data-action="close-public-execution" aria-label="Voltar para a busca" title="Voltar para a busca">&larr;</button>
       </div>
       <div data-role="execution-content"></div>
     </section>

@@ -1376,6 +1376,14 @@ a {
   display: none;
 }
 
+.public-banda-close-execution {
+  width: 42px;
+  min-width: 42px;
+  height: 38px;
+  padding: 0;
+  font-size: 22px;
+}
+
 .public-dashboard-shell .dashboard-header h1 {
   color: #183c35;
 }
