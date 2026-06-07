@@ -1300,6 +1300,18 @@ a {
   gap: 16px;
 }
 
+.public-banda-member-status {
+  display: none;
+}
+
+.public-banda-shell.is-member-mode .public-banda-grid {
+  display: none;
+}
+
+.public-banda-shell.is-member-mode .public-banda-member-status {
+  display: block;
+}
+
 .public-banda-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(220px, 1fr));

@@ -1,6 +1,10 @@
 import { createPerformanceView as createMusicaPerformanceView } from '../../musicas/pages/MusicaExecucaoPage.js';
 import { createPerformanceViewV2 as createRepertorioPerformanceView } from '../../repertorios/pages/RepertorioExecucaoPage.js';
-import { getPublicBandaCoralData } from '../../../services/publicInvitesService.js';
+import {
+  getPublicBandaCoralData,
+  getPublicBandaCoralState,
+  updatePublicBandaCoralState,
+} from '../../../services/publicInvitesService.js';
 
 export async function PublicBandaCoralPage() {
   const page = document.createElement('section');
@@ -30,6 +34,7 @@ export async function PublicBandaCoralPage() {
     page.replaceChildren(createPublicBandaView({
       token,
       invite: data.invite || {},
+      initialState: data.state || {},
       musicas: data.musicas || [],
       repertorios: data.repertorios || [],
       repertorioMusicas: data.repertorio_musicas || [],
@@ -42,12 +47,14 @@ export async function PublicBandaCoralPage() {
   return page;
 }
 
-function createPublicBandaView({ token, invite, musicas, repertorios, repertorioMusicas }) {
+function createPublicBandaView({ token, invite, initialState, musicas, repertorios, repertorioMusicas }) {
   const wrapper = document.createElement('section');
   const returnTo = `/publico/banda-coral?token=${encodeURIComponent(token)}`;
   const allowedMode = invite.access_mode || 'ambos';
   const musicasRepertorio = getUniqueRepertorioMusicas(repertorioMusicas);
   let currentMode = allowedMode === 'integrante' ? 'integrante' : 'lider';
+  let memberMirrorTimer = null;
+  let lastMirroredStateKey = '';
 
   wrapper.className = 'public-banda-shell';
   wrapper.innerHTML = `
@@ -87,6 +94,7 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
         <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
     </section>
+    <p class="page-status public-banda-member-status">Tela do integrante: a execucao sera espelhada quando o lider iniciar uma musica ou repertorio.</p>
     <section class="public-banda-execution" data-role="execution-slot" hidden>
       <div data-role="execution-content"></div>
     </section>
@@ -108,19 +116,32 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     modeButtons.forEach((button) => {
       button.classList.toggle('is-active', button.dataset.mode === mode);
     });
+    wrapper.classList.toggle('is-member-mode', mode === 'integrante');
+    stopMemberMirror();
+
+    if (mode === 'integrante') {
+      startMemberMirror();
+    }
   }
 
   modeButtons.forEach((button) => {
     button.addEventListener('click', () => setMode(button.dataset.mode));
   });
 
-  function executeMusica(musica) {
+  async function executeMusica(musica, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
     executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     openExecutionLayer();
+
+    if (!options.mirrored && currentMode === 'lider') {
+      await publishLeaderState({
+        itemType: 'musica',
+        musicaId: musica.id,
+      });
+    }
   }
 
-  function executeRepertorio(repertorio) {
+  async function executeRepertorio(repertorio, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
     const musicasAssociadas = repertorioMusicas.filter((item) => item.repertorio_id === repertorio.id);
     executionContent.replaceChildren(createRepertorioPerformanceView({
@@ -129,6 +150,13 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
       returnTo,
     }));
     openExecutionLayer();
+
+    if (!options.mirrored && currentMode === 'lider') {
+      await publishLeaderState({
+        itemType: 'repertorio',
+        repertorioId: repertorio.id,
+      });
+    }
   }
 
   function openExecutionLayer() {
@@ -149,6 +177,53 @@ function createPublicBandaView({ token, invite, musicas, repertorios, repertorio
     event.preventDefault();
     closeExecutionLayer();
   });
+
+  async function publishLeaderState(state) {
+    const { data, error } = await updatePublicBandaCoralState(token, state);
+
+    if (error || !data?.valid) {
+      window.alert(error?.message || 'Nao foi possivel espelhar a execucao para os integrantes.');
+    }
+  }
+
+  function startMemberMirror() {
+    mirrorLeaderState(initialState);
+    memberMirrorTimer = window.setInterval(async () => {
+      const { data } = await getPublicBandaCoralState(token);
+      if (data?.valid) {
+        mirrorLeaderState(data.state || {});
+      }
+    }, 1800);
+  }
+
+  function stopMemberMirror() {
+    if (memberMirrorTimer) {
+      window.clearInterval(memberMirrorTimer);
+      memberMirrorTimer = null;
+    }
+  }
+
+  function mirrorLeaderState(state) {
+    const stateKey = getStateKey(state);
+    if (!stateKey || stateKey === lastMirroredStateKey) return;
+
+    lastMirroredStateKey = stateKey;
+
+    if (state.item_type === 'musica') {
+      const musica = musicas.find((item) => item.id === state.musica_id);
+      if (musica) {
+        executeMusica(musica, { mirrored: true });
+      }
+      return;
+    }
+
+    if (state.item_type === 'repertorio') {
+      const repertorio = repertorios.find((item) => item.id === state.repertorio_id);
+      if (repertorio) {
+        executeRepertorio(repertorio, { mirrored: true });
+      }
+    }
+  }
 
   function renderMusicasRepertorio() {
     const query = normalizeText(repertorioMusicSearch.value);
@@ -260,6 +335,13 @@ function getUniqueRepertorioMusicas(repertorioMusicas) {
 
 function matchesMusicaSearch(musica, normalizedQuery) {
   return normalizeText(`${getField(musica, ['titulo', 'nome', 'title'])} ${getField(musica, ['artista', 'artist'])}`).includes(normalizedQuery);
+}
+
+function getStateKey(state) {
+  if (!state?.item_type) return '';
+  if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${state.updated_at || ''}`;
+  if (state.item_type === 'repertorio' && state.repertorio_id) return `repertorio:${state.repertorio_id}:${state.updated_at || ''}`;
+  return '';
 }
 
 function createResultList(items, options) {

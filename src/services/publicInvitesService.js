@@ -93,6 +93,21 @@ export async function getPublicBandaCoralData(token) {
   return supabase.rpc('get_public_banda_coral_data', { p_token: token });
 }
 
+export async function updatePublicBandaCoralState(token, state) {
+  assertSupabaseConfig();
+  return supabase.rpc('update_public_banda_coral_state', {
+    p_token: token,
+    p_item_type: state.itemType,
+    p_musica_id: state.musicaId || null,
+    p_repertorio_id: state.repertorioId || null,
+  });
+}
+
+export async function getPublicBandaCoralState(token) {
+  assertSupabaseConfig();
+  return supabase.rpc('get_public_banda_coral_state', { p_token: token });
+}
+
 export async function listPublicRepertorioMusicas(token, repertorioId) {
   assertSupabaseConfig();
   const { data, error } = await supabase.rpc('get_public_repertorio_musicas', {
