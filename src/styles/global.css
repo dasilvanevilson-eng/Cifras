@@ -599,6 +599,8 @@ a {
 
 .letras-page {
   max-width: 1180px;
+  display: grid;
+  gap: 16px;
 }
 
 .lyrics-search-grid {

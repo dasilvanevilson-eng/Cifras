@@ -8,7 +8,10 @@ export async function MusicasLetrasPage() {
   page.className = 'page letras-page';
   page.innerHTML = `
     <header class="dashboard-header">
-      <h1>Textos</h1>
+      <div>
+        <h1>Textos</h1>
+        <p>Consulta e exportacao de letras por musica ou repertorio.</p>
+      </div>
     </header>
     <section class="text-search-panel">
       <div class="list-slot">
