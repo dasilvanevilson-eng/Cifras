@@ -1086,17 +1086,20 @@ a {
 
 .personalization-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 420px) minmax(320px, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(300px, 460px) minmax(0, 1fr);
+  gap: 18px;
   align-items: start;
 }
 
 .personalization-form {
   max-width: none;
-}
-
-.personalization-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .personalization-form .field-full {
@@ -1104,8 +1107,9 @@ a {
 }
 
 .personalization-form input[type="color"] {
-  min-height: 44px;
-  padding: 4px;
+  min-height: 46px;
+  padding: 5px;
+  cursor: pointer;
 }
 
 .public-invites-layout {
@@ -1195,20 +1199,27 @@ a {
 
 .personalization-file-field [data-action="select-background-image"] {
   justify-self: start;
+  min-height: 42px;
 }
 
 .personalization-preview {
   display: grid;
   gap: 10px;
+  min-width: 0;
+  border: 1px solid #e1dacd;
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
 .personalization-preview-hero {
   display: grid;
-  min-height: 420px;
+  min-height: 440px;
   place-items: center end;
   overflow: hidden;
   border: 1px solid #ddd6c8;
-  border-radius: var(--border-radius-default);
+  border-radius: 8px;
   padding: 24px;
   background:
     linear-gradient(90deg, rgba(8, 6, 4, 0.42), rgba(8, 6, 4, 0.08) 48%, rgba(8, 6, 4, 0.52)),
@@ -1221,13 +1232,32 @@ a {
   display: grid;
   gap: 10px;
   justify-items: center;
+  max-width: 260px;
+  border: 1px solid rgba(255, 236, 194, 0.18);
+  border-radius: var(--border-radius-default);
+  padding: 18px 16px;
+  background: rgba(12, 8, 5, 0.28);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
 }
 
 .personalization-preview-hero strong,
 .personalization-preview-hero span {
   color: #fff8e8;
+  font-family: Georgia, 'Times New Roman', serif;
   text-align: center;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.42);
+}
+
+.personalization-preview-hero strong {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.personalization-preview-hero span {
+  color: rgba(255, 248, 232, 0.76);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .personalization-preview-hero span:empty,
@@ -4099,6 +4129,27 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .personalization-layout {
+    gap: 12px;
+  }
+
+  .personalization-form,
+  .personalization-preview {
+    border-radius: 7px;
+    padding: 10px;
+  }
+
+  .personalization-form .form-actions {
+    align-items: stretch;
+  }
+
+  .personalization-form .form-actions .button,
+  .personalization-form .form-actions .button-link {
+    flex: 1 1 150px;
+    justify-content: center;
+    text-align: center;
+  }
+
   .public-invite-card,
   .public-invite-actions {
     grid-template-columns: 1fr;
@@ -4112,6 +4163,11 @@ a {
   .personalization-preview-hero {
     min-height: 320px;
     place-items: end center;
+    padding: 14px;
+  }
+
+  .personalization-preview-hero > div {
+    width: min(100%, 260px);
   }
 }
 
