@@ -582,9 +582,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function renderMusicasRepertorio() {
     const query = normalizeText(repertorioMusicSearch.value);
-    const results = (query
+    const results = query
       ? musicasRepertorio.filter((musica) => matchesMusicaSearch(musica, query))
-      : musicasRepertorio.slice(0, 10)).slice(0, 30);
+      : musicasRepertorio;
 
     musicasRepertorioSlot.replaceChildren(createResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
@@ -597,9 +597,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function renderMusicasAcervo() {
     const query = normalizeText(acervoMusicSearch.value);
-    const results = (query
+    const results = query
       ? musicas.filter((musica) => matchesMusicaSearch(musica, query))
-      : musicas.slice(0, 10)).slice(0, 30);
+      : musicas;
 
     musicasAcervoSlot.replaceChildren(createResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
