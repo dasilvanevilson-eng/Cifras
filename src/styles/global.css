@@ -1356,6 +1356,22 @@ a {
   align-items: start;
 }
 
+.public-banda-search-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.public-banda-search-action .dashboard-search {
+  margin-bottom: 0;
+}
+
+.public-banda-search-action .nav-button {
+  min-height: 46px;
+  margin-bottom: 12px;
+}
+
 .public-banda-results {
   max-height: min(58vh, 520px);
 }

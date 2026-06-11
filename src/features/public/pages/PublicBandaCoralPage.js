@@ -89,10 +89,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     </section>
     <section class="public-banda-grid">
       <section class="dashboard-search-column" data-public-banda-column="repertorios">
-        <label class="dashboard-search">
-          Buscar repertorio
-          <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
-        </label>
+        <div class="public-banda-search-action">
+          <label class="dashboard-search">
+            Buscar repertorio
+            <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
+          </label>
+          <button class="nav-button" type="button" data-action="execute-selected-repertorio" disabled>Executar</button>
+        </div>
         <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="musicas">
@@ -128,9 +131,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const sessionStatusText = wrapper.querySelector('[data-role="session-status-text"]');
   const memberFollowButton = wrapper.querySelector('[data-action="toggle-member-follow"]');
   const releaseLeaderButton = wrapper.querySelector('[data-action="release-leader"]');
+  const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
   let activeCascade = null;
   let currentExecutionState = null;
   let publicAutoscrollTimer = null;
+  let selectedRepertorio = null;
 
   async function setMode(mode, options = {}) {
     if (mode === 'lider' && !options.skipClaim) {
@@ -627,6 +632,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function renderRepertorios() {
     const query = normalizeText(repertorioSearch.value);
+    if (selectedRepertorio && query !== normalizeText(formatRepertorioSearchLabel(selectedRepertorio))) {
+      setSelectedRepertorio(null);
+    }
+
     const results = query
       ? repertorios.filter((repertorio) => normalizeText(`${getField(repertorio, ['nome', 'titulo', 'name'])} ${getField(repertorio, ['data', 'date'])}`).includes(query))
       : repertorios;
@@ -635,9 +644,24 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       emptyText: 'Nenhum repertorio liberado neste convite.',
       getTitle: (repertorio) => getField(repertorio, ['nome', 'titulo', 'name']),
       getSubtitle: (repertorio) => formatDate(getField(repertorio, ['data', 'date'])),
-      onExecute: executeRepertorio,
+      onExecute: selectRepertorio,
     }));
     showCascade(repertoriosSlot);
+  }
+
+  function selectRepertorio(repertorio) {
+    setSelectedRepertorio(repertorio);
+    hideCascade(repertoriosSlot);
+  }
+
+  function setSelectedRepertorio(repertorio) {
+    selectedRepertorio = repertorio;
+
+    if (selectedRepertorio) {
+      repertorioSearch.value = formatRepertorioSearchLabel(selectedRepertorio);
+    }
+
+    executeSelectedRepertorioButton.disabled = !selectedRepertorio;
   }
 
   repertorioMusicSearch.addEventListener('input', renderMusicasRepertorio);
@@ -646,6 +670,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   acervoMusicSearch.addEventListener('focus', renderMusicasAcervo);
   repertorioSearch.addEventListener('input', renderRepertorios);
   repertorioSearch.addEventListener('focus', renderRepertorios);
+  executeSelectedRepertorioButton.addEventListener('click', () => {
+    if (!selectedRepertorio) return;
+    executeRepertorio(selectedRepertorio);
+  });
 
   wrapper.addEventListener('focusout', () => {
     window.setTimeout(() => {
@@ -794,6 +822,13 @@ function formatDate(value) {
   } catch (_error) {
     return String(value);
   }
+}
+
+function formatRepertorioSearchLabel(repertorio) {
+  const title = getField(repertorio, ['nome', 'titulo', 'name']);
+  const date = formatDate(getField(repertorio, ['data', 'date']));
+
+  return date && date !== '-' ? `${title} - ${date}` : title;
 }
 
 function normalizeText(value) {
