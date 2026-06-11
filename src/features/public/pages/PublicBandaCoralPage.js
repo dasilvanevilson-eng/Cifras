@@ -94,7 +94,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
             Buscar repertorio
             <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
           </label>
-          <button class="nav-button" type="button" data-action="execute-selected-repertorio" disabled>Executar</button>
+          <button class="nav-button public-banda-play-button" type="button" data-action="execute-selected-repertorio" aria-label="Executar repertorio" title="Executar repertorio" disabled>&#9654;</button>
         </div>
         <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
