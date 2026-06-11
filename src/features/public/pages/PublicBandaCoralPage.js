@@ -235,12 +235,19 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       repertorio,
       musicasAssociadas,
       returnTo,
+      initialRepertorioMusicaId: options.state?.repertorio_musica_id || options.repertorioMusicaId,
+      initialMusicaId: options.state?.musica_id,
+      onSongChange: handleRepertorioSongChange,
     }));
     refreshExecutionControlsForMode();
     openExecutionLayer();
     currentExecutionState = normalizeState({
       itemType: 'repertorio',
       repertorioId: repertorio.id,
+      repertorioMusicaId: options.state?.repertorio_musica_id
+        || options.repertorioMusicaId
+        || musicasAssociadas[0]?.id
+        || null,
       transposeSemitones: options.state?.transpose_semitones || 0,
       capo: options.state?.capo ?? getCurrentCapo(),
     });
@@ -249,6 +256,21 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (!options.mirrored && currentMode === 'lider') {
       await publishLeaderState(currentExecutionState);
     }
+  }
+
+  async function handleRepertorioSongChange(songState) {
+    if (currentMode !== 'lider' || !currentExecutionState || currentExecutionState.itemType !== 'repertorio') {
+      return;
+    }
+
+    currentExecutionState = normalizeState({
+      ...currentExecutionState,
+      musicaId: songState.musicaId,
+      repertorioMusicaId: songState.repertorioMusicaId,
+      transposeSemitones: songState.transposeSemitones,
+      capo: songState.capo,
+    });
+    await publishLeaderState(currentExecutionState);
   }
 
   function openExecutionLayer() {
@@ -673,6 +695,7 @@ function normalizeState(state) {
     itemType: state.itemType,
     musicaId: state.musicaId || null,
     repertorioId: state.repertorioId || null,
+    repertorioMusicaId: state.repertorioMusicaId || null,
     transposeSemitones: Number(state.transposeSemitones || 0),
     capo: Number(state.capo || 0),
   };
@@ -682,7 +705,9 @@ function getStateKey(state) {
   if (!state?.item_type) return '';
   const toneKey = `${state.transpose_semitones || 0}:${state.capo || 0}:${state.updated_at || ''}`;
   if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${toneKey}`;
-  if (state.item_type === 'repertorio' && state.repertorio_id) return `repertorio:${state.repertorio_id}:${toneKey}`;
+  if (state.item_type === 'repertorio' && state.repertorio_id) {
+    return `repertorio:${state.repertorio_id}:${state.repertorio_musica_id || ''}:${toneKey}`;
+  }
   return '';
 }
 

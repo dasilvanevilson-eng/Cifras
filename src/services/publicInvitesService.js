@@ -100,6 +100,7 @@ export async function updatePublicBandaCoralState(token, state) {
     p_item_type: state.itemType,
     p_musica_id: state.musicaId || null,
     p_repertorio_id: state.repertorioId || null,
+    p_repertorio_musica_id: state.repertorioMusicaId || null,
     p_transpose_semitones: Number(state.transposeSemitones || 0),
     p_capo: Number(state.capo || 0),
   });

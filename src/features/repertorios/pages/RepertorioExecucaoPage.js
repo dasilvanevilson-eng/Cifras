@@ -360,7 +360,14 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-export function createPerformanceViewV2({ repertorio, musicasAssociadas, returnTo, initialMusicaId }) {
+export function createPerformanceViewV2({
+  repertorio,
+  musicasAssociadas,
+  returnTo,
+  initialMusicaId,
+  initialRepertorioMusicaId,
+  onSongChange,
+}) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
@@ -407,7 +414,7 @@ export function createPerformanceViewV2({ repertorio, musicasAssociadas, returnT
     empty.className = 'page-status';
     empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
     list.append(empty);
-    setupPerformanceControlsV2(wrapper, { initialMusicaId });
+    setupPerformanceControlsV2(wrapper, { initialMusicaId, initialRepertorioMusicaId, onSongChange });
     return wrapper;
   }
 
@@ -415,7 +422,7 @@ export function createPerformanceViewV2({ repertorio, musicasAssociadas, returnT
     list.append(createSongBlockV2(item, index + 1, nome));
   });
 
-  setupPerformanceControlsV2(wrapper, { initialMusicaId });
+  setupPerformanceControlsV2(wrapper, { initialMusicaId, initialRepertorioMusicaId, onSongChange });
   return wrapper;
 }
 
@@ -436,6 +443,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   block.tabIndex = -1;
   block.dataset.link = link !== '-' ? link : '';
   block.dataset.musicaId = item.musica_id || '';
+  block.dataset.repertorioMusicaId = item.id || '';
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
       <span class="repertorio-current-song-title">${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</span>
@@ -470,8 +478,10 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   const songs = [...wrapper.querySelectorAll('.performance-song')];
   let scrollTimer = null;
-  const initialIndex = options.initialMusicaId
-    ? songs.findIndex((song) => song.dataset.musicaId === options.initialMusicaId)
+  const initialIndex = options.initialRepertorioMusicaId
+    ? songs.findIndex((song) => song.dataset.repertorioMusicaId === options.initialRepertorioMusicaId)
+    : options.initialMusicaId
+      ? songs.findIndex((song) => song.dataset.musicaId === options.initialMusicaId)
     : -1;
   let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
@@ -590,10 +600,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   window.addEventListener('resize', renderCurrentSong);
 
   function goToSong(direction) {
-    currentSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
+    const nextSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
+    if (nextSongIndex === currentSongIndex) return;
+
+    currentSongIndex = nextSongIndex;
     fontSize = 18;
     fitFontToMobileWidth = true;
     renderCurrentSong();
+    notifySongChange();
   }
 
   async function togglePerformanceFullscreen() {
@@ -622,6 +636,18 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
       previousSongButton,
       nextSongButton,
       linkButton,
+    });
+  }
+
+  function notifySongChange() {
+    const song = songs[currentSongIndex];
+    if (!song || typeof options.onSongChange !== 'function') return;
+
+    options.onSongChange({
+      musicaId: song.dataset.musicaId || null,
+      repertorioMusicaId: song.dataset.repertorioMusicaId || null,
+      transposeSemitones: songSemitones[currentSongIndex] || 0,
+      capo,
     });
   }
 }
