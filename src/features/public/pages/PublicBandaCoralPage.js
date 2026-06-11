@@ -715,6 +715,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       : [...tempRepertorioMusicas, item];
     updateTempRepertorioButton();
     renderMusicasRepertorio();
+    window.requestAnimationFrame(() => {
+      repertorioMusicSearch.focus({ preventScroll: true });
+      showCascade(musicasRepertorioSlot);
+    });
   }
 
   function updateTempRepertorioButton() {
@@ -913,7 +917,15 @@ function createRepertorioMusicResultList(items, options) {
     addButton.textContent = added ? '✓' : '+';
     addButton.title = added ? 'Remover da lista provisoria' : 'Adicionar a lista provisoria';
     addButton.setAttribute('aria-label', addButton.title);
-    addButton.addEventListener('click', () => options.onToggle(item));
+    addButton.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    addButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      options.onToggle(item);
+    });
 
     row.append(titleButton, addButton);
     list.append(row);
