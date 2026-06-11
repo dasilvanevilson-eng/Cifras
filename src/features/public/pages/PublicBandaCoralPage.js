@@ -499,6 +499,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
     if (memberButton) {
       memberButton.hidden = !memberAvailable;
+      memberButton.textContent = currentMode === 'lider' ? 'Desconectar Lider' : 'Integrante';
+      memberButton.title = currentMode === 'lider' ? 'Desconectar Lider' : 'Entrar como integrante';
+      memberButton.setAttribute('aria-label', memberButton.title);
     }
     updateStatusBarUi();
   }
