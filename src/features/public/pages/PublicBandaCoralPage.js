@@ -141,6 +141,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let publicAutoscrollTimer = null;
   let selectedRepertorio = null;
   let tempRepertorioMusicas = [];
+  let keepCascadeOpenOnFocusout = false;
 
   async function setMode(mode, options = {}) {
     if (mode === 'lider' && !options.skipClaim) {
@@ -707,6 +708,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function toggleTempRepertorioMusica(item) {
+    keepCascadeOpenOnFocusout = true;
     const isSelected = tempRepertorioMusicas.some((selected) => selected.id === item.id);
     tempRepertorioMusicas = isSelected
       ? tempRepertorioMusicas.filter((selected) => selected.id !== item.id)
@@ -737,6 +739,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   wrapper.addEventListener('focusout', () => {
     window.setTimeout(() => {
+      if (keepCascadeOpenOnFocusout) {
+        keepCascadeOpenOnFocusout = false;
+        return;
+      }
+
       if (wrapper.contains(document.activeElement)
         && document.activeElement?.closest('.public-banda-cascade-results')) {
         return;
