@@ -493,7 +493,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const memberButton = wrapper.querySelector('[data-mode="integrante"]');
     const leaderIsThisClient = leaderPresence.client_id === clientId;
     const leaderAvailable = allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient);
-    const memberAvailable = allowedMode !== 'lider' || (leaderPresence.active && !leaderIsThisClient);
+    const memberAvailable = allowedMode !== 'lider'
+      || !leaderPresence.active
+      || (leaderPresence.active && !leaderIsThisClient);
 
     if (leaderButton) {
       leaderButton.hidden = !leaderAvailable;
@@ -654,8 +656,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
     const leaderIsThisClient = leaderPresence.client_id === clientId;
-    const shouldStartAsLeader = allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient);
-    setMode(shouldStartAsLeader ? 'lider' : 'integrante');
+    const shouldResumeAsLeader = allowedMode !== 'integrante' && leaderPresence.active && leaderIsThisClient;
+    setMode(shouldResumeAsLeader ? 'lider' : 'integrante', {
+      skipClaim: !shouldResumeAsLeader,
+      skipRelease: true,
+    });
   });
   hideCascade(musicasRepertorioSlot);
   hideCascade(musicasAcervoSlot);
