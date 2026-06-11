@@ -89,7 +89,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     </section>
     <section class="public-banda-grid">
       <section class="dashboard-search-column" data-public-banda-column="musicas">
-        <h2>Musicas do repertorio</h2>
         <label class="dashboard-search">
           Buscar musica repertorio
           <input data-action="search-musica-repertorio" type="search" placeholder="Titulo ou artista">
@@ -97,7 +96,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <div class="public-banda-cascade-results" data-role="musicas-repertorio-results" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="acervo">
-        <h2>Musicas do acervo</h2>
         <label class="dashboard-search">
           Buscar musica acervo
           <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
@@ -105,7 +103,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="repertorios">
-        <h2>Repertorios liberados</h2>
         <label class="dashboard-search">
           Buscar repertorio
           <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
