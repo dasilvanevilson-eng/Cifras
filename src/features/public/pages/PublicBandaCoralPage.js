@@ -406,12 +406,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     const leaderIsThisClient = leaderPresence.client_id === clientId;
     const canFollowLeader = isMemberMode && leaderPresence.active && !leaderIsThisClient;
-    memberFollowButton.hidden = !isMemberMode;
-    memberFollowButton.disabled = !canFollowLeader;
+    memberFollowButton.hidden = !canFollowLeader;
+    memberFollowButton.disabled = false;
     memberFollowButton.textContent = memberFollowingLeader ? 'Desconectar do Lider' : 'Conectar ao Lider';
-    memberFollowButton.title = canFollowLeader
-      ? memberFollowButton.textContent
-      : 'Aguardando lider conectado';
+    memberFollowButton.title = memberFollowButton.textContent;
     memberFollowButton.setAttribute('aria-label', memberFollowButton.title);
   }
 
@@ -844,10 +842,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
-    const leaderIsThisClient = leaderPresence.client_id === clientId;
-    const shouldResumeAsLeader = allowedMode !== 'integrante' && leaderPresence.active && leaderIsThisClient;
-    setMode(shouldResumeAsLeader ? 'lider' : 'integrante', {
-      skipClaim: !shouldResumeAsLeader,
+    setMode('integrante', {
+      skipClaim: true,
       skipRelease: true,
     });
   });
