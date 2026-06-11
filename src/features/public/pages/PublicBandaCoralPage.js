@@ -76,6 +76,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       <div class="banda-mode-switch public-banda-mode-switch">
         <button class="nav-button" type="button" data-mode="lider">Lider</button>
         <button class="nav-button" type="button" data-mode="integrante">Integrante</button>
+        <button class="nav-button" type="button" data-action="toggle-member-follow" hidden>Desconectar do Lider</button>
       </div>
     </header>
     <section class="public-banda-grid">
@@ -118,6 +119,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   `;
 
   const modeButtons = wrapper.querySelectorAll('[data-mode]');
+  const memberFollowButton = wrapper.querySelector('[data-action="toggle-member-follow"]');
   const acervoColumn = wrapper.querySelector('[data-public-banda-column="acervo"]');
   const repertorioMusicSearch = wrapper.querySelector('[data-action="search-musica-repertorio"]');
   const acervoMusicSearch = wrapper.querySelector('[data-action="search-musica-acervo"]');
@@ -191,6 +193,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   modeButtons.forEach((button) => {
     button.addEventListener('click', () => setMode(button.dataset.mode));
+  });
+
+  memberFollowButton?.addEventListener('click', () => {
+    toggleMemberLeaderConnection();
   });
 
   async function executeMusica(musica, options = {}) {
@@ -395,6 +401,41 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const isMemberMode = currentMode === 'integrante';
 
     wrapper.classList.toggle('is-member-following', isMemberMode && memberFollowingLeader);
+
+    if (!memberFollowButton) return;
+
+    const leaderIsThisClient = leaderPresence.client_id === clientId;
+    const canFollowLeader = isMemberMode && leaderPresence.active && !leaderIsThisClient;
+    memberFollowButton.hidden = !isMemberMode;
+    memberFollowButton.disabled = !canFollowLeader;
+    memberFollowButton.textContent = memberFollowingLeader ? 'Desconectar do Lider' : 'Conectar ao Lider';
+    memberFollowButton.title = canFollowLeader
+      ? memberFollowButton.textContent
+      : 'Aguardando lider conectado';
+    memberFollowButton.setAttribute('aria-label', memberFollowButton.title);
+  }
+
+  async function toggleMemberLeaderConnection() {
+    if (currentMode !== 'integrante') return;
+
+    if (memberFollowingLeader) {
+      memberFollowingLeader = false;
+      lastMirroredStateKey = '';
+      stopMemberMirror();
+      updateMemberMirrorUi();
+      return;
+    }
+
+    await refreshLeaderPresence();
+    if (!leaderPresence.active || leaderPresence.client_id === clientId) {
+      window.alert('Nenhum lider conectado neste convite.');
+      updateMemberMirrorUi();
+      return;
+    }
+
+    memberFollowingLeader = true;
+    updateMemberMirrorUi();
+    startMemberMirror();
   }
 
   executionContent.addEventListener('click', (event) => {
