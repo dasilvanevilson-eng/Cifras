@@ -1304,47 +1304,6 @@ a {
   display: none;
 }
 
-.public-banda-statusbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border: 1px solid #ddd6c8;
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: #fffaf1;
-  box-shadow: 0 8px 18px rgba(32, 33, 31, 0.05);
-}
-
-.public-banda-statusbar > div {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 8px;
-}
-
-.public-banda-statusbar strong {
-  color: #223c35;
-  font-size: 14px;
-  line-height: 1.2;
-}
-
-.public-banda-mode-pill {
-  flex: 0 0 auto;
-  border: 1px solid #c8bdad;
-  border-radius: 999px;
-  padding: 4px 8px;
-  background: #ffffff;
-  color: #3d564e;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.public-banda-status-actions {
-  flex: 0 0 auto;
-}
-
 .public-banda-shell.is-member-following [data-member-restricted-config="true"] {
   display: none !important;
 }
@@ -4538,24 +4497,6 @@ a {
   }
 
   .public-banda-mode-switch {
-    width: 100%;
-  }
-
-  .public-banda-statusbar,
-  .public-banda-statusbar > div {
-    align-items: stretch;
-  }
-
-  .public-banda-statusbar {
-    flex-direction: column;
-  }
-
-  .public-banda-statusbar > div {
-    flex-direction: column;
-  }
-
-  .public-banda-status-actions,
-  .public-banda-status-actions .nav-button {
     width: 100%;
   }
 
