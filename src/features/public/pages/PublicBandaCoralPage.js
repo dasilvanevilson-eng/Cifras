@@ -730,6 +730,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     tempRepertorioMusicas = [];
     updateTempRepertorioButton();
     renderSelectedMusicasList(selectedRepertorioMusicasSlot, []);
+    updateSelectedListsVisibility();
     hideCascade(musicasRepertorioSlot);
     musicasRepertorioSlot.replaceChildren();
 
@@ -745,6 +746,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     tempRepertorioMusicas = toggleListItem(tempRepertorioMusicas, item);
     updateTempRepertorioButton();
     renderSelectedMusicasList(selectedRepertorioMusicasSlot, tempRepertorioMusicas);
+    updateSelectedListsVisibility();
     renderMusicasRepertorio();
     window.requestAnimationFrame(() => {
       repertorioMusicSearch.focus({ preventScroll: true });
@@ -757,6 +759,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     tempAcervoMusicas = toggleListItem(tempAcervoMusicas, musica);
     updateTempAcervoButton();
     renderSelectedMusicasList(selectedAcervoMusicasSlot, tempAcervoMusicas);
+    updateSelectedListsVisibility();
     renderMusicasAcervo();
     window.requestAnimationFrame(() => {
       acervoMusicSearch.focus({ preventScroll: true });
@@ -845,12 +848,26 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     slot.hidden = false;
     activeCascade = slot;
+    updateSelectedListsVisibility();
   }
 
   function hideCascade(slot) {
     slot.hidden = true;
     if (activeCascade === slot) {
       activeCascade = null;
+    }
+    updateSelectedListsVisibility();
+  }
+
+  function updateSelectedListsVisibility() {
+    if (selectedRepertorioMusicasSlot) {
+      selectedRepertorioMusicasSlot.hidden = activeCascade === musicasRepertorioSlot
+        || !tempRepertorioMusicas.length;
+    }
+
+    if (selectedAcervoMusicasSlot) {
+      selectedAcervoMusicasSlot.hidden = activeCascade === musicasAcervoSlot
+        || !tempAcervoMusicas.length;
     }
   }
 }
@@ -995,10 +1012,11 @@ function createRepertorioMusicResultList(items, options) {
 function renderSelectedMusicasList(slot, items) {
   if (!slot) return;
 
-  slot.hidden = !items.length;
   slot.replaceChildren();
-
-  if (!items.length) return;
+  if (!items.length) {
+    slot.hidden = true;
+    return;
+  }
 
   const list = document.createElement('ol');
   list.className = 'public-banda-selected-items';
