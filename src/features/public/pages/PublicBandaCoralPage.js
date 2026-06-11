@@ -601,10 +601,20 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function renderMusicasRepertorio() {
+    if (!selectedRepertorio) {
+      hideCascade(musicasRepertorioSlot);
+      musicasRepertorioSlot.replaceChildren();
+      return;
+    }
+
     const query = normalizeText(repertorioMusicSearch.value);
+    const musicasDoRepertorioSelecionado = repertorioMusicas
+      .filter((item) => item.repertorio_id === selectedRepertorio.id)
+      .map((item) => item?.musicas)
+      .filter(Boolean);
     const results = query
-      ? musicasRepertorio.filter((musica) => matchesMusicaSearch(musica, query))
-      : musicasRepertorio;
+      ? musicasDoRepertorioSelecionado.filter((musica) => matchesMusicaSearch(musica, query))
+      : musicasDoRepertorioSelecionado;
 
     musicasRepertorioSlot.replaceChildren(createResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
@@ -656,6 +666,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function setSelectedRepertorio(repertorio) {
     selectedRepertorio = repertorio;
+    repertorioMusicSearch.value = '';
+    hideCascade(musicasRepertorioSlot);
+    musicasRepertorioSlot.replaceChildren();
 
     if (selectedRepertorio) {
       repertorioSearch.value = formatRepertorioSearchLabel(selectedRepertorio);
