@@ -1457,6 +1457,40 @@ a {
   color: #16833a;
 }
 
+.public-banda-selected-list {
+  margin-top: 8px;
+}
+
+.public-banda-selected-list[hidden] {
+  display: none;
+}
+
+.public-banda-selected-items {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.public-banda-selected-items li {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  border: 1px solid #ddd6c8;
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: #fffaf1;
+  color: #20211f;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.public-banda-selected-items small {
+  color: #6b6256;
+  font-size: 11px;
+}
+
 .public-banda-result-item h3 {
   margin-bottom: 0;
   font-size: 14px;

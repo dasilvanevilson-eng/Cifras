@@ -107,6 +107,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
           <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-repertorio" aria-label="Executar lista provisoria" title="Executar lista provisoria" disabled>&#9654;</button>
         </div>
         <div class="public-banda-cascade-results" data-role="musicas-repertorio-results" hidden></div>
+        <div class="public-banda-selected-list" data-role="selected-repertorio-musicas" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="acervo">
         <div class="public-banda-search-action">
@@ -117,6 +118,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
           <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-acervo" aria-label="Executar lista provisoria do acervo" title="Executar lista provisoria do acervo" disabled>&#9654;</button>
         </div>
         <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
+        <div class="public-banda-selected-list" data-role="selected-acervo-musicas" hidden></div>
       </section>
     </section>
     <section class="public-banda-execution" data-role="execution-slot" hidden>
@@ -130,6 +132,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const repertorioSearch = wrapper.querySelector('[data-action="search-repertorio"]');
   const musicasRepertorioSlot = wrapper.querySelector('[data-role="musicas-repertorio-results"]');
   const musicasAcervoSlot = wrapper.querySelector('[data-role="musicas-acervo-results"]');
+  const selectedRepertorioMusicasSlot = wrapper.querySelector('[data-role="selected-repertorio-musicas"]');
+  const selectedAcervoMusicasSlot = wrapper.querySelector('[data-role="selected-acervo-musicas"]');
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   const executionContent = wrapper.querySelector('[data-role="execution-content"]');
@@ -725,6 +729,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     repertorioMusicSearch.value = '';
     tempRepertorioMusicas = [];
     updateTempRepertorioButton();
+    renderSelectedMusicasList(selectedRepertorioMusicasSlot, []);
     hideCascade(musicasRepertorioSlot);
     musicasRepertorioSlot.replaceChildren();
 
@@ -739,6 +744,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     keepCascadeOpenOnFocusout = true;
     tempRepertorioMusicas = toggleListItem(tempRepertorioMusicas, item);
     updateTempRepertorioButton();
+    renderSelectedMusicasList(selectedRepertorioMusicasSlot, tempRepertorioMusicas);
     renderMusicasRepertorio();
     window.requestAnimationFrame(() => {
       repertorioMusicSearch.focus({ preventScroll: true });
@@ -750,6 +756,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     keepCascadeOpenOnFocusout = true;
     tempAcervoMusicas = toggleListItem(tempAcervoMusicas, musica);
     updateTempAcervoButton();
+    renderSelectedMusicasList(selectedAcervoMusicasSlot, tempAcervoMusicas);
     renderMusicasAcervo();
     window.requestAnimationFrame(() => {
       acervoMusicSearch.focus({ preventScroll: true });
@@ -983,6 +990,32 @@ function createRepertorioMusicResultList(items, options) {
   });
 
   return list;
+}
+
+function renderSelectedMusicasList(slot, items) {
+  if (!slot) return;
+
+  slot.hidden = !items.length;
+  slot.replaceChildren();
+
+  if (!items.length) return;
+
+  const list = document.createElement('ol');
+  list.className = 'public-banda-selected-items';
+
+  items.forEach((item) => {
+    const musica = item.musicas || item;
+    const title = getField(musica, ['titulo', 'nome', 'title']);
+    const artist = getField(musica, ['artista', 'artist']);
+    const row = document.createElement('li');
+    row.innerHTML = `
+      <span>${escapeHtml(title || '-')}</span>
+      ${artist ? `<small>${escapeHtml(artist)}</small>` : ''}
+    `;
+    list.append(row);
+  });
+
+  slot.append(list);
 }
 
 function formatMode(mode) {
