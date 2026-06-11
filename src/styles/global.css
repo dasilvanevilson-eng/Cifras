@@ -1367,7 +1367,8 @@ a {
   left: 14px;
   z-index: 30;
   max-height: min(58vh, 420px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid #d5cabb;
   border-radius: 8px;
   padding: 8px;
