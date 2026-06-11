@@ -39,22 +39,25 @@ export async function ConvitesPublicosPage({ session } = {}) {
             <option value="banda_coral">Modo Banda/Coral</option>
           </select>
         </label>
-        <label data-role="banda-access-mode" hidden>
-          Entrar como
-          <select name="access_mode">
-            <option value="ambos">Lider ou integrante</option>
-            <option value="lider">Apenas lider</option>
-            <option value="integrante">Apenas integrante</option>
-          </select>
-        </label>
-        <label class="checkbox-label field-full" data-role="banda-acervo-access" hidden>
-          <input name="allow_acervo" type="checkbox" checked>
-          <span>Permitir acesso ao acervo</span>
-        </label>
-        <fieldset class="public-invite-repertorios field-full" data-role="banda-repertorios" hidden>
-          <legend>Repertorios liberados</legend>
-          <div data-role="banda-repertorios-list">
-            <p class="page-status">Carregando repertorios...</p>
+        <fieldset class="public-invite-permissions field-full" data-role="banda-permissions" hidden>
+          <legend>Permissoes e restricoes</legend>
+          <label data-role="banda-access-mode">
+            Entrar como
+            <select name="access_mode">
+              <option value="ambos">Lider ou integrante</option>
+              <option value="lider">Apenas lider</option>
+              <option value="integrante">Apenas integrante</option>
+            </select>
+          </label>
+          <label class="checkbox-label" data-role="banda-acervo-access">
+            <input name="allow_acervo" type="checkbox" checked>
+            <span>Permitir acesso ao acervo</span>
+          </label>
+          <div class="public-invite-repertorios" data-role="banda-repertorios">
+            <h3>Repertorios liberados</h3>
+            <div data-role="banda-repertorios-list">
+              <p class="page-status">Carregando repertorios...</p>
+            </div>
           </div>
         </fieldset>
         <label>
@@ -86,18 +89,16 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const cancelEditButton = form.querySelector('[data-action="cancel-edit"]');
   const message = page.querySelector('.form-message');
   const listSlot = page.querySelector('[data-role="public-invites-list"]');
-  const bandaAccessMode = page.querySelector('[data-role="banda-access-mode"]');
-  const bandaAcervoAccess = page.querySelector('[data-role="banda-acervo-access"]');
-  const bandaRepertorios = page.querySelector('[data-role="banda-repertorios"]');
+  const bandaPermissions = page.querySelector('[data-role="banda-permissions"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
   let repertorios = [];
   let editingInvite = null;
 
   form.elements.expires_at.value = getDefaultExpiresAt();
-  updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
+  updateModuleFields(form, bandaPermissions);
 
   form.elements.module_key.addEventListener('change', () => {
-    updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
+    updateModuleFields(form, bandaPermissions);
   });
 
   async function loadInvites() {
@@ -195,7 +196,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
     form.elements.max_uses.value = invite.max_uses || '';
     setCheckedRepertorios(form, metadata.repertorio_ids || []);
-    updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
+    updateModuleFields(form, bandaPermissions);
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -207,7 +208,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     cancelEditButton.hidden = true;
     form.elements.expires_at.value = getDefaultExpiresAt();
     form.elements.allow_acervo.checked = true;
-    updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
+    updateModuleFields(form, bandaPermissions);
   }
 }
 
@@ -303,11 +304,9 @@ function readInviteForm(form, session) {
   };
 }
 
-function updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios) {
+function updateModuleFields(form, bandaPermissions) {
   const isBandaCoral = form.elements.module_key.value === 'banda_coral';
-  bandaAccessMode.hidden = !isBandaCoral;
-  bandaAcervoAccess.hidden = !isBandaCoral;
-  bandaRepertorios.hidden = !isBandaCoral;
+  bandaPermissions.hidden = !isBandaCoral;
 }
 
 function createRepertoriosChecklist(repertorios) {

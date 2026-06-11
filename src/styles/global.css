@@ -1141,6 +1141,7 @@ a {
   line-height: 1.2;
 }
 
+.public-invite-permissions,
 .public-invite-repertorios {
   display: grid;
   gap: 8px;
@@ -1151,15 +1152,28 @@ a {
   background: #fbfaf7;
 }
 
+.public-invite-permissions[hidden],
 .public-invite-repertorios[hidden] {
   display: none;
 }
 
+.public-invite-permissions legend,
 .public-invite-repertorios legend {
   padding: 0 4px;
   color: #514a40;
   font-size: 13px;
   font-weight: 700;
+}
+
+.public-invite-repertorios {
+  padding: 8px;
+}
+
+.public-invite-repertorios h3 {
+  margin: 0;
+  color: #514a40;
+  font-size: 13px;
+  line-height: 1.2;
 }
 
 .public-invite-repertorios-list {
