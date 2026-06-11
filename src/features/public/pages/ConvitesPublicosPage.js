@@ -5,6 +5,7 @@ import {
   deletePublicInvite,
   listPublicInvites,
   revokePublicInvite,
+  updatePublicInvite,
 } from '../../../services/publicInvitesService.js';
 import { listRepertorios } from '../../../services/repertoriosService.js';
 
@@ -26,7 +27,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     </header>
     <section class="public-invites-layout">
       <form class="form public-invite-form">
-        <h2>Novo convite</h2>
+        <h2 data-role="form-title">Novo convite</h2>
         <label>
           Nome do convite
           <input name="title" type="text" maxlength="80" required placeholder="Ex.: Painel para ensaio de hoje">
@@ -62,6 +63,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
         </label>
         <div class="form-actions field-full">
           <button class="button" type="submit">Criar link publico</button>
+          <button class="button-link secondary" type="button" data-action="cancel-edit" hidden>Cancelar edicao</button>
         </div>
         <p class="form-message field-full" aria-live="polite"></p>
       </form>
@@ -75,12 +77,16 @@ export async function ConvitesPublicosPage({ session } = {}) {
   `;
 
   const form = page.querySelector('.public-invite-form');
+  const formTitle = page.querySelector('[data-role="form-title"]');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const cancelEditButton = form.querySelector('[data-action="cancel-edit"]');
   const message = page.querySelector('.form-message');
   const listSlot = page.querySelector('[data-role="public-invites-list"]');
   const bandaAccessMode = page.querySelector('[data-role="banda-access-mode"]');
   const bandaRepertorios = page.querySelector('[data-role="banda-repertorios"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
   let repertorios = [];
+  let editingInvite = null;
 
   form.elements.expires_at.value = getDefaultExpiresAt();
   updateModuleFields(form, bandaAccessMode, bandaRepertorios);
@@ -98,12 +104,14 @@ export async function ConvitesPublicosPage({ session } = {}) {
       return;
     }
 
-    listSlot.replaceChildren(createInvitesList(data || [], loadInvites));
+    listSlot.replaceChildren(createInvitesList(data || [], {
+      onChange: loadInvites,
+      onEdit: startEditInvite,
+    }));
   }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const button = form.querySelector('button[type="submit"]');
     const payload = readInviteForm(form, session);
 
     if (payload.moduleKey === 'banda_coral' && !payload.repertorioIds.length) {
@@ -112,29 +120,41 @@ export async function ConvitesPublicosPage({ session } = {}) {
       return;
     }
 
-    button.disabled = true;
+    submitButton.disabled = true;
     message.className = 'form-message field-full';
-    message.textContent = 'Criando convite...';
+    message.textContent = editingInvite ? 'Salvando convite...' : 'Criando convite...';
+    const wasEditing = Boolean(editingInvite);
 
-    const { data, error } = payload.moduleKey === 'banda_coral'
-      ? await createBandaCoralPublicInvite(payload)
-      : await createDashboardPublicInvite(payload);
-    button.disabled = false;
+    const { data, error } = editingInvite
+      ? await updatePublicInvite(editingInvite.id, payload)
+      : payload.moduleKey === 'banda_coral'
+        ? await createBandaCoralPublicInvite(payload)
+        : await createDashboardPublicInvite(payload);
+    submitButton.disabled = false;
 
     if (error) {
       message.className = 'form-message error field-full';
-      message.textContent = error.message || 'Nao foi possivel criar o convite.';
+      message.textContent = error.message || (editingInvite ? 'Nao foi possivel atualizar o convite.' : 'Nao foi possivel criar o convite.');
       return;
     }
 
-    const url = getPublicInviteUrl(data.token, data.module_key);
-    await copyText(url);
-    form.reset();
-    form.elements.expires_at.value = getDefaultExpiresAt();
-    updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+    if (!wasEditing) {
+      const url = getPublicInviteUrl(data.token, data.module_key);
+      await copyText(url);
+    }
+
+    resetForm();
     message.className = 'form-message success field-full';
-    message.textContent = 'Link criado e copiado para a area de transferencia.';
+    message.textContent = wasEditing
+      ? 'Convite atualizado.'
+      : 'Link criado e copiado para a area de transferencia.';
     await loadInvites();
+  });
+
+  cancelEditButton.addEventListener('click', () => {
+    resetForm();
+    message.className = 'form-message field-full';
+    message.textContent = '';
   });
 
   await Promise.all([loadRepertorios(), loadInvites()]);
@@ -152,9 +172,39 @@ export async function ConvitesPublicosPage({ session } = {}) {
     repertorios = data || [];
     repertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios));
   }
+
+  function startEditInvite(invite) {
+    const metadata = getInviteMetadata(invite);
+    editingInvite = invite;
+
+    formTitle.textContent = 'Editar convite';
+    submitButton.textContent = 'Salvar alteracoes';
+    cancelEditButton.hidden = false;
+    message.className = 'form-message field-full';
+    message.textContent = 'Editando link existente. O token atual sera preservado.';
+
+    form.elements.title.value = invite.title || '';
+    form.elements.module_key.value = invite.module_key || 'dashboard';
+    form.elements.access_mode.value = metadata.access_mode || 'ambos';
+    form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
+    form.elements.max_uses.value = invite.max_uses || '';
+    setCheckedRepertorios(form, metadata.repertorio_ids || []);
+    updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    editingInvite = null;
+    form.reset();
+    formTitle.textContent = 'Novo convite';
+    submitButton.textContent = 'Criar link publico';
+    cancelEditButton.hidden = true;
+    form.elements.expires_at.value = getDefaultExpiresAt();
+    updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+  }
 }
 
-function createInvitesList(invites, onChange) {
+function createInvitesList(invites, { onChange, onEdit }) {
   if (!invites.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
@@ -183,6 +233,7 @@ function createInvitesList(invites, onChange) {
       </div>
       <div class="public-invite-actions">
         <button class="button-link secondary" type="button" data-action="copy">Copiar</button>
+        <button class="button-link secondary" type="button" data-action="edit">Editar</button>
         ${status.key === 'is-active' ? '<button class="button-link danger" type="button" data-action="revoke">Revogar</button>' : ''}
         <button class="button-link danger" type="button" data-action="delete">Excluir</button>
       </div>
@@ -194,6 +245,10 @@ function createInvitesList(invites, onChange) {
       window.setTimeout(() => {
         item.querySelector('[data-action="copy"]').textContent = 'Copiar';
       }, 1600);
+    });
+
+    item.querySelector('[data-action="edit"]').addEventListener('click', () => {
+      onEdit(invite);
     });
 
     item.querySelector('[data-action="revoke"]')?.addEventListener('click', async () => {
@@ -270,11 +325,30 @@ function createRepertoriosChecklist(repertorios) {
   return list;
 }
 
+function setCheckedRepertorios(form, repertorioIds) {
+  const selected = new Set((repertorioIds || []).map(String));
+  form.querySelectorAll('[name="repertorio_ids"]').forEach((input) => {
+    input.checked = selected.has(input.value);
+  });
+}
+
 function getDefaultExpiresAt() {
   const date = new Date();
   date.setHours(date.getHours() + 2);
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   return date.toISOString().slice(0, 16);
+}
+
+function toDateTimeLocalValue(value) {
+  if (!value) return getDefaultExpiresAt();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return getDefaultExpiresAt();
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+}
+
+function getInviteMetadata(invite) {
+  return invite?.metadata && typeof invite.metadata === 'object' ? invite.metadata : {};
 }
 
 function getInviteStatus(invite) {

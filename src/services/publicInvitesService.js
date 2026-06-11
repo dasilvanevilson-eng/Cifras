@@ -65,6 +65,45 @@ export async function createBandaCoralPublicInvite({
     .single();
 }
 
+export async function updatePublicInvite(id, {
+  title,
+  moduleKey,
+  expiresAt,
+  maxUses,
+  accessMode = 'ambos',
+  repertorioIds = [],
+}) {
+  assertSupabaseConfig();
+
+  const isBandaCoral = moduleKey === 'banda_coral';
+
+  return supabase
+    .from('public_invites')
+    .update({
+      title,
+      module_key: moduleKey,
+      target_type: 'module',
+      target_id: null,
+      allowed_actions: ['view', 'execute'],
+      metadata: isBandaCoral
+        ? {
+            version: 1,
+            access_mode: accessMode,
+            repertorio_ids: repertorioIds,
+            description: 'Acesso publico temporario ao Modo Banda/Coral em busca e execucao.',
+          }
+        : {
+            version: 1,
+            description: 'Acesso publico temporario ao painel e execucao em modo visualizacao.',
+          },
+      expires_at: expiresAt,
+      max_uses: maxUses || null,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+}
+
 export async function revokePublicInvite(id) {
   assertSupabaseConfig();
   return supabase
