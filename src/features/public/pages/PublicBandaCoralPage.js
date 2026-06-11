@@ -237,6 +237,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       returnTo,
       initialRepertorioMusicaId: options.state?.repertorio_musica_id || options.repertorioMusicaId,
       initialMusicaId: options.state?.musica_id,
+      initialSongIndex: Number.isInteger(options.state?.current_song_index)
+        ? options.state.current_song_index
+        : options.currentSongIndex,
       onSongChange: handleRepertorioSongChange,
     }));
     refreshExecutionControlsForMode();
@@ -248,6 +251,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         || options.repertorioMusicaId
         || musicasAssociadas[0]?.id
         || null,
+      currentSongIndex: Number.isInteger(options.state?.current_song_index)
+        ? options.state.current_song_index
+        : Number(options.currentSongIndex || 0),
       transposeSemitones: options.state?.transpose_semitones || 0,
       capo: options.state?.capo ?? getCurrentCapo(),
     });
@@ -267,6 +273,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       ...currentExecutionState,
       musicaId: songState.musicaId,
       repertorioMusicaId: songState.repertorioMusicaId,
+      currentSongIndex: songState.currentSongIndex,
       transposeSemitones: songState.transposeSemitones,
       capo: songState.capo,
     });
@@ -696,6 +703,7 @@ function normalizeState(state) {
     musicaId: state.musicaId || null,
     repertorioId: state.repertorioId || null,
     repertorioMusicaId: state.repertorioMusicaId || null,
+    currentSongIndex: Number(state.currentSongIndex || 0),
     transposeSemitones: Number(state.transposeSemitones || 0),
     capo: Number(state.capo || 0),
   };
@@ -706,7 +714,7 @@ function getStateKey(state) {
   const toneKey = `${state.transpose_semitones || 0}:${state.capo || 0}:${state.updated_at || ''}`;
   if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${toneKey}`;
   if (state.item_type === 'repertorio' && state.repertorio_id) {
-    return `repertorio:${state.repertorio_id}:${state.repertorio_musica_id || ''}:${toneKey}`;
+    return `repertorio:${state.repertorio_id}:${state.repertorio_musica_id || ''}:${state.current_song_index || 0}:${toneKey}`;
   }
   return '';
 }

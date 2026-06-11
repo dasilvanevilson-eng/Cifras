@@ -366,6 +366,7 @@ export function createPerformanceViewV2({
   returnTo,
   initialMusicaId,
   initialRepertorioMusicaId,
+  initialSongIndex,
   onSongChange,
 }) {
   const wrapper = document.createElement('article');
@@ -414,7 +415,12 @@ export function createPerformanceViewV2({
     empty.className = 'page-status';
     empty.textContent = 'Nenhuma musica adicionada a este repertorio.';
     list.append(empty);
-    setupPerformanceControlsV2(wrapper, { initialMusicaId, initialRepertorioMusicaId, onSongChange });
+    setupPerformanceControlsV2(wrapper, {
+      initialMusicaId,
+      initialRepertorioMusicaId,
+      initialSongIndex,
+      onSongChange,
+    });
     return wrapper;
   }
 
@@ -422,7 +428,12 @@ export function createPerformanceViewV2({
     list.append(createSongBlockV2(item, index + 1, nome));
   });
 
-  setupPerformanceControlsV2(wrapper, { initialMusicaId, initialRepertorioMusicaId, onSongChange });
+  setupPerformanceControlsV2(wrapper, {
+    initialMusicaId,
+    initialRepertorioMusicaId,
+    initialSongIndex,
+    onSongChange,
+  });
   return wrapper;
 }
 
@@ -478,11 +489,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   const songs = [...wrapper.querySelectorAll('.performance-song')];
   let scrollTimer = null;
-  const initialIndex = options.initialRepertorioMusicaId
-    ? songs.findIndex((song) => song.dataset.repertorioMusicaId === options.initialRepertorioMusicaId)
-    : options.initialMusicaId
-      ? songs.findIndex((song) => song.dataset.musicaId === options.initialMusicaId)
-    : -1;
+  const initialIndex = getInitialSongIndex(songs, options);
   let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   const songSemitones = songs.map(() => 0);
@@ -646,10 +653,29 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     options.onSongChange({
       musicaId: song.dataset.musicaId || null,
       repertorioMusicaId: song.dataset.repertorioMusicaId || null,
+      currentSongIndex,
       transposeSemitones: songSemitones[currentSongIndex] || 0,
       capo,
     });
   }
+}
+
+function getInitialSongIndex(songs, options = {}) {
+  if (options.initialRepertorioMusicaId) {
+    const index = songs.findIndex((song) => song.dataset.repertorioMusicaId === options.initialRepertorioMusicaId);
+    if (index >= 0) return index;
+  }
+
+  if (options.initialMusicaId) {
+    const index = songs.findIndex((song) => song.dataset.musicaId === options.initialMusicaId);
+    if (index >= 0) return index;
+  }
+
+  if (Number.isInteger(options.initialSongIndex) && options.initialSongIndex >= 0 && options.initialSongIndex < songs.length) {
+    return options.initialSongIndex;
+  }
+
+  return -1;
 }
 
 function setPerformanceThemeV2(wrapper, button, theme) {
