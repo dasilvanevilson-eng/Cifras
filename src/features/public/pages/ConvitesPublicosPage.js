@@ -47,6 +47,10 @@ export async function ConvitesPublicosPage({ session } = {}) {
             <option value="integrante">Apenas integrante</option>
           </select>
         </label>
+        <label class="checkbox-label field-full" data-role="banda-acervo-access" hidden>
+          <input name="allow_acervo" type="checkbox" checked>
+          <span>Permitir acesso ao acervo</span>
+        </label>
         <fieldset class="public-invite-repertorios field-full" data-role="banda-repertorios" hidden>
           <legend>Repertorios liberados</legend>
           <div data-role="banda-repertorios-list">
@@ -83,16 +87,17 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const message = page.querySelector('.form-message');
   const listSlot = page.querySelector('[data-role="public-invites-list"]');
   const bandaAccessMode = page.querySelector('[data-role="banda-access-mode"]');
+  const bandaAcervoAccess = page.querySelector('[data-role="banda-acervo-access"]');
   const bandaRepertorios = page.querySelector('[data-role="banda-repertorios"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
   let repertorios = [];
   let editingInvite = null;
 
   form.elements.expires_at.value = getDefaultExpiresAt();
-  updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+  updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
 
   form.elements.module_key.addEventListener('change', () => {
-    updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+    updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
   });
 
   async function loadInvites() {
@@ -114,9 +119,9 @@ export async function ConvitesPublicosPage({ session } = {}) {
     event.preventDefault();
     const payload = readInviteForm(form, session);
 
-    if (payload.moduleKey === 'banda_coral' && !payload.repertorioIds.length) {
+    if (payload.moduleKey === 'banda_coral' && !payload.allowAcervo && !payload.repertorioIds.length) {
       message.className = 'form-message error field-full';
-      message.textContent = 'Selecione pelo menos um repertorio para o convite Banda/Coral.';
+      message.textContent = 'Revise as permissões';
       return;
     }
 
@@ -186,10 +191,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.title.value = invite.title || '';
     form.elements.module_key.value = invite.module_key || 'dashboard';
     form.elements.access_mode.value = metadata.access_mode || 'ambos';
+    form.elements.allow_acervo.checked = metadata.allow_acervo !== false;
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
     form.elements.max_uses.value = invite.max_uses || '';
     setCheckedRepertorios(form, metadata.repertorio_ids || []);
-    updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+    updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -200,7 +206,8 @@ export async function ConvitesPublicosPage({ session } = {}) {
     submitButton.textContent = 'Criar link publico';
     cancelEditButton.hidden = true;
     form.elements.expires_at.value = getDefaultExpiresAt();
-    updateModuleFields(form, bandaAccessMode, bandaRepertorios);
+    form.elements.allow_acervo.checked = true;
+    updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios);
   }
 }
 
@@ -291,13 +298,15 @@ function readInviteForm(form, session) {
     maxUses: Number(form.elements.max_uses.value || 0) || null,
     createdBy: session?.user?.id,
     accessMode: form.elements.access_mode?.value || 'ambos',
+    allowAcervo: Boolean(form.elements.allow_acervo?.checked),
     repertorioIds: Array.from(form.querySelectorAll('[name="repertorio_ids"]:checked')).map((input) => input.value),
   };
 }
 
-function updateModuleFields(form, bandaAccessMode, bandaRepertorios) {
+function updateModuleFields(form, bandaAccessMode, bandaAcervoAccess, bandaRepertorios) {
   const isBandaCoral = form.elements.module_key.value === 'banda_coral';
   bandaAccessMode.hidden = !isBandaCoral;
+  bandaAcervoAccess.hidden = !isBandaCoral;
   bandaRepertorios.hidden = !isBandaCoral;
 }
 

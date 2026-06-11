@@ -39,6 +39,7 @@ export async function createBandaCoralPublicInvite({
   createdBy,
   accessMode = 'ambos',
   repertorioIds = [],
+  allowAcervo = true,
 }) {
   assertSupabaseConfig();
 
@@ -55,6 +56,7 @@ export async function createBandaCoralPublicInvite({
         version: 1,
         access_mode: accessMode,
         repertorio_ids: repertorioIds,
+        allow_acervo: Boolean(allowAcervo),
         description: 'Acesso publico temporario ao Modo Banda/Coral em busca e execucao.',
       },
       expires_at: expiresAt,
@@ -72,6 +74,7 @@ export async function updatePublicInvite(id, {
   maxUses,
   accessMode = 'ambos',
   repertorioIds = [],
+  allowAcervo = true,
 }) {
   assertSupabaseConfig();
 
@@ -90,6 +93,7 @@ export async function updatePublicInvite(id, {
             version: 1,
             access_mode: accessMode,
             repertorio_ids: repertorioIds,
+            allow_acervo: Boolean(allowAcervo),
             description: 'Acesso publico temporario ao Modo Banda/Coral em busca e execucao.',
           }
         : {

@@ -55,6 +55,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const wrapper = document.createElement('section');
   const returnTo = `/publico/banda-coral?token=${encodeURIComponent(token)}`;
   const allowedMode = invite.access_mode || 'ambos';
+  const allowAcervo = invite.allow_acervo !== false;
   const musicasRepertorio = getUniqueRepertorioMusicas(repertorioMusicas);
   const clientId = getPublicBandaClientId();
   let currentMode = 'integrante';
@@ -117,6 +118,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   `;
 
   const modeButtons = wrapper.querySelectorAll('[data-mode]');
+  const acervoColumn = wrapper.querySelector('[data-public-banda-column="acervo"]');
   const repertorioMusicSearch = wrapper.querySelector('[data-action="search-musica-repertorio"]');
   const acervoMusicSearch = wrapper.querySelector('[data-action="search-musica-acervo"]');
   const repertorioSearch = wrapper.querySelector('[data-action="search-repertorio"]');
@@ -138,6 +140,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let tempAcervoMusicas = [];
   let currentTempExecutionType = null;
   let keepCascadeOpenOnFocusout = false;
+
+  if (acervoColumn) {
+    acervoColumn.hidden = !allowAcervo;
+  }
 
   async function setMode(mode, options = {}) {
     if (mode === 'lider' && !options.skipClaim) {
@@ -575,7 +581,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     lastMirroredStateKey = stateKey;
 
     if (state.item_type === 'musica') {
-      const musica = musicas.find((item) => item.id === state.musica_id);
+      const musica = musicas.find((item) => item.id === state.musica_id)
+        || musicasRepertorio.find((item) => item.id === state.musica_id);
       if (musica) {
         executeMusica(musica, { mirrored: true, state });
       }
@@ -638,6 +645,12 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function renderMusicasAcervo() {
+    if (!allowAcervo) {
+      hideCascade(musicasAcervoSlot);
+      musicasAcervoSlot.replaceChildren();
+      return;
+    }
+
     const query = normalizeText(acervoMusicSearch.value);
     const results = query
       ? musicas.filter((musica) => matchesMusicaSearch(musica, query))
