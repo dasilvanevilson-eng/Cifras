@@ -814,11 +814,20 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   repertorioMusicSearch.addEventListener('input', renderMusicasRepertorio);
-  repertorioMusicSearch.addEventListener('focus', renderMusicasRepertorio);
+  repertorioMusicSearch.addEventListener('focus', () => {
+    repertorioMusicSearch.value = '';
+    renderMusicasRepertorio();
+  });
   acervoMusicSearch.addEventListener('input', renderMusicasAcervo);
-  acervoMusicSearch.addEventListener('focus', renderMusicasAcervo);
+  acervoMusicSearch.addEventListener('focus', () => {
+    acervoMusicSearch.value = '';
+    renderMusicasAcervo();
+  });
   repertorioSearch.addEventListener('input', renderRepertorios);
-  repertorioSearch.addEventListener('focus', renderRepertorios);
+  repertorioSearch.addEventListener('focus', () => {
+    repertorioSearch.value = '';
+    renderRepertorios();
+  });
   executeSelectedRepertorioButton.addEventListener('click', () => {
     if (!selectedRepertorio) return;
     executeRepertorio(selectedRepertorio);
