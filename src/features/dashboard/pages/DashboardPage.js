@@ -46,7 +46,7 @@ export function createDashboardView({
   wrapper.innerHTML = `
     <header class="dashboard-header">
       <div>
-        <h1>${publicMode ? 'Painel publico' : 'Painel'}</h1>
+        <h1 class="dashboard-title-test">${publicMode ? 'Painel publico' : 'Painel'}</h1>
         <p>${escapeHtml(publicMode ? (inviteTitle || 'Consulta temporaria de repertorios e musicas.') : 'Repertorios e musicas para execucao.')}</p>
       </div>
       <div class="dashboard-summary">

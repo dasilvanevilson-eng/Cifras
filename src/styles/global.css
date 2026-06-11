@@ -549,6 +549,10 @@ a {
   line-height: 1.05;
 }
 
+.dashboard-header .dashboard-title-test {
+  color: #d11f1f;
+}
+
 .dashboard-header p {
   max-width: 42rem;
   margin: 5px 0 0;
