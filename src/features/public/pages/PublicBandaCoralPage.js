@@ -88,6 +88,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       </div>
     </section>
     <section class="public-banda-grid">
+      <section class="dashboard-search-column" data-public-banda-column="repertorios">
+        <label class="dashboard-search">
+          Buscar repertorio
+          <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
+        </label>
+        <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
+      </section>
       <section class="dashboard-search-column" data-public-banda-column="musicas">
         <label class="dashboard-search">
           Buscar musica repertorio
@@ -101,13 +108,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
           <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
         </label>
         <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
-      </section>
-      <section class="dashboard-search-column" data-public-banda-column="repertorios">
-        <label class="dashboard-search">
-          Buscar repertorio
-          <input data-action="search-repertorio" type="search" placeholder="Nome ou data">
-        </label>
-        <div class="public-banda-cascade-results" data-role="repertorios-results" hidden></div>
       </section>
     </section>
     <section class="public-banda-execution" data-role="execution-slot" hidden>
@@ -449,13 +449,20 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function syncMemberMirror() {
+    if (!leaderPresence.active) {
+      lastMirroredStateKey = '';
+      closeExecutionLayer();
+      return;
+    }
+
     try {
       const { data } = await getPublicBandaCoralState(token);
       if (data?.valid) {
         mirrorLeaderState(data.state || {});
       }
     } catch {
-      mirrorLeaderState(initialState);
+      lastMirroredStateKey = '';
+      closeExecutionLayer();
     }
   }
 
@@ -538,7 +545,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function mirrorLeaderState(state) {
     const stateKey = getStateKey(state);
-    if (!stateKey || stateKey === lastMirroredStateKey) return;
+    if (!stateKey) {
+      lastMirroredStateKey = '';
+      closeExecutionLayer();
+      return;
+    }
+
+    if (stateKey === lastMirroredStateKey) return;
 
     lastMirroredStateKey = stateKey;
 
