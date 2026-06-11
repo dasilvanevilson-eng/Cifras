@@ -646,7 +646,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     musicasRepertorioSlot.replaceChildren(createRepertorioMusicResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
       onExecute: (item) => executeMusica(item.musicas),
-      onAdd: addTempRepertorioMusica,
+      onToggle: toggleTempRepertorioMusica,
       isAdded: (item) => tempRepertorioMusicas.some((selected) => selected.id === item.id),
     }));
     showCascade(musicasRepertorioSlot);
@@ -706,10 +706,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     executeSelectedRepertorioButton.disabled = !selectedRepertorio;
   }
 
-  function addTempRepertorioMusica(item) {
-    if (tempRepertorioMusicas.some((selected) => selected.id === item.id)) return;
-
-    tempRepertorioMusicas = [...tempRepertorioMusicas, item];
+  function toggleTempRepertorioMusica(item) {
+    const isSelected = tempRepertorioMusicas.some((selected) => selected.id === item.id);
+    tempRepertorioMusicas = isSelected
+      ? tempRepertorioMusicas.filter((selected) => selected.id !== item.id)
+      : [...tempRepertorioMusicas, item];
     updateTempRepertorioButton();
     renderMusicasRepertorio();
   }
@@ -901,11 +902,11 @@ function createRepertorioMusicResultList(items, options) {
     addButton.className = 'nav-button public-banda-add-temp-button';
     addButton.type = 'button';
     const added = Boolean(options.isAdded?.(item));
+    addButton.classList.toggle('is-selected', added);
     addButton.textContent = added ? '✓' : '+';
-    addButton.disabled = added;
-    addButton.title = added ? 'Adicionada a lista provisoria' : 'Adicionar a lista provisoria';
+    addButton.title = added ? 'Remover da lista provisoria' : 'Adicionar a lista provisoria';
     addButton.setAttribute('aria-label', addButton.title);
-    addButton.addEventListener('click', () => options.onAdd(item));
+    addButton.addEventListener('click', () => options.onToggle(item));
 
     row.append(titleButton, addButton);
     list.append(row);
