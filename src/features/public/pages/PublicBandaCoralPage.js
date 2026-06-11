@@ -109,10 +109,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <div class="public-banda-cascade-results" data-role="musicas-repertorio-results" hidden></div>
       </section>
       <section class="dashboard-search-column" data-public-banda-column="acervo">
-        <label class="dashboard-search">
-          Buscar musica acervo
-          <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
-        </label>
+        <div class="public-banda-search-action">
+          <label class="dashboard-search">
+            Buscar musica acervo
+            <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
+          </label>
+          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-acervo" aria-label="Executar lista provisoria do acervo" title="Executar lista provisoria do acervo" disabled>&#9654;</button>
+        </div>
         <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
       </section>
     </section>
@@ -136,11 +139,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const releaseLeaderButton = wrapper.querySelector('[data-action="release-leader"]');
   const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
   const executeTempRepertorioButton = wrapper.querySelector('[data-action="execute-temp-repertorio"]');
+  const executeTempAcervoButton = wrapper.querySelector('[data-action="execute-temp-acervo"]');
   let activeCascade = null;
   let currentExecutionState = null;
   let publicAutoscrollTimer = null;
   let selectedRepertorio = null;
   let tempRepertorioMusicas = [];
+  let tempAcervoMusicas = [];
   let keepCascadeOpenOnFocusout = false;
 
   async function setMode(mode, options = {}) {
@@ -274,18 +279,40 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function executeTempRepertorio() {
     if (!selectedRepertorio || !tempRepertorioMusicas.length) return;
+    executeTempMusicList({
+      repertorio: {
+        ...selectedRepertorio,
+        id: `temp-${selectedRepertorio.id}`,
+        nome: `${getField(selectedRepertorio, ['nome', 'titulo', 'name'])} - lista provisoria`,
+      },
+      musicasAssociadas: tempRepertorioMusicas,
+    });
+  }
+
+  async function executeTempAcervo() {
+    if (!tempAcervoMusicas.length) return;
+    executeTempMusicList({
+      repertorio: {
+        id: 'temp-acervo',
+        nome: 'Lista provisoria do acervo',
+      },
+      musicasAssociadas: tempAcervoMusicas.map((musica) => ({
+        id: `temp-acervo-${musica.id}`,
+        musica_id: musica.id,
+        tom: getField(musica, ['tom', 'key']),
+        observacao: '',
+        musicas: musica,
+      })),
+    });
+  }
+
+  function executeTempMusicList({ repertorio, musicasAssociadas }) {
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
 
-    const repertorio = {
-      ...selectedRepertorio,
-      id: `temp-${selectedRepertorio.id}`,
-      nome: `${getField(selectedRepertorio, ['nome', 'titulo', 'name'])} - lista provisoria`,
-    };
-
     executionContent.replaceChildren(createRepertorioPerformanceView({
       repertorio,
-      musicasAssociadas: tempRepertorioMusicas.map((item, index) => ({
+      musicasAssociadas: musicasAssociadas.map((item, index) => ({
         ...item,
         ordem: index + 1,
       })),
@@ -659,11 +686,12 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       ? musicas.filter((musica) => matchesMusicaSearch(musica, query))
       : musicas;
 
-    musicasAcervoSlot.replaceChildren(createResultList(results, {
+    musicasAcervoSlot.replaceChildren(createRepertorioMusicResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
-      getTitle: (musica) => getField(musica, ['titulo', 'nome', 'title']),
-      getSubtitle: (musica) => getField(musica, ['artista', 'artist']),
+      getMusica: (musica) => musica,
       onExecute: executeMusica,
+      onToggle: toggleTempAcervoMusica,
+      isAdded: (musica) => tempAcervoMusicas.some((selected) => selected.id === musica.id),
     }));
     showCascade(musicasAcervoSlot);
   }
@@ -709,10 +737,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function toggleTempRepertorioMusica(item) {
     keepCascadeOpenOnFocusout = true;
-    const isSelected = tempRepertorioMusicas.some((selected) => selected.id === item.id);
-    tempRepertorioMusicas = isSelected
-      ? tempRepertorioMusicas.filter((selected) => selected.id !== item.id)
-      : [...tempRepertorioMusicas, item];
+    tempRepertorioMusicas = toggleListItem(tempRepertorioMusicas, item);
     updateTempRepertorioButton();
     renderMusicasRepertorio();
     window.requestAnimationFrame(() => {
@@ -721,12 +746,37 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     });
   }
 
+  function toggleTempAcervoMusica(musica) {
+    keepCascadeOpenOnFocusout = true;
+    tempAcervoMusicas = toggleListItem(tempAcervoMusicas, musica);
+    updateTempAcervoButton();
+    renderMusicasAcervo();
+    window.requestAnimationFrame(() => {
+      acervoMusicSearch.focus({ preventScroll: true });
+      showCascade(musicasAcervoSlot);
+    });
+  }
+
+  function toggleListItem(items, item) {
+    return items.some((selected) => selected.id === item.id)
+      ? items.filter((selected) => selected.id !== item.id)
+      : [...items, item];
+  }
+
   function updateTempRepertorioButton() {
     executeTempRepertorioButton.disabled = !selectedRepertorio || !tempRepertorioMusicas.length;
     executeTempRepertorioButton.title = tempRepertorioMusicas.length
       ? `Executar lista provisoria (${tempRepertorioMusicas.length})`
       : 'Executar lista provisoria';
     executeTempRepertorioButton.setAttribute('aria-label', executeTempRepertorioButton.title);
+  }
+
+  function updateTempAcervoButton() {
+    executeTempAcervoButton.disabled = !tempAcervoMusicas.length;
+    executeTempAcervoButton.title = tempAcervoMusicas.length
+      ? `Executar lista provisoria do acervo (${tempAcervoMusicas.length})`
+      : 'Executar lista provisoria do acervo';
+    executeTempAcervoButton.setAttribute('aria-label', executeTempAcervoButton.title);
   }
 
   repertorioMusicSearch.addEventListener('input', renderMusicasRepertorio);
@@ -740,6 +790,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     executeRepertorio(selectedRepertorio);
   });
   executeTempRepertorioButton.addEventListener('click', executeTempRepertorio);
+  executeTempAcervoButton.addEventListener('click', executeTempAcervo);
 
   wrapper.addEventListener('focusout', () => {
     window.setTimeout(() => {
@@ -894,7 +945,7 @@ function createRepertorioMusicResultList(items, options) {
   list.className = 'dashboard-list public-banda-results';
 
   items.forEach((item) => {
-    const musica = item.musicas || {};
+    const musica = options.getMusica ? options.getMusica(item) : (item.musicas || {});
     const row = document.createElement('div');
     row.className = 'public-banda-result-row';
 
