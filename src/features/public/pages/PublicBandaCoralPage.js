@@ -150,6 +150,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let selectedRepertorio = null;
   let tempRepertorioMusicas = [];
   let tempAcervoMusicas = [];
+  let currentTempExecutionType = null;
   let keepCascadeOpenOnFocusout = false;
 
   async function setMode(mode, options = {}) {
@@ -228,6 +229,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeMusica(musica, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
+    currentTempExecutionType = null;
     executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     refreshExecutionControlsForMode();
     openExecutionLayer();
@@ -247,6 +249,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeRepertorio(repertorio, options = {}) {
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
+    currentTempExecutionType = null;
     const musicasAssociadas = repertorioMusicas.filter((item) => item.repertorio_id === repertorio.id);
     executionContent.replaceChildren(createRepertorioPerformanceView({
       repertorio,
@@ -284,6 +287,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeTempRepertorio() {
     if (!selectedRepertorio || !tempRepertorioMusicas.length) return;
     executeTempMusicList({
+      type: 'repertorio',
       repertorio: {
         ...selectedRepertorio,
         id: `temp-${selectedRepertorio.id}`,
@@ -296,6 +300,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeTempAcervo() {
     if (!tempAcervoMusicas.length) return;
     executeTempMusicList({
+      type: 'acervo',
       repertorio: {
         id: 'temp-acervo',
         nome: 'Lista provisoria do acervo',
@@ -310,9 +315,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     });
   }
 
-  function executeTempMusicList({ repertorio, musicasAssociadas }) {
+  function executeTempMusicList({ type, repertorio, musicasAssociadas }) {
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
+    currentTempExecutionType = type;
 
     executionContent.replaceChildren(createRepertorioPerformanceView({
       repertorio,
@@ -353,7 +359,25 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     executionSlot.hidden = true;
     executionContent.replaceChildren();
     currentExecutionState = null;
+    clearCurrentTempExecution();
     document.body.classList.remove('has-banda-stage-open');
+  }
+
+  function clearCurrentTempExecution() {
+    if (currentTempExecutionType === 'repertorio') {
+      tempRepertorioMusicas = [];
+      updateTempRepertorioButton();
+      renderSelectedMusicasList(selectedRepertorioMusicasSlot, []);
+    }
+
+    if (currentTempExecutionType === 'acervo') {
+      tempAcervoMusicas = [];
+      updateTempAcervoButton();
+      renderSelectedMusicasList(selectedAcervoMusicasSlot, []);
+    }
+
+    currentTempExecutionType = null;
+    updateSelectedListsVisibility();
   }
 
   function stopPublicAutoscroll() {
