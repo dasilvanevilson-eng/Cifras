@@ -9,9 +9,10 @@ import {
 } from '../../../services/musicasService.js';
 import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasService.js';
 import { canEditContent } from '../../auth/roles.js';
+import { hasPermission } from '../../auth/permissions.js';
 
 export async function MusicasPage({ session } = {}) {
-  const canEdit = canEditContent(session?.profile?.papel);
+  const canEdit = canEditContent(session?.profile?.papel) && hasPermission(session, 'musicas', 'can_edit');
   const page = document.createElement('section');
   page.className = 'page musicas-page';
   page.innerHTML = `
@@ -368,9 +369,10 @@ function createMusicasTable(musicas, options = {}) {
     const id = getField(musica, ['id']);
     const title = getField(musica, ['titulo', 'nome', 'title']);
     const musicaUrl = `/musicas/detalhe?id=${encodeURIComponent(id)}`;
+    const readOnlyUrl = getReadOnlyMusicaUrl(id);
 
     row.innerHTML = `
-      <td>${options.canEdit ? escapeHtml(title) : `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(title)}</a>`}</td>
+      <td>${options.canEdit ? escapeHtml(title) : `<a href="${escapeHtml(readOnlyUrl)}">${escapeHtml(title)}</a>`}</td>
       <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
       <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
       <td>${escapeHtml(formatTags(getField(musica, ['tags'])))}</td>
@@ -384,7 +386,7 @@ function createMusicasTable(musicas, options = {}) {
         return;
       }
 
-      window.location.href = musicaUrl;
+      window.location.href = readOnlyUrl;
     });
     row.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter') return;
@@ -394,12 +396,21 @@ function createMusicasTable(musicas, options = {}) {
         return;
       }
 
-      window.location.href = musicaUrl;
+      window.location.href = readOnlyUrl;
     });
     body.append(row);
   });
 
   return table;
+}
+
+function getReadOnlyMusicaUrl(id) {
+  const params = new URLSearchParams({
+    id: String(id),
+    returnTo: '/musicas',
+  });
+
+  return `/musicas/execucao?${params.toString()}`;
 }
 
 function matchesSearch(musica, query) {
