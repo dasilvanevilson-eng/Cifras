@@ -1410,6 +1410,12 @@ a {
   font-weight: 800;
 }
 
+.public-lyrics-row-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .public-lyrics-detail-inner {
   display: grid;
   gap: 12px;
@@ -1436,7 +1442,7 @@ a {
 }
 
 .public-lyrics-close {
-  min-height: 34px;
+  min-height: 40px;
   padding: 6px 10px;
   color: #5f594f;
 }

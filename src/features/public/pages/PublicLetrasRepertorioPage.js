@@ -92,11 +92,11 @@ function createSongList(items, state, { onSelect, onClose }) {
   list.className = 'public-lyrics-list';
 
   items.forEach((item, index) => {
-    const songRow = createSongRow(item, index, state, onSelect);
+    const songRow = createSongRow(item, index, state, { onSelect, onClose });
     list.append(songRow);
 
     if (item.id === state.selectedId) {
-      const detail = createSongDetail(item, { onClose });
+      const detail = createSongDetail(item);
       list.append(detail);
     }
   });
@@ -104,13 +104,19 @@ function createSongList(items, state, { onSelect, onClose }) {
   return list;
 }
 
-function createSongRow(item, index, state, onSelect) {
+function createSongRow(item, index, state, { onSelect, onClose }) {
   const song = item.musicas || {};
   const title = getSongTitle(item);
   const momento = getField(item, ['observacao']);
   const link = getSongLink(item);
+  const isSelected = item.id === state.selectedId;
   const row = document.createElement('article');
-  row.className = `public-lyrics-list-item${item.id === state.selectedId ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
+  row.className = `public-lyrics-list-item${isSelected ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
+  const actions = [
+    isSelected ? '<button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>' : '',
+    link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : '',
+  ].filter(Boolean).join('');
+
   row.innerHTML = `
     <button class="public-lyrics-select" type="button" data-action="select-song">
       <span class="public-lyrics-song-number">${index + 1}</span>
@@ -119,7 +125,7 @@ function createSongRow(item, index, state, onSelect) {
         ${momento !== '-' ? `<small class="repertorio-song-moment public-lyrics-song-moment">${escapeHtml(momento)}</small>` : ''}
       </span>
     </button>
-    ${link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : ''}
+    ${actions ? `<div class="public-lyrics-row-actions">${actions}</div>` : ''}
   `;
 
   row.querySelector('[data-action="select-song"]').addEventListener('click', () => {
@@ -130,6 +136,10 @@ function createSongRow(item, index, state, onSelect) {
     onSelect(item, { autoplay: true });
   });
 
+  row.querySelector('[data-action="close-detail"]')?.addEventListener('click', () => {
+    onClose();
+  });
+
   if (!song.id && isDeletedSong(item)) {
     row.title = 'Musica excluida do acervo';
   }
@@ -137,7 +147,7 @@ function createSongRow(item, index, state, onSelect) {
   return row;
 }
 
-function createSongDetail(item, { onClose } = {}) {
+function createSongDetail(item) {
   const detail = document.createElement('article');
   detail.className = 'public-lyrics-detail-inner';
   detail.dataset.expandedSong = 'true';
@@ -148,20 +158,11 @@ function createSongDetail(item, { onClose } = {}) {
   const lyrics = getLyricsFromItem(item);
 
   detail.innerHTML = `
-    <header class="public-lyrics-detail-header">
-      <div class="public-lyrics-detail-actions">
-        <button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>
-        ${link ? '<button class="button-link secondary" type="button" data-action="load-player">Executar</button>' : ''}
-      </div>
-    </header>
+    <button type="button" data-action="load-player" hidden></button>
     <div class="public-lyrics-player" hidden></div>
     ${isDeletedSong(item) ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>' : ''}
     <pre class="lyrics-text public-lyrics-text">${escapeHtml(lyrics || 'Letra nao encontrada.')}</pre>
   `;
-
-  detail.querySelector('[data-action="close-detail"]').addEventListener('click', () => {
-    onClose?.();
-  });
 
   detail.querySelector('[data-action="load-player"]')?.addEventListener('click', () => {
     const player = detail.querySelector('.public-lyrics-player');
