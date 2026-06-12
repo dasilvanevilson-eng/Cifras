@@ -107,7 +107,7 @@ function createSongList(items, state, { onSelect, onClose }) {
 function createSongRow(item, index, state, onSelect) {
   const song = item.musicas || {};
   const title = getSongTitle(item);
-  const artist = getSongArtist(item);
+  const momento = getField(item, ['observacao']);
   const link = getSongLink(item);
   const row = document.createElement('article');
   row.className = `public-lyrics-list-item${item.id === state.selectedId ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
@@ -116,7 +116,7 @@ function createSongRow(item, index, state, onSelect) {
       <span class="public-lyrics-song-number">${index + 1}</span>
       <span>
         <strong>${escapeHtml(title)}</strong>
-        <small>${escapeHtml(artist)}</small>
+        ${momento !== '-' ? `<small class="repertorio-song-moment public-lyrics-song-moment">${escapeHtml(momento)}</small>` : ''}
       </span>
     </button>
     ${link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : ''}
@@ -143,22 +143,16 @@ function createSongDetail(item, { onClose } = {}) {
   detail.dataset.expandedSong = 'true';
 
   const title = getSongTitle(item);
-  const artist = getSongArtist(item);
-  const momento = getField(item, ['observacao']);
   const link = getSongLink(item);
   const embedUrl = getYoutubeEmbedUrl(link);
   const lyrics = getLyricsFromItem(item);
 
   detail.innerHTML = `
     <header class="public-lyrics-detail-header">
-      <div>
-        <div class="public-lyrics-detail-title-row">
-          <h2>${escapeHtml(title)}</h2>
-          <button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>
-        </div>
-        <p>${escapeHtml(artist)}${momento !== '-' ? ` - ${escapeHtml(momento)}` : ''}</p>
+      <div class="public-lyrics-detail-actions">
+        <button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>
+        ${link ? '<button class="button-link secondary" type="button" data-action="load-player">Executar</button>' : ''}
       </div>
-      ${link ? '<button class="button-link secondary" type="button" data-action="load-player">Executar</button>' : ''}
     </header>
     <div class="public-lyrics-player" hidden></div>
     ${isDeletedSong(item) ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>' : ''}
