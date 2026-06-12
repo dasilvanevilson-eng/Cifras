@@ -1,7 +1,7 @@
 :root {
   --border-radius-default: 5px;
-  --lyrics-execution-font: 'Roboto Mono', 'Courier New', monospace;
-  --chords-execution-font: 'Roboto Mono', 'Courier New', monospace;
+  --lyrics-execution-font: 'IBM Plex Mono', 'Courier New', monospace;
+  --chords-execution-font: 'IBM Plex Mono', 'Courier New', monospace;
 
   font-family: Arial, Helvetica, sans-serif;
   color: #20211f;
