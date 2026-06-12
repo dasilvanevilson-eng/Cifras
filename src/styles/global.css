@@ -1519,7 +1519,7 @@ a {
   font-family: var(--lyrics-execution-font);
   font-size: clamp(22px, 2.4vw, 32px);
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.35;
   white-space: pre-wrap;
 }
 
@@ -3012,7 +3012,7 @@ a {
   font-family: var(--lyrics-execution-font);
   font-size: var(--repertorio-song-font-size, 22px);
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.35;
   white-space: pre;
 }
 
@@ -3257,7 +3257,7 @@ a {
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
   font-weight: 600;
-  line-height: 1.7;
+  line-height: 1.35;
 }
 
 .performance-page article.is-dark {
@@ -3509,9 +3509,9 @@ a {
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.35;
   min-height: calc(100svh - 184px);
-  padding: 18px;
+  padding: 14px;
   white-space: pre;
 }
 
@@ -3990,7 +3990,7 @@ a {
 
 .chord-line {
   font-family: var(--chords-execution-font);
-  font-size: clamp(10px, calc(var(--performance-font-size, var(--repertorio-song-font-size, 22px)) - 4px), 28px);
+  font-size: clamp(12px, calc(var(--performance-font-size, var(--repertorio-song-font-size, 22px)) + 2px), 34px);
   font-weight: 700;
   color: #c8792b;
 }
@@ -4674,7 +4674,7 @@ a {
     min-height: calc(100svh - 136px);
     padding: 12px;
     font-size: var(--performance-font-size, 32px);
-    line-height: 1.5;
+    line-height: 1.35;
   }
 
   .repertorio-song-view.is-two-columns .chordpro-view,
