@@ -3551,10 +3551,15 @@ a {
 }
 
 .repertorio-performance-view.is-dark .performance-song h2,
+.repertorio-performance-view.is-dark .repertorio-song-title-bar h2,
 .repertorio-performance-view.is-dark .repertorio-current-song-title,
 .repertorio-performance-view.is-dark .performance-song .current-key,
 .repertorio-performance-view.is-dark .repertorio-title-inline,
 .repertorio-performance-view.is-dark .title-separator {
+  color: #f6f2e8;
+}
+
+.repertorio-performance-view.is-dark .repertorio-song-title-bar {
   color: #f6f2e8;
 }
 
