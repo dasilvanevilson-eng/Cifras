@@ -137,7 +137,7 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
   let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  let fontSize = 22;
+  let fontSize = 32;
   let fitFontToMobileWidth = true;
   let twoColumns = false;
 
@@ -238,7 +238,7 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
 
   function goToSong(direction) {
     currentSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
-    fontSize = 22;
+    fontSize = 32;
     fitFontToMobileWidth = true;
     renderCurrentSong();
   }
@@ -365,7 +365,7 @@ function setPerformanceFontSize(wrapper, value) {
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
-  if (!fitFontToMobileWidth || !window.matchMedia('(max-width: 760px)').matches) {
+  if (!fitFontToMobileWidth) {
     wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
     return;
   }
@@ -374,7 +374,7 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileW
   const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
   const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24);
   const availableWidth = Math.max(160, measuredWidth - 28);
-  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.62));
+  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.55));
   const fontSize = Math.max(22, Math.min(desiredFontSize, fittedSize || desiredFontSize));
 
   wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);

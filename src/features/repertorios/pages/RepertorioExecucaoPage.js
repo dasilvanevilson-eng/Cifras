@@ -67,7 +67,7 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
       <button class="nav-button icon-button" type="button" data-action="theme" aria-label="Alternar tema" title="Alternar tema claro/escuro">☾</button>
       <label>
         A
-        <input type="range" min="22" max="32" value="22" data-action="font-size">
+        <input type="range" min="22" max="32" value="32" data-action="font-size">
       </label>
       <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">▶</button>
       <label>
@@ -162,7 +162,7 @@ function setupPerformanceControlsLegacy(wrapper) {
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
 
   const savedTheme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  const savedFontSize = String(Math.min(32, Math.max(22, Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 22))));
+  const savedFontSize = String(Math.min(32, Math.max(22, Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32))));
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
   fontSizeInput.value = savedFontSize;
@@ -496,7 +496,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
 
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  let fontSize = 22;
+  let fontSize = 32;
   let fitFontToMobileWidth = true;
   let twoColumns = false;
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
@@ -611,7 +611,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     if (nextSongIndex === currentSongIndex) return;
 
     currentSongIndex = nextSongIndex;
-    fontSize = 22;
+    fontSize = 32;
     fitFontToMobileWidth = true;
     renderCurrentSong();
     notifySongChange();
@@ -752,7 +752,7 @@ function renderPagedPerformanceV2({
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
-  if (!fitFontToMobileWidth || !window.matchMedia('(max-width: 760px)').matches) {
+  if (!fitFontToMobileWidth) {
     wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
     return;
   }
@@ -761,7 +761,7 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileW
   const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
   const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24);
   const availableWidth = Math.max(160, measuredWidth - 28);
-  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.62));
+  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.55));
   const fontSize = Math.max(22, Math.min(desiredFontSize, fittedSize || desiredFontSize));
 
   wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);

@@ -1517,7 +1517,7 @@ a {
 .public-lyrics-text {
   margin: 0;
   font-family: var(--lyrics-execution-font);
-  font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+  font-size: clamp(22px, 2.4vw, 32px);
   font-weight: 600;
   line-height: 1.55;
   white-space: pre-wrap;
