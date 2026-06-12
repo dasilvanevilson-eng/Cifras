@@ -38,14 +38,13 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   wrapper.className = 'public-lyrics-shell';
 
   const repertorioNome = getField(repertorio, ['nome', 'titulo', 'name']);
-  const repertorioData = formatDate(getField(repertorio, ['data', 'date']));
   const firstSong = musicasAssociadas.find((item) => !isDeletedSong(item)) || musicasAssociadas[0] || null;
 
   wrapper.innerHTML = `
     <header class="dashboard-header public-lyrics-header">
       <div>
         <h1>${escapeHtml(repertorioNome)}</h1>
-        <p>${escapeHtml(invite?.title || 'Modo Letras')}${repertorioData !== '-' ? ` - ${escapeHtml(repertorioData)}` : ''}</p>
+        <p class="public-lyrics-invite-title">${escapeHtml(invite?.title || 'Modo Letras')}</p>
       </div>
     </header>
     <section class="public-lyrics-song-list" aria-label="Musicas do repertorio" aria-live="polite"></section>
@@ -226,11 +225,6 @@ function getSongTitle(item) {
   return getField(item.musicas || {}, ['titulo', 'nome', 'title']);
 }
 
-function getSongArtist(item) {
-  if (isDeletedSong(item)) return getField(item, ['musica_artista']);
-  return getField(item.musicas || {}, ['artista', 'autor', 'artist']);
-}
-
 function getSongLink(item) {
   if (isDeletedSong(item)) return '';
   const link = getField(item.musicas || {}, ['musica_link']);
@@ -251,13 +245,6 @@ function isDeletedSong(item = {}) {
 function getField(record, names) {
   const fieldName = names.find((name) => record?.[name]);
   return fieldName ? String(record[fieldName]) : '-';
-}
-
-function formatDate(value) {
-  if (!value || value === '-') return '-';
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('pt-BR').format(date);
 }
 
 function escapeHtml(value) {
