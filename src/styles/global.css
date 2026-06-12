@@ -3429,6 +3429,8 @@ a {
 }
 
 .repertorio-performance-view .performance-song header.repertorio-song-title-bar {
+  position: relative;
+  z-index: 2;
   flex-wrap: nowrap;
   gap: 6px;
   align-items: center;
@@ -3551,7 +3553,6 @@ a {
 }
 
 .repertorio-performance-view.is-dark .performance-song h2,
-.repertorio-performance-view.is-dark .repertorio-song-title-bar h2,
 .repertorio-performance-view.is-dark .repertorio-current-song-title,
 .repertorio-performance-view.is-dark .performance-song .current-key,
 .repertorio-performance-view.is-dark .repertorio-title-inline,
@@ -3560,7 +3561,11 @@ a {
 }
 
 .repertorio-performance-view.is-dark .repertorio-song-title-bar {
-  color: #f6f2e8;
+  background: #111513;
+}
+
+.repertorio-performance-view.is-dark .repertorio-song-title-bar h2 {
+  color: #1d4f45;
 }
 
 .repertorio-performance-view:fullscreen {
