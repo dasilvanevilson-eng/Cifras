@@ -3,6 +3,7 @@ import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOrig
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 
 const MAX_PERFORMANCE_FONT_SIZE = 128;
+const MAX_AUTO_FIT_FONT_SIZE = 16;
 
 export async function MusicasSelecaoExecucaoPage() {
   const page = document.createElement('section');
@@ -382,12 +383,17 @@ function updateFontSizeStatus(wrapper, value) {
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
+  if (!fitFontToMobileWidth) {
+    setPerformanceFontSize(wrapper, desiredFontSize);
+    return;
+  }
+
   fitPreformattedTextToWidth({
     wrapper,
     view,
     desiredFontSize,
     fitToWidth: fitFontToMobileWidth,
-    maxFontSize: MAX_PERFORMANCE_FONT_SIZE,
+    maxFontSize: MAX_AUTO_FIT_FONT_SIZE,
     setFontSize: (value) => setPerformanceFontSize(wrapper, value),
   });
 }

@@ -7,6 +7,7 @@ import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 const MAX_PERFORMANCE_FONT_SIZE = 128;
+const MAX_AUTO_FIT_FONT_SIZE = 16;
 
 export async function RepertorioExecucaoPage() {
   const page = document.createElement('section');
@@ -769,12 +770,17 @@ function renderPagedPerformanceV2({
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
+  if (!fitFontToMobileWidth) {
+    setPerformanceFontSizeV2(wrapper, desiredFontSize);
+    return;
+  }
+
   fitPreformattedTextToWidth({
     wrapper,
     view,
     desiredFontSize,
     fitToWidth: fitFontToMobileWidth,
-    maxFontSize: MAX_PERFORMANCE_FONT_SIZE,
+    maxFontSize: MAX_AUTO_FIT_FONT_SIZE,
     setFontSize: (value) => setPerformanceFontSizeV2(wrapper, value),
   });
 }

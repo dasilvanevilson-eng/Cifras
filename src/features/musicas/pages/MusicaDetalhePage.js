@@ -11,6 +11,7 @@ import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js
 import { addRecentItem } from '../../../utils/recentItems.js';
 
 const MAX_REPERTORIO_SONG_FONT_SIZE = 128;
+const MAX_REPERTORIO_SONG_AUTO_FIT_FONT_SIZE = 16;
 
 export async function MusicaDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -194,13 +195,19 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
   function fitRepertorioSongToWidth() {
     if (!associationId) return;
 
+    if (!fitFontToWidth) {
+      wrapper.style.setProperty('--repertorio-song-font-size', `${fontSize}px`);
+      updateFontSizeStatusValue(fontSize);
+      return;
+    }
+
     fitPreformattedTextToWidth({
       wrapper,
       view: chordproView,
       desiredFontSize: fontSize,
       fitToWidth: fitFontToWidth,
       minFontSize: 12,
-      maxFontSize: MAX_REPERTORIO_SONG_FONT_SIZE,
+      maxFontSize: MAX_REPERTORIO_SONG_AUTO_FIT_FONT_SIZE,
       setFontSize: (value) => {
         wrapper.style.setProperty('--repertorio-song-font-size', `${value}px`);
         updateFontSizeStatusValue(value);
