@@ -1,6 +1,6 @@
 const DEFAULT_MIN_FONT_SIZE = 8;
-const DEFAULT_MAX_FONT_SIZE = 64;
-const WIDTH_USAGE_RATIO = 0.985;
+const DEFAULT_MAX_FONT_SIZE = 96;
+const WIDTH_USAGE_RATIO = 1;
 
 export function fitPreformattedTextToWidth({
   wrapper,
@@ -53,7 +53,7 @@ function getFittedFontSize(view, requestedFontSize, minFontSize, maxFontSize) {
   }
 
   return clampFontSize(
-    Math.floor(requestedFontSize * (availableWidth / widestLineWidth) * WIDTH_USAGE_RATIO),
+    Math.round(requestedFontSize * (availableWidth / widestLineWidth) * WIDTH_USAGE_RATIO),
     minFontSize,
     maxFontSize,
   );

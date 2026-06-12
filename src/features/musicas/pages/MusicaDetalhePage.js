@@ -10,7 +10,7 @@ import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones,
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
-const MAX_REPERTORIO_SONG_FONT_SIZE = 64;
+const MAX_REPERTORIO_SONG_FONT_SIZE = 96;
 
 export async function MusicaDetalhePage({ session } = {}) {
   const page = document.createElement('section');
