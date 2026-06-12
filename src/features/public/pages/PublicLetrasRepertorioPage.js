@@ -38,7 +38,6 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   wrapper.className = 'public-lyrics-shell';
 
   const repertorioNome = getField(repertorio, ['nome', 'titulo', 'name']);
-  const firstSong = musicasAssociadas.find((item) => !isDeletedSong(item)) || musicasAssociadas[0] || null;
 
   wrapper.innerHTML = `
     <header class="dashboard-header public-lyrics-header">
@@ -58,7 +57,7 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   }
 
   const state = {
-    selectedId: firstSong?.id || musicasAssociadas[0].id,
+    selectedId: null,
     autoplay: false,
   };
 
