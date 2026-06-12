@@ -371,13 +371,29 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileW
     return;
   }
 
-  view.getBoundingClientRect();
-  const availableWidth = Math.max(160, view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24));
-  const contentWidth = Math.max(availableWidth, view.scrollWidth || availableWidth);
-  const fittedSize = Math.floor(desiredFontSize * (availableWidth / contentWidth));
-  const fontSize = Math.max(12, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+  const applyFit = () => {
+    wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
+    view.getBoundingClientRect();
 
-  wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+    const style = window.getComputedStyle(view);
+    const horizontalPadding = parseFloat(style.paddingLeft || '0') + parseFloat(style.paddingRight || '0');
+    const availableWidth = Math.max(120, (view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24)) - horizontalPadding);
+    const contentWidth = Math.max(availableWidth, (view.scrollWidth || availableWidth) - horizontalPadding);
+    const fittedSize = Math.floor(desiredFontSize * (availableWidth / contentWidth) * 0.96);
+    let fontSize = Math.max(8, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+
+    wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+    view.getBoundingClientRect();
+
+    if (view.scrollWidth > view.clientWidth + 1 && fontSize > 8) {
+      const retryContentWidth = Math.max(availableWidth, (view.scrollWidth || availableWidth) - horizontalPadding);
+      fontSize = Math.max(8, Math.floor(fontSize * (availableWidth / retryContentWidth) * 0.96));
+      wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+    }
+  };
+
+  window.requestAnimationFrame(applyFit);
+  document.fonts?.ready?.then(applyFit).catch(() => {});
 }
 
 function createCapoOptions() {
