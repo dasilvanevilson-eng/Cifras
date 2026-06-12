@@ -511,7 +511,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     const { error } = await clearPublicBandaCoralState(token, clientId);
     if (error) {
-      window.alert(error.message || 'Nao foi possivel limpar a execucao para os integrantes.');
+      console.warn('Nao foi possivel limpar a execucao para os integrantes.', error);
     }
   }
 
