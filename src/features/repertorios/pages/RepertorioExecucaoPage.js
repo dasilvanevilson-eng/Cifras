@@ -6,7 +6,7 @@ import { getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayH
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
-const MAX_PERFORMANCE_FONT_SIZE = 96;
+const MAX_PERFORMANCE_FONT_SIZE = 128;
 
 export async function RepertorioExecucaoPage() {
   const page = document.createElement('section');

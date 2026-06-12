@@ -20,7 +20,7 @@ import {
 } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 
-const MAX_PERFORMANCE_FONT_SIZE = 96;
+const MAX_PERFORMANCE_FONT_SIZE = 128;
 
 export async function BandaCoralPage({ session } = {}) {
   const page = document.createElement('section');

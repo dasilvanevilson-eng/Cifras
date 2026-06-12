@@ -1,5 +1,7 @@
 const DEFAULT_MIN_FONT_SIZE = 8;
-const DEFAULT_MAX_FONT_SIZE = 96;
+const DEFAULT_MAX_FONT_SIZE = 128;
+const FIT_PRECISION = 0.1;
+const RENDER_FIT_ITERATIONS = 10;
 const WIDTH_USAGE_RATIO = 1;
 
 export function fitPreformattedTextToWidth({
@@ -26,13 +28,14 @@ export function fitPreformattedTextToWidth({
     setFontSize(fittedFontSize);
     view.getBoundingClientRect();
 
-    if (view.scrollWidth > view.clientWidth + 1 && fittedFontSize > minFontSize) {
-      const retryFontSize = Math.max(
-        minFontSize,
-        Math.floor(fittedFontSize * (view.clientWidth / view.scrollWidth) * 0.98),
-      );
-      setFontSize(retryFontSize);
-    }
+    const refinedFontSize = refineFontSizeToRenderedWidth({
+      view,
+      setFontSize,
+      initialFontSize: fittedFontSize,
+      minFontSize,
+      maxFontSize,
+    });
+    setFontSize(refinedFontSize);
   };
 
   window.requestAnimationFrame(applyFit);
@@ -57,6 +60,38 @@ function getFittedFontSize(view, requestedFontSize, minFontSize, maxFontSize) {
     minFontSize,
     maxFontSize,
   );
+}
+
+function refineFontSizeToRenderedWidth({ view, setFontSize, initialFontSize, minFontSize, maxFontSize }) {
+  let low = minFontSize;
+  let high = maxFontSize;
+  let best = minFontSize;
+
+  if (fitsRenderedWidth(view, setFontSize, initialFontSize)) {
+    low = initialFontSize;
+    best = initialFontSize;
+  } else {
+    high = initialFontSize;
+  }
+
+  for (let index = 0; index < RENDER_FIT_ITERATIONS; index += 1) {
+    const nextFontSize = (low + high) / 2;
+
+    if (fitsRenderedWidth(view, setFontSize, nextFontSize)) {
+      best = nextFontSize;
+      low = nextFontSize;
+    } else {
+      high = nextFontSize;
+    }
+  }
+
+  return roundFontSize(best);
+}
+
+function fitsRenderedWidth(view, setFontSize, value) {
+  setFontSize(roundFontSize(value));
+  view.getBoundingClientRect();
+  return view.scrollWidth <= view.clientWidth;
 }
 
 function measureWidestLine(view, style, fontSize) {
@@ -85,4 +120,8 @@ function getHorizontalPadding(style) {
 
 function clampFontSize(value, minFontSize, maxFontSize) {
   return Math.max(minFontSize, Math.min(maxFontSize, Number(value) || minFontSize));
+}
+
+function roundFontSize(value) {
+  return Math.round(Number(value) / FIT_PRECISION) * FIT_PRECISION;
 }
