@@ -3446,7 +3446,7 @@ a {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 2px 0 5px;
-  color: #5f594f;
+  color: #1d4f45;
   font-size: 14px;
   line-height: 1.25;
   scrollbar-width: thin;
@@ -3482,7 +3482,7 @@ a {
 .repertorio-performance-view .repertorio-title-inline,
 .repertorio-performance-view .title-separator {
   flex: 0 0 auto;
-  color: #5f594f;
+  color: inherit;
   font-weight: 700;
 }
 
@@ -3564,11 +3564,13 @@ a {
 .repertorio-performance-view.is-dark .repertorio-current-song-title,
 .repertorio-performance-view.is-dark .performance-song .current-key,
 .repertorio-performance-view.is-dark .repertorio-title-inline,
-.repertorio-performance-view.is-dark .title-separator {
+.repertorio-performance-view.is-dark .title-separator,
+.repertorio-performance-view.is-dark .repertorio-song-moment-inline {
   color: #ffffff;
 }
 
 .repertorio-performance-view.is-dark .repertorio-song-title-bar {
+  color: #ffffff;
   background: #111513;
 }
 
