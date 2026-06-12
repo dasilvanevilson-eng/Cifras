@@ -2,6 +2,7 @@ import { createPerformanceView as createMusicaPerformanceView } from '../../musi
 import { createPerformanceViewV2 as createRepertorioPerformanceView } from '../../repertorios/pages/RepertorioExecucaoPage.js';
 import {
   claimPublicBandaCoralLeader,
+  clearPublicBandaCoralState,
   getPublicBandaCoralPresence,
   getPublicBandaCoralData,
   getPublicBandaCoralState,
@@ -327,13 +328,19 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     document.body.classList.add('has-banda-stage-open');
   }
 
-  function closeExecutionLayer() {
+  function closeExecutionLayer(options = {}) {
+    const shouldClearLeaderState = options.clearLeaderState ?? currentMode === 'lider';
+
     stopPublicAutoscroll();
     executionSlot.hidden = true;
     executionContent.replaceChildren();
     currentExecutionState = null;
     clearCurrentTempExecution();
     document.body.classList.remove('has-banda-stage-open');
+
+    if (shouldClearLeaderState) {
+      clearLeaderState();
+    }
   }
 
   function clearCurrentTempExecution() {
@@ -499,6 +506,15 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
   }
 
+  async function clearLeaderState() {
+    if (currentMode !== 'lider') return;
+
+    const { error } = await clearPublicBandaCoralState(token, clientId);
+    if (error) {
+      window.alert(error.message || 'Nao foi possivel limpar a execucao para os integrantes.');
+    }
+  }
+
   async function claimLeaderRole() {
     const { data, error } = await claimPublicBandaCoralLeader(token, clientId);
     if (error || !data?.valid || !data?.is_leader) {
@@ -611,7 +627,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const stateKey = getStateKey(state);
     if (!stateKey) {
       lastMirroredStateKey = '';
-      closeExecutionLayer();
+      closeExecutionLayer({ clearLeaderState: false });
       return;
     }
 

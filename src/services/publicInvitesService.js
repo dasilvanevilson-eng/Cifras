@@ -196,6 +196,14 @@ export async function getPublicBandaCoralState(token) {
   return supabase.rpc('get_public_banda_coral_state', { p_token: token });
 }
 
+export async function clearPublicBandaCoralState(token, clientId) {
+  assertSupabaseConfig();
+  return supabase.rpc('clear_public_banda_coral_state', {
+    p_token: token,
+    p_client_id: clientId,
+  });
+}
+
 export async function claimPublicBandaCoralLeader(token, clientId) {
   assertSupabaseConfig();
   return supabase.rpc('claim_public_banda_coral_leader', {
