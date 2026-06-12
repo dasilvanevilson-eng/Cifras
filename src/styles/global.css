@@ -1,6 +1,6 @@
 :root {
   --border-radius-default: 5px;
-  --lyrics-execution-font: Inter, Arial, Helvetica, sans-serif;
+  --lyrics-execution-font: 'Roboto Mono', 'Courier New', monospace;
   --chords-execution-font: 'Roboto Mono', 'Courier New', monospace;
 
   font-family: Arial, Helvetica, sans-serif;
@@ -3990,7 +3990,7 @@ a {
 
 .chord-line {
   font-family: var(--chords-execution-font);
-  font-size: clamp(12px, calc(var(--performance-font-size, var(--repertorio-song-font-size, 22px)) + 2px), 34px);
+  font-size: inherit;
   font-weight: 700;
   color: #c8792b;
 }
