@@ -1318,15 +1318,7 @@ a {
   margin-bottom: 0;
 }
 
-.public-lyrics-layout {
-  display: grid;
-  grid-template-columns: minmax(250px, 340px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.public-lyrics-song-list,
-.public-lyrics-detail {
+.public-lyrics-song-list {
   min-width: 0;
 }
 
@@ -1348,6 +1340,8 @@ a {
 
 .public-lyrics-list-item.is-selected {
   border-color: #1d4f45;
+  border-bottom-color: #c9ddd0;
+  border-radius: 8px 8px 0 0;
   background: #eef5ef;
 }
 
@@ -1412,6 +1406,12 @@ a {
 .public-lyrics-detail-inner {
   display: grid;
   gap: 12px;
+  margin-top: -8px;
+  border: 1px solid #1d4f45;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  padding: 14px;
+  background: #ffffff;
 }
 
 .public-lyrics-detail-header {
@@ -1428,11 +1428,24 @@ a {
   margin: 0;
 }
 
+.public-lyrics-detail-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .public-lyrics-detail-header h2 {
   color: #183c35;
   font-size: 28px;
   line-height: 1.15;
   overflow-wrap: anywhere;
+}
+
+.public-lyrics-close {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: #5f594f;
 }
 
 .public-lyrics-detail-header p {
@@ -4111,10 +4124,6 @@ a {
   }
 
   .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .public-lyrics-layout {
     grid-template-columns: 1fr;
   }
 

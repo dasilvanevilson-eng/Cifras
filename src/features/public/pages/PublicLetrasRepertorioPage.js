@@ -48,18 +48,13 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
         <p>${escapeHtml(invite?.title || 'Modo Letras')}${repertorioData !== '-' ? ` - ${escapeHtml(repertorioData)}` : ''}</p>
       </div>
     </header>
-    <div class="public-lyrics-layout">
-      <section class="public-lyrics-song-list" aria-label="Musicas do repertorio"></section>
-      <section class="public-lyrics-detail" aria-live="polite"></section>
-    </div>
+    <section class="public-lyrics-song-list" aria-label="Musicas do repertorio" aria-live="polite"></section>
   `;
 
   const listSlot = wrapper.querySelector('.public-lyrics-song-list');
-  const detailSlot = wrapper.querySelector('.public-lyrics-detail');
 
   if (!musicasAssociadas.length) {
     listSlot.innerHTML = '<p class="page-status">Nenhuma musica adicionada a este repertorio.</p>';
-    detailSlot.innerHTML = '<p class="page-status">Nenhuma letra disponivel.</p>';
     return wrapper;
   }
 
@@ -69,18 +64,22 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   };
 
   function render() {
-    listSlot.replaceChildren(createSongList(musicasAssociadas, state, (item, options = {}) => {
-      state.selectedId = item.id;
-      state.autoplay = Boolean(options.autoplay);
-      render();
+    listSlot.replaceChildren(createSongList(musicasAssociadas, state, {
+      onSelect: (item, options = {}) => {
+        state.selectedId = item.id;
+        state.autoplay = Boolean(options.autoplay);
+        render();
+      },
+      onClose: () => {
+        state.selectedId = null;
+        state.autoplay = false;
+        render();
+      },
     }));
-
-    const selected = musicasAssociadas.find((item) => item.id === state.selectedId) || musicasAssociadas[0];
-    detailSlot.replaceChildren(createSongDetail(selected));
 
     if (state.autoplay) {
       state.autoplay = false;
-      detailSlot.querySelector('[data-action="load-player"]')?.click();
+      listSlot.querySelector('[data-expanded-song="true"] [data-action="load-player"]')?.click();
     }
   }
 
@@ -88,49 +87,60 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   return wrapper;
 }
 
-function createSongList(items, state, onSelect) {
+function createSongList(items, state, { onSelect, onClose }) {
   const list = document.createElement('div');
   list.className = 'public-lyrics-list';
 
   items.forEach((item, index) => {
-    const song = item.musicas || {};
-    const title = getSongTitle(item);
-    const artist = getSongArtist(item);
-    const link = getSongLink(item);
-    const row = document.createElement('article');
-    row.className = `public-lyrics-list-item${item.id === state.selectedId ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
-    row.innerHTML = `
-      <button class="public-lyrics-select" type="button" data-action="select-song">
-        <span class="public-lyrics-song-number">${index + 1}</span>
-        <span>
-          <strong>${escapeHtml(title)}</strong>
-          <small>${escapeHtml(artist)}</small>
-        </span>
-      </button>
-      ${link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : ''}
-    `;
+    const songRow = createSongRow(item, index, state, onSelect);
+    list.append(songRow);
 
-    row.querySelector('[data-action="select-song"]').addEventListener('click', () => {
-      onSelect(item);
-    });
-
-    row.querySelector('[data-action="play-song"]')?.addEventListener('click', () => {
-      onSelect(item, { autoplay: true });
-    });
-
-    if (!song.id && isDeletedSong(item)) {
-      row.title = 'Musica excluida do acervo';
+    if (item.id === state.selectedId) {
+      const detail = createSongDetail(item, { onClose });
+      list.append(detail);
     }
-
-    list.append(row);
   });
 
   return list;
 }
 
-function createSongDetail(item) {
-  const detail = document.createElement('div');
+function createSongRow(item, index, state, onSelect) {
+  const song = item.musicas || {};
+  const title = getSongTitle(item);
+  const artist = getSongArtist(item);
+  const link = getSongLink(item);
+  const row = document.createElement('article');
+  row.className = `public-lyrics-list-item${item.id === state.selectedId ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
+  row.innerHTML = `
+    <button class="public-lyrics-select" type="button" data-action="select-song">
+      <span class="public-lyrics-song-number">${index + 1}</span>
+      <span>
+        <strong>${escapeHtml(title)}</strong>
+        <small>${escapeHtml(artist)}</small>
+      </span>
+    </button>
+    ${link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : ''}
+  `;
+
+  row.querySelector('[data-action="select-song"]').addEventListener('click', () => {
+    onSelect(item);
+  });
+
+  row.querySelector('[data-action="play-song"]')?.addEventListener('click', () => {
+    onSelect(item, { autoplay: true });
+  });
+
+  if (!song.id && isDeletedSong(item)) {
+    row.title = 'Musica excluida do acervo';
+  }
+
+  return row;
+}
+
+function createSongDetail(item, { onClose } = {}) {
+  const detail = document.createElement('article');
   detail.className = 'public-lyrics-detail-inner';
+  detail.dataset.expandedSong = 'true';
 
   const title = getSongTitle(item);
   const artist = getSongArtist(item);
@@ -142,7 +152,10 @@ function createSongDetail(item) {
   detail.innerHTML = `
     <header class="public-lyrics-detail-header">
       <div>
-        <h2>${escapeHtml(title)}</h2>
+        <div class="public-lyrics-detail-title-row">
+          <h2>${escapeHtml(title)}</h2>
+          <button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>
+        </div>
         <p>${escapeHtml(artist)}${momento !== '-' ? ` - ${escapeHtml(momento)}` : ''}</p>
       </div>
       ${link ? '<button class="button-link secondary" type="button" data-action="load-player">Executar</button>' : ''}
@@ -151,6 +164,10 @@ function createSongDetail(item) {
     ${isDeletedSong(item) ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>' : ''}
     <pre class="lyrics-text public-lyrics-text">${escapeHtml(lyrics || 'Letra nao encontrada.')}</pre>
   `;
+
+  detail.querySelector('[data-action="close-detail"]').addEventListener('click', () => {
+    onClose?.();
+  });
 
   detail.querySelector('[data-action="load-player"]')?.addEventListener('click', () => {
     const player = detail.querySelector('.public-lyrics-player');
