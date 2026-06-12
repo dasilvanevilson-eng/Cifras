@@ -517,14 +517,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
   fontDownButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.max(22, fontSize - 1);
+    fontSize = Math.max(8, getCurrentPerformanceFontSize(wrapper, fontSize) - 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     renderCurrentSong();
   });
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(32, fontSize + 1);
+    fontSize = Math.min(32, getCurrentPerformanceFontSize(wrapper, fontSize) + 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     renderCurrentSong();
   });
@@ -687,6 +687,11 @@ function setPerformanceThemeV2(wrapper, button, theme) {
 
 function setPerformanceFontSizeV2(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
+}
+
+function getCurrentPerformanceFontSize(wrapper, fallback) {
+  const value = window.getComputedStyle(wrapper).getPropertyValue('--performance-font-size');
+  return Number.parseFloat(value) || fallback;
 }
 
 function setTwoColumnView(wrapper, button, enabled) {

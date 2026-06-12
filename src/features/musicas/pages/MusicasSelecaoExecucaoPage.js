@@ -156,14 +156,14 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
 
   fontDownButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.max(22, fontSize - 1);
+    fontSize = Math.max(8, getCurrentPerformanceFontSize(wrapper, fontSize) - 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderCurrentSong();
   });
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(32, fontSize + 1);
+    fontSize = Math.min(32, getCurrentPerformanceFontSize(wrapper, fontSize) + 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderCurrentSong();
   });
@@ -362,6 +362,11 @@ function setPerformanceTheme(wrapper, button, theme) {
 
 function setPerformanceFontSize(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
+}
+
+function getCurrentPerformanceFontSize(wrapper, fallback) {
+  const value = window.getComputedStyle(wrapper).getPropertyValue('--performance-font-size');
+  return Number.parseFloat(value) || fallback;
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
