@@ -3161,7 +3161,8 @@ a {
 }
 
 .performance-page {
-  max-width: 1160px;
+  width: 100%;
+  max-width: none;
   padding: 24px 20px 72px;
 }
 

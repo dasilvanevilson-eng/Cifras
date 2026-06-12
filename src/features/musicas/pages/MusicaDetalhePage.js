@@ -7,7 +7,10 @@ import {
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
+
+const MAX_REPERTORIO_SONG_FONT_SIZE = 64;
 
 export async function MusicaDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -158,10 +161,11 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
   let capo = 0;
   let showNumbers = false;
   let fontSize = Number(window.localStorage.getItem('repertorioSongFontSize') || 18);
+  let fitFontToWidth = Boolean(associationId);
   let isDark = window.localStorage.getItem('repertorioSongTheme') === 'dark';
 
   function applyDisplaySettings() {
-    fontSize = Math.min(30, Math.max(12, fontSize));
+    fontSize = Math.min(MAX_REPERTORIO_SONG_FONT_SIZE, Math.max(12, fontSize));
     wrapper.style.setProperty('--repertorio-song-font-size', `${fontSize}px`);
     wrapper.classList.toggle('is-dark', isDark);
     updateFontSizeStatus();
@@ -180,6 +184,30 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     fontSizeStatus.textContent = String(Math.round(Number(fontSize) || 0));
   }
 
+  function updateFontSizeStatusValue(value) {
+    const fontSizeStatus = wrapper.querySelector('[data-role="font-size-status"]');
+    if (!fontSizeStatus) return;
+
+    fontSizeStatus.textContent = String(Math.round(Number(value) || 0));
+  }
+
+  function fitRepertorioSongToWidth() {
+    if (!associationId) return;
+
+    fitPreformattedTextToWidth({
+      wrapper,
+      view: chordproView,
+      desiredFontSize: fontSize,
+      fitToWidth: fitFontToWidth,
+      minFontSize: 12,
+      maxFontSize: MAX_REPERTORIO_SONG_FONT_SIZE,
+      setFontSize: (value) => {
+        wrapper.style.setProperty('--repertorio-song-font-size', `${value}px`);
+        updateFontSizeStatusValue(value);
+      },
+    });
+  }
+
   function render() {
     const displayedCifra = transposeCifraOriginal(cifraOriginal, semitones - capo);
     const displayedKey = transposeKey(originalKey, semitones);
@@ -194,6 +222,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     if (numbersButton) {
       numbersButton.textContent = showNumbers ? 'Cifras' : 'Numeros';
     }
+    fitRepertorioSongToWidth();
   }
 
   downButton.addEventListener('click', () => {
@@ -226,12 +255,14 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
   });
 
   fontDownButton?.addEventListener('click', () => {
+    fitFontToWidth = false;
     fontSize -= 1;
     window.localStorage.setItem('repertorioSongFontSize', String(fontSize));
     applyDisplaySettings();
   });
 
   fontUpButton?.addEventListener('click', () => {
+    fitFontToWidth = false;
     fontSize += 1;
     window.localStorage.setItem('repertorioSongFontSize', String(fontSize));
     applyDisplaySettings();
@@ -242,6 +273,8 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     window.localStorage.setItem('repertorioSongTheme', isDark ? 'dark' : 'light');
     applyDisplaySettings();
   });
+
+  window.addEventListener('resize', fitRepertorioSongToWidth);
 
   backLink.addEventListener('click', async (event) => {
     if (!associationId) return;

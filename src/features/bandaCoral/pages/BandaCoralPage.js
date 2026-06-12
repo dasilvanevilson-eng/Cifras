@@ -18,6 +18,9 @@ import {
   renderCifraOriginalForDisplayHtml,
   transposeCifraOriginal,
 } from '../../../utils/chordpro.js';
+import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
+
+const MAX_PERFORMANCE_FONT_SIZE = 64;
 
 export async function BandaCoralPage({ session } = {}) {
   const page = document.createElement('section');
@@ -996,7 +999,7 @@ function setupPerformanceControls(wrapper, options = {}) {
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(32, getCurrentPerformanceFontSize(wrapper, fontSize) + 1);
+    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, getCurrentPerformanceFontSize(wrapper, fontSize) + 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderPerformance();
   });
@@ -1193,35 +1196,14 @@ function setTwoColumnView(wrapper, button, enabled) {
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
-  setPerformanceFontSize(wrapper, desiredFontSize);
-
-  if (!fitFontToMobileWidth) {
-    return;
-  }
-
-  const applyFit = () => {
-    setPerformanceFontSize(wrapper, desiredFontSize);
-    view.getBoundingClientRect();
-
-    const style = window.getComputedStyle(view);
-    const horizontalPadding = parseFloat(style.paddingLeft || '0') + parseFloat(style.paddingRight || '0');
-    const availableWidth = Math.max(120, (view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24)) - horizontalPadding);
-    const contentWidth = Math.max(availableWidth, (view.scrollWidth || availableWidth) - horizontalPadding);
-    const fittedSize = Math.floor(desiredFontSize * (availableWidth / contentWidth) * 0.96);
-    let fontSize = Math.max(8, Math.min(desiredFontSize, fittedSize || desiredFontSize));
-
-    setPerformanceFontSize(wrapper, fontSize);
-    view.getBoundingClientRect();
-
-    if (view.scrollWidth > view.clientWidth + 1 && fontSize > 8) {
-      const retryContentWidth = Math.max(availableWidth, (view.scrollWidth || availableWidth) - horizontalPadding);
-      fontSize = Math.max(8, Math.floor(fontSize * (availableWidth / retryContentWidth) * 0.96));
-      setPerformanceFontSize(wrapper, fontSize);
-    }
-  };
-
-  window.requestAnimationFrame(applyFit);
-  document.fonts?.ready?.then(applyFit).catch(() => {});
+  fitPreformattedTextToWidth({
+    wrapper,
+    view,
+    desiredFontSize,
+    fitToWidth: fitFontToMobileWidth,
+    maxFontSize: MAX_PERFORMANCE_FONT_SIZE,
+    setFontSize: (value) => setPerformanceFontSize(wrapper, value),
+  });
 }
 
 function createCapoOptions() {
