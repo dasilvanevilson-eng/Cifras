@@ -112,8 +112,8 @@ function createSongRow(item, index, state, { onSelect, onClose }) {
   const row = document.createElement('article');
   row.className = `public-lyrics-list-item${isSelected ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
   const actions = [
-    isSelected ? '<button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>' : '',
     link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : '',
+    isSelected ? '<button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>' : '',
   ].filter(Boolean).join('');
 
   row.innerHTML = `

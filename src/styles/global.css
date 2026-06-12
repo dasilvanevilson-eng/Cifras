@@ -1319,9 +1319,9 @@ a {
 }
 
 .public-lyrics-invite-title {
-  color: #b91c1c;
+  color: #ff0000;
   font-weight: 800;
-  animation: public-lyrics-invite-blink 1s linear 5;
+  animation: public-lyrics-invite-blink 1s linear 10;
 }
 
 @keyframes public-lyrics-invite-blink {
