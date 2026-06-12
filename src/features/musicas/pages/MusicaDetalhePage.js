@@ -91,6 +91,7 @@ function createMusicaView(musica, options = {}) {
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>
       ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>' : ''}
+      ${isRepertorioView ? '<span class="font-size-status" data-role="font-size-status">18</span>' : ''}
       ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>' : ''}
       ${isRepertorioView ? '<button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>' : ''}
       <label>
@@ -163,12 +164,20 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     fontSize = Math.min(30, Math.max(12, fontSize));
     wrapper.style.setProperty('--repertorio-song-font-size', `${fontSize}px`);
     wrapper.classList.toggle('is-dark', isDark);
+    updateFontSizeStatus();
 
     if (themeButton) {
       themeButton.innerHTML = '<span class="theme-swatch" aria-hidden="true"></span>';
       themeButton.setAttribute('aria-label', isDark ? 'Usar tela clara' : 'Usar tela escura');
       themeButton.title = isDark ? 'Usar tela clara' : 'Usar tela escura';
     }
+  }
+
+  function updateFontSizeStatus() {
+    const fontSizeStatus = wrapper.querySelector('[data-role="font-size-status"]');
+    if (!fontSizeStatus) return;
+
+    fontSizeStatus.textContent = String(Math.round(Number(fontSize) || 0));
   }
 
   function render() {

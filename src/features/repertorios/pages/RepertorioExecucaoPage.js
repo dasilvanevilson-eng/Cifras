@@ -389,6 +389,7 @@ export function createPerformanceViewV2({
       <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">&rsaquo;</button>
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
       <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
+      <span class="font-size-status" data-role="font-size-status">32</span>
       <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
       <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
@@ -687,11 +688,19 @@ function setPerformanceThemeV2(wrapper, button, theme) {
 
 function setPerformanceFontSizeV2(wrapper, value) {
   wrapper.style.setProperty('--performance-font-size', `${value}px`);
+  updateFontSizeStatus(wrapper, value);
 }
 
 function getCurrentPerformanceFontSize(wrapper, fallback) {
   const value = window.getComputedStyle(wrapper).getPropertyValue('--performance-font-size');
   return Number.parseFloat(value) || fallback;
+}
+
+function updateFontSizeStatus(wrapper, value) {
+  const status = wrapper.querySelector('[data-role="font-size-status"]');
+  if (!status) return;
+
+  status.textContent = String(Math.round(Number(value) || 0));
 }
 
 function setTwoColumnView(wrapper, button, enabled) {
@@ -757,14 +766,14 @@ function renderPagedPerformanceV2({
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
-  wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
+  setPerformanceFontSizeV2(wrapper, desiredFontSize);
 
   if (!fitFontToMobileWidth) {
     return;
   }
 
   const applyFit = () => {
-    wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
+    setPerformanceFontSizeV2(wrapper, desiredFontSize);
     view.getBoundingClientRect();
 
     const style = window.getComputedStyle(view);
@@ -774,13 +783,13 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileW
     const fittedSize = Math.floor(desiredFontSize * (availableWidth / contentWidth) * 0.96);
     let fontSize = Math.max(8, Math.min(desiredFontSize, fittedSize || desiredFontSize));
 
-    wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+    setPerformanceFontSizeV2(wrapper, fontSize);
     view.getBoundingClientRect();
 
     if (view.scrollWidth > view.clientWidth + 1 && fontSize > 8) {
       const retryContentWidth = Math.max(availableWidth, (view.scrollWidth || availableWidth) - horizontalPadding);
       fontSize = Math.max(8, Math.floor(fontSize * (availableWidth / retryContentWidth) * 0.96));
-      wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
+      setPerformanceFontSizeV2(wrapper, fontSize);
     }
   };
 
