@@ -274,16 +274,15 @@ function setTwoColumnView(wrapper, button, enabled) {
 }
 
 function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
+  wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
+
   if (!fitFontToMobileWidth) {
-    wrapper.style.setProperty('--performance-font-size', `${desiredFontSize}px`);
     return;
   }
 
-  const lines = String(cifra || '').split('\n');
-  const longestLineLength = Math.max(1, ...lines.map((line) => line.length));
-  const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24);
-  const availableWidth = Math.max(160, measuredWidth - 28);
-  const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.55));
+  const availableWidth = Math.max(160, view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24));
+  const contentWidth = Math.max(availableWidth, view.scrollWidth || availableWidth);
+  const fittedSize = Math.floor(desiredFontSize * (availableWidth / contentWidth));
   const fontSize = Math.max(22, Math.min(desiredFontSize, fittedSize || desiredFontSize));
 
   wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
