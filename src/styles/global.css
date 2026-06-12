@@ -3010,7 +3010,7 @@ a {
 
 .repertorio-song-view .chordpro-view {
   font-family: var(--lyrics-execution-font);
-  font-size: clamp(22px, var(--repertorio-song-font-size, 22px), 32px);
+  font-size: var(--repertorio-song-font-size, 22px);
   font-weight: 600;
   line-height: 1.55;
   white-space: pre;
@@ -3255,7 +3255,7 @@ a {
 
 .performance-page .chordpro-view {
   font-family: var(--lyrics-execution-font);
-  font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+  font-size: var(--performance-font-size, 32px);
   font-weight: 600;
   line-height: 1.7;
 }
@@ -3507,7 +3507,7 @@ a {
 
 .repertorio-performance-view .chordpro-view {
   font-family: var(--lyrics-execution-font);
-  font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+  font-size: var(--performance-font-size, 32px);
   font-weight: 600;
   line-height: 1.55;
   min-height: calc(100svh - 184px);
@@ -3990,7 +3990,7 @@ a {
 
 .chord-line {
   font-family: var(--chords-execution-font);
-  font-size: clamp(18px, calc(var(--performance-font-size, var(--repertorio-song-font-size, 22px)) - 4px), 28px);
+  font-size: clamp(10px, calc(var(--performance-font-size, var(--repertorio-song-font-size, 22px)) - 4px), 28px);
   font-weight: 700;
   color: #c8792b;
 }
@@ -4673,7 +4673,7 @@ a {
   .repertorio-performance-view .chordpro-view {
     min-height: calc(100svh - 136px);
     padding: 12px;
-    font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+    font-size: var(--performance-font-size, 32px);
     line-height: 1.5;
   }
 

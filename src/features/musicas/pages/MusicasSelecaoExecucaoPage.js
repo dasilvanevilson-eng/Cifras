@@ -371,10 +371,11 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileW
     return;
   }
 
+  view.getBoundingClientRect();
   const availableWidth = Math.max(160, view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24));
   const contentWidth = Math.max(availableWidth, view.scrollWidth || availableWidth);
   const fittedSize = Math.floor(desiredFontSize * (availableWidth / contentWidth));
-  const fontSize = Math.max(22, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+  const fontSize = Math.max(12, Math.min(desiredFontSize, fittedSize || desiredFontSize));
 
   wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
 }
