@@ -3042,7 +3042,7 @@ a {
 }
 
 .repertorio-song-view.is-dark {
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-song-view.is-dark .song-header p,
@@ -3059,25 +3059,25 @@ a {
 .repertorio-song-view.is-dark .nav-button {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-song-view.is-dark .button-link.secondary {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-song-view.is-dark .transpose-toolbar select {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-song-view.is-dark .chordpro-view {
   border-color: #3d443f;
   background: #111513;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-song-view.is-dark.is-two-columns .chordpro-view {
@@ -3253,7 +3253,7 @@ a {
 }
 
 .performance-page article.is-dark {
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .performance-page article.is-dark .back-link {
@@ -3275,13 +3275,13 @@ a {
 .performance-page article.is-dark .nav-button {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .performance-page article.is-dark .performance-toolbar select {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .performance-page article.is-dark .performance-position {
@@ -3302,7 +3302,7 @@ a {
 .performance-page article.is-dark .chordpro-view {
   border-color: #3d443f;
   background: #111513;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-performance-view .performance-header {
@@ -3517,7 +3517,7 @@ a {
 .repertorio-performance-view.is-dark .performance-toolbar .button-link.secondary {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-performance-view.is-dark .performance-toolbar {
@@ -3529,7 +3529,7 @@ a {
 .repertorio-performance-view.is-dark .performance-toolbar label {
   border-color: #536159;
   background: #1a211e;
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-performance-view.is-dark .performance-toolbar::-webkit-scrollbar-track {
@@ -3557,7 +3557,7 @@ a {
 .repertorio-performance-view.is-dark .performance-song .current-key,
 .repertorio-performance-view.is-dark .repertorio-title-inline,
 .repertorio-performance-view.is-dark .title-separator {
-  color: #f6f2e8;
+  color: #ffffff;
 }
 
 .repertorio-performance-view.is-dark .repertorio-song-title-bar {
@@ -3565,7 +3565,7 @@ a {
 }
 
 .repertorio-performance-view.is-dark .repertorio-song-title-bar h2 {
-  color: #1d4f45;
+  color: #ffffff;
 }
 
 .repertorio-performance-view:fullscreen {
