@@ -1,5 +1,7 @@
 :root {
   --border-radius-default: 5px;
+  --lyrics-execution-font: Inter, Arial, Helvetica, sans-serif;
+  --chords-execution-font: 'Roboto Mono', 'Courier New', monospace;
 
   font-family: Arial, Helvetica, sans-serif;
   color: #20211f;
@@ -1514,6 +1516,10 @@ a {
 
 .public-lyrics-text {
   margin: 0;
+  font-family: var(--lyrics-execution-font);
+  font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+  font-weight: 600;
+  line-height: 1.55;
   white-space: pre-wrap;
 }
 
@@ -3003,9 +3009,9 @@ a {
 }
 
 .repertorio-song-view .chordpro-view {
-  font-family: 'Courier New', monospace;
-  font-size: var(--repertorio-song-font-size, 18px);
-  font-weight: 700;
+  font-family: var(--lyrics-execution-font);
+  font-size: clamp(22px, var(--repertorio-song-font-size, 22px), 32px);
+  font-weight: 600;
   line-height: 1.55;
   white-space: pre;
 }
@@ -3248,7 +3254,9 @@ a {
 }
 
 .performance-page .chordpro-view {
-  font-size: var(--performance-font-size, 18px);
+  font-family: var(--lyrics-execution-font);
+  font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+  font-weight: 600;
   line-height: 1.7;
 }
 
@@ -3498,9 +3506,9 @@ a {
 }
 
 .repertorio-performance-view .chordpro-view {
-  font-family: 'Courier New', monospace;
-  font-size: var(--performance-font-size, 18px);
-  font-weight: 700;
+  font-family: var(--lyrics-execution-font);
+  font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
+  font-weight: 600;
   line-height: 1.55;
   min-height: calc(100svh - 184px);
   padding: 18px;
@@ -3975,10 +3983,15 @@ a {
 }
 
 .chord-token {
+  font-family: var(--chords-execution-font);
+  font-weight: 700;
   color: #c8792b;
 }
 
 .chord-line {
+  font-family: var(--chords-execution-font);
+  font-size: clamp(18px, calc(var(--performance-font-size, var(--repertorio-song-font-size, 22px)) - 4px), 28px);
+  font-weight: 700;
   color: #c8792b;
 }
 
@@ -4660,7 +4673,7 @@ a {
   .repertorio-performance-view .chordpro-view {
     min-height: calc(100svh - 136px);
     padding: 12px;
-    font-size: var(--performance-font-size, 17px);
+    font-size: clamp(22px, var(--performance-font-size, 22px), 32px);
     line-height: 1.5;
   }
 

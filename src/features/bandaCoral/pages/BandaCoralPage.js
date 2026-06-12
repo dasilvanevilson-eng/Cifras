@@ -958,7 +958,7 @@ function setupPerformanceControls(wrapper, options = {}) {
   let scrollTimer = null;
   let semitones = 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
-  let fontSize = 18;
+  let fontSize = 22;
   let fitFontToMobileWidth = true;
   let twoColumns = false;
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
@@ -988,14 +988,14 @@ function setupPerformanceControls(wrapper, options = {}) {
 
   fontDownButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.max(12, fontSize - 1);
+    fontSize = Math.max(22, fontSize - 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderPerformance();
   });
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(30, fontSize + 1);
+    fontSize = Math.min(32, fontSize + 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderPerformance();
   });
@@ -1189,7 +1189,7 @@ function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileW
   const measuredWidth = view.clientWidth || wrapper.clientWidth || (window.innerWidth - 24);
   const availableWidth = Math.max(160, measuredWidth - 28);
   const fittedSize = Math.floor(availableWidth / (longestLineLength * 0.62));
-  const fontSize = Math.max(10, Math.min(desiredFontSize, fittedSize || desiredFontSize));
+  const fontSize = Math.max(22, Math.min(desiredFontSize, fittedSize || desiredFontSize));
 
   wrapper.style.setProperty('--performance-font-size', `${fontSize}px`);
 }
