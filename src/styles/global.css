@@ -1518,7 +1518,7 @@ a {
   margin: 0;
   font-family: var(--lyrics-execution-font);
   font-size: clamp(22px, 2.4vw, 32px);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
   white-space: pre-wrap;
 }
@@ -3011,7 +3011,7 @@ a {
 .repertorio-song-view .chordpro-view {
   font-family: var(--lyrics-execution-font);
   font-size: var(--repertorio-song-font-size, 22px);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
   white-space: pre;
 }
@@ -3154,7 +3154,7 @@ a {
   border-radius: var(--border-radius-default);
   background: #ffffff;
   font-family: Consolas, 'Courier New', monospace;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -3257,7 +3257,7 @@ a {
 .performance-page .chordpro-view {
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
 }
 
@@ -3509,7 +3509,7 @@ a {
 .repertorio-performance-view .chordpro-view {
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
   min-height: calc(100svh - 184px);
   padding: 14px;
@@ -4006,7 +4006,7 @@ a {
   color: #20211f;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.55;
   white-space: pre-wrap;
 }
