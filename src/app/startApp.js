@@ -6,6 +6,7 @@ import { countSugestoesPendentes } from '../services/sugestoesMusicasService.js'
 import { canEditContent } from '../features/auth/roles.js';
 import { resolvePermissions } from '../features/auth/permissions.js';
 import { listCurrentUserPermissionOverrides } from '../services/permissionsService.js';
+import { installYoutubeFloatingPlayer } from '../utils/youtubePlayer.js';
 
 export async function startApp() {
   const root = document.querySelector('#app');
@@ -13,6 +14,8 @@ export async function startApp() {
   if (!root) {
     throw new Error('Elemento #app nao encontrado.');
   }
+
+  installYoutubeFloatingPlayer();
 
   const session = await loadSession();
   const pendingSuggestionsCount = await loadPendingSuggestionsCount(session);

@@ -15,6 +15,10 @@ body {
   background: #f4f1ea;
 }
 
+body.has-youtube-modal {
+  overflow: hidden;
+}
+
 a {
   color: inherit;
 }
@@ -114,6 +118,63 @@ a {
 .main-menu-backdrop[hidden],
 .main-menu-drawer[hidden] {
   display: none;
+}
+
+.youtube-player-modal[hidden] {
+  display: none;
+}
+
+.youtube-player-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.youtube-player-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 18, 0.68);
+  backdrop-filter: blur(2px);
+}
+
+.youtube-player-dialog {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+  width: min(960px, 100%);
+  max-height: calc(100svh - 36px);
+}
+
+.youtube-player-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.youtube-player-close {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #183c35;
+}
+
+.youtube-player-frame {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 8px;
+  background: #111111;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.youtube-player-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .main-menu-drawer {
@@ -1445,49 +1506,10 @@ a {
   background: #ffffff;
 }
 
-.public-lyrics-detail-header {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #ddd6c8;
-  padding-bottom: 12px;
-}
-
-.public-lyrics-detail-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
 .public-lyrics-close {
   min-height: 40px;
   padding: 6px 10px;
   color: #5f594f;
-}
-
-.public-lyrics-player {
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid #ddd6c8;
-  border-radius: 8px;
-  background: #111111;
-}
-
-.public-lyrics-player iframe {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.public-lyrics-player .page-status {
-  display: grid;
-  min-height: 100%;
-  place-items: center;
-  margin: 0;
-  padding: 18px;
-  background: #fffdf8;
 }
 
 .public-lyrics-text {

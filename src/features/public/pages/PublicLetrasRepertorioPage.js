@@ -1,5 +1,6 @@
 import { getPublicLetrasRepertorioData } from '../../../services/publicInvitesService.js';
 import { extractLyricsFromCifraOriginal, getCifraExibicao } from '../../../utils/chordpro.js';
+import { isYoutubeUrl, openYoutubeFloatingPlayer } from '../../../utils/youtubePlayer.js';
 
 export async function PublicLetrasRepertorioPage() {
   const page = document.createElement('section');
@@ -58,27 +59,19 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
 
   const state = {
     selectedId: null,
-    autoplay: false,
   };
 
   function render() {
     listSlot.replaceChildren(createSongList(musicasAssociadas, state, {
-      onSelect: (item, options = {}) => {
+      onSelect: (item) => {
         state.selectedId = item.id;
-        state.autoplay = Boolean(options.autoplay);
         render();
       },
       onClose: () => {
         state.selectedId = null;
-        state.autoplay = false;
         render();
       },
     }));
-
-    if (state.autoplay) {
-      state.autoplay = false;
-      listSlot.querySelector('[data-expanded-song="true"] [data-action="load-player"]')?.click();
-    }
   }
 
   render();
@@ -110,8 +103,9 @@ function createSongRow(item, index, state, { onSelect, onClose }) {
   const isSelected = item.id === state.selectedId;
   const row = document.createElement('article');
   row.className = `public-lyrics-list-item${isSelected ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
+  const youtubeLink = isYoutubeUrl(link);
   const actions = [
-    link ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : '',
+    youtubeLink ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : '',
     isSelected ? '<button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>' : '',
   ].filter(Boolean).join('');
 
@@ -131,7 +125,8 @@ function createSongRow(item, index, state, { onSelect, onClose }) {
   });
 
   row.querySelector('[data-action="play-song"]')?.addEventListener('click', () => {
-    onSelect(item, { autoplay: true });
+    openYoutubeFloatingPlayer(link);
+    onSelect(item);
   });
 
   row.querySelector('[data-action="close-detail"]')?.addEventListener('click', () => {
@@ -150,69 +145,14 @@ function createSongDetail(item) {
   detail.className = 'public-lyrics-detail-inner';
   detail.dataset.expandedSong = 'true';
 
-  const title = getSongTitle(item);
-  const link = getSongLink(item);
-  const embedUrl = getYoutubeEmbedUrl(link);
   const lyrics = getLyricsFromItem(item);
 
   detail.innerHTML = `
-    <button type="button" data-action="load-player" hidden></button>
-    <div class="public-lyrics-player" hidden></div>
     ${isDeletedSong(item) ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>' : ''}
     <pre class="lyrics-text public-lyrics-text">${escapeHtml(lyrics || 'Letra nao encontrada.')}</pre>
   `;
 
-  detail.querySelector('[data-action="load-player"]')?.addEventListener('click', () => {
-    const player = detail.querySelector('.public-lyrics-player');
-
-    if (!embedUrl) {
-      player.hidden = false;
-      player.innerHTML = '<p class="page-status error">Este link nao pode ser executado dentro do sistema.</p>';
-      return;
-    }
-
-    player.hidden = false;
-    player.innerHTML = `
-      <iframe
-        title="Execucao de ${escapeHtml(title)}"
-        src="${escapeHtml(embedUrl)}"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-      ></iframe>
-    `;
-  });
-
   return detail;
-}
-
-function getYoutubeEmbedUrl(value) {
-  if (!value || !/^https?:\/\//i.test(value)) return '';
-
-  try {
-    const url = new URL(value);
-    const host = url.hostname.replace(/^www\./, '');
-    let videoId = '';
-
-    if (host === 'youtu.be') {
-      videoId = url.pathname.split('/').filter(Boolean)[0] || '';
-    } else if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
-      if (url.pathname === '/watch') {
-        videoId = url.searchParams.get('v') || '';
-      } else if (url.pathname.startsWith('/embed/')) {
-        videoId = url.pathname.split('/').filter(Boolean)[1] || '';
-      } else if (url.pathname.startsWith('/shorts/')) {
-        videoId = url.pathname.split('/').filter(Boolean)[1] || '';
-      }
-    }
-
-    if (!/^[\w-]{6,}$/.test(videoId)) return '';
-
-    const embed = new URL(`https://www.youtube.com/embed/${videoId}`);
-    embed.searchParams.set('rel', '0');
-    return embed.toString();
-  } catch {
-    return '';
-  }
 }
 
 function normalizeOrder(items) {
