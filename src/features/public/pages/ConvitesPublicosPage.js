@@ -2,6 +2,7 @@ import { canManageUsers } from '../../auth/roles.js';
 import {
   createBandaCoralPublicInvite,
   createDashboardPublicInvite,
+  createLetrasRepertorioPublicInvite,
   deletePublicInvite,
   listPublicInvites,
   revokePublicInvite,
@@ -37,6 +38,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
           <select name="module_key" required>
             <option value="dashboard">Painel</option>
             <option value="banda_coral">Modo Banda/Coral</option>
+            <option value="letras_repertorio">Modo Letras</option>
           </select>
         </label>
         <fieldset class="public-invite-permissions field-full" data-role="banda-permissions" hidden>
@@ -56,6 +58,14 @@ export async function ConvitesPublicosPage({ session } = {}) {
           <div class="public-invite-repertorios" data-role="banda-repertorios">
             <h3>Repertorios liberados</h3>
             <div data-role="banda-repertorios-list">
+              <p class="page-status">Carregando repertorios...</p>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset class="public-invite-permissions field-full" data-role="letras-permissions" hidden>
+          <legend>Repertorio liberado</legend>
+          <div class="public-invite-repertorios" data-role="letras-repertorios">
+            <div data-role="letras-repertorios-list">
               <p class="page-status">Carregando repertorios...</p>
             </div>
           </div>
@@ -90,15 +100,17 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const message = page.querySelector('.form-message');
   const listSlot = page.querySelector('[data-role="public-invites-list"]');
   const bandaPermissions = page.querySelector('[data-role="banda-permissions"]');
+  const letrasPermissions = page.querySelector('[data-role="letras-permissions"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
+  const letrasRepertoriosSlot = page.querySelector('[data-role="letras-repertorios-list"]');
   let repertorios = [];
   let editingInvite = null;
 
   form.elements.expires_at.value = getDefaultExpiresAt();
-  updateModuleFields(form, bandaPermissions);
+  updateModuleFields(form, { bandaPermissions, letrasPermissions });
 
   form.elements.module_key.addEventListener('change', () => {
-    updateModuleFields(form, bandaPermissions);
+    updateModuleFields(form, { bandaPermissions, letrasPermissions });
   });
 
   async function loadInvites() {
@@ -126,6 +138,12 @@ export async function ConvitesPublicosPage({ session } = {}) {
       return;
     }
 
+    if (payload.moduleKey === 'letras_repertorio' && !payload.repertorioIds.length) {
+      message.className = 'form-message error field-full';
+      message.textContent = 'Selecione um repertorio para liberar o modo Letras.';
+      return;
+    }
+
     submitButton.disabled = true;
     message.className = 'form-message field-full';
     message.textContent = editingInvite ? 'Salvando convite...' : 'Criando convite...';
@@ -133,9 +151,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
 
     const { data, error } = editingInvite
       ? await updatePublicInvite(editingInvite.id, payload)
-      : payload.moduleKey === 'banda_coral'
-        ? await createBandaCoralPublicInvite(payload)
-        : await createDashboardPublicInvite(payload);
+      : await createInviteByModule(payload);
     submitButton.disabled = false;
 
     if (error) {
@@ -172,11 +188,13 @@ export async function ConvitesPublicosPage({ session } = {}) {
 
     if (error) {
       repertoriosSlot.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar repertorios.')}</p>`;
+      letrasRepertoriosSlot.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar repertorios.')}</p>`;
       return;
     }
 
     repertorios = data || [];
-    repertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios));
+    repertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios, { name: 'banda_repertorio_ids', multiple: true }));
+    letrasRepertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios, { name: 'letras_repertorio_id', multiple: false }));
   }
 
   function startEditInvite(invite) {
@@ -195,8 +213,8 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.allow_acervo.checked = metadata.allow_acervo !== false;
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
     form.elements.max_uses.value = invite.max_uses || '';
-    setCheckedRepertorios(form, metadata.repertorio_ids || []);
-    updateModuleFields(form, bandaPermissions);
+    setCheckedRepertorios(form, getInviteRepertorioIds(invite, metadata));
+    updateModuleFields(form, { bandaPermissions, letrasPermissions });
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -208,7 +226,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     cancelEditButton.hidden = true;
     form.elements.expires_at.value = getDefaultExpiresAt();
     form.elements.allow_acervo.checked = true;
-    updateModuleFields(form, bandaPermissions);
+    updateModuleFields(form, { bandaPermissions, letrasPermissions });
   }
 }
 
@@ -292,24 +310,36 @@ function createInvitesList(invites, { onChange, onEdit }) {
 }
 
 function readInviteForm(form, session) {
+  const moduleKey = form.elements.module_key.value;
+
   return {
-    moduleKey: form.elements.module_key.value,
+    moduleKey,
     title: form.elements.title.value.trim(),
     expiresAt: new Date(form.elements.expires_at.value).toISOString(),
     maxUses: Number(form.elements.max_uses.value || 0) || null,
     createdBy: session?.user?.id,
     accessMode: form.elements.access_mode?.value || 'ambos',
     allowAcervo: Boolean(form.elements.allow_acervo?.checked),
-    repertorioIds: Array.from(form.querySelectorAll('[name="repertorio_ids"]:checked')).map((input) => input.value),
+    repertorioIds: getSelectedRepertorioIds(form, moduleKey),
   };
 }
 
-function updateModuleFields(form, bandaPermissions) {
-  const isBandaCoral = form.elements.module_key.value === 'banda_coral';
-  bandaPermissions.hidden = !isBandaCoral;
+function getSelectedRepertorioIds(form, moduleKey) {
+  if (moduleKey === 'letras_repertorio') {
+    return Array.from(form.querySelectorAll('[name="letras_repertorio_id"]:checked')).map((input) => input.value).slice(0, 1);
+  }
+
+  return Array.from(form.querySelectorAll('[name="banda_repertorio_ids"]:checked')).map((input) => input.value);
 }
 
-function createRepertoriosChecklist(repertorios) {
+function updateModuleFields(form, { bandaPermissions, letrasPermissions }) {
+  const isBandaCoral = form.elements.module_key.value === 'banda_coral';
+  const isLetrasRepertorio = form.elements.module_key.value === 'letras_repertorio';
+  bandaPermissions.hidden = !isBandaCoral;
+  letrasPermissions.hidden = !isLetrasRepertorio;
+}
+
+function createRepertoriosChecklist(repertorios, { name, multiple = true } = {}) {
   if (!repertorios.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
@@ -324,7 +354,7 @@ function createRepertoriosChecklist(repertorios) {
     const label = document.createElement('label');
     label.className = 'checkbox-label public-invite-repertorio-option';
     label.innerHTML = `
-      <input name="repertorio_ids" type="checkbox" value="${escapeHtml(repertorio.id)}">
+      <input name="${escapeHtml(name)}" type="${multiple ? 'checkbox' : 'radio'}" value="${escapeHtml(repertorio.id)}">
       <span>${escapeHtml(repertorio.nome || repertorio.titulo || 'Repertorio')}</span>
     `;
     list.append(label);
@@ -335,9 +365,17 @@ function createRepertoriosChecklist(repertorios) {
 
 function setCheckedRepertorios(form, repertorioIds) {
   const selected = new Set((repertorioIds || []).map(String));
-  form.querySelectorAll('[name="repertorio_ids"]').forEach((input) => {
+  form.querySelectorAll('[name="banda_repertorio_ids"], [name="letras_repertorio_id"]').forEach((input) => {
     input.checked = selected.has(input.value);
   });
+}
+
+function getInviteRepertorioIds(invite, metadata) {
+  if (invite.module_key === 'letras_repertorio' && invite.target_id) {
+    return [invite.target_id];
+  }
+
+  return metadata.repertorio_ids || [];
 }
 
 function getDefaultExpiresAt() {
@@ -367,10 +405,26 @@ function getInviteStatus(invite) {
 }
 
 function getPublicInviteUrl(token, moduleKey = 'dashboard') {
-  const path = moduleKey === 'banda_coral' ? '/publico/banda-coral' : '/publico';
+  const paths = {
+    banda_coral: '/publico/banda-coral',
+    letras_repertorio: '/publico/letras',
+  };
+  const path = paths[moduleKey] || '/publico';
   const url = new URL(path, window.location.origin);
   url.searchParams.set('token', token);
   return url.toString();
+}
+
+function createInviteByModule(payload) {
+  if (payload.moduleKey === 'banda_coral') {
+    return createBandaCoralPublicInvite(payload);
+  }
+
+  if (payload.moduleKey === 'letras_repertorio') {
+    return createLetrasRepertorioPublicInvite(payload);
+  }
+
+  return createDashboardPublicInvite(payload);
 }
 
 async function copyText(text) {
@@ -383,6 +437,7 @@ function formatModule(moduleKey) {
   const labels = {
     dashboard: 'Painel',
     banda_coral: 'Modo Banda/Coral',
+    letras_repertorio: 'Modo Letras',
   };
 
   return labels[moduleKey] || moduleKey;

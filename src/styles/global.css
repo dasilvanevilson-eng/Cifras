@@ -1305,6 +1305,171 @@ a {
   padding-top: 18px;
 }
 
+.public-lyrics-page {
+  max-width: 1180px;
+}
+
+.public-lyrics-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.public-lyrics-header {
+  margin-bottom: 0;
+}
+
+.public-lyrics-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 340px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.public-lyrics-song-list,
+.public-lyrics-detail {
+  min-width: 0;
+}
+
+.public-lyrics-list {
+  display: grid;
+  gap: 8px;
+}
+
+.public-lyrics-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #ddd6c8;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fffdf8;
+}
+
+.public-lyrics-list-item.is-selected {
+  border-color: #1d4f45;
+  background: #eef5ef;
+}
+
+.public-lyrics-list-item.is-deleted {
+  opacity: 0.7;
+}
+
+.public-lyrics-select {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-lyrics-select strong,
+.public-lyrics-select small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.public-lyrics-select strong {
+  color: #183c35;
+  line-height: 1.2;
+}
+
+.public-lyrics-select small {
+  margin-top: 3px;
+  color: #6a645b;
+  font-size: 12px;
+}
+
+.public-lyrics-song-number {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d7d0c1;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.public-lyrics-play {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  color: #16833a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.public-lyrics-detail-inner {
+  display: grid;
+  gap: 12px;
+}
+
+.public-lyrics-detail-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border-bottom: 1px solid #ddd6c8;
+  padding-bottom: 12px;
+}
+
+.public-lyrics-detail-header h2,
+.public-lyrics-detail-header p {
+  margin: 0;
+}
+
+.public-lyrics-detail-header h2 {
+  color: #183c35;
+  font-size: 28px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.public-lyrics-detail-header p {
+  margin-top: 4px;
+  color: #6a645b;
+}
+
+.public-lyrics-player {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #ddd6c8;
+  border-radius: 8px;
+  background: #111111;
+}
+
+.public-lyrics-player iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.public-lyrics-player .page-status {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  margin: 0;
+  padding: 18px;
+  background: #fffdf8;
+}
+
+.public-lyrics-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
 .public-banda-page {
   max-width: 1240px;
 }
@@ -3947,6 +4112,18 @@ a {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .public-lyrics-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .public-lyrics-detail-header {
+    grid-template-columns: 1fr;
+  }
+
+  .public-lyrics-detail-header h2 {
+    font-size: 24px;
   }
 
   .lyrics-search-grid {

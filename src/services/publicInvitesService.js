@@ -67,6 +67,39 @@ export async function createBandaCoralPublicInvite({
     .single();
 }
 
+export async function createLetrasRepertorioPublicInvite({
+  title,
+  expiresAt,
+  maxUses,
+  createdBy,
+  repertorioIds = [],
+}) {
+  assertSupabaseConfig();
+
+  const repertorioId = repertorioIds[0] || null;
+
+  return supabase
+    .from('public_invites')
+    .insert({
+      title,
+      token: createPublicToken(),
+      module_key: 'letras_repertorio',
+      target_type: 'repertorio',
+      target_id: repertorioId,
+      allowed_actions: ['view', 'play'],
+      metadata: {
+        version: 1,
+        repertorio_ids: repertorioId ? [repertorioId] : [],
+        description: 'Acesso publico temporario ao modo Letras de um repertorio.',
+      },
+      expires_at: expiresAt,
+      max_uses: maxUses || null,
+      created_by: createdBy,
+    })
+    .select()
+    .single();
+}
+
 export async function updatePublicInvite(id, {
   title,
   moduleKey,
@@ -79,15 +112,17 @@ export async function updatePublicInvite(id, {
   assertSupabaseConfig();
 
   const isBandaCoral = moduleKey === 'banda_coral';
+  const isLetrasRepertorio = moduleKey === 'letras_repertorio';
+  const repertorioId = repertorioIds[0] || null;
 
   return supabase
     .from('public_invites')
     .update({
       title,
       module_key: moduleKey,
-      target_type: 'module',
-      target_id: null,
-      allowed_actions: ['view', 'execute'],
+      target_type: isLetrasRepertorio ? 'repertorio' : 'module',
+      target_id: isLetrasRepertorio ? repertorioId : null,
+      allowed_actions: isLetrasRepertorio ? ['view', 'play'] : ['view', 'execute'],
       metadata: isBandaCoral
         ? {
             version: 1,
@@ -96,6 +131,12 @@ export async function updatePublicInvite(id, {
             allow_acervo: Boolean(allowAcervo),
             description: 'Acesso publico temporario ao Modo Banda/Coral em busca e execucao.',
           }
+        : isLetrasRepertorio
+          ? {
+              version: 1,
+              repertorio_ids: repertorioId ? [repertorioId] : [],
+              description: 'Acesso publico temporario ao modo Letras de um repertorio.',
+            }
         : {
             version: 1,
             description: 'Acesso publico temporario ao painel e execucao em modo visualizacao.',
@@ -237,6 +278,30 @@ export async function getPublicRepertorioExecutionData(token, repertorioId) {
 
   return {
     data: {
+      repertorio: data.repertorio,
+      musicas: data.musicas || [],
+    },
+    error: null,
+  };
+}
+
+export async function getPublicLetrasRepertorioData(token) {
+  assertSupabaseConfig();
+  const { data, error } = await supabase.rpc('get_public_letras_repertorio_data', {
+    p_token: token,
+  });
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  if (!data?.valid) {
+    return { data: null, error: new Error('Convite expirado, invalido ou repertorio nao encontrado.') };
+  }
+
+  return {
+    data: {
+      invite: data.invite,
       repertorio: data.repertorio,
       musicas: data.musicas || [],
     },
