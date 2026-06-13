@@ -3551,6 +3551,35 @@ a {
   padding: 4px 8px;
 }
 
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar {
+  position: fixed;
+  top: auto;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 46px);
+  left: auto;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(220px, calc(100vw - 24px));
+  max-height: calc(100svh - 92px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgba(207, 199, 184, 0.92);
+  border-radius: var(--border-radius-default);
+}
+
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar .nav-button,
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar .button-link,
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar label,
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar span,
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar input[type="range"],
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar select {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
 .has-auto-toolbar > .performance-toolbar [data-action="transpose-down"],
 .has-auto-toolbar > .performance-toolbar [data-action="transpose-up"],
 .has-auto-toolbar > .performance-toolbar [data-action="font-down"],
