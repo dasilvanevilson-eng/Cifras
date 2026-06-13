@@ -3251,17 +3251,57 @@ a {
   background: #1d4f45;
 }
 
+.has-auto-toolbar > .performance-toolbar,
+.has-auto-toolbar > .transpose-toolbar {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 46px);
+  left: auto;
+  z-index: 165;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  width: min(220px, calc(100vw - 24px));
+  max-height: calc(100svh - 92px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin: 0;
+  padding: 8px;
+  transform: translateY(0);
+  border-width: 1px;
+  opacity: 1;
+  pointer-events: auto;
+  box-shadow: 0 18px 46px rgba(29, 79, 69, 0.18);
+}
+
+.has-auto-toolbar > .performance-toolbar .nav-button,
+.has-auto-toolbar > .performance-toolbar .button-link,
+.has-auto-toolbar > .performance-toolbar label,
+.has-auto-toolbar > .performance-toolbar span,
+.has-auto-toolbar > .transpose-toolbar .nav-button,
+.has-auto-toolbar > .transpose-toolbar .button-link,
+.has-auto-toolbar > .transpose-toolbar label,
+.has-auto-toolbar > .transpose-toolbar span {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+}
+
+.has-auto-toolbar > .performance-toolbar input[type="range"],
+.has-auto-toolbar > .performance-toolbar select,
+.has-auto-toolbar > .transpose-toolbar select {
+  width: 100%;
+}
+
 .has-auto-toolbar.is-toolbar-collapsed > .performance-toolbar,
 .has-auto-toolbar.is-toolbar-collapsed > .transpose-toolbar {
   max-height: 0;
   overflow: hidden;
-  margin-top: 0;
-  margin-bottom: 0;
   transform: translateY(-12px);
   transform-origin: top center;
   border-width: 0;
-  padding-top: 0;
-  padding-bottom: 0;
+  padding: 0;
   opacity: 0;
   pointer-events: none;
 }
@@ -3509,6 +3549,21 @@ a {
 .repertorio-performance-view .performance-toolbar select {
   min-height: 30px;
   padding: 4px 8px;
+}
+
+.has-auto-toolbar > .performance-toolbar [data-action="transpose-down"],
+.has-auto-toolbar > .performance-toolbar [data-action="transpose-up"],
+.has-auto-toolbar > .performance-toolbar [data-action="font-down"],
+.has-auto-toolbar > .performance-toolbar [data-action="font-up"],
+.has-auto-toolbar > .transpose-toolbar [data-action="transpose-down"],
+.has-auto-toolbar > .transpose-toolbar [data-action="transpose-up"],
+.has-auto-toolbar > .transpose-toolbar [data-action="font-down"],
+.has-auto-toolbar > .transpose-toolbar [data-action="font-up"],
+.has-auto-toolbar > .performance-toolbar .theme-toggle-button,
+.has-auto-toolbar > .performance-toolbar .performance-position {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
 }
 
 .repertorio-performance-view .performance-list {
@@ -4753,6 +4808,35 @@ a {
 
   .repertorio-performance-view .performance-toolbar input[type="range"] {
     width: 72px;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar {
+    position: fixed;
+    top: auto;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 46px);
+    left: auto;
+    flex-direction: column;
+    align-items: stretch;
+    width: min(220px, calc(100vw - 24px));
+    max-height: calc(100svh - 92px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0;
+    padding: 8px;
+    border: 1px solid rgba(207, 199, 184, 0.92);
+    border-radius: var(--border-radius-default);
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .nav-button,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .button-link,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar label,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar span,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar input[type="range"],
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 
   .repertorio-performance-view .performance-song header.repertorio-song-title-bar {
