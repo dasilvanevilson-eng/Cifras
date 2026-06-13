@@ -3527,13 +3527,20 @@ a {
 
 .performance-toolbar .font-stepper,
 .transpose-toolbar .font-stepper,
-.performance-toolbar .sequence-stepper {
+.performance-toolbar .sequence-stepper,
+.performance-toolbar .scroll-stepper {
   display: flex;
   flex: 0 0 auto;
   min-height: 36px;
 }
 
 .performance-toolbar .sequence-stepper {
+  width: 104px;
+  min-width: 104px;
+}
+
+.performance-toolbar .scroll-stepper {
+  align-items: center;
   width: 104px;
   min-width: 104px;
 }
@@ -3553,6 +3560,29 @@ a {
   padding-right: 2px;
   padding-left: 2px;
   font-size: 11px;
+}
+
+.performance-toolbar .scroll-stepper .nav-button {
+  flex: 0 0 36px;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding-right: 2px;
+  padding-left: 2px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.performance-toolbar .scroll-stepper input[type="range"] {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  height: 36px;
+  margin-left: -1px;
+  padding: 0 6px;
+  border: 1px solid #ddd6c8;
+  border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
+  background: #ffffff;
 }
 
 .performance-toolbar .sequence-stepper .nav-button,
@@ -3602,6 +3632,11 @@ a {
 
 .repertorio-performance-view .performance-toolbar input[type="range"] {
   width: 82px;
+}
+
+.repertorio-performance-view .performance-toolbar .scroll-stepper input[type="range"] {
+  width: auto;
+  min-width: 0;
 }
 
 .repertorio-performance-view .performance-toolbar select {
@@ -3655,8 +3690,15 @@ a {
 
 .has-auto-toolbar > .performance-toolbar .font-stepper,
 .has-auto-toolbar > .transpose-toolbar .font-stepper,
-.has-auto-toolbar > .performance-toolbar .sequence-stepper {
+.has-auto-toolbar > .performance-toolbar .sequence-stepper,
+.has-auto-toolbar > .performance-toolbar .scroll-stepper {
   width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.has-auto-toolbar > .performance-toolbar .scroll-stepper input[type="range"] {
+  width: auto;
   min-width: 0;
   max-width: none;
 }
@@ -3787,6 +3829,11 @@ a {
   border-color: #536159;
   background: #1a211e;
   color: #ffffff;
+}
+
+.repertorio-performance-view.is-dark .performance-toolbar .scroll-stepper input[type="range"] {
+  border-color: #536159;
+  background: #1a211e;
 }
 
 .repertorio-performance-view.is-dark .performance-toolbar::-webkit-scrollbar-track {
@@ -4920,6 +4967,22 @@ a {
     min-height: 34px;
   }
 
+  .repertorio-performance-view .performance-toolbar .scroll-stepper {
+    width: 102px;
+    min-width: 102px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .scroll-stepper .nav-button {
+    flex-basis: 34px;
+    width: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .scroll-stepper input[type="range"] {
+    height: 34px;
+  }
+
   .repertorio-performance-view .performance-toolbar [data-action="transpose-down"],
   .repertorio-performance-view .performance-toolbar [data-action="transpose-up"],
   .repertorio-performance-view .performance-toolbar [data-action="font-down"],
@@ -4945,6 +5008,11 @@ a {
     width: 72px;
   }
 
+  .repertorio-performance-view .performance-toolbar .scroll-stepper input[type="range"] {
+    width: auto;
+    min-width: 0;
+  }
+
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar {
     position: fixed;
     top: auto;
@@ -4968,6 +5036,7 @@ a {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar label,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar span,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .scroll-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .font-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar input[type="range"],
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar select {
@@ -4985,6 +5054,18 @@ a {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .nav-button,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .performance-position {
     width: 33.333%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .scroll-stepper .nav-button {
+    flex-basis: 34px;
+    width: 34px;
+    min-width: 34px;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .scroll-stepper input[type="range"] {
+    width: auto;
     min-width: 0;
     max-width: none;
   }

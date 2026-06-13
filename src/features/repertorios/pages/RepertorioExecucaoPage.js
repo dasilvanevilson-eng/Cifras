@@ -74,11 +74,10 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
         A
         <input type="range" min="22" max="32" value="32" data-action="font-size">
       </label>
-      <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">▶</button>
-      <label>
-        V
-        <input type="range" min="1" max="8" value="3" data-action="speed">
-      </label>
+      <div class="scroll-stepper" role="group" aria-label="Rolagem automatica">
+        <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">▶</button>
+        <input type="range" min="1" max="8" value="3" data-action="speed" aria-label="Velocidade da rolagem">
+      </div>
       <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
         <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">‹</button>
         <span class="performance-position" data-role="song-position">1/1</span>
@@ -405,11 +404,10 @@ export function createPerformanceViewV2({
       </div>
       <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
-      <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
-      <label>
-        V
-        <input type="range" min="1" max="8" value="3" data-action="speed">
-      </label>
+      <div class="scroll-stepper" role="group" aria-label="Rolagem automatica">
+        <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
+        <input type="range" min="1" max="8" value="3" data-action="speed" aria-label="Velocidade da rolagem">
+      </div>
       <label>
         <select data-action="capo">
           ${createCapoOptionsV2()}
