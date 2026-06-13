@@ -5209,13 +5209,6 @@ a {
     line-height: 1.35;
   }
 
-  .repertorio-song-view.is-two-columns .chordpro-view,
-  .repertorio-performance-view.is-two-columns .chordpro-view {
-    column-count: 1;
-    column-rule: 0;
-    white-space: pre;
-  }
-
   .permissions-layout {
     grid-template-columns: 1fr;
   }

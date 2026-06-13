@@ -12,6 +12,7 @@ import {
   setTwoColumnView,
   setupSongGestureNavigation,
 } from '../../performance/performanceControls.js';
+import { createPerformanceSongBlock } from '../../performance/performanceSong.js';
 
 export async function MusicasSelecaoExecucaoPage() {
   const page = document.createElement('section');
@@ -73,34 +74,28 @@ function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) 
 
   const list = wrapper.querySelector('.performance-list');
   musicas.forEach((musica, index) => {
-    list.append(createSongBlock(musica, index + 1, musicas.length));
+    list.append(createSelectionSongBlock(musica, index + 1, musicas.length));
   });
 
   setupSelectionPerformanceControls(wrapper, { initialMusicaId });
   return wrapper;
 }
 
-function createSongBlock(musica, number, total) {
+function createSelectionSongBlock(musica, number, total) {
   const title = getField(musica, ['titulo', 'nome', 'title']);
   const key = getField(musica, ['tom', 'key']);
   const cifraOriginal = getCifraExibicao(musica);
   const link = getField(musica, ['musica_link']);
-  const block = document.createElement('section');
-  block.className = 'performance-song';
-  block.tabIndex = -1;
-  block.dataset.link = link !== '-' ? link : '';
-  block.dataset.musicaId = musica.id || '';
-  block.innerHTML = `
-    <header class="repertorio-song-title-bar">
-      <span class="repertorio-current-song-title">${escapeHtml(title)}</span>
-      <span class="title-separator" aria-hidden="true">/</span>
-      <span class="repertorio-title-inline">Selecao ${number}/${total}</span>
-      <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
-    </header>
-    <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>
-  `;
 
-  return block;
+  return createPerformanceSongBlock({
+    title,
+    subtitleParts: [`Selecao ${number}/${total}`],
+    originalKey: key,
+    currentKey: key,
+    cifra: cifraOriginal,
+    link,
+    musicaId: musica.id || '',
+  });
 }
 
 function setupSelectionPerformanceControls(wrapper, options = {}) {
@@ -285,13 +280,4 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
 function getField(record, names) {
   const fieldName = names.find((name) => record?.[name]);
   return fieldName ? String(record[fieldName]) : '-';
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
 }
