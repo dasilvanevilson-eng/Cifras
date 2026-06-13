@@ -927,7 +927,7 @@ function normalizeState(state) {
 }
 
 function getStateKey(state) {
-  if (state?.is_stage_active === false) return '';
+  if (state?.is_stage_active !== true) return '';
   if (!state?.item_type) return '';
   const toneKey = `${state.transpose_semitones || 0}:${state.capo || 0}:${state.updated_at || ''}`;
   if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${toneKey}`;
