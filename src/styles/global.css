@@ -3526,10 +3526,16 @@ a {
 }
 
 .performance-toolbar .font-stepper,
-.transpose-toolbar .font-stepper {
+.transpose-toolbar .font-stepper,
+.performance-toolbar .sequence-stepper {
   display: flex;
   flex: 0 0 auto;
   min-height: 36px;
+}
+
+.performance-toolbar .sequence-stepper {
+  width: 104px;
+  min-width: 104px;
 }
 
 .repertorio-performance-view .performance-toolbar .font-stepper {
@@ -3538,7 +3544,9 @@ a {
 }
 
 .performance-toolbar .font-stepper .nav-button,
-.transpose-toolbar .font-stepper .nav-button {
+.transpose-toolbar .font-stepper .nav-button,
+.performance-toolbar .sequence-stepper .nav-button,
+.performance-toolbar .sequence-stepper .performance-position {
   flex: 1 1 0;
   width: 50%;
   min-width: 0;
@@ -3547,17 +3555,32 @@ a {
   font-size: 11px;
 }
 
+.performance-toolbar .sequence-stepper .nav-button,
+.performance-toolbar .sequence-stepper .performance-position {
+  width: 34px;
+  min-width: 0;
+  max-width: none;
+  min-height: 36px;
+}
+
 .performance-toolbar .font-stepper .nav-button:first-child,
-.transpose-toolbar .font-stepper .nav-button:first-child {
+.transpose-toolbar .font-stepper .nav-button:first-child,
+.performance-toolbar .sequence-stepper .nav-button:first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
 .performance-toolbar .font-stepper .nav-button:last-child,
-.transpose-toolbar .font-stepper .nav-button:last-child {
+.transpose-toolbar .font-stepper .nav-button:last-child,
+.performance-toolbar .sequence-stepper .nav-button:last-child {
   margin-left: -1px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+.performance-toolbar .sequence-stepper .performance-position {
+  margin-left: -1px;
+  border-radius: 0;
 }
 
 .repertorio-performance-view .performance-toolbar .theme-toggle-button {
@@ -3631,7 +3654,8 @@ a {
 }
 
 .has-auto-toolbar > .performance-toolbar .font-stepper,
-.has-auto-toolbar > .transpose-toolbar .font-stepper {
+.has-auto-toolbar > .transpose-toolbar .font-stepper,
+.has-auto-toolbar > .performance-toolbar .sequence-stepper {
   width: 100%;
   min-width: 0;
   max-width: none;
@@ -3640,6 +3664,13 @@ a {
 .has-auto-toolbar > .performance-toolbar .font-stepper .nav-button,
 .has-auto-toolbar > .transpose-toolbar .font-stepper .nav-button {
   width: 50%;
+  min-width: 0;
+  max-width: none;
+}
+
+.has-auto-toolbar > .performance-toolbar .sequence-stepper .nav-button,
+.has-auto-toolbar > .performance-toolbar .sequence-stepper .performance-position {
+  width: 33.333%;
   min-width: 0;
   max-width: none;
 }
@@ -4876,6 +4907,19 @@ a {
     min-height: 34px;
   }
 
+  .repertorio-performance-view .performance-toolbar .sequence-stepper {
+    width: 102px;
+    min-width: 102px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .sequence-stepper .nav-button,
+  .repertorio-performance-view .performance-toolbar .sequence-stepper .performance-position {
+    width: 34px;
+    min-width: 0;
+    max-width: none;
+    min-height: 34px;
+  }
+
   .repertorio-performance-view .performance-toolbar [data-action="transpose-down"],
   .repertorio-performance-view .performance-toolbar [data-action="transpose-up"],
   .repertorio-performance-view .performance-toolbar [data-action="font-down"],
@@ -4923,6 +4967,7 @@ a {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .button-link,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar label,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar span,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .font-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar input[type="range"],
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar select {
@@ -4933,6 +4978,13 @@ a {
 
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .font-stepper .nav-button {
     width: 50%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .nav-button,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .performance-position {
+    width: 33.333%;
     min-width: 0;
     max-width: none;
   }

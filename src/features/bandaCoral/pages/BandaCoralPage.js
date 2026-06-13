@@ -877,9 +877,11 @@ function renderBandaSong(slot, item, tomAtual, options = {}) {
         <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
         <span class="transpose-status" data-role="transpose-status">Tom</span>
         <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
-        <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior"${hasPlaylistNavigation ? '' : ' disabled'}>&lsaquo;</button>
-        <span class="performance-position" data-role="song-position">${hasPlaylistNavigation ? `${currentIndex + 1}/${playlist.length}` : '1/1'}</span>
-        <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${hasPlaylistNavigation ? '' : ' disabled'}>&rsaquo;</button>
+        <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
+          <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior"${hasPlaylistNavigation ? '' : ' disabled'}>&lsaquo;</button>
+          <span class="performance-position" data-role="song-position">${hasPlaylistNavigation ? `${currentIndex + 1}/${playlist.length}` : '1/1'}</span>
+          <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${hasPlaylistNavigation ? '' : ' disabled'}>&rsaquo;</button>
+        </div>
         <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
         <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
           <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
