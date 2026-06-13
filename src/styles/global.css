@@ -3257,7 +3257,8 @@ a {
   overflow: hidden;
   margin-top: 0;
   margin-bottom: 0;
-  transform: translateX(calc(100% + 24px));
+  transform: translateY(-12px);
+  transform-origin: top center;
   border-width: 0;
   padding-top: 0;
   padding-bottom: 0;
