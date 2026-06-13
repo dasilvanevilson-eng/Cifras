@@ -6,6 +6,7 @@ import {
 } from '../../../services/musicasService.js';
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
+import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
@@ -144,6 +145,10 @@ function normalizeTags(value) {
 }
 
 function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, associationId, useFractionStep, defaultStatusLabel, returnTo }) {
+  if (associationId) {
+    setupAutoHideToolbar(wrapper, { toolbarSelector: '.transpose-toolbar' });
+  }
+
   const chordproView = wrapper.querySelector('.chordpro-view');
   const currentKey = wrapper.querySelector('.current-key');
   const status = wrapper.querySelector('[data-role="transpose-status"]');

@@ -1,4 +1,5 @@
 import { getMusicaById } from '../../../services/musicasService.js';
+import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 
@@ -82,6 +83,8 @@ export function createPerformanceView({ musica, returnTo }) {
 }
 
 function setupPerformanceControls(wrapper) {
+  setupAutoHideToolbar(wrapper);
+
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');

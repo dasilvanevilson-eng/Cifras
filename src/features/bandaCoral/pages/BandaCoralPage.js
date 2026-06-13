@@ -12,6 +12,7 @@ import {
 } from '../../../services/bandaCoralService.js';
 import { listRepertorios } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
+import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import {
   getCifraExibicao,
   getTransposeSemitones,
@@ -944,6 +945,8 @@ function createSongItem(musica, tom = '') {
 
 function setupPerformanceControls(wrapper, options = {}) {
   if (!wrapper) return;
+
+  setupAutoHideToolbar(wrapper);
 
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');

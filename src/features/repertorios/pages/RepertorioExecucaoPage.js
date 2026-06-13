@@ -2,6 +2,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
+import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
@@ -146,6 +147,8 @@ function createSongBlockLegacy(item, number) {
 }
 
 function setupPerformanceControlsLegacy(wrapper) {
+  setupAutoHideToolbar(wrapper);
+
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontSizeInput = wrapper.querySelector('[data-action="font-size"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
@@ -477,6 +480,8 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
 }
 
 function setupPerformanceControlsV2(wrapper, options = {}) {
+  setupAutoHideToolbar(wrapper);
+
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
   const fontUpButton = wrapper.querySelector('[data-action="font-up"]');

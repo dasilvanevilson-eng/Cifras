@@ -2988,6 +2988,7 @@ a {
   overflow-y: hidden;
   padding-bottom: 8px;
   white-space: nowrap;
+  transition: opacity 180ms ease, transform 180ms ease, max-height 180ms ease, margin 180ms ease, padding 180ms ease, border-width 180ms ease;
 }
 
 .repertorio-song-view .transpose-toolbar::-webkit-scrollbar {
@@ -3220,6 +3221,52 @@ a {
   border: 1px solid #ddd6c8;
   border-radius: var(--border-radius-default);
   background: #ffffff;
+  transition: opacity 180ms ease, transform 180ms ease, max-height 180ms ease, margin 180ms ease, padding 180ms ease, border-width 180ms ease;
+}
+
+.toolbar-hamburger-toggle {
+  position: fixed;
+  top: max(76px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 170;
+  display: none;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid rgba(29, 79, 69, 0.22);
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(255, 253, 248, 0.88);
+  box-shadow: 0 12px 28px rgba(29, 79, 69, 0.14);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.toolbar-hamburger-toggle span {
+  display: block;
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: #1d4f45;
+}
+
+.has-auto-toolbar.is-toolbar-collapsed > .performance-toolbar,
+.has-auto-toolbar.is-toolbar-collapsed > .transpose-toolbar {
+  max-height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  margin-bottom: 0;
+  transform: translateX(calc(100% + 24px));
+  border-width: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.has-auto-toolbar.is-toolbar-collapsed > .toolbar-hamburger-toggle {
+  display: inline-grid;
 }
 
 .performance-toolbar label {
@@ -3306,6 +3353,19 @@ a {
 .performance-page article.is-dark .performance-toolbar {
   border-color: #3d443f;
   background: #111513;
+}
+
+.performance-page article.is-dark .toolbar-hamburger-toggle,
+.repertorio-song-view.is-dark .toolbar-hamburger-toggle,
+.repertorio-performance-view.is-dark .toolbar-hamburger-toggle {
+  border-color: rgba(155, 216, 201, 0.28);
+  background: rgba(26, 33, 30, 0.9);
+}
+
+.performance-page article.is-dark .toolbar-hamburger-toggle span,
+.repertorio-song-view.is-dark .toolbar-hamburger-toggle span,
+.repertorio-performance-view.is-dark .toolbar-hamburger-toggle span {
+  background: #9bd8c9;
 }
 
 .performance-page article.is-dark .nav-button {
@@ -3624,6 +3684,11 @@ a {
 
 .repertorio-performance-view:fullscreen .performance-toolbar {
   top: 0;
+}
+
+.repertorio-performance-view:fullscreen .toolbar-hamburger-toggle,
+.repertorio-song-view:fullscreen .toolbar-hamburger-toggle {
+  top: max(12px, env(safe-area-inset-top));
 }
 
 .repertorio-performance-view:fullscreen .chordpro-view {
