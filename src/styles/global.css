@@ -3494,6 +3494,16 @@ a {
   line-height: 1;
 }
 
+.repertorio-performance-view .performance-toolbar .icon-button {
+  border: 1px solid #cfc7b8;
+  background: #ffffff;
+}
+
+.repertorio-performance-view .performance-toolbar .icon-button:hover,
+.repertorio-performance-view .performance-toolbar .icon-button:focus {
+  background: #f4f1ea;
+}
+
 .repertorio-performance-view .performance-toolbar label,
 .repertorio-performance-view .performance-toolbar span {
   min-height: 36px;
@@ -3885,6 +3895,17 @@ a {
   border-color: #3d443f;
   background: rgba(17, 21, 19, 0.96);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+}
+
+.repertorio-performance-view.is-dark .performance-toolbar .icon-button {
+  border-color: #536159;
+  background: #1a211e;
+  color: #ffffff;
+}
+
+.repertorio-performance-view.is-dark .performance-toolbar .icon-button:hover,
+.repertorio-performance-view.is-dark .performance-toolbar .icon-button:focus {
+  background: #202923;
 }
 
 .repertorio-performance-view.is-dark .performance-toolbar label {

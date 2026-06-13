@@ -215,7 +215,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       itemType: 'musica',
       musicaId: musica.id,
       transposeSemitones: options.state?.transpose_semitones || 0,
-      capo: options.state?.capo ?? getCurrentCapo(),
     });
     applyPerformanceState(currentExecutionState);
 
@@ -253,7 +252,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         ? options.state.current_song_index
         : Number(options.currentSongIndex || 0),
       transposeSemitones: options.state?.transpose_semitones || 0,
-      capo: options.state?.capo ?? getCurrentCapo(),
     });
     applyPerformanceState(currentExecutionState);
 
@@ -322,7 +320,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       repertorioMusicaId: songState.repertorioMusicaId,
       currentSongIndex: songState.currentSongIndex,
       transposeSemitones: songState.transposeSemitones,
-      capo: songState.capo,
     });
     await publishLeaderState(currentExecutionState);
   }
@@ -398,14 +395,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       .forEach((control) => {
         control.dataset.memberRestrictedConfig = 'true';
       });
-
-    executionContent.querySelectorAll('[data-action="capo"]').forEach((control) => {
-      control.dataset.memberRestrictedConfig = 'true';
-      const controlWrapper = control.closest('label');
-      if (controlWrapper) {
-        controlWrapper.dataset.memberRestrictedConfig = 'true';
-      }
-    });
   }
 
   function updateMemberMirrorUi() {
@@ -492,14 +481,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       currentExecutionState.transposeSemitones += 1;
       publishLeaderState(currentExecutionState);
     }
-  });
-
-  executionContent.addEventListener('change', (event) => {
-    if (currentMode !== 'lider' || !currentExecutionState) return;
-    if (!event.target.matches('[data-action="capo"]')) return;
-
-    currentExecutionState.capo = Number(event.target.value || 0);
-    publishLeaderState(currentExecutionState);
   });
 
   async function publishLeaderState(state) {
@@ -675,20 +656,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
   }
 
-  function getCurrentCapo() {
-    const capoSelect = executionContent.querySelector('[data-action="capo"]');
-    return Number(capoSelect?.value || 0);
-  }
-
   function applyPerformanceState(state) {
     window.requestAnimationFrame(() => {
-      const capoSelect = executionContent.querySelector('[data-action="capo"]');
-
-      if (capoSelect && String(capoSelect.value) !== String(state.capo || 0)) {
-        capoSelect.value = String(state.capo || 0);
-        capoSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-
       const semitones = Number(state.transposeSemitones || 0);
       const action = semitones > 0 ? 'transpose-up' : 'transpose-down';
       const button = executionContent.querySelector(`[data-action="${action}"]`);
@@ -948,14 +917,13 @@ function normalizeState(state) {
     repertorioMusicaId: state.repertorioMusicaId || null,
     currentSongIndex: Number(state.currentSongIndex || 0),
     transposeSemitones: Number(state.transposeSemitones || 0),
-    capo: Number(state.capo || 0),
   };
 }
 
 function getStateKey(state) {
   if (state?.is_stage_active !== true) return '';
   if (!state?.item_type) return '';
-  const toneKey = `${state.transpose_semitones || 0}:${state.capo || 0}:${state.updated_at || ''}`;
+  const toneKey = `${state.transpose_semitones || 0}:${state.updated_at || ''}`;
   if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${toneKey}`;
   if (state.item_type === 'repertorio' && state.repertorio_id) {
     return `repertorio:${state.repertorio_id}:${state.repertorio_musica_id || ''}:${state.current_song_index || 0}:${toneKey}`;
