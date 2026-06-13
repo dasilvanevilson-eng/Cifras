@@ -881,9 +881,10 @@ function renderBandaSong(slot, item, tomAtual, options = {}) {
         <span class="performance-position" data-role="song-position">${hasPlaylistNavigation ? `${currentIndex + 1}/${playlist.length}` : '1/1'}</span>
         <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${hasPlaylistNavigation ? '' : ' disabled'}>&rsaquo;</button>
         <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
-        <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
-        <span class="font-size-status" data-role="font-size-status">32</span>
-        <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+        <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
+          <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
+          <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+        </div>
         <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
         <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
         <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>

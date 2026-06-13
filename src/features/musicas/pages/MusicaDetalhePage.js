@@ -88,16 +88,14 @@ function createMusicaView(musica, options = {}) {
       ${!isRepertorioView && link && link !== '-' ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Abrir link da musica</a></p>` : ''}
     </header>
     <div class="transpose-toolbar">
-      ${isRepertorioView ? `<a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Voltar" title="Voltar">&larr;</a>` : ''}
+      ${isRepertorioView ? `<a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Sair" title="Sair">Sair</a>` : ''}
       <button class="nav-button" type="button" data-action="transpose-down">${isRepertorioView ? '-1/2' : '-1 semitom'}</button>
       <span data-role="transpose-status">${isRepertorioView ? 'Tom' : 'Original'}</span>
       <button class="nav-button" type="button" data-action="transpose-up">${isRepertorioView ? '+1/2' : '+1 semitom'}</button>
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="transpose-reset">Original</button>'}
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>
-      ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>' : ''}
-      ${isRepertorioView ? '<span class="font-size-status" data-role="font-size-status">18</span>' : ''}
-      ${isRepertorioView ? '<button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>' : ''}
+      ${isRepertorioView ? '<div class="font-stepper" role="group" aria-label="Tamanho da fonte"><button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button><button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button></div>' : ''}
       ${isRepertorioView ? '<button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>' : ''}
       <label>
         ${isRepertorioView ? '' : 'Capotraste'}

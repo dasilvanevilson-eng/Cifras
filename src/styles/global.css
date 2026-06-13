@@ -3525,6 +3525,41 @@ a {
   text-align: center;
 }
 
+.performance-toolbar .font-stepper,
+.transpose-toolbar .font-stepper {
+  display: flex;
+  flex: 0 0 auto;
+  min-height: 36px;
+}
+
+.repertorio-performance-view .performance-toolbar .font-stepper {
+  width: 40px;
+  min-width: 40px;
+}
+
+.performance-toolbar .font-stepper .nav-button,
+.transpose-toolbar .font-stepper .nav-button {
+  flex: 1 1 0;
+  width: 50%;
+  min-width: 0;
+  padding-right: 2px;
+  padding-left: 2px;
+  font-size: 11px;
+}
+
+.performance-toolbar .font-stepper .nav-button:first-child,
+.transpose-toolbar .font-stepper .nav-button:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.performance-toolbar .font-stepper .nav-button:last-child,
+.transpose-toolbar .font-stepper .nav-button:last-child {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 .repertorio-performance-view .performance-toolbar .theme-toggle-button {
   min-width: 36px;
 }
@@ -3591,6 +3626,20 @@ a {
 .has-auto-toolbar > .performance-toolbar .theme-toggle-button,
 .has-auto-toolbar > .performance-toolbar .performance-position {
   width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.has-auto-toolbar > .performance-toolbar .font-stepper,
+.has-auto-toolbar > .transpose-toolbar .font-stepper {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.has-auto-toolbar > .performance-toolbar .font-stepper .nav-button,
+.has-auto-toolbar > .transpose-toolbar .font-stepper .nav-button {
+  width: 50%;
   min-width: 0;
   max-width: none;
 }
@@ -4835,6 +4884,19 @@ a {
     min-width: 38px;
   }
 
+  .repertorio-performance-view .performance-toolbar .font-stepper {
+    width: 38px;
+    min-width: 38px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .font-stepper .nav-button {
+    width: 50%;
+    min-width: 0;
+    padding-right: 2px;
+    padding-left: 2px;
+    font-size: 10px;
+  }
+
   .repertorio-performance-view .performance-toolbar input[type="range"] {
     width: 72px;
   }
@@ -4861,9 +4923,16 @@ a {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .button-link,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar label,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar span,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .font-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar input[type="range"],
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar select {
     width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .font-stepper .nav-button {
+    width: 50%;
     min-width: 0;
     max-width: none;
   }

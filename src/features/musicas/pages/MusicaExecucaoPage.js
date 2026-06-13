@@ -46,14 +46,15 @@ export function createPerformanceView({ musica, returnTo }) {
 
   wrapper.innerHTML = `
     <div class="performance-toolbar">
-      <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(returnTo)}" aria-label="Voltar" title="Voltar">&larr;</a>
+      <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(returnTo)}" aria-label="Sair" title="Sair">Sair</a>
       <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
       <span class="transpose-status" data-role="transpose-status">Tom</span>
       <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
-      <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
-      <span class="font-size-status" data-role="font-size-status">32</span>
-      <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+      <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
+        <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
+        <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+      </div>
       <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
       <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
