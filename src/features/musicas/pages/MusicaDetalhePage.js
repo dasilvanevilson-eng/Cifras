@@ -89,9 +89,9 @@ function createMusicaView(musica, options = {}) {
     </header>
     <div class="transpose-toolbar">
       ${isRepertorioView ? `<a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(options.returnTo || '/musicas')}" data-action="back" aria-label="Sair" title="Sair">Sair</a>` : ''}
-      <button class="nav-button" type="button" data-action="transpose-down">${isRepertorioView ? '-1/2' : '-1 semitom'}</button>
-      <span data-role="transpose-status">${isRepertorioView ? 'Tom' : 'Original'}</span>
-      <button class="nav-button" type="button" data-action="transpose-up">${isRepertorioView ? '+1/2' : '+1 semitom'}</button>
+      ${isRepertorioView
+        ? '<div class="key-stepper" role="group" aria-label="Ajuste de tom"><button class="nav-button" type="button" data-action="transpose-down">-1/2</button><span data-role="transpose-status">Tom</span><button class="nav-button" type="button" data-action="transpose-up">+1/2</button></div>'
+        : '<button class="nav-button" type="button" data-action="transpose-down">-1 semitom</button><span data-role="transpose-status">Original</span><button class="nav-button" type="button" data-action="transpose-up">+1 semitom</button>'}
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="transpose-reset">Original</button>'}
       ${isRepertorioView ? '' : '<button class="nav-button" type="button" data-action="numbers">Numeros</button>'}
       <button class="nav-button${isRepertorioView ? ' icon-button' : ''}" type="button" data-action="print" aria-label="Imprimir" title="Imprimir">${isRepertorioView ? '&#128424;' : 'Imprimir'}</button>

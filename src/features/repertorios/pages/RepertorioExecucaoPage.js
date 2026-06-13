@@ -85,9 +85,11 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
       </div>
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">⛶</button>
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
-      <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-      <span class="transpose-status" data-role="transpose-status">Tom</span>
-      <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
+        <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+        <span class="transpose-status" data-role="transpose-status">Tom</span>
+        <button class="nav-button icon-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      </div>
       <label>
         Capo
         <select data-action="capo">
@@ -389,9 +391,11 @@ export function createPerformanceViewV2({
     </header>
     <div class="performance-toolbar">
       <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(getBackUrl(returnTo, repertorio.id))}" aria-label="Sair" title="Sair">Sair</a>
-      <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-      <span class="transpose-status" data-role="transpose-status">Tom</span>
-      <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
+        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+        <span class="transpose-status" data-role="transpose-status">Tom</span>
+        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      </div>
       <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
         <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">&lsaquo;</button>
         <span class="performance-position" data-role="song-position">1/1</span>

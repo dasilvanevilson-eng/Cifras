@@ -47,9 +47,11 @@ export function createPerformanceView({ musica, returnTo }) {
   wrapper.innerHTML = `
     <div class="performance-toolbar">
       <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(returnTo)}" aria-label="Sair" title="Sair">Sair</a>
-      <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-      <span class="transpose-status" data-role="transpose-status">Tom</span>
-      <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
+        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+        <span class="transpose-status" data-role="transpose-status">Tom</span>
+        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      </div>
       <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
       <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>

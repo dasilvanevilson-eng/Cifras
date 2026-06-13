@@ -3527,11 +3527,19 @@ a {
 
 .performance-toolbar .font-stepper,
 .transpose-toolbar .font-stepper,
+.performance-toolbar .key-stepper,
+.transpose-toolbar .key-stepper,
 .performance-toolbar .sequence-stepper,
 .performance-toolbar .scroll-stepper {
   display: flex;
   flex: 0 0 auto;
   min-height: 36px;
+}
+
+.performance-toolbar .key-stepper,
+.transpose-toolbar .key-stepper {
+  width: 132px;
+  min-width: 132px;
 }
 
 .performance-toolbar .sequence-stepper {
@@ -3552,6 +3560,10 @@ a {
 
 .performance-toolbar .font-stepper .nav-button,
 .transpose-toolbar .font-stepper .nav-button,
+.performance-toolbar .key-stepper .nav-button,
+.transpose-toolbar .key-stepper .nav-button,
+.performance-toolbar .key-stepper .transpose-status,
+.transpose-toolbar .key-stepper [data-role="transpose-status"],
 .performance-toolbar .sequence-stepper .nav-button,
 .performance-toolbar .sequence-stepper .performance-position {
   flex: 1 1 0;
@@ -3560,6 +3572,21 @@ a {
   padding-right: 2px;
   padding-left: 2px;
   font-size: 11px;
+}
+
+.performance-toolbar .key-stepper .nav-button,
+.transpose-toolbar .key-stepper .nav-button,
+.performance-toolbar .key-stepper .transpose-status,
+.transpose-toolbar .key-stepper [data-role="transpose-status"] {
+  width: 38px;
+  min-width: 0;
+  max-width: none;
+  min-height: 36px;
+}
+
+.performance-toolbar .key-stepper .transpose-status,
+.transpose-toolbar .key-stepper [data-role="transpose-status"] {
+  flex-grow: 1.5;
 }
 
 .performance-toolbar .scroll-stepper .nav-button {
@@ -3595,6 +3622,8 @@ a {
 
 .performance-toolbar .font-stepper .nav-button:first-child,
 .transpose-toolbar .font-stepper .nav-button:first-child,
+.performance-toolbar .key-stepper .nav-button:first-child,
+.transpose-toolbar .key-stepper .nav-button:first-child,
 .performance-toolbar .sequence-stepper .nav-button:first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
@@ -3602,6 +3631,8 @@ a {
 
 .performance-toolbar .font-stepper .nav-button:last-child,
 .transpose-toolbar .font-stepper .nav-button:last-child,
+.performance-toolbar .key-stepper .nav-button:last-child,
+.transpose-toolbar .key-stepper .nav-button:last-child,
 .performance-toolbar .sequence-stepper .nav-button:last-child {
   margin-left: -1px;
   border-top-left-radius: 0;
@@ -3611,6 +3642,19 @@ a {
 .performance-toolbar .sequence-stepper .performance-position {
   margin-left: -1px;
   border-radius: 0;
+}
+
+.performance-toolbar .key-stepper .transpose-status,
+.transpose-toolbar .key-stepper [data-role="transpose-status"] {
+  display: inline-grid;
+  place-items: center;
+  margin-left: -1px;
+  border: 1px solid #ddd6c8;
+  border-radius: 0;
+  background: #f4f1ea;
+  color: #5f594f;
+  font-weight: 700;
+  text-align: center;
 }
 
 .repertorio-performance-view .performance-toolbar .theme-toggle-button {
@@ -3692,6 +3736,8 @@ a {
 
 .has-auto-toolbar > .performance-toolbar .font-stepper,
 .has-auto-toolbar > .transpose-toolbar .font-stepper,
+.has-auto-toolbar > .performance-toolbar .key-stepper,
+.has-auto-toolbar > .transpose-toolbar .key-stepper,
 .has-auto-toolbar > .performance-toolbar .sequence-stepper,
 .has-auto-toolbar > .performance-toolbar .scroll-stepper {
   width: 100%;
@@ -3708,6 +3754,20 @@ a {
 .has-auto-toolbar > .performance-toolbar .font-stepper .nav-button,
 .has-auto-toolbar > .transpose-toolbar .font-stepper .nav-button {
   width: 50%;
+  min-width: 0;
+  max-width: none;
+}
+
+.has-auto-toolbar > .performance-toolbar .key-stepper .nav-button,
+.has-auto-toolbar > .transpose-toolbar .key-stepper .nav-button {
+  width: 30%;
+  min-width: 0;
+  max-width: none;
+}
+
+.has-auto-toolbar > .performance-toolbar .key-stepper .transpose-status,
+.has-auto-toolbar > .transpose-toolbar .key-stepper [data-role="transpose-status"] {
+  width: 40%;
   min-width: 0;
   max-width: none;
 }
@@ -3831,6 +3891,13 @@ a {
   border-color: #536159;
   background: #1a211e;
   color: #ffffff;
+}
+
+.repertorio-performance-view.is-dark .performance-toolbar .key-stepper .transpose-status,
+.repertorio-song-view.is-dark .transpose-toolbar .key-stepper [data-role="transpose-status"] {
+  border-color: #536159;
+  background: #1a211e;
+  color: #c7c0b3;
 }
 
 .repertorio-performance-view.is-dark .performance-toolbar .scroll-stepper input[type="range"] {
@@ -4956,6 +5023,26 @@ a {
     min-height: 34px;
   }
 
+  .repertorio-performance-view .performance-toolbar .key-stepper {
+    width: 126px;
+    min-width: 126px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .key-stepper .nav-button,
+  .repertorio-performance-view .performance-toolbar .key-stepper .transpose-status {
+    min-width: 0;
+    max-width: none;
+    min-height: 34px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .key-stepper .nav-button {
+    width: 36px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .key-stepper .transpose-status {
+    width: 54px;
+  }
+
   .repertorio-performance-view .performance-toolbar .sequence-stepper {
     width: 102px;
     min-width: 102px;
@@ -5037,6 +5124,7 @@ a {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .button-link,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar label,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar span,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .key-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .scroll-stepper,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .font-stepper,
@@ -5051,6 +5139,20 @@ a {
     width: 50%;
     min-width: 0;
     max-width: none;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .key-stepper .nav-button,
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .key-stepper .transpose-status {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .key-stepper .nav-button {
+    width: 30%;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .key-stepper .transpose-status {
+    width: 40%;
   }
 
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .nav-button,

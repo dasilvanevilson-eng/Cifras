@@ -57,9 +57,11 @@ function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) 
     </header>
     <div class="performance-toolbar">
       <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(returnTo)}" aria-label="Sair" title="Sair">Sair</a>
-      <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-      <span class="transpose-status" data-role="transpose-status">Tom</span>
-      <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
+        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+        <span class="transpose-status" data-role="transpose-status">Tom</span>
+        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+      </div>
       <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
         <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">&lsaquo;</button>
         <span class="performance-position" data-role="song-position">1/${musicas.length}</span>

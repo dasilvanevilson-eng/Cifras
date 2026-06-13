@@ -874,9 +874,11 @@ function renderBandaSong(slot, item, tomAtual, options = {}) {
   slot.innerHTML = `
     <article class="repertorio-performance-view repertorio-song-view banda-performance-view">
       <div class="performance-toolbar">
-        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-        <span class="transpose-status" data-role="transpose-status">Tom</span>
-        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+        <div class="key-stepper" role="group" aria-label="Ajuste de tom">
+          <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+          <span class="transpose-status" data-role="transpose-status">Tom</span>
+          <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
+        </div>
         <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
           <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior"${hasPlaylistNavigation ? '' : ' disabled'}>&lsaquo;</button>
           <span class="performance-position" data-role="song-position">${hasPlaylistNavigation ? `${currentIndex + 1}/${playlist.length}` : '1/1'}</span>
