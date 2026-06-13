@@ -2,7 +2,7 @@ import { listMusicas } from '../../../services/musicasService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import {
-  createCapoOptions,
+  createPerformanceToolbar,
   fitCifraToWidth,
   formatTransposeStatus,
   getCurrentPerformanceFontSize,
@@ -62,37 +62,12 @@ function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) 
     <header class="performance-header">
       <h1>Selecao de musicas</h1>
     </header>
-    <div class="performance-toolbar">
-      <a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(returnTo)}" aria-label="Sair" title="Sair">Sair</a>
-      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
-        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-        <span class="transpose-status" data-role="transpose-status">Tom</span>
-        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
-      </div>
-      <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
-        <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior">&lsaquo;</button>
-        <span class="performance-position" data-role="song-position">1/${musicas.length}</span>
-        <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">&rsaquo;</button>
-      </div>
-      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
-      <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
-        <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
-        <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
-      </div>
-      <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
-      <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
-      <div class="scroll-stepper" role="group" aria-label="Rolagem automatica">
-        <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
-        <input type="range" min="1" max="8" value="3" data-action="speed" aria-label="Velocidade da rolagem">
-      </div>
-      <label>
-        <select data-action="capo">
-          ${createCapoOptions()}
-        </select>
-      </label>
-      <a class="button-link secondary toolbar-link" data-action="song-link" href="#" target="_blank" rel="noreferrer" hidden>Link</a>
-      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
-    </div>
+    ${createPerformanceToolbar({
+      backHref: returnTo,
+      showSequence: true,
+      sequencePosition: `1/${musicas.length}`,
+      useDynamicSongLink: true,
+    })}
     <div class="performance-list"></div>
   `;
 
