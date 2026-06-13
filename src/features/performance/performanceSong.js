@@ -31,7 +31,7 @@ export function createPerformanceSongBlock({
     <header class="repertorio-song-title-bar">
       <span class="repertorio-current-song-title">${escapeHtml(title)}</span>
       ${subtitleParts.filter(Boolean).map((part) => (
-        `<span class="title-separator" aria-hidden="true">/</span><span class="repertorio-title-inline">${escapeHtml(part)}</span>`
+        `<span class="title-separator" aria-hidden="true">/</span><span class="${escapeHtml(getSubtitleClassName(part))}">${escapeHtml(getSubtitleText(part))}</span>`
       )).join('')}
       <data class="current-key" data-original-key="${escapeHtml(originalKey)}"${baseSemitonesAttribute} hidden>${escapeHtml(currentKey || '-')}</data>
     </header>
@@ -41,6 +41,16 @@ export function createPerformanceSongBlock({
   `;
 
   return block;
+}
+
+function getSubtitleText(part) {
+  return typeof part === 'object' && part !== null ? part.text : part;
+}
+
+function getSubtitleClassName(part) {
+  return typeof part === 'object' && part !== null && part.className
+    ? part.className
+    : 'repertorio-title-inline';
 }
 
 function escapeHtml(value) {

@@ -17,6 +17,7 @@ import {
   setTwoColumnView as setPerformanceTwoColumnView,
   setupSongGestureNavigation,
 } from '../../performance/performanceControls.js';
+import { createPerformanceSongBlock } from '../../performance/performanceSong.js';
 
 export async function RepertorioExecucaoPage() {
   const page = document.createElement('section');
@@ -444,28 +445,27 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   const cifraOriginal = getCifraExibicao(musica);
   const link = musicaExcluida ? '-' : getField(musica, ['musica_link']);
   const momento = getField(item, ['observacao']);
+  const subtitleParts = [
+    repertorioTitle,
+    momento !== '-' ? { text: momento, className: 'repertorio-song-moment-inline' } : '',
+  ];
 
-  const block = document.createElement('section');
-  block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
-  block.id = `musica-${number}`;
-  block.tabIndex = -1;
-  block.dataset.link = link !== '-' ? link : '';
-  block.dataset.musicaId = item.musica_id || '';
-  block.dataset.repertorioMusicaId = item.id || '';
-  block.innerHTML = `
-    <header class="repertorio-song-title-bar">
-      <span class="repertorio-current-song-title">${escapeHtml(musicaExcluida ? `${title} (excluida)` : title)}</span>
-      <span class="title-separator" aria-hidden="true">/</span>
-      <span class="repertorio-title-inline">${escapeHtml(repertorioTitle)}</span>
-      ${momento !== '-' ? `<span class="title-separator" aria-hidden="true">/</span><span class="repertorio-song-moment-inline">${escapeHtml(momento)}</span>` : ''}
-      <data class="current-key" data-original-key="${escapeHtml(originalKey)}" data-base-semitones="${baseSemitones}" hidden>${escapeHtml(repertorioKey)}</data>
-    </header>
-    ${musicaExcluida
-      ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
-      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>`}
-  `;
-
-  return block;
+  return createPerformanceSongBlock({
+    title: musicaExcluida ? `${title} (excluida)` : title,
+    subtitleParts,
+    originalKey,
+    currentKey: repertorioKey,
+    baseSemitones,
+    cifra: cifraOriginal,
+    link,
+    musicaId: item.musica_id || '',
+    repertorioMusicaId: item.id || '',
+    id: `musica-${number}`,
+    className: musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song',
+    deletedNotice: musicaExcluida
+      ? 'Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.'
+      : '',
+  });
 }
 
 function setupPerformanceControlsV2(wrapper, options = {}) {
