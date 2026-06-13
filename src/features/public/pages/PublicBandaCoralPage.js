@@ -562,7 +562,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function syncMemberMirror() {
     if (!leaderPresence.active) {
       lastMirroredStateKey = '';
-      closeExecutionLayer();
       return;
     }
 
@@ -573,7 +572,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       }
     } catch {
       lastMirroredStateKey = '';
-      closeExecutionLayer();
     }
   }
 
@@ -627,7 +625,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const stateKey = getStateKey(state);
     if (!stateKey) {
       lastMirroredStateKey = '';
-      closeExecutionLayer({ clearLeaderState: false });
       return;
     }
 
