@@ -64,8 +64,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let memberMirrorTimer = null;
   let leaderHeartbeatTimer = null;
   let leaderPresenceTimer = null;
+  let leaderStatusTimer = null;
   let lastMirroredStateKey = '';
   let leaderPresence = { active: false, client_id: null };
+  let hasObservedLeaderPresence = false;
 
   wrapper.className = 'public-banda-shell';
   wrapper.innerHTML = `
@@ -117,6 +119,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     <section class="public-banda-execution" data-role="execution-slot" hidden>
       <div data-role="execution-content"></div>
     </section>
+    <div class="public-banda-leader-status" data-role="leader-status" hidden></div>
   `;
 
   const modeButtons = wrapper.querySelectorAll('[data-mode]');
@@ -132,6 +135,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const repertoriosSlot = wrapper.querySelector('[data-role="repertorios-results"]');
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   const executionContent = wrapper.querySelector('[data-role="execution-content"]');
+  const leaderStatus = wrapper.querySelector('[data-role="leader-status"]');
   const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
   const executeTempRepertorioButton = wrapper.querySelector('[data-action="execute-temp-repertorio"]');
   const executeTempAcervoButton = wrapper.querySelector('[data-action="execute-temp-acervo"]');
@@ -585,10 +589,32 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function refreshLeaderPresence() {
     const { data } = await getPublicBandaCoralPresence(token);
     if (data?.valid) {
+      const wasLeaderActive = Boolean(leaderPresence.active);
       leaderPresence = data.leader || { active: false, client_id: null };
+      const isLeaderActive = Boolean(leaderPresence.active);
+
+      if (hasObservedLeaderPresence && wasLeaderActive !== isLeaderActive && currentMode === 'integrante') {
+        showLeaderStatus(isLeaderActive ? 'Lider conectado' : 'Lider desconectado');
+      }
+
+      hasObservedLeaderPresence = true;
       updateLeaderPresenceUi();
       updateMemberMirrorUi();
     }
+  }
+
+  function showLeaderStatus(message) {
+    if (!leaderStatus) return;
+
+    window.clearTimeout(leaderStatusTimer);
+    leaderStatus.textContent = message;
+    leaderStatus.hidden = false;
+    leaderStatus.classList.add('is-visible');
+
+    leaderStatusTimer = window.setTimeout(() => {
+      leaderStatus.classList.remove('is-visible');
+      leaderStatus.hidden = true;
+    }, 2800);
   }
 
   function startLeaderPresencePolling() {

@@ -1732,6 +1732,33 @@ a {
   line-height: 1.15;
 }
 
+.public-banda-leader-status {
+  position: fixed;
+  right: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 160;
+  transform: translateX(50%) translateY(8px);
+  min-width: min(280px, calc(100vw - 32px));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: rgba(24, 24, 24, 0.92);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  opacity: 0;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.public-banda-leader-status.is-visible {
+  transform: translateX(50%) translateY(0);
+  opacity: 1;
+}
+
 .public-dashboard-shell .dashboard-header h1 {
   color: #183c35;
 }
