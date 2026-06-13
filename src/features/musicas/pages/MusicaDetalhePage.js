@@ -175,7 +175,7 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     updateFontSizeStatus();
 
     if (themeButton) {
-      themeButton.innerHTML = '<span class="theme-swatch" aria-hidden="true"></span>';
+      themeButton.textContent = isDark ? 'Tela clara' : 'Tela escura';
       themeButton.setAttribute('aria-label', isDark ? 'Usar tela clara' : 'Usar tela escura');
       themeButton.title = isDark ? 'Usar tela clara' : 'Usar tela escura';
     }

@@ -3059,20 +3059,20 @@ a {
 }
 
 .theme-toggle-button {
-  display: inline-grid;
-  place-items: center;
-  min-width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cfc7b8;
+  background: #ffffff;
+  min-width: 92px;
+  color: #181818;
+  white-space: nowrap;
 }
 
-.theme-swatch {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #20211f;
-  background: linear-gradient(90deg, #ffffff 0 50%, #20211f 50% 100%);
-}
-
-.repertorio-song-view.is-dark .theme-swatch {
-  border-color: #f6f2e8;
+.repertorio-song-view.is-dark .theme-toggle-button {
+  border-color: #536159;
+  background: #1a211e;
+  color: #ffffff;
 }
 
 .repertorio-song-view.is-dark {
@@ -3614,7 +3614,9 @@ a {
 }
 
 .repertorio-performance-view .performance-toolbar .theme-toggle-button {
-  min-width: 36px;
+  min-width: 92px;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
 .repertorio-performance-view .performance-toolbar .toolbar-link {

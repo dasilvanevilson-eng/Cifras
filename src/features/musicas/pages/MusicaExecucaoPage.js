@@ -264,7 +264,7 @@ function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
 
 function setPerformanceTheme(wrapper, button, theme) {
   wrapper.classList.toggle('is-dark', theme === 'dark');
-  button.innerHTML = '<span class="theme-swatch" aria-hidden="true"></span>';
+  button.textContent = theme === 'dark' ? 'Tela clara' : 'Tela escura';
   button.setAttribute('aria-label', theme === 'dark' ? 'Usar tela clara' : 'Usar tela escura');
   button.title = theme === 'dark' ? 'Usar tela clara' : 'Usar tela escura';
 }
