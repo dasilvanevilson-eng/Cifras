@@ -3226,10 +3226,10 @@ a {
 
 .toolbar-hamburger-toggle {
   position: fixed;
-  top: max(76px, env(safe-area-inset-top));
+  bottom: max(14px, env(safe-area-inset-bottom));
   right: max(12px, env(safe-area-inset-right));
   z-index: 170;
-  display: none;
+  display: inline-grid;
   width: 38px;
   height: 38px;
   place-items: center;
@@ -3263,10 +3263,6 @@ a {
   padding-bottom: 0;
   opacity: 0;
   pointer-events: none;
-}
-
-.has-auto-toolbar.is-toolbar-collapsed > .toolbar-hamburger-toggle {
-  display: inline-grid;
 }
 
 .performance-toolbar label {
@@ -3688,7 +3684,7 @@ a {
 
 .repertorio-performance-view:fullscreen .toolbar-hamburger-toggle,
 .repertorio-song-view:fullscreen .toolbar-hamburger-toggle {
-  top: max(12px, env(safe-area-inset-top));
+  bottom: max(14px, env(safe-area-inset-bottom));
 }
 
 .repertorio-performance-view:fullscreen .chordpro-view {
