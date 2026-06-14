@@ -8,6 +8,7 @@ import {
   getPublicBandaCoralState,
   heartbeatPublicBandaCoralLeader,
   releasePublicBandaCoralLeader,
+  setPublicBandaCoralStageActive,
   updatePublicBandaCoralState,
 } from '../../../services/publicInvitesService.js';
 
@@ -338,7 +339,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     document.body.classList.add('has-banda-stage-open');
   }
 
-  function closeExecutionLayer(options = {}) {
+  async function closeExecutionLayer(options = {}) {
     const shouldClearLeaderState = options.clearLeaderState === true;
 
     stopPublicAutoscroll();
@@ -349,7 +350,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     document.body.classList.remove('has-banda-stage-open');
 
     if (shouldClearLeaderState) {
-      clearLeaderState();
+      await clearLeaderState();
+    } else if (currentMode === 'lider') {
+      await setLeaderStageActive(false);
     }
   }
 
@@ -439,7 +442,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       memberFollowingLeader = false;
       lastMirroredStateKey = '';
       stopMemberMirror();
-      closeExecutionLayer({ clearLeaderState: false });
+      await closeExecutionLayer({ clearLeaderState: false });
       updateMemberMirrorUi();
       return;
     }
@@ -489,7 +492,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     event.stopImmediatePropagation();
   }, true);
 
-  executionContent.addEventListener('click', (event) => {
+  executionContent.addEventListener('click', async (event) => {
     const backLink = event.target.closest('.song-toolbar-back');
     if (backLink) {
       event.preventDefault();
@@ -497,12 +500,12 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         memberFollowingLeader = false;
         lastMirroredStateKey = '';
         stopMemberMirror();
-        closeExecutionLayer({ clearLeaderState: false });
+        await closeExecutionLayer({ clearLeaderState: false });
         updateMemberMirrorUi();
         return;
       }
 
-      closeExecutionLayer();
+      await closeExecutionLayer();
       return;
     }
 
@@ -534,6 +537,15 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const { error } = await clearPublicBandaCoralState(token, clientId);
     if (error) {
       console.warn('Nao foi possivel limpar a execucao para os integrantes.', error);
+    }
+  }
+
+  async function setLeaderStageActive(isActive) {
+    if (currentMode !== 'lider') return;
+
+    const { error } = await setPublicBandaCoralStageActive(token, clientId, isActive);
+    if (error) {
+      console.warn('Nao foi possivel atualizar o estado do palco publico.', error);
     }
   }
 
@@ -669,7 +681,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const stateKey = getStateKey(state);
     if (!stateKey) {
       lastMirroredStateKey = '';
-      if (currentMode === 'integrante') {
+      const hasRenderedExecution = executionContent.childElementCount > 0;
+      if (currentMode === 'integrante' && (!state?.item_type || !hasRenderedExecution)) {
         closeExecutionLayer({ clearLeaderState: false });
       }
       return;

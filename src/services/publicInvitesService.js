@@ -203,6 +203,15 @@ export async function clearPublicBandaCoralState(token, clientId) {
   });
 }
 
+export async function setPublicBandaCoralStageActive(token, clientId, isActive) {
+  assertSupabaseConfig();
+  return supabase.rpc('set_public_banda_coral_stage_active', {
+    p_token: token,
+    p_client_id: clientId,
+    p_is_stage_active: Boolean(isActive),
+  });
+}
+
 export async function claimPublicBandaCoralLeader(token, clientId) {
   assertSupabaseConfig();
   return supabase.rpc('claim_public_banda_coral_leader', {

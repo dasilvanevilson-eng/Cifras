@@ -56,6 +56,49 @@ $$;
 
 grant execute on function public.clear_public_banda_coral_state(text, text) to anon, authenticated;
 
+create or replace function public.set_public_banda_coral_stage_active(
+  p_token text,
+  p_client_id text,
+  p_is_stage_active boolean
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_invite public_invites;
+  v_state public_invite_banda_state;
+begin
+  select *
+  into v_invite
+  from public.public_invites
+  where token = p_token
+    and module_key = 'banda_coral'
+  limit 1;
+
+  if not public.is_public_invite_active(v_invite) then
+    return jsonb_build_object('valid', false, 'reason', 'expired_or_invalid');
+  end if;
+
+  update public.public_invite_banda_state
+  set
+    is_stage_active = coalesce(p_is_stage_active, false),
+    updated_at = now()
+  where invite_id = v_invite.id
+    and leader_client_id = p_client_id
+  returning * into v_state;
+
+  if v_state.invite_id is null then
+    return jsonb_build_object('valid', false, 'reason', 'not_current_leader');
+  end if;
+
+  return jsonb_build_object('valid', true, 'state', to_jsonb(v_state));
+end;
+$$;
+
+grant execute on function public.set_public_banda_coral_stage_active(text, text, boolean) to anon, authenticated;
+
 create or replace function public.update_public_banda_coral_state(
   p_token text,
   p_item_type text,
