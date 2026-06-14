@@ -125,30 +125,35 @@ export function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
   });
 }
 
-export function toggleInternalFullscreen(wrapper, button, onChange) {
-  const isFullscreen = !wrapper.classList.contains('is-fullscreen');
-  wrapper.classList.toggle('is-fullscreen', isFullscreen);
-  document.documentElement.classList.toggle('has-performance-fullscreen', isFullscreen);
-  document.body.classList.toggle('has-performance-fullscreen', isFullscreen);
-  button.textContent = String.fromCharCode(9974);
-  button.title = isFullscreen ? 'Sair da tela cheia' : 'Tela cheia';
-  button.setAttribute('aria-label', button.title);
+export async function toggleInternalFullscreen(wrapper, button, onChange) {
+  const updateFullscreenUi = () => {
+    const isFullscreen = document.fullscreenElement === wrapper;
+    wrapper.classList.toggle('is-fullscreen', isFullscreen);
+    button.textContent = String.fromCharCode(9974);
+    button.title = isFullscreen
+      ? 'Para sair do modo tela cheia dar um duplo touch na musica'
+      : 'Tela cheia';
+    button.setAttribute('aria-label', button.title);
 
-  if (wrapper.performanceFullscreenKeydown) {
-    window.removeEventListener('keydown', wrapper.performanceFullscreenKeydown);
-    wrapper.performanceFullscreenKeydown = null;
+    if (typeof onChange === 'function') {
+      window.requestAnimationFrame(onChange);
+    }
+  };
+
+  if (!wrapper.performanceFullscreenChange) {
+    wrapper.performanceFullscreenChange = updateFullscreenUi;
+    document.addEventListener('fullscreenchange', wrapper.performanceFullscreenChange);
   }
 
-  if (isFullscreen) {
-    wrapper.performanceFullscreenKeydown = (event) => {
-      if (event.key !== 'Escape') return;
-      toggleInternalFullscreen(wrapper, button, onChange);
-    };
-    window.addEventListener('keydown', wrapper.performanceFullscreenKeydown);
-  }
-
-  if (typeof onChange === 'function') {
-    window.requestAnimationFrame(onChange);
+  try {
+    if (document.fullscreenElement === wrapper) {
+      await document.exitFullscreen();
+    } else if (!document.fullscreenElement) {
+      await wrapper.requestFullscreen();
+    }
+    updateFullscreenUi();
+  } catch (_error) {
+    window.alert('Nao foi possivel alternar tela cheia neste navegador.');
   }
 }
 
