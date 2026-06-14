@@ -352,7 +352,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (shouldClearLeaderState) {
       await clearLeaderState();
     } else if (currentMode === 'lider') {
-      await setLeaderStageActive(false);
+      await resetLeaderInactiveStage();
     }
   }
 
@@ -549,6 +549,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
   }
 
+  async function resetLeaderInactiveStage() {
+    await setLeaderStageActive(false);
+    await claimLeaderRole();
+  }
+
   async function claimLeaderRole() {
     const { data, error } = await claimPublicBandaCoralLeader(token, clientId);
     if (error || !data?.valid || !data?.is_leader) {
@@ -682,7 +687,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (!stateKey) {
       lastMirroredStateKey = '';
       const hasRenderedExecution = executionContent.childElementCount > 0;
-      if (currentMode === 'integrante' && (!state?.item_type || !hasRenderedExecution)) {
+      if (currentMode === 'integrante' && !hasRenderedExecution) {
         closeExecutionLayer({ clearLeaderState: false });
       }
       return;
