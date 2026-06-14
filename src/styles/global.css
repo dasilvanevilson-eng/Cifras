@@ -3964,7 +3964,10 @@ a {
   color: #ffffff;
 }
 
-.has-performance-fullscreen {
+html.has-performance-fullscreen,
+body.has-performance-fullscreen {
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -3972,13 +3975,17 @@ a {
 .repertorio-performance-view.is-fullscreen {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 9999;
   width: 100vw;
+  width: 100dvw;
   height: 100svh;
+  height: 100dvh;
   min-height: 100svh;
+  min-height: 100dvh;
   overflow: auto;
   padding: 8px 10px 16px;
   background: #f4f1ea;
+  overscroll-behavior: contain;
 }
 
 .repertorio-performance-view.is-dark:fullscreen,
@@ -4006,6 +4013,7 @@ a {
 .repertorio-performance-view:fullscreen .chordpro-view,
 .repertorio-performance-view.is-fullscreen .chordpro-view {
   min-height: calc(100svh - 122px);
+  min-height: calc(100dvh - 122px);
 }
 
 .pdf-repertorio-page {
