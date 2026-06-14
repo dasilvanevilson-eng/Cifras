@@ -163,15 +163,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       }
     }
 
-    const wasMemberMode = currentMode === 'integrante';
     const wasLeaderMode = currentMode === 'lider';
     if (wasLeaderMode && mode !== 'lider' && !options.skipRelease) {
       await releaseLeaderRole();
     }
 
     currentMode = mode;
-    if (mode === 'integrante' && !wasMemberMode) {
-      memberFollowingLeader = options.followLeader ?? true;
+    if (mode === 'integrante') {
+      memberFollowingLeader = true;
     }
     if (mode !== 'integrante') {
       memberFollowingLeader = false;
@@ -205,11 +204,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   });
 
   async function executeMusica(musica, options = {}) {
+    if (currentMode === 'integrante' && !options.mirrored) return;
+
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
     currentTempExecutionType = null;
     executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
     refreshExecutionControlsForMode();
+    resetMemberLeaderLockedControls();
     openExecutionLayer();
     currentExecutionState = normalizeState({
       itemType: 'musica',
@@ -224,6 +226,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function executeRepertorio(repertorio, options = {}) {
+    if (currentMode === 'integrante' && !options.mirrored) return;
+
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
     currentTempExecutionType = null;
@@ -240,6 +244,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       onSongChange: handleRepertorioSongChange,
     }));
     refreshExecutionControlsForMode();
+    resetMemberLeaderLockedControls();
     openExecutionLayer();
     currentExecutionState = normalizeState({
       itemType: 'repertorio',
@@ -261,6 +266,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function executeTempRepertorio() {
+    if (currentMode === 'integrante') return;
     if (!selectedRepertorio || !tempRepertorioMusicas.length) return;
     executeTempMusicList({
       type: 'repertorio',
@@ -274,6 +280,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function executeTempAcervo() {
+    if (currentMode === 'integrante') return;
     if (!tempAcervoMusicas.length) return;
     executeTempMusicList({
       type: 'acervo',
@@ -292,6 +299,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function executeTempMusicList({ type, repertorio, musicasAssociadas }) {
+    if (currentMode === 'integrante') return;
+
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
     currentTempExecutionType = type;
@@ -391,10 +400,20 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function refreshExecutionControlsForMode() {
     executionContent
-      .querySelectorAll('[data-action="transpose-down"], [data-action="transpose-up"]')
+      .querySelectorAll('[data-action="transpose-down"], [data-action="transpose-up"], [data-action="previous-song"], [data-action="next-song"], [data-action="capo"]')
       .forEach((control) => {
         control.dataset.memberRestrictedConfig = 'true';
       });
+  }
+
+  function resetMemberLeaderLockedControls() {
+    if (currentMode !== 'integrante') return;
+
+    const capoSelect = executionContent.querySelector('[data-action="capo"]');
+    if (capoSelect && capoSelect.value !== '0') {
+      capoSelect.value = '0';
+      capoSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   }
 
   function updateMemberMirrorUi() {
@@ -404,25 +423,15 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     if (!memberFollowButton) return;
 
-    const leaderIsThisClient = leaderPresence.client_id === clientId;
-    const canFollowLeader = isMemberMode && leaderPresence.active && !leaderIsThisClient;
-    memberFollowButton.hidden = !canFollowLeader;
+    memberFollowButton.hidden = true;
     memberFollowButton.disabled = false;
-    memberFollowButton.textContent = memberFollowingLeader ? 'Desconectar do Lider' : 'Conectar ao Lider';
+    memberFollowButton.textContent = 'Conectado ao Lider';
     memberFollowButton.title = memberFollowButton.textContent;
     memberFollowButton.setAttribute('aria-label', memberFollowButton.title);
   }
 
   async function toggleMemberLeaderConnection() {
     if (currentMode !== 'integrante') return;
-
-    if (memberFollowingLeader) {
-      memberFollowingLeader = false;
-      lastMirroredStateKey = '';
-      stopMemberMirror();
-      updateMemberMirrorUi();
-      return;
-    }
 
     await refreshLeaderPresence();
     if (!leaderPresence.active || leaderPresence.client_id === clientId) {
@@ -437,7 +446,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   executionContent.addEventListener('click', (event) => {
-    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !event.isTrusted) return;
     if (!event.target.closest('[data-member-restricted-config="true"]')) return;
 
     event.preventDefault();
@@ -445,7 +454,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }, true);
 
   executionContent.addEventListener('change', (event) => {
-    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !event.isTrusted) return;
     if (!event.target.closest('[data-member-restricted-config="true"]')) return;
 
     event.preventDefault();
@@ -461,10 +470,20 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
   }, true);
 
+  executionContent.addEventListener('pointerup', (event) => {
+    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (event.target.closest('.performance-toolbar, a, button, input, select, label')) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
   executionContent.addEventListener('click', (event) => {
     const backLink = event.target.closest('.song-toolbar-back');
     if (backLink) {
       event.preventDefault();
+      if (currentMode === 'integrante') return;
+
       closeExecutionLayer();
       return;
     }
@@ -632,6 +651,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const stateKey = getStateKey(state);
     if (!stateKey) {
       lastMirroredStateKey = '';
+      if (currentMode === 'integrante') {
+        closeExecutionLayer({ clearLeaderState: false });
+      }
       return;
     }
 
