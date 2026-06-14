@@ -204,7 +204,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   });
 
   async function executeMusica(musica, options = {}) {
-    if (currentMode === 'integrante' && !options.mirrored) return;
+    if (currentMode === 'integrante' && memberFollowingLeader && !options.mirrored) return;
 
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
@@ -226,7 +226,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function executeRepertorio(repertorio, options = {}) {
-    if (currentMode === 'integrante' && !options.mirrored) return;
+    if (currentMode === 'integrante' && memberFollowingLeader && !options.mirrored) return;
 
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
@@ -266,7 +266,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function executeTempRepertorio() {
-    if (currentMode === 'integrante') return;
+    if (currentMode === 'integrante' && memberFollowingLeader) return;
     if (!selectedRepertorio || !tempRepertorioMusicas.length) return;
     executeTempMusicList({
       type: 'repertorio',
@@ -280,7 +280,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function executeTempAcervo() {
-    if (currentMode === 'integrante') return;
+    if (currentMode === 'integrante' && memberFollowingLeader) return;
     if (!tempAcervoMusicas.length) return;
     executeTempMusicList({
       type: 'acervo',
@@ -299,7 +299,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function executeTempMusicList({ type, repertorio, musicasAssociadas }) {
-    if (currentMode === 'integrante') return;
+    if (currentMode === 'integrante' && memberFollowingLeader) return;
 
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
@@ -407,7 +407,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function resetMemberLeaderLockedControls() {
-    if (currentMode !== 'integrante') return;
+    if (currentMode !== 'integrante' || !memberFollowingLeader) return;
 
     const capoSelect = executionContent.querySelector('[data-action="capo"]');
     if (capoSelect && capoSelect.value !== '0') {
@@ -423,15 +423,26 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     if (!memberFollowButton) return;
 
-    memberFollowButton.hidden = true;
+    const leaderIsThisClient = leaderPresence.client_id === clientId;
+    const canFollowLeader = isMemberMode && leaderPresence.active && !leaderIsThisClient;
+    memberFollowButton.hidden = !canFollowLeader;
     memberFollowButton.disabled = false;
-    memberFollowButton.textContent = 'Conectado ao Lider';
+    memberFollowButton.textContent = memberFollowingLeader ? 'Desconectar do Lider' : 'Conectar ao Lider';
     memberFollowButton.title = memberFollowButton.textContent;
     memberFollowButton.setAttribute('aria-label', memberFollowButton.title);
   }
 
   async function toggleMemberLeaderConnection() {
     if (currentMode !== 'integrante') return;
+
+    if (memberFollowingLeader) {
+      memberFollowingLeader = false;
+      lastMirroredStateKey = '';
+      stopMemberMirror();
+      closeExecutionLayer({ clearLeaderState: false });
+      updateMemberMirrorUi();
+      return;
+    }
 
     await refreshLeaderPresence();
     if (!leaderPresence.active || leaderPresence.client_id === clientId) {
@@ -446,7 +457,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   executionContent.addEventListener('click', (event) => {
-    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
     if (!event.target.closest('[data-member-restricted-config="true"]')) return;
 
     event.preventDefault();
@@ -454,7 +465,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }, true);
 
   executionContent.addEventListener('change', (event) => {
-    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
     if (!event.target.closest('[data-member-restricted-config="true"]')) return;
 
     event.preventDefault();
@@ -471,7 +482,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }, true);
 
   executionContent.addEventListener('pointerup', (event) => {
-    if (currentMode !== 'integrante' || !event.isTrusted) return;
+    if (currentMode !== 'integrante' || !memberFollowingLeader || !event.isTrusted) return;
     if (event.target.closest('.performance-toolbar, a, button, input, select, label')) return;
 
     event.preventDefault();
@@ -482,7 +493,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const backLink = event.target.closest('.song-toolbar-back');
     if (backLink) {
       event.preventDefault();
-      if (currentMode === 'integrante') return;
+      if (currentMode === 'integrante' && memberFollowingLeader) {
+        memberFollowingLeader = false;
+        lastMirroredStateKey = '';
+        stopMemberMirror();
+        closeExecutionLayer({ clearLeaderState: false });
+        updateMemberMirrorUi();
+        return;
+      }
 
       closeExecutionLayer();
       return;
