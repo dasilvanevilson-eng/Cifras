@@ -339,7 +339,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function closeExecutionLayer(options = {}) {
-    const shouldClearLeaderState = options.clearLeaderState ?? currentMode === 'lider';
+    const shouldClearLeaderState = options.clearLeaderState === true;
 
     stopPublicAutoscroll();
     executionSlot.hidden = true;
