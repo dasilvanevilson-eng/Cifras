@@ -8,7 +8,6 @@ import {
   getPublicBandaCoralState,
   heartbeatPublicBandaCoralLeader,
   releasePublicBandaCoralLeader,
-  setPublicBandaCoralStageActive,
   updatePublicBandaCoralState,
 } from '../../../services/publicInvitesService.js';
 
@@ -349,10 +348,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     clearCurrentTempExecution();
     document.body.classList.remove('has-banda-stage-open');
 
-    if (shouldClearLeaderState) {
+    if (shouldClearLeaderState || currentMode === 'lider') {
       await clearLeaderState();
-    } else if (currentMode === 'lider') {
-      await resetLeaderInactiveStage();
     }
   }
 
@@ -538,20 +535,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (error) {
       console.warn('Nao foi possivel limpar a execucao para os integrantes.', error);
     }
-  }
-
-  async function setLeaderStageActive(isActive) {
-    if (currentMode !== 'lider') return;
-
-    const { error } = await setPublicBandaCoralStageActive(token, clientId, isActive);
-    if (error) {
-      console.warn('Nao foi possivel atualizar o estado do palco publico.', error);
-    }
-  }
-
-  async function resetLeaderInactiveStage() {
-    await setLeaderStageActive(false);
-    await claimLeaderRole();
   }
 
   async function claimLeaderRole() {
