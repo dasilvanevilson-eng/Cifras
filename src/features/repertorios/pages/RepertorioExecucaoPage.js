@@ -16,6 +16,7 @@ import {
   setPerformanceTheme as setPerformanceThemeV2,
   setTwoColumnView as setPerformanceTwoColumnView,
   setupSongGestureNavigation,
+  toggleInternalFullscreen,
 } from '../../performance/performanceControls.js';
 import { createPerformanceSongBlock } from '../../performance/performanceSong.js';
 
@@ -234,19 +235,7 @@ function setupPerformanceControlsLegacy(wrapper) {
   });
 
   fullscreenButton.addEventListener('click', async () => {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await document.documentElement.requestFullscreen();
-      }
-    } catch (error) {
-      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
-    }
-  });
-
-  document.addEventListener('fullscreenchange', () => {
-    fullscreenButton.textContent = document.fullscreenElement ? '↙' : '⛶';
+    toggleInternalFullscreen(wrapper, fullscreenButton, renderCurrentSong);
   });
 
   printButton.addEventListener('click', () => {
@@ -563,19 +552,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     goToSong(1);
   });
 
-  fullscreenButton.addEventListener('click', async () => {
-    await togglePerformanceFullscreen();
-  });
-
-  document.addEventListener('fullscreenchange', () => {
-    const isPerformanceFullscreen = document.fullscreenElement === wrapper;
-    wrapper.classList.toggle('is-fullscreen', isPerformanceFullscreen);
-    fullscreenButton.textContent = String.fromCharCode(9974);
-    fullscreenButton.title = isPerformanceFullscreen
-      ? 'Toque no centro da musica para sair da tela cheia'
-      : 'Tela cheia';
-    window.requestAnimationFrame(renderCurrentSong);
-  });
+  fullscreenButton.addEventListener('click', togglePerformanceFullscreen);
 
   printButton.addEventListener('click', () => {
     window.print();
@@ -616,16 +593,8 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     notifySongChange();
   }
 
-  async function togglePerformanceFullscreen() {
-    try {
-      if (document.fullscreenElement === wrapper) {
-        await document.exitFullscreen();
-      } else if (!document.fullscreenElement) {
-        await wrapper.requestFullscreen();
-      }
-    } catch (error) {
-      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
-    }
+  function togglePerformanceFullscreen() {
+    toggleInternalFullscreen(wrapper, fullscreenButton, renderCurrentSong);
   }
 
   function renderCurrentSong() {

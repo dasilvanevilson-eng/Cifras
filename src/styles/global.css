@@ -3964,33 +3964,48 @@ a {
   color: #ffffff;
 }
 
-.repertorio-performance-view:fullscreen {
+.has-performance-fullscreen {
+  overflow: hidden;
+}
+
+.repertorio-performance-view:fullscreen,
+.repertorio-performance-view.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   width: 100vw;
-  min-height: 100vh;
+  height: 100svh;
+  min-height: 100svh;
   overflow: auto;
   padding: 8px 10px 16px;
   background: #f4f1ea;
 }
 
-.repertorio-performance-view.is-dark:fullscreen {
+.repertorio-performance-view.is-dark:fullscreen,
+.repertorio-performance-view.is-dark.is-fullscreen {
   background: #0f1210;
 }
 
-.repertorio-performance-view:fullscreen .performance-header {
+.repertorio-performance-view:fullscreen .performance-header,
+.repertorio-performance-view.is-fullscreen .performance-header {
   margin-bottom: 4px;
 }
 
-.repertorio-performance-view:fullscreen .performance-toolbar {
+.repertorio-performance-view:fullscreen .performance-toolbar,
+.repertorio-performance-view.is-fullscreen .performance-toolbar {
   top: 0;
 }
 
 .repertorio-performance-view:fullscreen .toolbar-hamburger-toggle,
-.repertorio-song-view:fullscreen .toolbar-hamburger-toggle {
+.repertorio-song-view:fullscreen .toolbar-hamburger-toggle,
+.repertorio-performance-view.is-fullscreen .toolbar-hamburger-toggle,
+.repertorio-song-view.is-fullscreen .toolbar-hamburger-toggle {
   bottom: max(14px, env(safe-area-inset-bottom));
 }
 
-.repertorio-performance-view:fullscreen .chordpro-view {
-  min-height: calc(100vh - 122px);
+.repertorio-performance-view:fullscreen .chordpro-view,
+.repertorio-performance-view.is-fullscreen .chordpro-view {
+  min-height: calc(100svh - 122px);
 }
 
 .pdf-repertorio-page {

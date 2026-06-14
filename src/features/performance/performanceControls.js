@@ -125,6 +125,32 @@ export function setupDoubleTapFullscreen(wrapper, onToggleFullscreen) {
   });
 }
 
+export function toggleInternalFullscreen(wrapper, button, onChange) {
+  const isFullscreen = !wrapper.classList.contains('is-fullscreen');
+  wrapper.classList.toggle('is-fullscreen', isFullscreen);
+  document.body.classList.toggle('has-performance-fullscreen', isFullscreen);
+  button.textContent = String.fromCharCode(9974);
+  button.title = isFullscreen ? 'Sair da tela cheia' : 'Tela cheia';
+  button.setAttribute('aria-label', button.title);
+
+  if (wrapper.performanceFullscreenKeydown) {
+    window.removeEventListener('keydown', wrapper.performanceFullscreenKeydown);
+    wrapper.performanceFullscreenKeydown = null;
+  }
+
+  if (isFullscreen) {
+    wrapper.performanceFullscreenKeydown = (event) => {
+      if (event.key !== 'Escape') return;
+      toggleInternalFullscreen(wrapper, button, onChange);
+    };
+    window.addEventListener('keydown', wrapper.performanceFullscreenKeydown);
+  }
+
+  if (typeof onChange === 'function') {
+    window.requestAnimationFrame(onChange);
+  }
+}
+
 export function setupSongGestureNavigation(
   wrapper,
   {

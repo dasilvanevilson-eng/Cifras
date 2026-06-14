@@ -29,6 +29,7 @@ import {
   setPerformanceTheme,
   setTwoColumnView,
   setupSongGestureNavigation,
+  toggleInternalFullscreen,
 } from '../../performance/performanceControls.js';
 
 export async function BandaCoralPage({ session } = {}) {
@@ -1023,14 +1024,6 @@ function setupPerformanceControls(wrapper, options = {}) {
 
   fullscreenButton.addEventListener('click', toggleFullscreen);
 
-  document.addEventListener('fullscreenchange', () => {
-    const isFullscreen = document.fullscreenElement === wrapper;
-    wrapper.classList.toggle('is-fullscreen', isFullscreen);
-    fullscreenButton.textContent = String.fromCharCode(9974);
-    fullscreenButton.title = isFullscreen ? 'Dois toques na musica para sair da tela cheia' : 'Tela cheia';
-    window.requestAnimationFrame(renderPerformance);
-  });
-
   printButton.addEventListener('click', () => {
     window.print();
   });
@@ -1062,16 +1055,8 @@ function setupPerformanceControls(wrapper, options = {}) {
   });
   window.addEventListener('resize', renderPerformance);
 
-  async function toggleFullscreen() {
-    try {
-      if (document.fullscreenElement === wrapper) {
-        await document.exitFullscreen();
-      } else if (!document.fullscreenElement) {
-        await wrapper.requestFullscreen();
-      }
-    } catch (error) {
-      window.alert('Nao foi possivel alternar tela cheia neste navegador.');
-    }
+  function toggleFullscreen() {
+    toggleInternalFullscreen(wrapper, fullscreenButton, renderPerformance);
   }
 
   function renderPerformance() {
