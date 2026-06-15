@@ -770,7 +770,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const memberButton = wrapper.querySelector('[data-mode="integrante"]');
     const leaderIsThisClient = isCurrentLeader();
     const hasAnotherLeader = currentMode === 'integrante' && leaderPresence.active && !leaderIsThisClient;
-    const leaderAvailable = allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient || hasAnotherLeader);
+    const leaderAvailable = allowedMode !== 'integrante'
+      && hasObservedLeaderPresence
+      && (!leaderPresence.active || leaderIsThisClient);
     const memberAvailable = allowedMode !== 'lider'
       || !leaderPresence.active
       || (leaderPresence.active && !leaderIsThisClient);
