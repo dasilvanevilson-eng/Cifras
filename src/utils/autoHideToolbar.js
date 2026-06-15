@@ -1,5 +1,6 @@
 export function setupAutoHideToolbar(wrapper, {
   toolbarSelector = '.performance-toolbar, .transpose-toolbar',
+  initiallyExpanded = false,
 } = {}) {
   const toolbar = wrapper?.querySelector(toolbarSelector);
   if (!wrapper || !toolbar) return;
@@ -39,5 +40,9 @@ export function setupAutoHideToolbar(wrapper, {
     }
   });
 
-  collapseToolbar();
+  if (initiallyExpanded) {
+    expandToolbar();
+  } else {
+    collapseToolbar();
+  }
 }

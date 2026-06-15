@@ -368,6 +368,7 @@ function updatePreview(form, previewPanel) {
   previewPanel.replaceChildren(createPerformanceView({
     musica,
     returnTo: '#',
+    initiallyExpandedToolbar: true,
   }));
 }
 

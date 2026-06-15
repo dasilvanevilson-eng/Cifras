@@ -35,7 +35,7 @@ export async function MusicaExecucaoPage() {
 
     if (error) throw error;
 
-    page.replaceChildren(createPerformanceView({ musica, returnTo }));
+    page.replaceChildren(createPerformanceView({ musica, returnTo, initiallyExpandedToolbar: true }));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar a musica.';
@@ -44,7 +44,7 @@ export async function MusicaExecucaoPage() {
   return page;
 }
 
-export function createPerformanceView({ musica, returnTo }) {
+export function createPerformanceView({ musica, returnTo, initiallyExpandedToolbar = false }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
   const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
@@ -63,12 +63,12 @@ export function createPerformanceView({ musica, returnTo }) {
     </section>
   `;
 
-  setupPerformanceControls(wrapper);
+  setupPerformanceControls(wrapper, { initiallyExpandedToolbar });
   return wrapper;
 }
 
-function setupPerformanceControls(wrapper) {
-  setupAutoHideToolbar(wrapper);
+function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } = {}) {
+  setupAutoHideToolbar(wrapper, { initiallyExpanded: initiallyExpandedToolbar });
 
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');
