@@ -66,7 +66,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let leaderPresenceTimer = null;
   let leaderStatusTimer = null;
   let lastMirroredStateKey = '';
-  let leaderPresence = { active: false, client_id: null, user_id: null, name: '' };
+  let leaderPresence = getLeaderPresenceFromState(initialState);
   let leaderUser = currentUser || null;
   let leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
   let hasObservedLeaderPresence = false;
@@ -224,6 +224,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   modeButtons.forEach((button) => {
     button.addEventListener('click', async () => {
+      if (button.disabled) {
+        if (button.dataset.mode === 'lider' && leaderPresence.active && !isCurrentLeader()) {
+          const message = `${formatLeaderName(leaderPresence)} conectado como lider`;
+          showLeaderStatus(message);
+        }
+        return;
+      }
+
       await setMode(button.dataset.mode);
     });
   });
@@ -1011,6 +1019,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     hideCascade(activeCascade);
   });
 
+  updateMemberMirrorState();
+  updateLeaderPresenceUi();
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
     leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
@@ -1086,6 +1096,16 @@ function normalizeState(state) {
     repertorioMusicaId: state.repertorioMusicaId || null,
     currentSongIndex: Number(state.currentSongIndex || 0),
     transposeSemitones: Number(state.transposeSemitones || 0),
+  };
+}
+
+function getLeaderPresenceFromState(state = {}) {
+  return {
+    active: Boolean(state.leader_user_id || state.leader_client_id),
+    client_id: state.leader_client_id || null,
+    user_id: state.leader_user_id || null,
+    name: state.leader_name || '',
+    connected_at: state.leader_connected_at || null,
   };
 }
 
