@@ -68,6 +68,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let lastMirroredStateKey = '';
   let leaderPresence = { active: false, client_id: null, user_id: null, name: '' };
   let leaderUser = currentUser || null;
+  let leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
   let hasObservedLeaderPresence = false;
 
   wrapper.className = 'public-banda-shell';
@@ -595,6 +596,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function releaseLeaderRole() {
     await releasePublicBandaCoralLeader(token, clientId);
+    forgetPublicBandaLeaderAuth(token);
+    leaderAuthenticatedForRoom = false;
     leaderPresence = { active: false, client_id: null, user_id: null, name: '' };
     updateLeaderPresenceUi();
   }
@@ -653,6 +656,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         throw new Error('Nao foi possivel assumir a lideranca deste convite.');
       }
 
+      rememberPublicBandaLeaderAuth(token, leaderUser);
+      leaderAuthenticatedForRoom = true;
       closeLeaderLogin();
       await setMode('lider', {
         skipClaim: true,
@@ -993,7 +998,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
-    const initialMode = isCurrentLeader()
+    leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
+    const initialMode = isCurrentLeader() && leaderAuthenticatedForRoom
       ? 'lider'
       : 'integrante';
 
@@ -1096,6 +1102,38 @@ function getPublicBandaClientId() {
   const id = crypto.randomUUID ? crypto.randomUUID() : createFallbackClientId();
   window.localStorage.setItem(storageKey, id);
   return id;
+}
+
+function getPublicBandaLeaderAuthKey(token) {
+  return `masterCifras.publicBandaLeaderAuth.${token}`;
+}
+
+function hasPublicBandaLeaderAuth(token, user) {
+  if (!user?.id) return false;
+
+  try {
+    return window.sessionStorage.getItem(getPublicBandaLeaderAuthKey(token)) === user.id;
+  } catch (_error) {
+    return false;
+  }
+}
+
+function rememberPublicBandaLeaderAuth(token, user) {
+  if (!user?.id) return;
+
+  try {
+    window.sessionStorage.setItem(getPublicBandaLeaderAuthKey(token), user.id);
+  } catch (_error) {
+    // Ignora indisponibilidade de storage; a lideranca no banco continua valida.
+  }
+}
+
+function forgetPublicBandaLeaderAuth(token) {
+  try {
+    window.sessionStorage.removeItem(getPublicBandaLeaderAuthKey(token));
+  } catch (_error) {
+    // Ignora indisponibilidade de storage.
+  }
 }
 
 function createFallbackClientId() {
