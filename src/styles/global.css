@@ -3920,6 +3920,10 @@ a {
   white-space: pre-wrap;
 }
 
+.repertorio-performance-view.is-two-columns .chordpro-view.is-experimental-two-column {
+  white-space: pre;
+}
+
 .repertorio-performance-view.is-dark .performance-toolbar .button-link.secondary {
   border-color: #536159;
   background: #1a211e;
