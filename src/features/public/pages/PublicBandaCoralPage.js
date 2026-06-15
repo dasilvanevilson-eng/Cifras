@@ -863,7 +863,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
-    setMode('integrante', {
+    const initialMode = leaderPresence.active && leaderPresence.client_id === clientId
+      ? 'lider'
+      : 'integrante';
+
+    setMode(initialMode, {
       skipClaim: true,
       skipRelease: true,
     });
@@ -946,14 +950,20 @@ function getStateKey(state) {
 
 function getPublicBandaClientId() {
   const storageKey = 'masterCifras.publicBandaClientId';
-  const storedId = window.sessionStorage.getItem(storageKey);
+  const storedId = window.localStorage.getItem(storageKey);
 
   if (storedId) {
     return storedId;
   }
 
+  const legacySessionId = window.sessionStorage.getItem(storageKey);
+  if (legacySessionId) {
+    window.localStorage.setItem(storageKey, legacySessionId);
+    return legacySessionId;
+  }
+
   const id = crypto.randomUUID ? crypto.randomUUID() : createFallbackClientId();
-  window.sessionStorage.setItem(storageKey, id);
+  window.localStorage.setItem(storageKey, id);
   return id;
 }
 
