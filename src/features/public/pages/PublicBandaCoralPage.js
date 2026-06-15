@@ -180,6 +180,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function setMode(mode, options = {}) {
     if (mode === 'lider' && !options.skipCredentialPrompt) {
+      const hasAnotherLeader = await warnIfAnotherLeaderIsConnected();
+      if (hasAnotherLeader) return;
+
       openLeaderLogin();
       return;
     }
@@ -187,9 +190,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (mode === 'lider' && !options.skipClaim) {
       const claimed = await claimLeaderRole();
       if (!claimed) {
-        if (leaderPresence.active && leaderPresence.client_id !== clientId) {
-          window.alert('Ja existe um lider conectado neste convite.');
-        }
+        warnIfAnotherLeaderIsConnected({ skipRefresh: true });
         mode = 'integrante';
       }
     }
@@ -228,7 +229,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         return;
       }
 
-      setMode(button.dataset.mode);
+      await setMode(button.dataset.mode);
     });
   });
 
@@ -592,6 +593,21 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     leaderPresence = data.leader || { active: true, client_id: clientId, user_id: leaderUser?.id || null, name: '' };
     updateLeaderPresenceUi();
+    return true;
+  }
+
+  async function warnIfAnotherLeaderIsConnected(options = {}) {
+    if (!options.skipRefresh) {
+      await refreshLeaderPresence();
+    }
+
+    if (!leaderPresence.active || isCurrentLeader()) {
+      return false;
+    }
+
+    const message = `${formatLeaderName(leaderPresence)} conectado como lider`;
+    window.alert(message);
+    showLeaderStatus(message);
     return true;
   }
 
