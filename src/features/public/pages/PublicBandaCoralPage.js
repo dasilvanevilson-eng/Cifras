@@ -916,7 +916,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     showCascade(musicasAcervoSlot);
   }
 
-  function renderRepertorios() {
+  function renderRepertorios({ openResults = true } = {}) {
     const query = normalizeText(repertorioSearch.value);
     if (selectedRepertorio && query !== normalizeText(formatRepertorioSearchLabel(selectedRepertorio))) {
       setSelectedRepertorio(null);
@@ -932,7 +932,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       getSubtitle: (repertorio) => formatDate(getField(repertorio, ['data', 'date'])),
       onExecute: selectRepertorio,
     }));
-    showCascade(repertoriosSlot);
+
+    if (openResults) {
+      showCascade(repertoriosSlot);
+    }
   }
 
   function selectRepertorio(repertorio) {
@@ -1080,7 +1083,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (currentMode !== 'integrante') return;
     if (executionSlot && !executionSlot.hidden) return;
 
-    renderRepertorios();
+    renderRepertorios({ openResults: false });
+    hideCascade(repertoriosSlot);
   }
 
   function showCascade(slot) {
