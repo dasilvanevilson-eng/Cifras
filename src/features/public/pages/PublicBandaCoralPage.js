@@ -82,6 +82,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <button class="nav-button" type="button" data-mode="lider">Lider</button>
         <button class="nav-button" type="button" data-mode="integrante">Integrante</button>
       </div>
+      <p class="public-banda-leader-inline-status" data-role="leader-inline-status">Lider desconectado</p>
     </header>
     <section class="public-banda-grid">
       <section class="dashboard-search-column" data-public-banda-column="repertorios">
@@ -154,6 +155,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const executionSlot = wrapper.querySelector('[data-role="execution-slot"]');
   const executionContent = wrapper.querySelector('[data-role="execution-content"]');
   const leaderStatus = wrapper.querySelector('[data-role="leader-status"]');
+  const leaderInlineStatus = wrapper.querySelector('[data-role="leader-inline-status"]');
   const leaderLoginModal = wrapper.querySelector('[data-role="leader-login-modal"]');
   const leaderLoginForm = wrapper.querySelector('.public-banda-login-form');
   const leaderLoginEmailField = wrapper.querySelector('[data-role="leader-login-email-field"]');
@@ -806,6 +808,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         ? 'Conectar ao Lider'
         : currentMode === 'lider' ? 'Desconectar como lider' : 'Entrar como integrante';
       memberButton.setAttribute('aria-label', memberButton.title);
+    }
+    if (leaderInlineStatus) {
+      leaderInlineStatus.textContent = leaderPresence.active
+        ? `Lider conectado: ${formatLeaderName(leaderPresence)}`
+        : 'Lider desconectado';
     }
   }
 
