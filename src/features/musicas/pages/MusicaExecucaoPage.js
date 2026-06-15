@@ -47,10 +47,7 @@ export async function MusicaExecucaoPage() {
 export function createPerformanceView({ musica, returnTo }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view';
-  const title = getField(musica, ['titulo', 'nome', 'title']);
-  const key = getField(musica, ['tom', 'key']);
-  const link = getField(musica, ['musica_link']);
-  const cifraOriginal = getCifraExibicao(musica);
+  const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
 
   wrapper.innerHTML = `
     ${createPerformanceToolbar({
@@ -171,6 +168,29 @@ function setupPerformanceControls(wrapper) {
   setupDoubleTapFullscreen(wrapper, toggleFullscreen);
   window.addEventListener('resize', renderPerformance);
 
+  wrapper.updatePerformanceMusica = (nextMusica) => {
+    const nextData = getPerformanceSongData(nextMusica);
+    const title = wrapper.querySelector('.performance-song h2');
+    const key = wrapper.querySelector('.current-key');
+    const link = wrapper.querySelector('.toolbar-link');
+
+    if (title) title.textContent = nextData.title;
+    if (key) {
+      key.dataset.originalKey = nextData.key;
+      key.textContent = nextData.key;
+    }
+    if (link) {
+      const hasLink = nextData.link && nextData.link !== '-';
+      link.hidden = !hasLink;
+      link.href = hasLink ? nextData.link : '#';
+    }
+
+    view.dataset.originalCifra = nextData.cifraOriginal;
+    semitones = 0;
+    fitFontToMobileWidth = true;
+    renderPerformance();
+  };
+
   function toggleFullscreen() {
     toggleInternalFullscreen(wrapper, fullscreenButton, renderPerformance);
   }
@@ -181,6 +201,15 @@ function setupPerformanceControls(wrapper) {
     fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
     transposeStatus.textContent = formatTransposeStatus(semitones, capo);
   }
+}
+
+function getPerformanceSongData(musica) {
+  return {
+    title: getField(musica, ['titulo', 'nome', 'title']),
+    key: getField(musica, ['tom', 'key']),
+    link: getField(musica, ['musica_link']),
+    cifraOriginal: getCifraExibicao(musica),
+  };
 }
 
 function getField(record, names) {

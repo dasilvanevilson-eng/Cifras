@@ -2,10 +2,10 @@ import {
   convertToChordPro,
   normalizeChordProLyrics,
   renderChordProForDisplay,
-  renderCifraOriginalForDisplayHtml,
   transposeCifraOriginal,
   transposeKey,
 } from '../../../utils/chordpro.js';
+import { createPerformanceView } from '../pages/MusicaExecucaoPage.js';
 
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
@@ -76,16 +76,7 @@ export function MusicaForm(options = {}) {
       </label>
     </div>
 
-    <section class="song-preview song-view" hidden>
-      <div class="transpose-toolbar">
-        <button class="nav-button preview-back" type="button" data-action="preview-back" aria-label="Voltar" title="Voltar">&larr;</button>
-        <button class="nav-button" type="button" data-preview-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-        <span data-preview="transpose-status">Tom</span>
-        <button class="nav-button" type="button" data-preview-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
-        <button class="nav-button" type="button" data-preview-action="print">Imprimir</button>
-      </div>
-      <pre class="chordpro-view" data-preview="cifra"></pre>
-    </section>
+    <section class="song-preview song-view" hidden></section>
 
     <p class="form-message" aria-live="polite"></p>
   `;
@@ -106,14 +97,8 @@ export function MusicaForm(options = {}) {
   const linkAction = form.querySelector('.field-action-link');
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
-  const previewBackButton = form.querySelector('[data-action="preview-back"]');
   const formTransposeState = {
     semitones: 0,
-  };
-  const previewState = {
-    semitones: 0,
-    originalCifra: '',
-    originalKey: '',
   };
 
   updateLinkAction(linkInput, linkAction);
@@ -125,7 +110,7 @@ export function MusicaForm(options = {}) {
     setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
 
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel, previewState);
+      updatePreview(form, previewPanel);
     }
   });
 
@@ -138,7 +123,7 @@ export function MusicaForm(options = {}) {
     originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
 
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel, previewState);
+      updatePreview(form, previewPanel);
     }
   });
 
@@ -192,7 +177,6 @@ export function MusicaForm(options = {}) {
       chordProEditor,
       tomInput,
       previewPanel,
-      previewState,
       form,
     });
     updateFormTransposeStatus(formTransposeStatus, formTransposeState, -1);
@@ -206,37 +190,26 @@ export function MusicaForm(options = {}) {
       chordProEditor,
       tomInput,
       previewPanel,
-      previewState,
       form,
     });
     updateFormTransposeStatus(formTransposeStatus, formTransposeState, 1);
   });
 
   previewToggle.addEventListener('click', () => {
-    openPreview(form, previewPanel, previewToggle, previewState);
+    openPreview(form, previewPanel, previewToggle);
   });
 
-  previewBackButton.addEventListener('click', () => {
-    closePreview(form, previewPanel, previewToggle, previewState);
-  });
+  previewPanel.addEventListener('click', (event) => {
+    const backAction = event.target.closest('.song-toolbar-back');
+    if (!backAction) return;
 
-  previewPanel.querySelector('[data-preview-action="transpose-down"]').addEventListener('click', () => {
-    previewState.semitones -= 1;
-    renderPreviewCifra(previewPanel, previewState);
-  });
-
-  previewPanel.querySelector('[data-preview-action="transpose-up"]').addEventListener('click', () => {
-    previewState.semitones += 1;
-    renderPreviewCifra(previewPanel, previewState);
-  });
-
-  previewPanel.querySelector('[data-preview-action="print"]').addEventListener('click', () => {
-    window.print();
+    event.preventDefault();
+    closePreview(form, previewPanel, previewToggle);
   });
 
   form.addEventListener('input', () => {
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel, previewState);
+      updatePreview(form, previewPanel);
     }
   });
 
@@ -297,7 +270,6 @@ function transposeFormFields({
   chordProEditor,
   tomInput,
   previewPanel,
-  previewState,
   form,
 }) {
   originalTextarea.value = transposeCifraOriginal(originalTextarea.value, semitones);
@@ -310,7 +282,7 @@ function transposeFormFields({
   setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(originalTextarea.value));
 
   if (!previewPanel.hidden) {
-    updatePreview(form, previewPanel, previewState);
+    updatePreview(form, previewPanel);
   }
 }
 
@@ -325,19 +297,18 @@ function renderFormTransposeStatus(status, semitones) {
     : formatTransposeStatus(semitones);
 }
 
-function openPreview(form, previewPanel, previewToggle, previewState) {
+function openPreview(form, previewPanel, previewToggle) {
   previewPanel.hidden = false;
   form.classList.add('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
-  updatePreview(form, previewPanel, previewState);
+  updatePreview(form, previewPanel);
   previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function closePreview(form, previewPanel, previewToggle, previewState) {
+function closePreview(form, previewPanel, previewToggle) {
   previewPanel.hidden = true;
   form.classList.remove('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
-  previewState.semitones = 0;
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -385,27 +356,31 @@ function getInitialChordPro(initialValues) {
     || convertToChordPro(initialValues.cifra_original || ''));
 }
 
-function updatePreview(form, previewPanel, previewState = null) {
-  const values = getFormValues(form);
-  const key = values.tom || '-';
-  const renderedCifra = renderChordProForDisplay(values.cifra_chordpro)
-    || 'A conversao ChordPro aparecera aqui.';
+function updatePreview(form, previewPanel) {
+  const musica = getPreviewMusica(form);
+  const performanceView = previewPanel.querySelector('.repertorio-performance-view');
 
-  if (previewState) {
-    previewState.originalCifra = renderedCifra;
-    previewState.originalKey = key;
-    renderPreviewCifra(previewPanel, previewState);
+  if (performanceView) {
+    performanceView.updatePerformanceMusica?.(musica);
     return;
   }
 
-  previewPanel.querySelector('[data-preview="cifra"]').innerHTML = renderCifraOriginalForDisplayHtml(renderedCifra);
+  previewPanel.replaceChildren(createPerformanceView({
+    musica,
+    returnTo: '#',
+  }));
 }
 
-function renderPreviewCifra(previewPanel, previewState) {
-  const displayedCifra = transposeCifraOriginal(previewState.originalCifra || '', previewState.semitones);
+function getPreviewMusica(form) {
+  const values = getFormValues(form);
+  const renderedCifra = renderChordProForDisplay(values.cifra_chordpro)
+    || 'A conversao ChordPro aparecera aqui.';
 
-  previewPanel.querySelector('[data-preview="transpose-status"]').textContent = formatTransposeStatus(previewState.semitones);
-  previewPanel.querySelector('[data-preview="cifra"]').innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+  return {
+    ...values,
+    titulo: values.titulo || 'Musica sem titulo',
+    cifra_exibicao: renderedCifra,
+  };
 }
 
 function formatTransposeStatus(semitones) {
