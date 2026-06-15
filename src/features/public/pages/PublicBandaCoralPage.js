@@ -993,7 +993,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
-    setMode('integrante', {
+    const initialMode = isCurrentLeader()
+      ? 'lider'
+      : 'integrante';
+
+    setMode(initialMode, {
       skipClaim: true,
       skipRelease: true,
       skipCredentialPrompt: true,
