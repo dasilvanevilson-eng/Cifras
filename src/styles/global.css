@@ -1759,6 +1759,41 @@ a {
   opacity: 1;
 }
 
+.public-banda-login-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(24, 24, 24, 0.56);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.public-banda-login-backdrop[hidden] {
+  display: none;
+}
+
+.public-banda-login-backdrop.is-open {
+  opacity: 1;
+}
+
+.public-banda-login-modal {
+  position: relative;
+  width: min(420px, 100%);
+  border-radius: 8px;
+  padding: 26px;
+  background: #fffdf8;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.public-banda-login-modal h2 {
+  margin-bottom: 18px;
+  color: #183c35;
+  font-size: 24px;
+}
+
 .public-dashboard-shell .dashboard-header h1 {
   color: #183c35;
 }
