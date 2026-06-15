@@ -3995,6 +3995,10 @@ a {
   background: #111513;
 }
 
+.repertorio-performance-view.is-dark .performance-song header.repertorio-song-title-bar > * {
+  color: #ffffff;
+}
+
 .repertorio-performance-view.is-dark .repertorio-song-title-bar h2 {
   color: #ffffff;
 }
