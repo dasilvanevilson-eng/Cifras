@@ -224,11 +224,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   modeButtons.forEach((button) => {
     button.addEventListener('click', async () => {
-      if (button.dataset.mode === 'lider' && shouldOfferLeaderReconnect()) {
-        await toggleMemberLeaderConnection();
-        return;
-      }
-
       await setMode(button.dataset.mode);
     });
   });
@@ -766,20 +761,18 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const leaderButton = wrapper.querySelector('[data-mode="lider"]');
     const memberButton = wrapper.querySelector('[data-mode="integrante"]');
     const leaderIsThisClient = isCurrentLeader();
-    const offerLeaderReconnect = shouldOfferLeaderReconnect();
-    const leaderAvailable = offerLeaderReconnect
-      || (allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient));
+    const hasAnotherLeader = currentMode === 'integrante' && leaderPresence.active && !leaderIsThisClient;
+    const leaderAvailable = allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient || hasAnotherLeader);
     const memberAvailable = allowedMode !== 'lider'
       || !leaderPresence.active
       || (leaderPresence.active && !leaderIsThisClient);
 
     if (leaderButton) {
       leaderButton.hidden = !leaderAvailable;
-      leaderButton.textContent = offerLeaderReconnect
-        ? 'reconectar ao lider'
-        : currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
-      leaderButton.title = offerLeaderReconnect
-        ? 'reconectar ao lider'
+      leaderButton.disabled = hasAnotherLeader;
+      leaderButton.textContent = currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
+      leaderButton.title = hasAnotherLeader
+        ? `${formatLeaderName(leaderPresence)} conectado como lider`
         : currentMode === 'lider' ? 'Voce e o lider' : 'Entrar como lider';
       leaderButton.setAttribute('aria-label', leaderButton.title);
     }
@@ -798,21 +791,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     ));
   }
 
-  function shouldOfferLeaderReconnect() {
-    return currentMode === 'integrante'
-      && leaderPresence.active
-      && !isCurrentLeader()
-      && !memberFollowingLeader;
-  }
-
   function mirrorLeaderState(state) {
     const stateKey = getStateKey(state);
     if (!stateKey) {
       lastMirroredStateKey = '';
-      const hasRenderedExecution = executionContent.childElementCount > 0;
-      if (currentMode === 'integrante' && hasRenderedExecution) {
-        closeExecutionLayer({ clearLeaderState: false });
-      }
       return;
     }
 
