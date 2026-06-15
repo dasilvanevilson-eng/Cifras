@@ -762,8 +762,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
     if (memberButton) {
       memberButton.hidden = !memberAvailable;
-      memberButton.textContent = currentMode === 'lider' ? 'Desconectar Lider' : 'Integrante';
-      memberButton.title = currentMode === 'lider' ? 'Desconectar Lider' : 'Entrar como integrante';
+      memberButton.textContent = currentMode === 'lider' ? 'Desconectar como lider' : 'Integrante';
+      memberButton.title = currentMode === 'lider' ? 'Desconectar como lider' : 'Entrar como integrante';
       memberButton.setAttribute('aria-label', memberButton.title);
     }
   }
