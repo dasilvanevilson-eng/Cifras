@@ -756,6 +756,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     if (leaderButton) {
       leaderButton.hidden = !leaderAvailable;
+      leaderButton.textContent = currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
+      leaderButton.title = currentMode === 'lider' ? 'Voce e o lider' : 'Entrar como lider';
+      leaderButton.setAttribute('aria-label', leaderButton.title);
     }
     if (memberButton) {
       memberButton.hidden = !memberAvailable;
