@@ -124,10 +124,18 @@ begin
       'active', v_state.leader_user_id is not null,
       'client_id', v_state.leader_client_id,
       'user_id', v_state.leader_user_id,
-      'name', (
-        select coalesce(nullif(trim(p.nome), ''), 'Lider')
-        from public.profiles p
-        where p.id = v_state.leader_user_id
+      'name', coalesce(
+        (
+          select nullif(trim(p.nome), '')
+          from public.profiles p
+          where p.id = v_state.leader_user_id
+        ),
+        (
+          select nullif(trim(u.email), '')
+          from auth.users u
+          where u.id = v_state.leader_user_id
+        ),
+        'Lider'
       ),
       'connected_at', v_state.leader_connected_at
     )
@@ -313,10 +321,18 @@ begin
       'active', v_state.leader_user_id is not null,
       'client_id', v_state.leader_client_id,
       'user_id', v_state.leader_user_id,
-      'name', (
-        select coalesce(nullif(trim(p.nome), ''), 'Lider')
-        from public.profiles p
-        where p.id = v_state.leader_user_id
+      'name', coalesce(
+        (
+          select nullif(trim(p.nome), '')
+          from public.profiles p
+          where p.id = v_state.leader_user_id
+        ),
+        (
+          select nullif(trim(u.email), '')
+          from auth.users u
+          where u.id = v_state.leader_user_id
+        ),
+        'Lider'
       ),
       'connected_at', v_state.leader_connected_at
     )
