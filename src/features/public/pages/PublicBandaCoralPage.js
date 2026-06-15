@@ -500,8 +500,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
 
     memberFollowingLeader = true;
+    lastMirroredStateKey = '';
     updateMemberMirrorState();
     updateLeaderPresenceUi();
+    await syncMemberMirror({ force: true });
     startMemberMirror();
   }
 
@@ -701,11 +703,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function startMemberMirror() {
-    syncMemberMirror();
     memberMirrorTimer = window.setInterval(syncMemberMirror, 1800);
   }
 
-  async function syncMemberMirror() {
+  async function syncMemberMirror(options = {}) {
     if (!leaderPresence.active) {
       lastMirroredStateKey = '';
       return;
@@ -714,7 +715,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     try {
       const { data } = await getPublicBandaCoralState(token);
       if (data?.valid) {
-        mirrorLeaderState(data.state || {});
+        mirrorLeaderState(data.state || {}, options);
       }
     } catch {
       lastMirroredStateKey = '';
@@ -823,14 +824,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       && executionSlot.hidden;
   }
 
-  function mirrorLeaderState(state) {
+  function mirrorLeaderState(state, options = {}) {
     const stateKey = getStateKey(state);
     if (!stateKey) {
       lastMirroredStateKey = '';
       return;
     }
 
-    if (stateKey === lastMirroredStateKey) return;
+    if (!options.force && stateKey === lastMirroredStateKey) return;
 
     lastMirroredStateKey = stateKey;
 
