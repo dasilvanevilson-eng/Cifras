@@ -223,7 +223,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   modeButtons.forEach((button) => {
-    button.addEventListener('click', () => setMode(button.dataset.mode));
+    button.addEventListener('click', async () => {
+      if (button.dataset.mode === 'lider' && shouldOfferLeaderReconnect()) {
+        await toggleMemberLeaderConnection();
+        return;
+      }
+
+      setMode(button.dataset.mode);
+    });
   });
 
   memberFollowButton?.addEventListener('click', () => {
@@ -481,6 +488,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       stopMemberMirror();
       await closeExecutionLayer({ clearLeaderState: false });
       updateMemberMirrorUi();
+      updateLeaderPresenceUi();
       return;
     }
 
@@ -493,6 +501,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     memberFollowingLeader = true;
     updateMemberMirrorUi();
+    updateLeaderPresenceUi();
     startMemberMirror();
   }
 
@@ -539,6 +548,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         stopMemberMirror();
         await closeExecutionLayer({ clearLeaderState: false });
         updateMemberMirrorUi();
+        updateLeaderPresenceUi();
         return;
       }
 
@@ -749,15 +759,21 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const leaderButton = wrapper.querySelector('[data-mode="lider"]');
     const memberButton = wrapper.querySelector('[data-mode="integrante"]');
     const leaderIsThisClient = isCurrentLeader();
-    const leaderAvailable = allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient);
+    const offerLeaderReconnect = shouldOfferLeaderReconnect();
+    const leaderAvailable = offerLeaderReconnect
+      || (allowedMode !== 'integrante' && (!leaderPresence.active || leaderIsThisClient));
     const memberAvailable = allowedMode !== 'lider'
       || !leaderPresence.active
       || (leaderPresence.active && !leaderIsThisClient);
 
     if (leaderButton) {
       leaderButton.hidden = !leaderAvailable;
-      leaderButton.textContent = currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
-      leaderButton.title = currentMode === 'lider' ? 'Voce e o lider' : 'Entrar como lider';
+      leaderButton.textContent = offerLeaderReconnect
+        ? 'reconectar ao lider'
+        : currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
+      leaderButton.title = offerLeaderReconnect
+        ? 'reconectar ao lider'
+        : currentMode === 'lider' ? 'Voce e o lider' : 'Entrar como lider';
       leaderButton.setAttribute('aria-label', leaderButton.title);
     }
     if (memberButton) {
@@ -773,6 +789,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       (leaderPresence.user_id && leaderUser?.id === leaderPresence.user_id)
       || (!leaderPresence.user_id && leaderPresence.client_id === clientId)
     ));
+  }
+
+  function shouldOfferLeaderReconnect() {
+    return currentMode === 'integrante'
+      && leaderPresence.active
+      && !isCurrentLeader()
+      && !memberFollowingLeader;
   }
 
   function mirrorLeaderState(state) {
