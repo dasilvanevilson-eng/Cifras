@@ -61,7 +61,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const musicasRepertorio = getUniqueRepertorioMusicas(repertorioMusicas);
   const clientId = getPublicBandaClientId();
   let currentMode = 'integrante';
-  let memberFollowingLeader = currentMode === 'integrante';
+  let memberFollowingLeader = false;
   let memberMirrorTimer = null;
   let leaderPresenceTimer = null;
   let leaderStatusTimer = null;
@@ -202,7 +202,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     currentMode = mode;
     if (mode === 'integrante') {
-      memberFollowingLeader = true;
+      memberFollowingLeader = Boolean(options.followLeader);
     }
     if (mode !== 'integrante') {
       memberFollowingLeader = false;
@@ -400,6 +400,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
       if (shouldClearLeaderState || currentMode === 'lider') {
         await clearLeaderState();
+      }
+
+      if (currentMode === 'integrante' && !memberFollowingLeader) {
+        showLocalReleasedContent();
       }
     } finally {
       isClosingExecution = false;
@@ -1024,23 +1028,34 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   updateMemberMirrorState();
   updateLeaderPresenceUi();
   startLeaderPresencePolling();
-  refreshLeaderPresence().then(() => {
+  refreshLeaderPresence().then(async () => {
     leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
     const initialMode = isCurrentLeader() && leaderAuthenticatedForRoom
       ? 'lider'
       : 'integrante';
 
-    setMode(initialMode, {
+    await setMode(initialMode, {
       skipClaim: true,
       skipRelease: true,
       skipCredentialPrompt: true,
     });
+
+    if (initialMode === 'integrante') {
+      showLocalReleasedContent();
+    }
   });
   hideCascade(musicasRepertorioSlot);
   hideCascade(musicasAcervoSlot);
   hideCascade(repertoriosSlot);
 
   return wrapper;
+
+  function showLocalReleasedContent() {
+    if (currentMode !== 'integrante') return;
+    if (executionSlot && !executionSlot.hidden) return;
+
+    renderRepertorios();
+  }
 
   function showCascade(slot) {
     if (activeCascade && activeCascade !== slot) {
