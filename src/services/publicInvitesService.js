@@ -220,14 +220,6 @@ export async function claimPublicBandaCoralLeader(token, clientId) {
   });
 }
 
-export async function heartbeatPublicBandaCoralLeader(token, clientId) {
-  assertSupabaseConfig();
-  return supabase.rpc('heartbeat_public_banda_coral_leader', {
-    p_token: token,
-    p_client_id: clientId,
-  });
-}
-
 export async function releasePublicBandaCoralLeader(token, clientId) {
   assertSupabaseConfig();
   return supabase.rpc('release_public_banda_coral_leader', {

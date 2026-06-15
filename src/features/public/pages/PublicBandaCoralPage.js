@@ -6,7 +6,6 @@ import {
   getPublicBandaCoralPresence,
   getPublicBandaCoralData,
   getPublicBandaCoralState,
-  heartbeatPublicBandaCoralLeader,
   releasePublicBandaCoralLeader,
   updatePublicBandaCoralState,
 } from '../../../services/publicInvitesService.js';
@@ -62,7 +61,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let currentMode = 'integrante';
   let memberFollowingLeader = currentMode === 'integrante';
   let memberMirrorTimer = null;
-  let leaderHeartbeatTimer = null;
   let leaderPresenceTimer = null;
   let leaderStatusTimer = null;
   let lastMirroredStateKey = '';
@@ -184,14 +182,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     updateLeaderPresenceUi();
     refreshExecutionControlsForMode();
     stopMemberMirror();
-    stopLeaderHeartbeat();
 
     if (mode === 'integrante' && memberFollowingLeader) {
       startMemberMirror();
-    }
-
-    if (mode === 'lider') {
-      startLeaderHeartbeat();
     }
   }
 
@@ -550,30 +543,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function releaseLeaderRole() {
-    stopLeaderHeartbeat();
     await releasePublicBandaCoralLeader(token, clientId);
     leaderPresence = { active: false, client_id: null };
     updateLeaderPresenceUi();
-  }
-
-  function startLeaderHeartbeat() {
-    heartbeatLeaderRole();
-    leaderHeartbeatTimer = window.setInterval(heartbeatLeaderRole, 15000);
-  }
-
-  function stopLeaderHeartbeat() {
-    if (leaderHeartbeatTimer) {
-      window.clearInterval(leaderHeartbeatTimer);
-      leaderHeartbeatTimer = null;
-    }
-  }
-
-  async function heartbeatLeaderRole() {
-    const { data } = await heartbeatPublicBandaCoralLeader(token, clientId);
-    if (data?.leader) {
-      leaderPresence = data.leader;
-      updateLeaderPresenceUi();
-    }
   }
 
   function startMemberMirror() {
