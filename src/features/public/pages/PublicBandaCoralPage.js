@@ -723,7 +723,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const { data } = await getPublicBandaCoralPresence(token);
     if (data?.valid) {
       const wasLeaderActive = Boolean(leaderPresence.active);
-      leaderPresence = data.leader || { active: false, client_id: null, user_id: null, name: '' };
+      leaderPresence = normalizeLeaderPresence(data.leader);
       const isLeaderActive = Boolean(leaderPresence.active);
 
       if (hasObservedLeaderPresence && wasLeaderActive !== isLeaderActive && currentMode === 'integrante') {
@@ -1102,12 +1102,22 @@ function normalizeState(state) {
 }
 
 function getLeaderPresenceFromState(state = {}) {
-  return {
+  return normalizeLeaderPresence({
     active: Boolean(state.leader_user_id || state.leader_client_id),
     client_id: state.leader_client_id || null,
     user_id: state.leader_user_id || null,
     name: state.leader_name || '',
     connected_at: state.leader_connected_at || null,
+  });
+}
+
+function normalizeLeaderPresence(leader = {}) {
+  return {
+    active: Boolean(leader.active || leader.user_id || leader.client_id),
+    client_id: leader.client_id || null,
+    user_id: leader.user_id || null,
+    name: leader.name || '',
+    connected_at: leader.connected_at || null,
   };
 }
 

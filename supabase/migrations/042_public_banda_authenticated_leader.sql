@@ -145,7 +145,7 @@ begin
     'valid', true,
     'is_leader', v_state.leader_user_id = v_user_id,
     'leader', jsonb_build_object(
-      'active', v_state.leader_user_id is not null,
+      'active', v_state.leader_user_id is not null or v_state.leader_client_id is not null,
       'client_id', v_state.leader_client_id,
       'user_id', v_state.leader_user_id,
       'name', coalesce(nullif(trim(v_state.leader_name), ''), 'Usuario'),
@@ -331,7 +331,7 @@ begin
   return jsonb_build_object(
     'valid', true,
     'leader', jsonb_build_object(
-      'active', v_state.leader_user_id is not null,
+      'active', v_state.leader_user_id is not null or v_state.leader_client_id is not null,
       'client_id', v_state.leader_client_id,
       'user_id', v_state.leader_user_id,
       'name', coalesce(nullif(trim(v_state.leader_name), ''), 'Usuario'),
