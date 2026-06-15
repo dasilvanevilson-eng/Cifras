@@ -66,7 +66,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let leaderPresenceTimer = null;
   let leaderStatusTimer = null;
   let lastMirroredStateKey = '';
-  let leaderPresence = { active: false, client_id: null, user_id: null };
+  let leaderPresence = { active: false, client_id: null, user_id: null, name: '' };
   let leaderUser = currentUser || null;
   let hasObservedLeaderPresence = false;
 
@@ -586,14 +586,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       return false;
     }
 
-    leaderPresence = data.leader || { active: true, client_id: clientId, user_id: leaderUser?.id || null };
+    leaderPresence = data.leader || { active: true, client_id: clientId, user_id: leaderUser?.id || null, name: '' };
     updateLeaderPresenceUi();
     return true;
   }
 
   async function releaseLeaderRole() {
     await releasePublicBandaCoralLeader(token, clientId);
-    leaderPresence = { active: false, client_id: null, user_id: null };
+    leaderPresence = { active: false, client_id: null, user_id: null, name: '' };
     updateLeaderPresenceUi();
   }
 
@@ -682,11 +682,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const { data } = await getPublicBandaCoralPresence(token);
     if (data?.valid) {
       const wasLeaderActive = Boolean(leaderPresence.active);
-      leaderPresence = data.leader || { active: false, client_id: null, user_id: null };
+      leaderPresence = data.leader || { active: false, client_id: null, user_id: null, name: '' };
       const isLeaderActive = Boolean(leaderPresence.active);
 
       if (hasObservedLeaderPresence && wasLeaderActive !== isLeaderActive && currentMode === 'integrante') {
-        showLeaderStatus(isLeaderActive ? 'Lider conectado' : 'Lider desconectado');
+        showLeaderStatus(isLeaderActive ? `${formatLeaderName(leaderPresence)} conectado como lider` : 'Lider desconectado');
       }
 
       hasObservedLeaderPresence = true;
@@ -707,6 +707,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       leaderStatus.classList.remove('is-visible');
       leaderStatus.hidden = true;
     }, 2800);
+  }
+
+  function formatLeaderName(leader) {
+    return String(leader?.name || '').trim() || 'Lider';
   }
 
   function startLeaderPresencePolling() {
