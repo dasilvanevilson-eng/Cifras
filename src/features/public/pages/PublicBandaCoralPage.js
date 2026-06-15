@@ -232,6 +232,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         return;
       }
 
+      if (button.dataset.mode === 'integrante' && shouldOfferMemberLeaderConnection()) {
+        await toggleMemberLeaderConnection();
+        return;
+      }
+
       await setMode(button.dataset.mode);
     });
   });
@@ -774,6 +779,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const memberButton = wrapper.querySelector('[data-mode="integrante"]');
     const leaderIsThisClient = isCurrentLeader();
     const hasAnotherLeader = currentMode === 'integrante' && leaderPresence.active && !leaderIsThisClient;
+    const offerMemberLeaderConnection = shouldOfferMemberLeaderConnection();
     const leaderAvailable = allowedMode !== 'integrante'
       && hasObservedLeaderPresence
       && (!leaderPresence.active || leaderIsThisClient);
@@ -792,8 +798,12 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
     if (memberButton) {
       memberButton.hidden = !memberAvailable;
-      memberButton.textContent = currentMode === 'lider' ? 'Desconectar como lider' : 'Integrante';
-      memberButton.title = currentMode === 'lider' ? 'Desconectar como lider' : 'Entrar como integrante';
+      memberButton.textContent = offerMemberLeaderConnection
+        ? 'Conectar ao Lider'
+        : currentMode === 'lider' ? 'Desconectar como lider' : 'Integrante';
+      memberButton.title = offerMemberLeaderConnection
+        ? 'Conectar ao Lider'
+        : currentMode === 'lider' ? 'Desconectar como lider' : 'Entrar como integrante';
       memberButton.setAttribute('aria-label', memberButton.title);
     }
   }
@@ -803,6 +813,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       (leaderPresence.user_id && leaderUser?.id === leaderPresence.user_id)
       || (!leaderPresence.user_id && leaderPresence.client_id === clientId)
     ));
+  }
+
+  function shouldOfferMemberLeaderConnection() {
+    return currentMode === 'integrante'
+      && leaderPresence.active
+      && !isCurrentLeader()
+      && !memberFollowingLeader
+      && executionSlot.hidden;
   }
 
   function mirrorLeaderState(state) {
