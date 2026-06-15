@@ -126,7 +126,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <button class="login-modal-close" type="button" data-action="close-leader-login" aria-label="Fechar login">&times;</button>
         <h2 id="public-banda-login-title">Entrar como Lider</h2>
         <form class="form public-banda-login-form">
-          <label>
+          <label data-role="leader-login-email-field">
             E-mail
             <input name="email" type="email" autocomplete="email" required>
           </label>
@@ -157,7 +157,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const leaderStatus = wrapper.querySelector('[data-role="leader-status"]');
   const leaderLoginModal = wrapper.querySelector('[data-role="leader-login-modal"]');
   const leaderLoginForm = wrapper.querySelector('.public-banda-login-form');
+  const leaderLoginEmailField = wrapper.querySelector('[data-role="leader-login-email-field"]');
   const leaderLoginEmail = wrapper.querySelector('.public-banda-login-form input[name="email"]');
+  const leaderLoginPassword = wrapper.querySelector('.public-banda-login-form input[name="password"]');
   const leaderLoginMessage = wrapper.querySelector('.public-banda-login-form .form-message');
   const leaderLoginSubmitButton = wrapper.querySelector('.public-banda-login-form button[type="submit"]');
   const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
@@ -177,7 +179,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function setMode(mode, options = {}) {
-    if (mode === 'lider' && !leaderUser) {
+    if (mode === 'lider' && !options.skipCredentialPrompt) {
       openLeaderLogin();
       return;
     }
@@ -600,12 +602,23 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   function openLeaderLogin() {
     if (!leaderLoginModal) return;
 
+    const loggedEmail = String(leaderUser?.email || '').trim();
+    if (leaderLoginEmailField) {
+      leaderLoginEmailField.hidden = Boolean(loggedEmail);
+    }
+    if (leaderLoginEmail) {
+      leaderLoginEmail.value = loggedEmail;
+      leaderLoginEmail.required = !loggedEmail;
+    }
+    if (leaderLoginPassword) {
+      leaderLoginPassword.value = '';
+    }
     leaderLoginMessage.textContent = '';
     leaderLoginMessage.className = 'form-message';
     leaderLoginModal.hidden = false;
     window.requestAnimationFrame(() => {
       leaderLoginModal.classList.add('is-open');
-      leaderLoginEmail?.focus();
+      (loggedEmail ? leaderLoginPassword : leaderLoginEmail)?.focus();
     });
   }
 
@@ -620,7 +633,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     event.preventDefault();
 
     const formData = new FormData(leaderLoginForm);
-    const email = String(formData.get('email') || '').trim();
+    const email = String(leaderUser?.email || formData.get('email') || '').trim();
     const password = String(formData.get('password') || '');
 
     leaderLoginSubmitButton.disabled = true;
@@ -641,7 +654,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       }
 
       closeLeaderLogin();
-      await setMode('lider', { skipClaim: true });
+      await setMode('lider', {
+        skipClaim: true,
+        skipCredentialPrompt: true,
+      });
     } catch (error) {
       leaderLoginMessage.className = 'form-message error';
       leaderLoginMessage.textContent = error.message || 'Nao foi possivel fazer login.';
@@ -976,13 +992,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   startLeaderPresencePolling();
   refreshLeaderPresence().then(() => {
-    const initialMode = isCurrentLeader()
-      ? 'lider'
-      : 'integrante';
-
-    setMode(initialMode, {
+    setMode('integrante', {
       skipClaim: true,
       skipRelease: true,
+      skipCredentialPrompt: true,
     });
   });
   hideCascade(musicasRepertorioSlot);
