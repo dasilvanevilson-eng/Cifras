@@ -48,15 +48,16 @@ begin
   end if;
 
   select coalesce(
-    (
-      select nullif(trim(p.nome), '')
-      from public.profiles p
-      where p.id = v_user_id
-    ),
-    nullif(trim(auth.jwt()->>'email'), ''),
+    nullif(trim(p.nome), ''),
+    nullif(trim(u.raw_user_meta_data->>'nome'), ''),
+    nullif(trim(u.raw_user_meta_data->>'name'), ''),
+    nullif(trim(u.email), ''),
     'Usuario'
   )
-  into v_leader_name;
+  into v_leader_name
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  where u.id = v_user_id;
 
   insert into public.public_invite_banda_state (
     invite_id,
