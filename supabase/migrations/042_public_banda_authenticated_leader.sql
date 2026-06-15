@@ -3,6 +3,9 @@
 alter table public.public_invite_banda_state
 add column if not exists leader_user_id uuid;
 
+alter table public.public_invite_banda_state
+add column if not exists leader_name text;
+
 create or replace function public.claim_public_banda_coral_leader(
   p_token text,
   p_client_id text
@@ -17,6 +20,7 @@ declare
   v_access_mode text;
   v_state public_invite_banda_state;
   v_user_id uuid := auth.uid();
+  v_leader_name text;
 begin
   select *
   into v_invite
@@ -43,10 +47,22 @@ begin
     return jsonb_build_object('valid', false, 'reason', 'missing_client_id');
   end if;
 
+  select coalesce(
+    (
+      select nullif(trim(p.nome), '')
+      from public.profiles p
+      where p.id = v_user_id
+    ),
+    nullif(trim(auth.jwt()->>'email'), ''),
+    'Usuario'
+  )
+  into v_leader_name;
+
   insert into public.public_invite_banda_state (
     invite_id,
     leader_client_id,
     leader_user_id,
+    leader_name,
     leader_connected_at,
     is_stage_active,
     updated_at
@@ -55,6 +71,7 @@ begin
     v_invite.id,
     p_client_id,
     v_user_id,
+    v_leader_name,
     now(),
     false,
     now()
@@ -72,6 +89,12 @@ begin
         or public_invite_banda_state.leader_user_id = v_user_id
       then v_user_id
       else public_invite_banda_state.leader_user_id
+    end,
+    leader_name = case
+      when public_invite_banda_state.leader_user_id is null
+        or public_invite_banda_state.leader_user_id = v_user_id
+      then v_leader_name
+      else public_invite_banda_state.leader_name
     end,
     leader_connected_at = case
       when public_invite_banda_state.leader_user_id is null
@@ -124,19 +147,7 @@ begin
       'active', v_state.leader_user_id is not null,
       'client_id', v_state.leader_client_id,
       'user_id', v_state.leader_user_id,
-      'name', coalesce(
-        (
-          select nullif(trim(p.nome), '')
-          from public.profiles p
-          where p.id = v_state.leader_user_id
-        ),
-        (
-          select nullif(trim(u.email), '')
-          from auth.users u
-          where u.id = v_state.leader_user_id
-        ),
-        'Lider'
-      ),
+      'name', coalesce(nullif(trim(v_state.leader_name), ''), 'Usuario'),
       'connected_at', v_state.leader_connected_at
     )
   );
@@ -177,6 +188,7 @@ begin
   set
     leader_client_id = null,
     leader_user_id = null,
+    leader_name = null,
     leader_connected_at = null
   where invite_id = v_invite.id
     and leader_user_id = v_user_id;
@@ -321,19 +333,7 @@ begin
       'active', v_state.leader_user_id is not null,
       'client_id', v_state.leader_client_id,
       'user_id', v_state.leader_user_id,
-      'name', coalesce(
-        (
-          select nullif(trim(p.nome), '')
-          from public.profiles p
-          where p.id = v_state.leader_user_id
-        ),
-        (
-          select nullif(trim(u.email), '')
-          from auth.users u
-          where u.id = v_state.leader_user_id
-        ),
-        'Lider'
-      ),
+      'name', coalesce(nullif(trim(v_state.leader_name), ''), 'Usuario'),
       'connected_at', v_state.leader_connected_at
     )
   );

@@ -726,7 +726,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function formatLeaderName(leader) {
-    return String(leader?.name || '').trim() || 'Lider';
+    const name = String(leader?.name || '').trim();
+    return name && normalizeText(name) !== 'lider' ? name : 'Usuario';
   }
 
   function startLeaderPresencePolling() {
