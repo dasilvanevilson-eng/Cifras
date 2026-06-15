@@ -81,7 +81,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       <div class="banda-mode-switch public-banda-mode-switch">
         <button class="nav-button" type="button" data-mode="lider">Lider</button>
         <button class="nav-button" type="button" data-mode="integrante">Integrante</button>
-        <button class="nav-button" type="button" data-action="toggle-member-follow" hidden>Desconectar do Lider</button>
       </div>
     </header>
     <section class="public-banda-grid">
@@ -143,7 +142,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   `;
 
   const modeButtons = wrapper.querySelectorAll('[data-mode]');
-  const memberFollowButton = wrapper.querySelector('[data-action="toggle-member-follow"]');
   const acervoColumn = wrapper.querySelector('[data-public-banda-column="acervo"]');
   const repertorioMusicSearch = wrapper.querySelector('[data-action="search-musica-repertorio"]');
   const acervoMusicSearch = wrapper.querySelector('[data-action="search-musica-acervo"]');
@@ -173,6 +171,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let tempRepertorioMusicas = [];
   let tempAcervoMusicas = [];
   let currentTempExecutionType = null;
+  let isClosingExecution = false;
   let keepCascadeOpenOnFocusout = false;
 
   if (acervoColumn) {
@@ -212,7 +211,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     });
     wrapper.classList.toggle('is-member-mode', mode === 'integrante');
     wrapper.classList.toggle('is-leader-mode', mode === 'lider');
-    updateMemberMirrorUi();
+    updateMemberMirrorState();
     updateLeaderPresenceUi();
     refreshExecutionControlsForMode();
     stopMemberMirror();
@@ -231,10 +230,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
       setMode(button.dataset.mode);
     });
-  });
-
-  memberFollowButton?.addEventListener('click', () => {
-    toggleMemberLeaderConnection();
   });
 
   wrapper.querySelector('[data-action="close-leader-login"]')?.addEventListener('click', closeLeaderLogin);
@@ -386,17 +381,24 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function closeExecutionLayer(options = {}) {
+    if (isClosingExecution) return;
+
+    isClosingExecution = true;
     const shouldClearLeaderState = options.clearLeaderState === true;
 
-    stopPublicAutoscroll();
-    executionSlot.hidden = true;
-    executionContent.replaceChildren();
-    currentExecutionState = null;
-    clearCurrentTempExecution();
-    document.body.classList.remove('has-banda-stage-open');
+    try {
+      stopPublicAutoscroll();
+      executionSlot.hidden = true;
+      executionContent.replaceChildren();
+      currentExecutionState = null;
+      clearCurrentTempExecution();
+      document.body.classList.remove('has-banda-stage-open');
 
-    if (shouldClearLeaderState || currentMode === 'lider') {
-      await clearLeaderState();
+      if (shouldClearLeaderState || currentMode === 'lider') {
+        await clearLeaderState();
+      }
+    } finally {
+      isClosingExecution = false;
     }
   }
 
@@ -463,46 +465,40 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
   }
 
-  function updateMemberMirrorUi() {
+  function updateMemberMirrorState() {
     const isMemberMode = currentMode === 'integrante';
 
     wrapper.classList.toggle('is-member-following', isMemberMode && memberFollowingLeader);
-
-    if (!memberFollowButton) return;
-
-    const leaderIsThisClient = isCurrentLeader();
-    const canFollowLeader = isMemberMode && leaderPresence.active && !leaderIsThisClient;
-    memberFollowButton.hidden = !canFollowLeader;
-    memberFollowButton.disabled = false;
-    memberFollowButton.textContent = memberFollowingLeader ? 'Desconectar do Lider' : 'Conectar ao Lider';
-    memberFollowButton.title = memberFollowButton.textContent;
-    memberFollowButton.setAttribute('aria-label', memberFollowButton.title);
   }
 
   async function toggleMemberLeaderConnection() {
     if (currentMode !== 'integrante') return;
 
     if (memberFollowingLeader) {
-      memberFollowingLeader = false;
-      lastMirroredStateKey = '';
-      stopMemberMirror();
-      await closeExecutionLayer({ clearLeaderState: false });
-      updateMemberMirrorUi();
-      updateLeaderPresenceUi();
+      await disconnectMemberFromLeader();
       return;
     }
 
     await refreshLeaderPresence();
     if (!leaderPresence.active || isCurrentLeader()) {
       window.alert('Nenhum lider conectado neste convite.');
-      updateMemberMirrorUi();
+      updateMemberMirrorState();
       return;
     }
 
     memberFollowingLeader = true;
-    updateMemberMirrorUi();
+    updateMemberMirrorState();
     updateLeaderPresenceUi();
     startMemberMirror();
+  }
+
+  async function disconnectMemberFromLeader() {
+    memberFollowingLeader = false;
+    lastMirroredStateKey = '';
+    stopMemberMirror();
+    await closeExecutionLayer({ clearLeaderState: false });
+    updateMemberMirrorState();
+    updateLeaderPresenceUi();
   }
 
   executionContent.addEventListener('click', (event) => {
@@ -543,12 +539,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (backLink) {
       event.preventDefault();
       if (currentMode === 'integrante' && memberFollowingLeader) {
-        memberFollowingLeader = false;
-        lastMirroredStateKey = '';
-        stopMemberMirror();
-        await closeExecutionLayer({ clearLeaderState: false });
-        updateMemberMirrorUi();
-        updateLeaderPresenceUi();
+        await disconnectMemberFromLeader();
         return;
       }
 
@@ -722,7 +713,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
       hasObservedLeaderPresence = true;
       updateLeaderPresenceUi();
-      updateMemberMirrorUi();
+      updateMemberMirrorState();
     }
   }
 
@@ -803,7 +794,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (!stateKey) {
       lastMirroredStateKey = '';
       const hasRenderedExecution = executionContent.childElementCount > 0;
-      if (currentMode === 'integrante' && !hasRenderedExecution) {
+      if (currentMode === 'integrante' && hasRenderedExecution) {
         closeExecutionLayer({ clearLeaderState: false });
       }
       return;
@@ -1272,10 +1263,6 @@ function renderSelectedMusicasList(slot, items) {
   });
 
   slot.append(list);
-}
-
-function formatMode(mode) {
-  return mode === 'lider' ? 'lider' : 'integrante';
 }
 
 function formatDate(value) {
