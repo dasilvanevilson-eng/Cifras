@@ -378,14 +378,21 @@ export function createPerformanceViewV2({
   onSongChange,
 }) {
   const wrapper = document.createElement('article');
-  wrapper.className = 'repertorio-performance-view repertorio-song-view';
+  wrapper.className = 'repertorio-performance-view repertorio-song-view repertorio-set-stage';
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
 
   wrapper.innerHTML = `
-    <header class="performance-header">
-      <h1>${escapeHtml(nome)}</h1>
-      ${data !== '-' ? `<p>${escapeHtml(data)}</p>` : ''}
+    <header class="performance-header repertorio-stage-header">
+      <div class="repertorio-stage-copy">
+        <span class="repertorio-stage-kicker">Execucao de repertorio</span>
+        <h1>${escapeHtml(nome)}</h1>
+        <p>${data !== '-' ? escapeHtml(data) : 'Sequencia musical'}</p>
+        <p class="repertorio-stage-current" data-role="stage-current-song"></p>
+      </div>
+      <div class="repertorio-stage-summary" aria-label="Progresso do repertorio">
+        <span><strong data-role="stage-song-position">0/0</strong> musica atual</span>
+      </div>
     </header>
     ${createPerformanceToolbar({
       backHref: getBackUrl(returnTo, repertorio.id),
@@ -695,6 +702,22 @@ function renderPagedPerformanceV2({
   if (songPosition) {
     songPosition.textContent = songs.length ? `${currentSongIndex + 1}/${songs.length}` : '0/0';
   }
+
+  const stageSongPosition = wrapper.querySelector('[data-role="stage-song-position"]');
+  if (stageSongPosition) {
+    stageSongPosition.textContent = songs.length ? `${currentSongIndex + 1}/${songs.length}` : '0/0';
+  }
+
+  const stageCurrentSong = wrapper.querySelector('[data-role="stage-current-song"]');
+  if (stageCurrentSong) {
+    const currentSongTitle = songs[currentSongIndex]?.querySelector('.repertorio-current-song-title')?.textContent || '';
+    stageCurrentSong.textContent = currentSongTitle ? `Agora: ${currentSongTitle}` : '';
+  }
+
+  wrapper.style.setProperty(
+    '--repertorio-progress',
+    songs.length ? `${((currentSongIndex + 1) / songs.length) * 100}%` : '0%',
+  );
 
   previousSongButton.disabled = currentSongIndex <= 0;
   nextSongButton.disabled = currentSongIndex >= songs.length - 1;

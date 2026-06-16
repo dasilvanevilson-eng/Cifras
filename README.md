@@ -110,6 +110,12 @@ A sexta etapa da reestilizacao e melhorar a tela de Repertorios como biblioteca 
 
 Status inicial: a tela de Repertorios foi reorganizada em `src/features/repertorios/pages/RepertoriosPage.js` e recebeu novos estilos em `src/styles/global.css`. A busca continua usando a mesma logica, mas os resultados passaram a aparecer como cards com nome, data, contexto e acoes de executar/abrir/editar. A montagem, privacidade, historico e salvamento do repertorio foram preservados.
 
+### Setima etapa planejada
+
+A setima etapa da reestilizacao e melhorar o modo de execucao de repertorio. O objetivo e facilitar o uso durante uma sequencia musical, destacando repertorio, musica atual, progresso e navegacao entre musicas.
+
+Status inicial: a tela de execucao de repertorio recebeu uma camada visual em `src/features/repertorios/pages/RepertorioExecucaoPage.js` e `src/styles/global.css`. A tela agora mostra contexto do repertorio, progresso da sequencia, musica atual em destaque e superficie de leitura mais consistente. Os controles existentes de proxima/anterior, tom, capo, fonte, tema, rolagem, tela cheia, link e impressao foram preservados.
+
 ### Personalizacao futura
 
 A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.

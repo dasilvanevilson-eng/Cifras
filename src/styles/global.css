@@ -8163,3 +8163,284 @@ html {
     text-align: center;
   }
 }
+
+/* Etapa 7: execucao de repertorio com contexto de sequencia. */
+.repertorio-set-stage {
+  --set-surface: rgba(255, 255, 255, 0.94);
+  --set-border: rgba(184, 199, 189, 0.72);
+  --repertorio-progress: 0%;
+  display: grid;
+  gap: 10px;
+  min-height: calc(100svh - 40px);
+  border: 1px solid var(--set-border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(48, 91, 184, 0.08), rgba(255, 255, 255, 0.74) 44%, rgba(22, 117, 101, 0.1)),
+    var(--color-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.repertorio-set-stage .performance-header.repertorio-stage-header {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--set-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: var(--set-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.repertorio-set-stage .performance-header.repertorio-stage-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background:
+    linear-gradient(90deg, var(--color-primary) var(--repertorio-progress), rgba(184, 199, 189, 0.42) 0);
+}
+
+.repertorio-stage-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.repertorio-stage-kicker {
+  width: fit-content;
+  border: 1px solid rgba(22, 117, 101, 0.2);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.repertorio-set-stage .performance-header h1 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(20px, 3vw, 28px);
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repertorio-set-stage .performance-header p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.repertorio-stage-current {
+  color: var(--color-primary-strong) !important;
+  font-weight: 800;
+}
+
+.repertorio-stage-summary {
+  flex: 0 0 auto;
+}
+
+.repertorio-stage-summary span {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  min-width: 88px;
+  border: 1px solid rgba(48, 91, 184, 0.18);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  background: rgba(48, 91, 184, 0.1);
+  color: #305bb8;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.repertorio-stage-summary strong {
+  color: #305bb8;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.repertorio-set-stage .performance-toolbar {
+  top: 10px;
+  border-color: var(--set-border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+.repertorio-set-stage .performance-toolbar .sequence-stepper {
+  border-radius: var(--radius-md);
+  background: rgba(22, 117, 101, 0.08);
+}
+
+.repertorio-set-stage .performance-list {
+  display: grid;
+  gap: 8px;
+}
+
+.repertorio-set-stage .performance-song header.repertorio-song-title-bar {
+  position: sticky;
+  top: 74px;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  overflow: visible;
+  border: 1px solid var(--set-border);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  background: var(--set-surface);
+  box-shadow: var(--shadow-xs);
+  white-space: normal;
+}
+
+.repertorio-set-stage .repertorio-current-song-title {
+  overflow: hidden;
+  max-width: min(100%, 48rem);
+  color: var(--color-text);
+  font-size: 20px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repertorio-set-stage .repertorio-title-inline,
+.repertorio-set-stage .title-separator,
+.repertorio-set-stage .repertorio-song-moment-inline {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.repertorio-set-stage .repertorio-song-moment-inline {
+  border: 1px solid rgba(244, 168, 74, 0.3);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: rgba(244, 168, 74, 0.16);
+  color: #7a4b08;
+  font-weight: 800;
+}
+
+.repertorio-set-stage .chordpro-view {
+  min-height: calc(100svh - 260px);
+  border-color: var(--set-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text);
+  box-shadow: var(--shadow-xs);
+}
+
+.repertorio-set-stage.is-dark {
+  --set-surface: rgba(17, 21, 19, 0.94);
+  --set-border: rgba(83, 97, 89, 0.86);
+  background: #0f1210;
+}
+
+.repertorio-set-stage.is-dark .performance-header.repertorio-stage-header,
+.repertorio-set-stage.is-dark .performance-song header.repertorio-song-title-bar,
+.repertorio-set-stage.is-dark .chordpro-view {
+  border-color: var(--set-border);
+  background: var(--set-surface);
+}
+
+.repertorio-set-stage.is-dark .repertorio-stage-kicker {
+  border-color: rgba(155, 216, 201, 0.28);
+  background: rgba(155, 216, 201, 0.12);
+  color: #9bd8c9;
+}
+
+.repertorio-set-stage.is-dark .performance-header h1,
+.repertorio-set-stage.is-dark .repertorio-current-song-title,
+.repertorio-set-stage.is-dark .chordpro-view {
+  color: #ffffff;
+}
+
+.repertorio-set-stage.is-dark .performance-header p,
+.repertorio-set-stage.is-dark .repertorio-title-inline,
+.repertorio-set-stage.is-dark .title-separator {
+  color: #c7c0b3;
+}
+
+.repertorio-set-stage.is-dark .repertorio-stage-current {
+  color: #9bd8c9 !important;
+}
+
+.repertorio-set-stage.is-dark .repertorio-stage-summary span {
+  border-color: rgba(155, 216, 201, 0.28);
+  background: rgba(155, 216, 201, 0.12);
+  color: #9bd8c9;
+}
+
+.repertorio-set-stage.is-dark .repertorio-stage-summary strong {
+  color: #9bd8c9;
+}
+
+.repertorio-set-stage.is-dark .repertorio-song-moment-inline {
+  border-color: rgba(255, 180, 95, 0.34);
+  background: rgba(255, 180, 95, 0.14);
+  color: #ffb45f;
+}
+
+.repertorio-set-stage:fullscreen,
+.repertorio-set-stage.is-fullscreen {
+  border-radius: 0;
+  padding: 8px;
+}
+
+@media (max-width: 760px) {
+  .repertorio-set-stage {
+    min-height: calc(100svh - 20px);
+    border-radius: var(--radius-md);
+    padding: 8px;
+  }
+
+  .repertorio-set-stage .performance-header.repertorio-stage-header {
+    border-radius: var(--radius-md);
+    padding: 11px;
+  }
+
+  .repertorio-set-stage .performance-header h1 {
+    font-size: 19px;
+  }
+
+  .repertorio-stage-summary span {
+    min-width: 76px;
+    padding: 8px;
+  }
+
+  .repertorio-stage-summary strong {
+    font-size: 17px;
+  }
+
+  .repertorio-set-stage .performance-song header.repertorio-song-title-bar {
+    position: static;
+    border-radius: var(--radius-md);
+    padding: 9px 10px;
+  }
+
+  .repertorio-set-stage .repertorio-current-song-title {
+    max-width: 100%;
+    font-size: 17px;
+  }
+
+  .repertorio-set-stage .chordpro-view {
+    min-height: calc(100svh - 250px);
+    border-radius: var(--radius-md);
+    padding: 12px;
+  }
+}
