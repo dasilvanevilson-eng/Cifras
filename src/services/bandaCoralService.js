@@ -97,7 +97,7 @@ export async function updateSessaoBanda(id, values = {}) {
   const updates = {};
 
   ['repertorio_id', 'musica_atual_id', 'tom_atual', 'ativa'].forEach((field) => {
-    if (Object.hasOwn(values, field)) {
+    if (Object.prototype.hasOwnProperty.call(values, field)) {
       updates[field] = values[field] || (field === 'ativa' ? false : null);
     }
   });

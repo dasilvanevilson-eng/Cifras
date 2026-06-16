@@ -120,7 +120,7 @@ export function hasPermission(session, moduleKey, actionKey) {
 function createActions(value, overrides = {}) {
   return Object.fromEntries(PERMISSION_ACTIONS.map((action) => [
     action.key,
-    Object.hasOwn(overrides, action.key) ? overrides[action.key] : value,
+    Object.prototype.hasOwnProperty.call(overrides, action.key) ? overrides[action.key] : value,
   ]));
 }
 
