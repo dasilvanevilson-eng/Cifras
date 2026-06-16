@@ -104,6 +104,12 @@ A quinta etapa da reestilizacao e melhorar o modo de execucao da cifra. O objeti
 
 Status inicial: o modo de execucao de musica recebeu uma camada visual em `src/features/musicas/pages/MusicaExecucaoPage.js` e `src/styles/global.css`. A tela passou a ter cabecalho de execucao com titulo e tom em destaque, superficie de leitura mais limpa e ajustes responsivos para celular/tablet. Os controles existentes de tom, capo, fonte, tema, rolagem, tela cheia e impressao foram mantidos.
 
+### Sexta etapa planejada
+
+A sexta etapa da reestilizacao e melhorar a tela de Repertorios como biblioteca de montagem e execucao. O objetivo e deixar a busca, selecao, edicao e execucao dos repertorios mais clara, especialmente em celular e tablet.
+
+Status inicial: a tela de Repertorios foi reorganizada em `src/features/repertorios/pages/RepertoriosPage.js` e recebeu novos estilos em `src/styles/global.css`. A busca continua usando a mesma logica, mas os resultados passaram a aparecer como cards com nome, data, contexto e acoes de executar/abrir/editar. A montagem, privacidade, historico e salvamento do repertorio foram preservados.
+
 ### Personalizacao futura
 
 A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.

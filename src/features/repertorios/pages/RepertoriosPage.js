@@ -18,23 +18,31 @@ import { canEditContent } from '../../auth/roles.js';
 export async function RepertoriosPage({ session } = {}) {
   const canEdit = canEditContent(session?.profile?.papel);
   const page = document.createElement('section');
-  page.className = 'page repertorios-page';
+  page.className = `page repertorios-page${canEdit ? ' can-edit-repertorio' : ' read-only-repertorio'}`;
   page.innerHTML = `
-    <header class="repertorios-header">
-      <div>
+    <header class="repertorios-header repertorios-hero">
+      <div class="repertorios-hero-copy">
+        <span class="repertorios-kicker">Central de repertorios</span>
         <h1>Repertorios</h1>
-        <p>Montagem, edicao e execucao dos repertorios do ministerio.</p>
+        <p>${canEdit ? 'Monte, revise e execute sequencias musicais com mais agilidade.' : 'Consulte e execute os repertorios disponiveis para o seu acesso.'}</p>
       </div>
       <div class="repertorios-summary" aria-live="polite">
         <span><strong data-count="repertorios">0</strong> repertorios</span>
       </div>
     </header>
-    <section class="repertorios-search-panel">
+    <section class="repertorios-search-panel repertorio-library-panel">
+      <div class="repertorio-library-heading">
+        <div>
+          <h2>Encontrar repertorio</h2>
+          <p>Pesquise por nome ou data para editar, abrir ou executar.</p>
+        </div>
+        <span class="repertorio-library-mode">${canEdit ? 'Modo montagem' : 'Modo consulta'}</span>
+      </div>
       <div class="list-slot">
         <div class="page-status">Carregando repertorios...</div>
       </div>
     </section>
-    <section class="repertorios-form-panel">
+    <section class="repertorios-form-panel repertorio-composer-stage">
       <div class="form-slot"></div>
     </section>
   `;
@@ -725,9 +733,9 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   wrapper.className = 'list-browser repertorios-browser';
   wrapper.innerHTML = `
     <div class="list-toolbar">
-      <label>
-        Buscar repertorio
-        <input class="search-input" type="search" placeholder="Nome ou data">
+      <label class="repertorio-library-search">
+        <span>Buscar na lista</span>
+        <input class="search-input" type="search" placeholder="Nome, data ou tema">
       </label>
     </div>
     <div class="table-slot search-results" hidden></div>
@@ -833,59 +841,76 @@ function matchesRepertorioSearch(repertorio, query) {
 }
 
 function createRepertoriosTable(repertorios, options = {}) {
-  const table = document.createElement('table');
-  table.className = 'data-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Data</th>
-        ${options.onSelect ? '<th>Acao</th>' : ''}
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
-
-  const body = table.querySelector('tbody');
+  const list = document.createElement('div');
+  list.className = 'repertorio-results-list';
 
   repertorios.forEach((repertorio) => {
-    const row = document.createElement('tr');
     const nome = getField(repertorio, ['nome', 'titulo', 'name']);
+    const data = formatDate(getField(repertorio, ['data', 'date']));
+    const detailUrl = getRepertorioUrl(repertorio);
+    const execucaoUrl = getRepertorioExecucaoUrl(repertorio);
+    const card = document.createElement('article');
 
-    row.className = options.onSelect ? 'clickable-row' : '';
-    row.tabIndex = options.onSelect ? 0 : -1;
-    row.innerHTML = `
-      <td>${options.onSelect
-        ? `<button class="link-button repertorio-select-link" type="button">${escapeHtml(nome)}</button>`
-        : `<a href="${escapeHtml(getRepertorioUrl(repertorio))}">${escapeHtml(nome)}</a>`}</td>
-      <td>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</td>
-      ${options.onSelect ? '<td><button class="nav-button" type="button">Editar</button></td>' : ''}
+    card.className = 'repertorio-result-card';
+    card.tabIndex = 0;
+    card.innerHTML = `
+      <div class="repertorio-result-main">
+        <span class="repertorio-result-type">Repertorio</span>
+        <h3>${escapeHtml(nome)}</h3>
+        <p>${escapeHtml(data !== '-' ? data : 'Sem data definida')}</p>
+      </div>
+      <div class="repertorio-result-meta">
+        <span>${options.onSelect ? 'Montagem' : 'Consulta'}</span>
+        <small>${escapeHtml(data !== '-' ? `Data: ${data}` : 'Pronto para organizar')}</small>
+      </div>
+      <div class="repertorio-result-actions">
+        <a class="button-link secondary" href="${escapeHtml(execucaoUrl)}">Executar</a>
+        ${options.onSelect
+          ? '<button class="nav-button" type="button" data-action="select-repertorio">Editar</button>'
+          : `<a class="nav-button" href="${escapeHtml(detailUrl)}">Abrir</a>`}
+      </div>
     `;
 
     if (options.onSelect) {
       const select = () => options.onSelect(repertorio);
-      row.addEventListener('click', select);
-      row.addEventListener('keydown', (event) => {
+      card.addEventListener('click', (event) => {
+        if (event.target.closest('a, button')) return;
+        select();
+      });
+      card.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.target.closest('a, button')) return;
         event.preventDefault();
         select();
       });
-      row.querySelectorAll('button').forEach((button) => {
-        button.addEventListener('click', (event) => {
-          event.stopPropagation();
-          select();
-        });
+      card.querySelector('[data-action="select-repertorio"]')?.addEventListener('click', () => {
+        select();
+      });
+    } else {
+      card.addEventListener('click', (event) => {
+        if (event.target.closest('a, button')) return;
+        window.location.href = detailUrl;
+      });
+      card.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.target.closest('a, button')) return;
+        event.preventDefault();
+        window.location.href = detailUrl;
       });
     }
 
-    body.append(row);
+    list.append(card);
   });
 
-  return table;
+  return list;
 }
 
 function getRepertorioUrl(repertorio) {
   return `/repertorios/detalhe?id=${encodeURIComponent(getField(repertorio, ['id']))}`;
+}
+
+function getRepertorioExecucaoUrl(repertorio) {
+  return `/repertorios/execucao?id=${encodeURIComponent(getField(repertorio, ['id']))}`;
 }
 
 function compareText(a, b) {
