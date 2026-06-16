@@ -30,6 +30,73 @@ O projeto sera construido por partes, usando Supabase para:
 - `supabase`: scripts e documentacao do banco.
 - `docs`: explicacoes do projeto.
 
+## Direcao de UX/UI e reestilizacao
+
+O projeto deve evoluir visualmente sem perder a logica interna ja construida. A proposta e criar uma identidade visual propria para o Master Cifras, mantendo os mesmos modulos, permissoes, fluxos de dados, services, funcoes RPC e regras do Supabase sempre que possivel.
+
+O foco da reestilizacao e melhorar a praticidade de uso e a aparencia geral do sistema, principalmente em dispositivos moveis. A experiencia deve ser pensada como mobile-first, pois musicos, lideres e participantes provavelmente usarao o sistema em celular ou tablet durante ensaios, cultos, apresentacoes e consultas rapidas.
+
+### Objetivo visual
+
+- Transformar o sistema em um aplicativo de cifras moderno, musical e atraente.
+- Melhorar leitura, navegacao e velocidade de uso.
+- Diferenciar areas administrativas, areas musicais e modo de execucao.
+- Criar uma identidade consistente entre desktop, tablet e mobile.
+- Manter a logica existente e reduzir riscos de regressao.
+
+### Estrategia de layout
+
+O sistema deve ter uma identidade visual unica, mas layouts adaptados por dispositivo:
+
+- Desktop/tablet horizontal: layout mais completo, com menu lateral, topbar, busca global, paineis e listas amplas.
+- Mobile/tablet vertical: layout direto, com navegacao inferior, telas em uma coluna, acoes principais faceis de tocar e foco em execucao.
+
+O desktop tende a ser melhor para cadastro, administracao, permissoes, revisao de sugestoes, personalizacao e gerenciamento de convites. O mobile tende a ser melhor para consulta, execucao de cifras, acompanhamento de repertorios, Banda/Coral e links publicos.
+
+### Primeira etapa planejada
+
+A primeira etapa da reestilizacao e criar a base de identidade visual e design system do Master Cifras antes de alterar telas especificas.
+
+Essa etapa deve definir:
+
+- paleta de cores;
+- tema claro, escuro e automatico;
+- tipografia geral;
+- fonte e destaque visual para cifras e acordes;
+- botoes, campos, listas, cards e badges;
+- estados de carregamento, erro, sucesso e vazio;
+- padrao de navegacao desktop;
+- padrao de navegacao mobile;
+- layout base das telas administrativas;
+- layout base das telas musicais;
+- layout base do modo execucao.
+
+As primeiras telas recomendadas para validar essa direcao sao:
+
+- Dashboard em desktop e mobile;
+- Lista de musicas em desktop e mobile;
+- Modo execucao em desktop e mobile;
+- Personalizacao, com opcoes visuais mais completas e previa do resultado.
+
+Status inicial: a primeira camada visual foi iniciada em `src/styles/global.css`, com tokens de identidade, cores, raios, sombras, foco, botoes, campos, cards/listas, estados e ajustes mobile-first do menu. Essa etapa e uma fundacao visual e nao altera a logica dos modulos.
+
+### Personalizacao futura
+
+A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.
+
+Possibilidades futuras:
+
+- tema claro, escuro ou automatico;
+- cor principal do sistema;
+- cor dos acordes;
+- tamanho padrao da cifra;
+- fonte das cifras;
+- densidade visual da interface;
+- logo do sistema;
+- imagem de fundo do login;
+- preferencias do modo execucao;
+- preferencias de tela publica.
+
 ## Como rodar futuramente
 
 Depois que instalarmos as dependencias:
@@ -38,4 +105,3 @@ Depois que instalarmos as dependencias:
 npm install
 npm run dev
 ```
-

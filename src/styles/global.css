@@ -1,11 +1,40 @@
 :root {
-  --border-radius-default: 5px;
+  --border-radius-default: 8px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --color-bg: #f5f7f4;
+  --color-bg-soft: #eef3ef;
+  --color-surface: #ffffff;
+  --color-surface-raised: #fbfdfb;
+  --color-panel: #17231f;
+  --color-panel-soft: #21322d;
+  --color-border: #d7dfd8;
+  --color-border-strong: #b8c7bd;
+  --color-text: #18211e;
+  --color-text-muted: #61706a;
+  --color-primary: #167565;
+  --color-primary-strong: #0f5f52;
+  --color-primary-soft: #e4f4ee;
+  --color-accent: #d9822b;
+  --color-accent-soft: #fff2df;
+  --color-info: #2d6cdf;
+  --color-success: #1d7a46;
+  --color-danger: #b63d36;
+  --color-danger-soft: #fff0ed;
+  --shadow-xs: 0 1px 2px rgba(18, 28, 24, 0.06);
+  --shadow-sm: 0 8px 22px rgba(18, 28, 24, 0.08);
+  --shadow-md: 0 18px 44px rgba(18, 28, 24, 0.12);
+  --focus-ring: 0 0 0 3px rgba(22, 117, 101, 0.18);
+  --tap-target: 44px;
+  --app-max-width: 1180px;
   --lyrics-execution-font: 'IBM Plex Mono', 'Courier New', monospace;
   --chords-execution-font: 'IBM Plex Mono', 'Courier New', monospace;
 
-  font-family: Arial, Helvetica, sans-serif;
-  color: #20211f;
-  background: #f4f1ea;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 * {
@@ -14,7 +43,11 @@
 
 body {
   margin: 0;
-  background: #f4f1ea;
+  background:
+    linear-gradient(180deg, #fbfdfb 0, var(--color-bg) 320px),
+    var(--color-bg);
+  color: var(--color-text);
+  text-rendering: optimizeLegibility;
 }
 
 body.has-youtube-modal {
@@ -6401,4 +6434,527 @@ body.has-performance-fullscreen {
   column-gap: 28px;
   column-rule: 1px solid #ddd6c8;
   white-space: pre-wrap;
+}
+
+/* Foundation visual layer: shared identity without changing module logic. */
+html {
+  accent-color: var(--color-primary);
+}
+
+::selection {
+  background: rgba(22, 117, 101, 0.18);
+}
+
+:where(button, input, textarea, select, a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, input, textarea, select, a):focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+.main-nav {
+  min-height: 64px;
+  border-bottom: 1px solid rgba(215, 223, 216, 0.92);
+  background: rgba(251, 253, 251, 0.92);
+  box-shadow: var(--shadow-xs);
+}
+
+.main-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-panel);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+.main-nav-brand::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 24px;
+  border-radius: 3px 8px 8px 3px;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+  box-shadow: 8px 0 0 rgba(22, 117, 101, 0.16);
+}
+
+.main-menu-button {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.main-menu-button span {
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
+.main-menu-button:hover,
+.main-menu-button:focus {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.main-menu-backdrop {
+  background: rgba(13, 22, 19, 0.48);
+}
+
+.main-menu-drawer {
+  border: 1px solid rgba(184, 199, 189, 0.78);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.main-menu-header {
+  border-bottom-color: var(--color-border);
+}
+
+.main-menu-header strong {
+  color: var(--color-panel);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+.main-menu-header span,
+.user-email,
+.song-header p,
+.dashboard-list-item p,
+.dashboard-header p,
+.musicas-header p,
+.performance-header p,
+.form-message {
+  color: var(--color-text-muted);
+}
+
+.main-menu-close {
+  color: var(--color-text-muted);
+}
+
+.main-menu-section-title {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.main-nav-links a,
+.main-nav-links .nav-button {
+  min-height: var(--tap-target);
+  border-color: transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-weight: 650;
+}
+
+.main-nav-links a:hover,
+.main-nav-links a:focus,
+.main-nav-links .nav-button:hover,
+.main-nav-links .nav-button:focus {
+  border-color: var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-primary-strong);
+}
+
+.main-nav-links a.is-active {
+  border-color: rgba(22, 117, 101, 0.28);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.main-menu-logout {
+  border-color: rgba(182, 61, 54, 0.24) !important;
+  background: var(--color-danger-soft) !important;
+  color: var(--color-danger) !important;
+}
+
+.page {
+  width: min(100%, var(--app-max-width));
+  padding: clamp(18px, 3vw, 34px) clamp(14px, 3vw, 28px) 64px;
+}
+
+.dashboard-page,
+.letras-page,
+.repertorios-pdf-page {
+  width: min(100%, 1240px);
+}
+
+.dashboard-header,
+.musicas-header,
+.repertorios-header,
+.repertorio-detail-page .repertorio-header {
+  border-bottom-color: var(--color-border);
+}
+
+.dashboard-header h1,
+.musicas-header h1,
+.repertorio-detail-page .repertorio-header h1 {
+  color: var(--color-panel);
+  letter-spacing: 0;
+}
+
+.dashboard-summary span,
+.musicas-summary span,
+.repertorio-detail-summary span,
+.tag-list span,
+.user-role {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.dashboard-summary strong,
+.musicas-summary strong,
+.repertorio-detail-summary strong {
+  color: var(--color-primary);
+}
+
+.dashboard-search-column,
+.music-search-panel,
+.music-editor-panel,
+.dashboard-selected-panel,
+.repertorio-detail-page .editor-panel,
+.repertorio-songs-panel,
+.personalization-form,
+.personalization-preview,
+.public-invite-form,
+.public-invites-list-panel,
+.permissions-users-panel,
+.permissions-editor-panel,
+.user-search-panel,
+.user-form-panel,
+.editor-panel {
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-search-column.is-active-search {
+  border-color: rgba(22, 117, 101, 0.36);
+  box-shadow: 0 12px 30px rgba(22, 117, 101, 0.12);
+}
+
+.dashboard-list-item,
+.public-invite-card,
+.permissions-user-item,
+.user-search-item,
+.song-search-item,
+.selected-repertorio-song {
+  border-color: var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.dashboard-list-item:hover,
+.dashboard-list-item:focus,
+.permissions-user-item:hover,
+.permissions-user-item:focus,
+.user-search-item:hover,
+.user-search-item:focus,
+.song-search-item:hover,
+.song-search-item:focus {
+  border-color: rgba(22, 117, 101, 0.48);
+  box-shadow: var(--shadow-sm);
+}
+
+.form label,
+.dashboard-search,
+.lyrics-sort-control {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.form input,
+.form textarea,
+.form select,
+.dashboard-search input,
+.lyrics-sort-control select,
+.transpose-toolbar select,
+.performance-toolbar select,
+.list-toolbar select,
+.banda-control-grid select,
+.banda-session-form select,
+.chordpro-editor {
+  border-color: var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus,
+.dashboard-search input:focus,
+.lyrics-sort-control select:focus,
+.transpose-toolbar select:focus,
+.performance-toolbar select:focus,
+.list-toolbar select:focus,
+.chordpro-editor:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+  outline: 0;
+}
+
+.button,
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-target);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 750;
+  line-height: 1.1;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(22, 117, 101, 0.16);
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.button:hover,
+.button:focus,
+.button-link:hover,
+.button-link:focus {
+  background: var(--color-primary-strong);
+  box-shadow: 0 10px 24px rgba(22, 117, 101, 0.2);
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.button:disabled,
+.button-link:disabled {
+  transform: none;
+  box-shadow: none;
+}
+
+.button-link.secondary,
+.nav-button,
+.theme-toggle-button {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary-strong);
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.button-link.secondary:hover,
+.button-link.secondary:focus,
+.nav-button:hover,
+.nav-button:focus,
+.theme-toggle-button:hover,
+.theme-toggle-button:focus {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  outline: 0;
+}
+
+.tabs .nav-button.is-active,
+.repertorio-song-view .nav-button.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.danger-button,
+.button-link.danger {
+  border-color: rgba(182, 61, 54, 0.42);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-weight: 750;
+}
+
+.danger-button:hover,
+.danger-button:focus,
+.button-link.danger:hover,
+.button-link.danger:focus {
+  border-color: var(--color-danger);
+  background: #ffe2dc;
+  color: #8f2f2a;
+  outline: 0;
+}
+
+.page-status,
+.form-message {
+  border-radius: var(--radius-md);
+}
+
+.page-status {
+  border: 1px solid var(--color-border);
+  padding: 12px 14px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.page-status.error,
+.form-message.error {
+  color: var(--color-danger);
+}
+
+.form-message.success {
+  color: var(--color-success);
+}
+
+.data-table {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.data-table th {
+  color: var(--color-text-muted);
+}
+
+.chord-token,
+.chord-line,
+.dashboard-mini-song-title small {
+  color: var(--color-accent);
+}
+
+.chordpro-view,
+.lyrics-view {
+  border-color: var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-xs);
+}
+
+.performance-toolbar,
+.pdf-toolbar,
+.transpose-toolbar {
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(14px);
+}
+
+.performance-position,
+.performance-toolbar .key-stepper .transpose-status,
+.transpose-toolbar .key-stepper [data-role="transpose-status"] {
+  border-color: var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-text-muted);
+}
+
+.performance-song header > span,
+.pdf-song header > p {
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+}
+
+.repertorio-song-view.is-dark,
+.performance-page article.is-dark,
+.repertorio-performance-view.is-dark {
+  background: #0f1513;
+}
+
+.repertorio-song-view.is-dark .chord-token,
+.repertorio-song-view.is-dark .chord-line,
+.performance-page article.is-dark .chord-token,
+.performance-page article.is-dark .chord-line,
+.repertorio-performance-view.is-dark .chord-token,
+.repertorio-performance-view.is-dark .chord-line {
+  color: #ffb45f;
+}
+
+@media (max-width: 760px) {
+  body {
+    background: var(--color-bg);
+  }
+
+  .main-nav {
+    min-height: 58px;
+  }
+
+  .main-menu-drawer {
+    top: auto;
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    width: auto;
+    height: min(78svh, 620px);
+    max-height: calc(100svh - 16px);
+    border-radius: 18px 18px 12px 12px;
+    border-left: 1px solid rgba(184, 199, 189, 0.78);
+    box-shadow: 0 -18px 48px rgba(13, 22, 19, 0.22);
+  }
+
+  .main-menu-header {
+    align-items: center;
+    padding: 13px 14px;
+  }
+
+  .main-menu-header::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 42px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-border-strong);
+    transform: translateX(-50%);
+  }
+
+  .main-nav-links {
+    gap: 12px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .main-nav-links a,
+  .main-nav-links .nav-button,
+  .button,
+  .button-link,
+  .nav-button,
+  .danger-button {
+    min-height: 46px;
+  }
+
+  .page {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
+  .dashboard-header,
+  .musicas-header,
+  .repertorios-header {
+    align-items: flex-start;
+  }
+
+  .dashboard-search-column,
+  .music-search-panel,
+  .music-editor-panel,
+  .repertorio-detail-page .editor-panel,
+  .repertorio-songs-panel,
+  .personalization-form,
+  .personalization-preview,
+  .public-invite-form,
+  .public-invites-list-panel {
+    border-radius: var(--radius-md);
+    padding: 12px;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .form-actions,
+  .page-actions {
+    align-items: stretch;
+  }
+
+  .form-actions .button,
+  .form-actions .button-link,
+  .form-actions .danger-button,
+  .page-actions .button,
+  .page-actions .button-link,
+  .page-actions .danger-button,
+  .page-actions .nav-button {
+    flex: 1 1 140px;
+  }
 }
