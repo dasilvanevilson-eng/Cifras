@@ -23,40 +23,18 @@ export function MainNav(options = {}) {
       </header>
       <div class="main-nav-links"></div>
     </aside>
-    <div class="mobile-bottom-nav" data-role="mobile-bottom-nav" aria-label="Atalhos principais"></div>
   `;
 
   const linksArea = nav.querySelector('.main-nav-links');
+  const openButton = nav.querySelector('[data-action="open-main-menu"]');
   const closeButton = nav.querySelector('[data-action="close-main-menu"]');
   const backdrop = nav.querySelector('[data-role="main-menu-backdrop"]');
   const drawer = nav.querySelector('[data-role="main-menu-drawer"]');
   const drawerUser = nav.querySelector('[data-role="drawer-user"]');
-  const mobileBottomNav = nav.querySelector('[data-role="mobile-bottom-nav"]');
-  let lastMenuTrigger = nav.querySelector('[data-action="open-main-menu"]');
+  const links = getVisibleLinks(options);
 
   if (options.user) {
-    const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
-    const links = [
-      { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
-      { href: '/banda-coral', label: 'Modo Banda/Coral', group: 'Uso', moduleKey: 'banda_coral', match: ['/banda-coral'] },
-      { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
-      { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
-      { href: '/musicas-letras', label: 'Letras', group: 'Acervo', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
-      { href: '/repertorios-pdf', label: 'PDF Repertorio', group: 'Acervo', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
-      { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
-      { href: '/minha-conta', label: 'Minha conta', group: 'Conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
-      ...(options.profile?.papel === 'admin'
-        ? [
-          { href: '/usuarios', label: 'Usuarios', group: 'Administracao', moduleKey: 'usuarios', match: ['/usuarios'] },
-          { href: '/permissoes', label: 'Permissoes', group: 'Administracao', moduleKey: 'permissoes', match: ['/permissoes'] },
-          { href: '/personalizacao', label: 'Personalizacao', group: 'Administracao', moduleKey: 'personalizacao', match: ['/personalizacao'] },
-          { href: '/convites-publicos', label: 'Convites publicos', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
-        ]
-        : []),
-    ].filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
-
     linksArea.innerHTML = createGroupedNavLinks(links);
-    mobileBottomNav.innerHTML = createMobileBottomNav(links);
 
     drawerUser.textContent = getFirstName(options.profile?.nome) || options.user.email;
 
@@ -75,16 +53,12 @@ export function MainNav(options = {}) {
     loginLink.href = '/login';
     loginLink.textContent = 'Login';
     linksArea.append(loginLink);
-    mobileBottomNav.innerHTML = '<a href="/login">Login</a>';
   }
 
-  const openButtons = nav.querySelectorAll('[data-action="open-main-menu"]');
-
-  function openMenu(trigger = lastMenuTrigger) {
-    lastMenuTrigger = trigger;
+  function openMenu() {
     backdrop.hidden = false;
     drawer.hidden = false;
-    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
+    openButton.setAttribute('aria-expanded', 'true');
     document.body.classList.add('has-main-menu-open');
     window.requestAnimationFrame(() => {
       nav.classList.add('is-menu-open');
@@ -94,30 +68,25 @@ export function MainNav(options = {}) {
 
   function closeMenu() {
     nav.classList.remove('is-menu-open');
-    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+    openButton.setAttribute('aria-expanded', 'false');
     document.body.classList.remove('has-main-menu-open');
     backdrop.hidden = true;
     drawer.hidden = true;
-    lastMenuTrigger?.focus();
+    openButton.focus();
   }
 
-  openButtons.forEach((button) => {
-    button.addEventListener('pointerdown', (event) => {
-      event.stopPropagation();
-    });
-    button.addEventListener('click', () => openMenu(button));
+  openButton.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
   });
   drawer.addEventListener('pointerdown', (event) => {
     event.stopPropagation();
   });
+  openButton.addEventListener('click', openMenu);
   closeButton.addEventListener('click', closeMenu);
   backdrop.addEventListener('click', closeMenu);
   document.addEventListener('pointerdown', (event) => {
     if (drawer.hidden) return;
-    if (
-      drawer.contains(event.target)
-      || [...openButtons].some((button) => button.contains(event.target))
-    ) return;
+    if (drawer.contains(event.target) || openButton.contains(event.target)) return;
 
     closeMenu();
   });
@@ -133,7 +102,49 @@ export function MainNav(options = {}) {
   return nav;
 }
 
-function createMobileBottomNav(links) {
+export function MobileBottomNav(options = {}) {
+  document.body.classList.toggle('has-touch-nav', hasTouchNavigation());
+
+  const nav = document.createElement('nav');
+  nav.className = 'mobile-bottom-nav';
+  nav.setAttribute('aria-label', 'Atalhos principais');
+
+  if (!options.user) {
+    nav.innerHTML = '<a href="/login">Login</a>';
+    return nav;
+  }
+
+  nav.innerHTML = createMobileBottomNavLinks(getVisibleLinks(options));
+  return nav;
+}
+
+function getVisibleLinks(options = {}) {
+  if (!options.user) return [];
+
+  const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
+  const links = [
+    { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
+    { href: '/banda-coral', label: 'Modo Banda/Coral', group: 'Uso', moduleKey: 'banda_coral', match: ['/banda-coral'] },
+    { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
+    { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
+    { href: '/musicas-letras', label: 'Letras', group: 'Acervo', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
+    { href: '/repertorios-pdf', label: 'PDF Repertorio', group: 'Acervo', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
+    { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
+    { href: '/minha-conta', label: 'Minha conta', group: 'Conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
+    ...(options.profile?.papel === 'admin'
+      ? [
+        { href: '/usuarios', label: 'Usuarios', group: 'Administracao', moduleKey: 'usuarios', match: ['/usuarios'] },
+        { href: '/permissoes', label: 'Permissoes', group: 'Administracao', moduleKey: 'permissoes', match: ['/permissoes'] },
+        { href: '/personalizacao', label: 'Personalizacao', group: 'Administracao', moduleKey: 'personalizacao', match: ['/personalizacao'] },
+        { href: '/convites-publicos', label: 'Convites publicos', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
+      ]
+      : []),
+  ];
+
+  return links.filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
+}
+
+function createMobileBottomNavLinks(links) {
   const preferred = [
     { href: '/dashboard', label: 'Inicio', moduleKey: 'dashboard' },
     { href: '/musicas', label: 'Cifras', moduleKey: 'musicas' },
@@ -147,7 +158,7 @@ function createMobileBottomNav(links) {
 
   return `
     ${visibleLinks.map((link) => createMobileBottomLink(link)).join('')}
-    <button class="mobile-bottom-menu-button" type="button" data-action="open-main-menu" aria-label="Abrir menu completo" aria-expanded="false">Menu</button>
+    <a href="/minha-conta"${isActiveNavLink(['/minha-conta']) ? ' class="is-active"' : ''}>Conta</a>
   `;
 }
 

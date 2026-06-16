@@ -6492,6 +6492,62 @@ body.has-performance-fullscreen {
   }
 }
 
+.main-nav .mobile-bottom-nav,
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+@media (max-width: 920px) {
+  body.has-touch-nav .app-layout {
+    padding-bottom: 84px;
+  }
+
+  body.has-touch-nav .app-layout > .mobile-bottom-nav {
+    position: fixed !important;
+    top: auto !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    z-index: 65;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    min-height: 58px;
+    border: 1px solid rgba(184, 199, 189, 0.82);
+    border-radius: 18px;
+    padding: 6px;
+    background: rgba(251, 253, 251, 0.98);
+    box-shadow: 0 14px 34px rgba(13, 22, 19, 0.18);
+  }
+
+  body.has-touch-nav .app-layout > .mobile-bottom-nav a,
+  body.has-touch-nav .app-layout > .mobile-bottom-nav button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 13px;
+    padding: 4px 3px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.05;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  body.has-touch-nav .app-layout > .mobile-bottom-nav a.is-active {
+    border-color: rgba(22, 117, 101, 0.22);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+}
+
 /* Foundation visual layer: shared identity without changing module logic. */
 html {
   accent-color: var(--color-primary);
