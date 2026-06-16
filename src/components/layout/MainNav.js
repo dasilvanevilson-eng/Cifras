@@ -1,6 +1,8 @@
 import { canViewModule } from '../../features/auth/permissions.js';
 
 export function MainNav(options = {}) {
+  document.body.classList.toggle('has-touch-nav', hasTouchNavigation());
+
   const nav = document.createElement('nav');
   nav.className = 'main-nav';
   nav.innerHTML = `
@@ -198,4 +200,12 @@ function isActiveNavLink(paths = []) {
 
 function getFirstName(name) {
   return String(name || '').trim().split(/\s+/)[0] || '';
+}
+
+function hasTouchNavigation() {
+  return Boolean(
+    navigator.maxTouchPoints > 0
+    || navigator.msMaxTouchPoints > 0
+    || ('ontouchstart' in window)
+  );
 }
