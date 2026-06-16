@@ -1,4 +1,4 @@
-const DEFAULT_MIN_FONT_SIZE = 8;
+const DEFAULT_MIN_FONT_SIZE = 4;
 const DEFAULT_MAX_FONT_SIZE = 128;
 const FIT_PRECISION = 0.1;
 const RENDER_FIT_ITERATIONS = 10;
@@ -45,10 +45,7 @@ export function fitPreformattedTextToWidth({
 function getFittedFontSize(view, requestedFontSize, minFontSize, maxFontSize) {
   const style = window.getComputedStyle(view);
   const horizontalPadding = getHorizontalPadding(style);
-  const availableWidth = Math.max(
-    120,
-    (view.clientWidth || view.parentElement?.clientWidth || window.innerWidth || 120) - horizontalPadding,
-  );
+  const availableWidth = getAvailableTextWidth(view, horizontalPadding);
   const widestLineWidth = measureWidestLine(view, style, requestedFontSize);
 
   if (!widestLineWidth) {
@@ -64,7 +61,7 @@ function getFittedFontSize(view, requestedFontSize, minFontSize, maxFontSize) {
 
 function refineFontSizeToRenderedWidth({ view, setFontSize, initialFontSize, minFontSize, maxFontSize }) {
   let low = minFontSize;
-  let high = maxFontSize;
+  let high = Math.min(initialFontSize, maxFontSize);
   let best = minFontSize;
 
   if (fitsRenderedWidth(view, setFontSize, initialFontSize)) {
@@ -91,7 +88,11 @@ function refineFontSizeToRenderedWidth({ view, setFontSize, initialFontSize, min
 function fitsRenderedWidth(view, setFontSize, value) {
   setFontSize(roundFontSize(value));
   view.getBoundingClientRect();
-  return view.scrollWidth <= view.clientWidth;
+  const horizontalPadding = getHorizontalPadding(window.getComputedStyle(view));
+  const availableWidth = getAvailableTextWidth(view, horizontalPadding);
+  const renderedWidth = Math.max(0, view.scrollWidth - horizontalPadding);
+
+  return renderedWidth <= availableWidth + 1;
 }
 
 function measureWidestLine(view, style, fontSize) {
@@ -116,6 +117,16 @@ function measureWidestLine(view, style, fontSize) {
 
 function getHorizontalPadding(style) {
   return parseFloat(style.paddingLeft || '0') + parseFloat(style.paddingRight || '0');
+}
+
+function getAvailableTextWidth(view, horizontalPadding) {
+  const parentWidth = view.parentElement?.getBoundingClientRect().width || 0;
+  const viewWidth = view.getBoundingClientRect().width || 0;
+  const viewportWidth = window.visualViewport?.width || window.innerWidth || 0;
+  const widths = [parentWidth, viewWidth, viewportWidth].filter((value) => value > 0);
+  const outerWidth = widths.length ? Math.min(...widths) : 1;
+
+  return Math.max(1, outerWidth - horizontalPadding - 2);
 }
 
 function clampFontSize(value, minFontSize, maxFontSize) {

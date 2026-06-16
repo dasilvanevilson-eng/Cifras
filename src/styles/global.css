@@ -3244,6 +3244,9 @@ a {
 }
 
 .chordpro-view {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   overflow: auto;
   padding: 20px;
   border: 1px solid #ddd6c8;
