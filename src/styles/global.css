@@ -7430,3 +7430,289 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+/* Etapa 4: biblioteca de cifras com busca e cards mobile-first. */
+.musicas-page {
+  display: grid;
+  gap: 16px;
+}
+
+.musicas-hero {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0;
+  border: 1px solid rgba(184, 199, 189, 0.72);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(48, 91, 184, 0.12), rgba(255, 255, 255, 0.92) 46%, rgba(22, 117, 101, 0.12)),
+    var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.musicas-hero-copy {
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 320px);
+}
+
+.musicas-kicker {
+  width: fit-content;
+  border: 1px solid rgba(48, 91, 184, 0.2);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #305bb8;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.music-library-panel,
+.music-editor-stage {
+  border-color: rgba(184, 199, 189, 0.72);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-xs);
+}
+
+.music-library-heading,
+.music-editor-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+.music-library-heading h2,
+.music-editor-heading h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.music-library-heading p,
+.music-editor-heading p {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.music-library-mode {
+  flex: 0 0 auto;
+  border: 1px solid rgba(22, 117, 101, 0.2);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.musicas-browser {
+  display: grid;
+  gap: 10px;
+}
+
+.music-library-search {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.music-library-search input {
+  width: 100%;
+  min-height: 48px;
+  border-color: rgba(184, 199, 189, 0.9);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-soft);
+}
+
+.musicas-page .search-results {
+  border: 1px solid rgba(184, 199, 189, 0.72);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.musicas-results-list {
+  display: grid;
+  gap: 9px;
+  max-height: min(56vh, 520px);
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.musica-result-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.3fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(184, 199, 189, 0.66);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.musica-result-card:hover,
+.musica-result-card:focus {
+  transform: translateY(-1px);
+  border-color: rgba(48, 91, 184, 0.34);
+  box-shadow: var(--shadow-xs);
+  outline: 0;
+}
+
+.musica-result-main,
+.musica-result-meta,
+.musica-result-actions {
+  min-width: 0;
+}
+
+.musica-result-type {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: rgba(48, 91, 184, 0.1);
+  color: #305bb8;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.musica-result-card h3 {
+  overflow: hidden;
+  margin: 6px 0 2px;
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.musica-result-card p {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.musica-result-meta {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+
+.musica-result-meta span {
+  border: 1px solid rgba(22, 117, 101, 0.18);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.musica-result-meta small {
+  overflow: hidden;
+  max-width: 180px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.musica-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.musica-result-actions .button-link,
+.musica-result-actions .nav-button {
+  min-height: 38px;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.musicas-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 760px) {
+  .musicas-hero,
+  .music-library-panel,
+  .music-editor-stage {
+    border-radius: var(--radius-md);
+    padding: 13px;
+  }
+
+  .musicas-page .musicas-header {
+    display: grid;
+    align-items: start;
+  }
+
+  .musicas-page .musicas-summary {
+    justify-content: start;
+    margin-left: 0;
+  }
+
+  .music-library-heading,
+  .music-editor-heading {
+    display: grid;
+    gap: 8px;
+  }
+
+  .music-library-mode {
+    width: fit-content;
+  }
+
+  .musicas-results-list {
+    max-height: 62vh;
+  }
+
+  .musica-result-card {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 11px;
+  }
+
+  .musica-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .musica-result-meta small {
+    max-width: 100%;
+  }
+
+  .musica-result-actions {
+    justify-content: stretch;
+  }
+
+  .musica-result-actions .button-link,
+  .musica-result-actions .nav-button {
+    flex: 1 1 120px;
+    text-align: center;
+  }
+}

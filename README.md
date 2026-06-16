@@ -92,6 +92,12 @@ A terceira etapa da reestilizacao e transformar o Dashboard em uma central music
 
 Status inicial: a tela do Dashboard foi reorganizada em `src/features/dashboard/pages/DashboardPage.js` e recebeu novos estilos em `src/styles/global.css`. A tela agora tem cabecalho visual, busca principal, acoes rapidas, itens recentes e resumo do acervo. A logica de busca, selecao de musicas, execucao de repertorios e links publicos foi mantida.
 
+### Quarta etapa planejada
+
+A quarta etapa da reestilizacao e melhorar a tela de Cifras/Musicas como biblioteca de uso diario. O objetivo e facilitar o caminho entre buscar uma musica, executar a cifra ou abrir a edicao, com melhor leitura e botoes mais adequados para toque em celular e tablet.
+
+Status inicial: a tela de Cifras foi reorganizada em `src/features/musicas/pages/MusicasPage.js` e recebeu novos estilos em `src/styles/global.css`. A busca continua usando a mesma logica, mas os resultados passaram a ser exibidos como cards com informacoes principais, tom, tags e acoes de executar/editar. O formulario de cadastro e revisao foi preservado.
+
 ### Personalizacao futura
 
 A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.

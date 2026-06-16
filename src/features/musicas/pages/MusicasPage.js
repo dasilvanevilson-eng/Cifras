@@ -14,24 +14,38 @@ import { hasPermission } from '../../auth/permissions.js';
 export async function MusicasPage({ session } = {}) {
   const canEdit = canEditContent(session?.profile?.papel) && hasPermission(session, 'musicas', 'can_edit');
   const page = document.createElement('section');
-  page.className = 'page musicas-page';
+  page.className = `page musicas-page${canEdit ? ' can-edit-music' : ' read-only-music'}`;
   page.innerHTML = `
-    <header class="musicas-header">
-      <div>
+    <header class="musicas-header musicas-hero">
+      <div class="musicas-hero-copy">
+        <span class="musicas-kicker">Biblioteca de cifras</span>
         <h1>Cifras</h1>
-        <p>Cadastro, revisao e edicao das musicas do acervo.</p>
+        <p>${canEdit ? 'Cadastre, revise, encontre e execute musicas do acervo.' : 'Busque e execute as musicas disponiveis para o seu acesso.'}</p>
       </div>
       <div class="musicas-summary" aria-live="polite">
         <span><strong data-count="musicas">0</strong> musicas</span>
       </div>
     </header>
-    <section class="music-search-panel">
+    <section class="music-search-panel music-library-panel">
+      <div class="music-library-heading">
+        <div>
+          <h2>Encontrar cifra</h2>
+          <p>Pesquise por titulo, artista, tag ou trecho da letra.</p>
+        </div>
+        <span class="music-library-mode">${canEdit ? 'Modo edicao' : 'Modo execucao'}</span>
+      </div>
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>
       </div>
     </section>
-    <div class="page-grid">
-      <section class="music-editor-panel">
+    <div class="page-grid musicas-content-grid">
+      <section class="music-editor-panel music-editor-stage">
+        <div class="music-editor-heading">
+          <div>
+            <h2>${canEdit ? 'Cadastro e revisao' : 'Acesso restrito'}</h2>
+            <p>${canEdit ? 'Selecione uma cifra acima para editar ou preencha o formulario para criar uma nova.' : 'Seu perfil pode consultar e executar, mas nao alterar o acervo.'}</p>
+          </div>
+        </div>
         <div class="form-slot"></div>
       </section>
     </div>
@@ -278,11 +292,11 @@ function createReadOnlyNotice(text, items = []) {
 
 function createMusicasBrowser(musicas, options = {}) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'list-browser';
+  wrapper.className = 'list-browser musicas-browser';
   wrapper.innerHTML = `
     <div class="list-toolbar">
-      <label>
-        Buscar
+      <label class="music-library-search">
+        <span>Buscar no acervo</span>
         <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da cifra">
       </label>
     </div>
@@ -348,38 +362,38 @@ function createMusicasBrowser(musicas, options = {}) {
 }
 
 function createMusicasTable(musicas, options = {}) {
-  const table = document.createElement('table');
-  table.className = 'data-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Titulo</th>
-        <th>Artista</th>
-        <th>Tom</th>
-        <th>Tags</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
-
-  const body = table.querySelector('tbody');
+  const list = document.createElement('div');
+  list.className = 'musicas-results-list';
 
   musicas.forEach((musica) => {
-    const row = document.createElement('tr');
     const id = getField(musica, ['id']);
     const title = getField(musica, ['titulo', 'nome', 'title']);
-    const musicaUrl = `/musicas/detalhe?id=${encodeURIComponent(id)}`;
+    const artist = getField(musica, ['artista', 'autor', 'artist']);
+    const key = getField(musica, ['tom', 'key']);
+    const tags = formatTags(getField(musica, ['tags']));
     const readOnlyUrl = getReadOnlyMusicaUrl(id);
+    const card = document.createElement('article');
+    card.tabIndex = 0;
+    card.className = 'musica-result-card';
 
-    row.innerHTML = `
-      <td>${options.canEdit ? escapeHtml(title) : `<a href="${escapeHtml(readOnlyUrl)}">${escapeHtml(title)}</a>`}</td>
-      <td>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</td>
-      <td>${escapeHtml(getField(musica, ['tom', 'key']))}</td>
-      <td>${escapeHtml(formatTags(getField(musica, ['tags'])))}</td>
+    card.innerHTML = `
+      <div class="musica-result-main">
+        <span class="musica-result-type">Cifra</span>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(artist)}</p>
+      </div>
+      <div class="musica-result-meta" aria-label="Informacoes da musica">
+        <span>${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
+        <small>${escapeHtml(tags)}</small>
+      </div>
+      <div class="musica-result-actions">
+        <a class="button-link secondary" href="${escapeHtml(readOnlyUrl)}">Executar</a>
+        ${options.canEdit ? '<button class="nav-button" type="button" data-action="select-music">Editar</button>' : ''}
+      </div>
     `;
-    row.tabIndex = 0;
-    row.className = 'clickable-row';
-    row.addEventListener('click', (event) => {
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('a, button')) return;
+
       if (options.canEdit && options.onSelect) {
         event.preventDefault();
         options.onSelect(musica);
@@ -388,8 +402,9 @@ function createMusicasTable(musicas, options = {}) {
 
       window.location.href = readOnlyUrl;
     });
-    row.addEventListener('keydown', (event) => {
+    card.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter') return;
+      if (event.target.closest('a, button')) return;
 
       if (options.canEdit && options.onSelect) {
         options.onSelect(musica);
@@ -398,10 +413,15 @@ function createMusicasTable(musicas, options = {}) {
 
       window.location.href = readOnlyUrl;
     });
-    body.append(row);
+    card.querySelector('[data-action="select-music"]')?.addEventListener('click', () => {
+      if (options.onSelect) {
+        options.onSelect(musica);
+      }
+    });
+    list.append(card);
   });
 
-  return table;
+  return list;
 }
 
 function getReadOnlyMusicaUrl(id) {
