@@ -44,36 +44,75 @@ export function createDashboardView({
   const musicasSelecionadas = [];
 
   wrapper.innerHTML = `
-    <header class="dashboard-header">
-      <div>
-        <h1>${publicMode ? 'Painel publico' : 'Painel'}</h1>
-        <p>${escapeHtml(publicMode ? (inviteTitle || 'Consulta temporaria de repertorios e musicas.') : 'Repertorios e musicas para execucao.')}</p>
+    <header class="dashboard-header dashboard-hero">
+      <div class="dashboard-hero-copy">
+        <span class="dashboard-kicker">${publicMode ? 'Link publico' : 'Central musical'}</span>
+        <h1>${publicMode ? 'Painel publico' : 'Inicio'}</h1>
+        <p>${escapeHtml(publicMode ? (inviteTitle || 'Consulta temporaria de repertorios e musicas.') : 'Busque repertorios, abra cifras e continue rapidamente o que precisa tocar.')}</p>
       </div>
-      <div class="dashboard-summary">
+      <div class="dashboard-summary" aria-label="Resumo do acervo">
         <span><strong>${repertorios.length}</strong> repertorios</span>
         <span><strong>${musicas.length}</strong> musicas</span>
       </div>
     </header>
-    <div class="dashboard-grid">
-      <section class="dashboard-search-column" data-dashboard-column="repertorios">
-        <h2>Repertorios</h2>
-        <label class="dashboard-search">
-          Buscar repertorio
-          <input type="search" data-search="repertorios" placeholder="Nome ou data">
-        </label>
+    <section class="dashboard-workspace dashboard-home-panel">
+      <div class="dashboard-panel-heading">
+        <div>
+          <h2>Buscar e executar</h2>
+          <p>Encontre rapidamente uma cifra, um repertorio ou uma musica dentro de um repertorio.</p>
+        </div>
+      </div>
+      <div class="dashboard-grid">
+        <section class="dashboard-search-column" data-dashboard-column="repertorios">
+          <h2>Repertorios</h2>
+          <label class="dashboard-search">
+            Buscar repertorio
+            <input type="search" data-search="repertorios" placeholder="Nome, data ou tema">
+          </label>
+        </section>
+        <section class="dashboard-search-column" data-dashboard-column="musicas">
+          <h2>Musicas avulsas</h2>
+          <label class="dashboard-search">
+            Buscar musica
+            <input type="search" data-search="musicas" placeholder="Titulo, artista ou tags">
+          </label>
+          <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
+        </section>
+        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="repertorios" hidden></div>
+        <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
+        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
+      </div>
+    </section>
+    ${createDashboardQuickActions(publicMode)}
+    <section class="dashboard-home-grid">
+      <section class="dashboard-home-panel">
+        <div class="dashboard-panel-heading">
+          <div>
+            <h2>Recentes</h2>
+            <p>Atalhos gerados a partir dos itens carregados no painel.</p>
+          </div>
+        </div>
+        ${createDashboardHighlights({
+          repertorios: repertoriosOrdenados,
+          musicas: musicasOrdenadas,
+          publicMode,
+          publicToken,
+        })}
       </section>
-      <section class="dashboard-search-column" data-dashboard-column="musicas">
-        <h2>Musicas avulsas</h2>
-        <label class="dashboard-search">
-          Buscar musica
-          <input type="search" data-search="musicas" placeholder="Titulo ou artista">
-        </label>
-        <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
-      </section>
-      <div class="dashboard-list-slot dashboard-cascade-results" data-slot="repertorios" hidden></div>
-      <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
-      <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
-    </div>
+      <aside class="dashboard-home-panel dashboard-status-panel">
+        <div class="dashboard-panel-heading">
+          <div>
+            <h2>Status</h2>
+            <p>Visao rapida do acervo disponivel.</p>
+          </div>
+        </div>
+        ${createDashboardStatus({
+          repertorios,
+          musicas,
+          publicMode,
+        })}
+      </aside>
+    </section>
     <footer class="dashboard-test-notice">
       Este sistema esta em fase de teste/implementacao e podem ocorrer instabilidades no uso.
     </footer>
@@ -121,6 +160,118 @@ export function createDashboardView({
   }
 
   return wrapper;
+}
+
+function createDashboardQuickActions(publicMode = false) {
+  if (publicMode) return '';
+
+  const actions = [
+    {
+      label: 'Cifras',
+      description: 'Cadastrar, buscar e revisar musicas.',
+      href: '/musicas',
+      tone: 'primary',
+    },
+    {
+      label: 'Repertorios',
+      description: 'Montar listas para execucao.',
+      href: '/repertorios',
+      tone: 'secondary',
+    },
+    {
+      label: 'Banda/Coral',
+      description: 'Abrir a area de palco compartilhado.',
+      href: '/banda-coral',
+      tone: 'accent',
+    },
+    {
+      label: 'Letras',
+      description: 'Consultar letras sem foco em cifra.',
+      href: '/musicas-letras',
+      tone: 'neutral',
+    },
+  ];
+
+  return `
+    <section class="dashboard-quick-actions" aria-label="Acoes rapidas">
+      ${actions.map((action) => `
+        <a class="dashboard-action-card dashboard-action-card--${action.tone}" href="${action.href}">
+          <strong>${action.label}</strong>
+          <span>${action.description}</span>
+        </a>
+      `).join('')}
+    </section>
+  `;
+}
+
+function createDashboardHighlights({
+  repertorios = [],
+  musicas = [],
+  publicMode = false,
+  publicToken = '',
+} = {}) {
+  const items = [
+    ...repertorios.slice(0, 2).map((repertorio) => ({
+      type: 'Repertorio',
+      title: getField(repertorio, ['nome', 'titulo', 'name']),
+      detail: formatDate(getField(repertorio, ['data', 'date'])),
+      href: publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio),
+    })),
+    ...musicas.slice(0, 3).map((musica) => ({
+      type: 'Musica',
+      title: getField(musica, ['titulo', 'nome', 'title']),
+      detail: getField(musica, ['artista', 'autor', 'artist']),
+      href: publicMode ? getPublicMusicaUrl(musica, publicToken) : getMusicaUrl(musica),
+    })),
+  ].slice(0, 5);
+
+  if (!items.length) {
+    return '<p class="page-status">Nenhum item disponivel no momento.</p>';
+  }
+
+  return `
+    <div class="dashboard-home-list">
+      ${items.map((item) => `
+        <a class="dashboard-home-item" href="${escapeHtml(item.href)}">
+          <span>${escapeHtml(item.type)}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+          <small>${escapeHtml(item.detail)}</small>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+function createDashboardStatus({ repertorios = [], musicas = [], publicMode = false } = {}) {
+  const statusItems = [
+    {
+      label: 'Repertorios',
+      value: repertorios.length,
+      detail: 'listas para tocar',
+    },
+    {
+      label: 'Musicas',
+      value: musicas.length,
+      detail: 'cifras disponiveis',
+    },
+    {
+      label: publicMode ? 'Acesso' : 'Modo',
+      value: publicMode ? 'Publico' : 'Interno',
+      detail: publicMode ? 'link temporario' : 'area autenticada',
+    },
+  ];
+
+  return `
+    <div class="dashboard-status-grid">
+      ${statusItems.map((item) => `
+        <div class="dashboard-status-card">
+          <strong>${escapeHtml(item.value)}</strong>
+          <span>${escapeHtml(item.label)}</span>
+          <small>${escapeHtml(item.detail)}</small>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {

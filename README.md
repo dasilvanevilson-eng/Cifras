@@ -86,6 +86,12 @@ A segunda etapa da reestilizacao e melhorar a navegacao e o layout base do siste
 
 Status inicial: a navegacao mobile recebeu uma barra inferior em `src/components/layout/MainNav.js`, com atalhos para Inicio, Cifras, Repertorios, Banda e Menu. O menu geral continua existindo como painel compacto e completo. Essa etapa deve seguir sem alterar regras de negocio, services ou funcoes do Supabase.
 
+### Terceira etapa planejada
+
+A terceira etapa da reestilizacao e transformar o Dashboard em uma central musical mais clara e pratica. O objetivo e que a primeira tela ajude o usuario a buscar, executar e continuar rapidamente repertorios ou musicas, principalmente no celular e tablet.
+
+Status inicial: a tela do Dashboard foi reorganizada em `src/features/dashboard/pages/DashboardPage.js` e recebeu novos estilos em `src/styles/global.css`. A tela agora tem cabecalho visual, busca principal, acoes rapidas, itens recentes e resumo do acervo. A logica de busca, selecao de musicas, execucao de repertorios e links publicos foi mantida.
+
 ### Personalizacao futura
 
 A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.
