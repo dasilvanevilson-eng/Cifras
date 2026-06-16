@@ -7716,3 +7716,179 @@ html {
     text-align: center;
   }
 }
+
+/* Etapa 5: modo de execucao com visual de palco e leitura prioritaria. */
+.music-performance-stage {
+  --stage-surface: rgba(255, 255, 255, 0.94);
+  --stage-border: rgba(184, 199, 189, 0.72);
+  display: grid;
+  gap: 10px;
+  min-height: calc(100svh - 40px);
+  border: 1px solid var(--stage-border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(22, 117, 101, 0.08), rgba(255, 255, 255, 0.74) 46%, rgba(244, 168, 74, 0.09)),
+    var(--color-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.music-performance-stage .performance-toolbar {
+  top: 10px;
+  border-color: var(--stage-border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+.music-performance-stage .performance-song {
+  display: grid;
+  gap: 8px;
+  padding-top: 0;
+}
+
+.music-performance-stage .performance-song header.repertorio-song-title-bar {
+  position: sticky;
+  top: 74px;
+  z-index: 4;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  overflow: visible;
+  border: 1px solid var(--stage-border);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  background: var(--stage-surface);
+  box-shadow: var(--shadow-xs);
+  white-space: normal;
+}
+
+.performance-title-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.performance-kicker {
+  width: fit-content;
+  border: 1px solid rgba(22, 117, 101, 0.18);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.music-performance-stage .performance-song h2 {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--color-text);
+  font-size: 20px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.performance-key-chip {
+  flex: 0 0 auto;
+  border: 1px solid rgba(244, 168, 74, 0.3);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(244, 168, 74, 0.16);
+  color: #7a4b08;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.music-performance-stage .chordpro-view {
+  min-height: calc(100svh - 210px);
+  border-color: var(--stage-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text);
+  box-shadow: var(--shadow-xs);
+}
+
+.music-performance-stage .chord-token,
+.music-performance-stage .chord-line {
+  color: #d26c12;
+}
+
+.music-performance-stage.is-dark {
+  --stage-surface: rgba(17, 21, 19, 0.94);
+  --stage-border: rgba(83, 97, 89, 0.86);
+  background: #0f1210;
+}
+
+.music-performance-stage.is-dark .performance-song header.repertorio-song-title-bar,
+.music-performance-stage.is-dark .chordpro-view {
+  border-color: var(--stage-border);
+  background: var(--stage-surface);
+}
+
+.music-performance-stage.is-dark .performance-kicker {
+  border-color: rgba(155, 216, 201, 0.28);
+  background: rgba(155, 216, 201, 0.12);
+  color: #9bd8c9;
+}
+
+.music-performance-stage.is-dark .performance-key-chip {
+  border-color: rgba(255, 180, 95, 0.34);
+  background: rgba(255, 180, 95, 0.14);
+  color: #ffb45f;
+}
+
+.music-performance-stage.is-dark .performance-song h2,
+.music-performance-stage.is-dark .chordpro-view {
+  color: #ffffff;
+}
+
+.music-performance-stage:fullscreen,
+.music-performance-stage.is-fullscreen {
+  border-radius: 0;
+  padding: 8px;
+}
+
+.music-performance-stage:fullscreen .performance-song header.repertorio-song-title-bar,
+.music-performance-stage.is-fullscreen .performance-song header.repertorio-song-title-bar {
+  top: 8px;
+}
+
+@media (max-width: 760px) {
+  .performance-page {
+    padding: 10px 8px 78px;
+  }
+
+  .music-performance-stage {
+    min-height: calc(100svh - 20px);
+    border-radius: var(--radius-md);
+    padding: 8px;
+  }
+
+  .music-performance-stage .performance-song header.repertorio-song-title-bar {
+    position: static;
+    border-radius: var(--radius-md);
+    padding: 9px 10px;
+  }
+
+  .music-performance-stage .performance-song h2 {
+    font-size: 17px;
+  }
+
+  .performance-key-chip {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .music-performance-stage .chordpro-view {
+    min-height: calc(100svh - 190px);
+    border-radius: var(--radius-md);
+    padding: 12px;
+  }
+}

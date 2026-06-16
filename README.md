@@ -98,6 +98,12 @@ A quarta etapa da reestilizacao e melhorar a tela de Cifras/Musicas como bibliot
 
 Status inicial: a tela de Cifras foi reorganizada em `src/features/musicas/pages/MusicasPage.js` e recebeu novos estilos em `src/styles/global.css`. A busca continua usando a mesma logica, mas os resultados passaram a ser exibidos como cards com informacoes principais, tom, tags e acoes de executar/editar. O formulario de cadastro e revisao foi preservado.
 
+### Quinta etapa planejada
+
+A quinta etapa da reestilizacao e melhorar o modo de execucao da cifra. O objetivo e priorizar leitura, contraste, toque rapido e sensacao de palco, pois esta e uma das telas mais importantes durante ensaios, cultos e apresentacoes.
+
+Status inicial: o modo de execucao de musica recebeu uma camada visual em `src/features/musicas/pages/MusicaExecucaoPage.js` e `src/styles/global.css`. A tela passou a ter cabecalho de execucao com titulo e tom em destaque, superficie de leitura mais limpa e ajustes responsivos para celular/tablet. Os controles existentes de tom, capo, fonte, tema, rolagem, tela cheia e impressao foram mantidos.
+
 ### Personalizacao futura
 
 A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.

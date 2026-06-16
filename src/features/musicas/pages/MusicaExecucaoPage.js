@@ -46,7 +46,7 @@ export async function MusicaExecucaoPage() {
 
 export function createPerformanceView({ musica, returnTo, initiallyExpandedToolbar = false }) {
   const wrapper = document.createElement('article');
-  wrapper.className = 'repertorio-performance-view repertorio-song-view';
+  wrapper.className = 'repertorio-performance-view repertorio-song-view music-performance-stage';
   const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
 
   wrapper.innerHTML = `
@@ -56,7 +56,11 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
     })}
     <section class="performance-song">
       <header class="repertorio-song-title-bar">
-        <h2>${escapeHtml(title)}</h2>
+        <div class="performance-title-copy">
+          <span class="performance-kicker">Execucao</span>
+          <h2>${escapeHtml(title)}</h2>
+        </div>
+        <span class="performance-key-chip">${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
         <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
       </header>
       <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>
