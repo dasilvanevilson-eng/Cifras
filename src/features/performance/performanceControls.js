@@ -100,17 +100,12 @@ export function setTwoColumnView(wrapper, button, enabled) {
 }
 
 export function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
-  if (!fitFontToMobileWidth) {
-    setPerformanceFontSize(wrapper, desiredFontSize);
-    return;
-  }
-
   fitPreformattedTextToWidth({
     wrapper,
     view,
     desiredFontSize,
-    fitToWidth: fitFontToMobileWidth,
-    maxFontSize: MAX_AUTO_FIT_FONT_SIZE,
+    fitToWidth: true,
+    maxFontSize: Math.min(MAX_PERFORMANCE_FONT_SIZE, Math.max(MAX_AUTO_FIT_FONT_SIZE, desiredFontSize)),
     setFontSize: (value) => setPerformanceFontSize(wrapper, value),
   });
 }
@@ -129,6 +124,8 @@ export async function toggleInternalFullscreen(wrapper, button, onChange) {
   const updateFullscreenUi = () => {
     const isFullscreen = document.fullscreenElement === wrapper;
     wrapper.classList.toggle('is-fullscreen', isFullscreen);
+    document.documentElement.classList.toggle('has-performance-fullscreen', isFullscreen);
+    document.body?.classList.toggle('has-performance-fullscreen', isFullscreen);
     button.textContent = String.fromCharCode(9974);
     button.title = isFullscreen
       ? 'Para sair do modo tela cheia dar um duplo touch na musica'
