@@ -21,14 +21,16 @@ export function MainNav(options = {}) {
       </header>
       <div class="main-nav-links"></div>
     </aside>
+    <div class="mobile-bottom-nav" data-role="mobile-bottom-nav" aria-label="Atalhos principais"></div>
   `;
 
   const linksArea = nav.querySelector('.main-nav-links');
-  const openButton = nav.querySelector('[data-action="open-main-menu"]');
   const closeButton = nav.querySelector('[data-action="close-main-menu"]');
   const backdrop = nav.querySelector('[data-role="main-menu-backdrop"]');
   const drawer = nav.querySelector('[data-role="main-menu-drawer"]');
   const drawerUser = nav.querySelector('[data-role="drawer-user"]');
+  const mobileBottomNav = nav.querySelector('[data-role="mobile-bottom-nav"]');
+  let lastMenuTrigger = nav.querySelector('[data-action="open-main-menu"]');
 
   if (options.user) {
     const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
@@ -52,6 +54,7 @@ export function MainNav(options = {}) {
     ].filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
 
     linksArea.innerHTML = createGroupedNavLinks(links);
+    mobileBottomNav.innerHTML = createMobileBottomNav(links);
 
     drawerUser.textContent = getFirstName(options.profile?.nome) || options.user.email;
 
@@ -70,12 +73,16 @@ export function MainNav(options = {}) {
     loginLink.href = '/login';
     loginLink.textContent = 'Login';
     linksArea.append(loginLink);
+    mobileBottomNav.innerHTML = '<a href="/login">Login</a>';
   }
 
-  function openMenu() {
+  const openButtons = nav.querySelectorAll('[data-action="open-main-menu"]');
+
+  function openMenu(trigger = lastMenuTrigger) {
+    lastMenuTrigger = trigger;
     backdrop.hidden = false;
     drawer.hidden = false;
-    openButton.setAttribute('aria-expanded', 'true');
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
     document.body.classList.add('has-main-menu-open');
     window.requestAnimationFrame(() => {
       nav.classList.add('is-menu-open');
@@ -85,25 +92,30 @@ export function MainNav(options = {}) {
 
   function closeMenu() {
     nav.classList.remove('is-menu-open');
-    openButton.setAttribute('aria-expanded', 'false');
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
     document.body.classList.remove('has-main-menu-open');
     backdrop.hidden = true;
     drawer.hidden = true;
-    openButton.focus();
+    lastMenuTrigger?.focus();
   }
 
-  openButton.addEventListener('pointerdown', (event) => {
-    event.stopPropagation();
+  openButtons.forEach((button) => {
+    button.addEventListener('pointerdown', (event) => {
+      event.stopPropagation();
+    });
+    button.addEventListener('click', () => openMenu(button));
   });
   drawer.addEventListener('pointerdown', (event) => {
     event.stopPropagation();
   });
-  openButton.addEventListener('click', openMenu);
   closeButton.addEventListener('click', closeMenu);
   backdrop.addEventListener('click', closeMenu);
   document.addEventListener('pointerdown', (event) => {
     if (drawer.hidden) return;
-    if (drawer.contains(event.target) || openButton.contains(event.target)) return;
+    if (
+      drawer.contains(event.target)
+      || [...openButtons].some((button) => button.contains(event.target))
+    ) return;
 
     closeMenu();
   });
@@ -117,6 +129,35 @@ export function MainNav(options = {}) {
   });
 
   return nav;
+}
+
+function createMobileBottomNav(links) {
+  const preferred = [
+    { href: '/dashboard', label: 'Inicio', moduleKey: 'dashboard' },
+    { href: '/musicas', label: 'Cifras', moduleKey: 'musicas' },
+    { href: '/repertorios', label: 'Repertorios', moduleKey: 'repertorios' },
+    { href: '/banda-coral', label: 'Banda', moduleKey: 'banda_coral' },
+  ];
+  const visibleLinks = preferred
+    .map((item) => links.find((link) => link.moduleKey === item.moduleKey))
+    .filter(Boolean)
+    .slice(0, 4);
+
+  return `
+    ${visibleLinks.map((link) => createMobileBottomLink(link)).join('')}
+    <button class="mobile-bottom-menu-button" type="button" data-action="open-main-menu" aria-label="Abrir menu completo" aria-expanded="false">Menu</button>
+  `;
+}
+
+function createMobileBottomLink(link) {
+  const label = link.href === '/dashboard'
+    ? 'Inicio'
+    : link.href === '/banda-coral'
+      ? 'Banda'
+      : link.label;
+  const classes = isActiveNavLink(link.match) ? ' class="is-active"' : '';
+
+  return `<a${classes} href="${link.href}">${label}</a>`;
 }
 
 function createNavLink(link) {

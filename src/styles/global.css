@@ -6573,6 +6573,10 @@ html {
   color: var(--color-danger) !important;
 }
 
+.mobile-bottom-nav {
+  display: none;
+}
+
 .page {
   width: min(100%, var(--app-max-width));
   padding: clamp(18px, 3vw, 34px) clamp(14px, 3vw, 28px) 64px;
@@ -6874,6 +6878,10 @@ html {
     background: var(--color-bg);
   }
 
+  .app-layout {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+
   .main-nav {
     min-height: 58px;
   }
@@ -6906,6 +6914,62 @@ html {
     gap: 12px;
     max-height: calc(100svh - 104px);
     padding: 12px;
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    z-index: 65;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    min-height: 58px;
+    border: 1px solid rgba(184, 199, 189, 0.82);
+    border-radius: 18px;
+    padding: 6px;
+    background: rgba(251, 253, 251, 0.96);
+    box-shadow: 0 14px 34px rgba(13, 22, 19, 0.18);
+    backdrop-filter: blur(16px);
+  }
+
+  .mobile-bottom-nav a,
+  .mobile-bottom-nav button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 13px;
+    padding: 4px 3px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.05;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .mobile-bottom-nav a.is-active,
+  .mobile-bottom-nav button[aria-expanded="true"] {
+    border-color: rgba(22, 117, 101, 0.22);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+
+  .mobile-bottom-nav a:hover,
+  .mobile-bottom-nav a:focus,
+  .mobile-bottom-nav button:hover,
+  .mobile-bottom-nav button:focus {
+    border-color: rgba(22, 117, 101, 0.28);
+    background: var(--color-bg-soft);
+    color: var(--color-primary-strong);
+    outline: 0;
   }
 
   .main-nav-links a,

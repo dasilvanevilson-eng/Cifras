@@ -80,6 +80,12 @@ As primeiras telas recomendadas para validar essa direcao sao:
 
 Status inicial: a primeira camada visual foi iniciada em `src/styles/global.css`, com tokens de identidade, cores, raios, sombras, foco, botoes, campos, cards/listas, estados e ajustes mobile-first do menu. Essa etapa e uma fundacao visual e nao altera a logica dos modulos.
 
+### Segunda etapa planejada
+
+A segunda etapa da reestilizacao e melhorar a navegacao e o layout base do sistema. O objetivo e facilitar o acesso aos modulos principais, principalmente em dispositivos moveis, mantendo o menu geral completo como acesso secundario.
+
+Status inicial: a navegacao mobile recebeu uma barra inferior em `src/components/layout/MainNav.js`, com atalhos para Inicio, Cifras, Repertorios, Banda e Menu. O menu geral continua existindo como painel compacto e completo. Essa etapa deve seguir sem alterar regras de negocio, services ou funcoes do Supabase.
+
 ### Personalizacao futura
 
 A area de Personalizacao deve se tornar mais completa, permitindo que o usuario ajuste a experiencia conforme seu gosto pessoal e contexto de uso.
