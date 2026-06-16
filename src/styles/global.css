@@ -6506,6 +6506,9 @@ html {
   border: 1px solid rgba(184, 199, 189, 0.78);
   background: var(--color-surface-raised);
   box-shadow: var(--shadow-md);
+  width: max-content;
+  min-width: 260px;
+  max-width: calc(100vw - 20px);
 }
 
 .main-menu-header {
@@ -6545,6 +6548,7 @@ html {
   border-radius: var(--radius-md);
   color: var(--color-text);
   font-weight: 650;
+  white-space: nowrap;
 }
 
 .main-nav-links a:hover,
@@ -6875,20 +6879,23 @@ html {
   }
 
   .main-menu-drawer {
-    inset: 0;
-    width: 100vw;
-    width: 100dvw;
-    height: 100svh;
-    height: 100dvh;
-    max-height: none;
-    border-radius: 0;
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: auto;
+    left: auto;
+    width: max-content;
+    min-width: min(260px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
+    height: auto;
+    max-height: calc(100svh - 16px);
+    border-radius: var(--radius-lg);
     border-left: 1px solid rgba(184, 199, 189, 0.78);
-    box-shadow: none;
+    box-shadow: var(--shadow-md);
   }
 
   .main-menu-header {
     align-items: center;
-    padding: calc(13px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 13px max(14px, env(safe-area-inset-left));
+    padding: 13px 14px;
   }
 
   .main-menu-header::before {
@@ -6897,7 +6904,8 @@ html {
 
   .main-nav-links {
     gap: 12px;
-    padding: 14px max(14px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    max-height: calc(100svh - 104px);
+    padding: 12px;
   }
 
   .main-nav-links a,
