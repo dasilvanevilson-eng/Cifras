@@ -100,12 +100,17 @@ export function setTwoColumnView(wrapper, button, enabled) {
 }
 
 export function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
+  if (!fitFontToMobileWidth) {
+    setPerformanceFontSize(wrapper, desiredFontSize);
+    return;
+  }
+
   fitPreformattedTextToWidth({
     wrapper,
     view,
     desiredFontSize,
     fitToWidth: true,
-    maxFontSize: Math.min(MAX_PERFORMANCE_FONT_SIZE, Math.max(MAX_AUTO_FIT_FONT_SIZE, desiredFontSize)),
+    maxFontSize: MAX_AUTO_FIT_FONT_SIZE,
     setFontSize: (value) => setPerformanceFontSize(wrapper, value),
   });
 }
