@@ -10,7 +10,6 @@ import {
   createPerformanceToolbar,
   fitCifraToWidth as fitPerformanceCifraToWidth,
   formatTransposeStatus as formatPerformanceTransposeStatus,
-  getCurrentPerformanceFontSize,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize as setPerformanceFontSizeV2,
   setPerformanceTheme as setPerformanceThemeV2,
@@ -512,14 +511,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
   fontDownButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.max(8, getCurrentPerformanceFontSize(wrapper, fontSize) - 1);
+    fontSize = Math.max(8, fontSize - 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     renderCurrentSong();
   });
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, getCurrentPerformanceFontSize(wrapper, fontSize) + 1);
+    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, fontSize + 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     renderCurrentSong();
   });
