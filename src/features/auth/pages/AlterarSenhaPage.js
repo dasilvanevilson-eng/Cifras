@@ -3,22 +3,29 @@ import { validatePassword } from '../../../utils/password.js';
 
 export function AlterarSenhaPage({ session } = {}) {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page password-reset-page';
   page.innerHTML = `
-    <h1>Alterar senha</h1>
-    ${session?.user ? '' : '<p class="page-status">Abra esta pagina pelo link enviado para o seu e-mail.</p>'}
-    <form class="form password-form">
-      <label>
-        Nova senha
-        <input name="password" type="password" autocomplete="new-password" minlength="6" required>
-      </label>
-      <label>
-        Confirmar nova senha
-        <input name="password_confirm" type="password" autocomplete="new-password" minlength="6" required>
-      </label>
-      <button class="button" type="submit">Salvar nova senha</button>
-      <p class="form-message" aria-live="polite"></p>
-    </form>
+    <header class="dashboard-header">
+      <div>
+        <h1>Alterar senha</h1>
+        <p>Defina uma nova senha para continuar usando o Master Cifras.</p>
+      </div>
+    </header>
+    <section class="password-reset-panel">
+      ${session?.user ? '' : '<p class="page-status">Abra esta pagina pelo link enviado para o seu e-mail.</p>'}
+      <form class="form password-form">
+        <label>
+          Nova senha
+          <input name="password" type="password" autocomplete="new-password" minlength="6" required>
+        </label>
+        <label>
+          Confirmar nova senha
+          <input name="password_confirm" type="password" autocomplete="new-password" minlength="6" required>
+        </label>
+        <button class="button" type="submit">Salvar nova senha</button>
+        <p class="form-message" aria-live="polite"></p>
+      </form>
+    </section>
   `;
 
   setupPasswordForm(page.querySelector('.password-form'), {

@@ -3,15 +3,20 @@ import { listMusicas } from '../../../services/musicasService.js';
 
 export async function EnviarSugestaoPage({ session } = {}) {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page sugestoes-page suggestion-send-page';
   page.innerHTML = `
-    <h1>Enviar musica</h1>
+    <header class="dashboard-header">
+      <div>
+        <h1>Enviar musica</h1>
+        <p>Compartilhe uma nova cifra ou proponha ajustes em uma musica existente.</p>
+      </div>
+    </header>
     <div class="page-grid">
-      <section>
+      <section class="suggestion-panel suggestion-form-panel">
         <h2>Nova sugestao</h2>
         <div class="form-slot"></div>
       </section>
-      <section>
+      <section class="suggestion-panel suggestion-list-panel">
         <h2>Minhas sugestoes</h2>
         <div class="list-slot">
           <p class="page-status">Carregando sugestoes...</p>

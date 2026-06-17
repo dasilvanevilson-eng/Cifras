@@ -8,12 +8,18 @@ export async function SugestoesPage({ session } = {}) {
   }
 
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page sugestoes-page suggestions-hub-page';
   page.innerHTML = `
-    <div class="tabs suggestions-tabs" role="tablist">
-      <button class="nav-button is-active" type="button" data-tab="enviar">Enviar musica</button>
-      <button class="nav-button" type="button" data-tab="revisar">Revisar sugestoes</button>
-    </div>
+    <header class="dashboard-header">
+      <div>
+        <h1>Sugestoes</h1>
+        <p>Envie musicas, acompanhe seus pedidos e revise contribuicoes da equipe.</p>
+      </div>
+      <div class="tabs suggestions-tabs" role="tablist">
+        <button class="nav-button is-active" type="button" data-tab="enviar">Enviar musica</button>
+        <button class="nav-button" type="button" data-tab="revisar">Revisar sugestoes</button>
+      </div>
+    </header>
     <div class="tab-panel" data-panel="enviar"></div>
     <div class="tab-panel" data-panel="revisar" hidden></div>
   `;
@@ -49,6 +55,12 @@ export async function SugestoesPage({ session } = {}) {
 }
 
 function removeFirstHeading(section) {
+  const header = section.querySelector('.dashboard-header');
+  if (header) {
+    header.remove();
+    return;
+  }
+
   const heading = section.querySelector('h1');
 
   if (heading) {

@@ -1,11 +1,13 @@
 export function AccessDeniedPage() {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page system-state-page';
   page.innerHTML = `
-    <div class="page-status error">
-      Seu perfil nao tem permissao para acessar esta pagina.
-      <p><a href="/dashboard">Voltar para o painel</a></p>
-    </div>
+    <section class="system-state-card">
+      <span>403</span>
+      <h1>Acesso restrito</h1>
+      <p>Seu perfil nao tem permissao para acessar esta pagina.</p>
+      <a class="button-link secondary" href="/dashboard">Voltar para o painel</a>
+    </section>
   `;
 
   return page;

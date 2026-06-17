@@ -6,7 +6,7 @@ import { canEditContent } from '../../auth/roles.js';
 
 export async function RevisarSugestoesPage({ session } = {}) {
   const page = document.createElement('section');
-  page.className = 'page';
+  page.className = 'page sugestoes-page suggestions-review-page';
 
   if (!canEditContent(session?.profile?.papel)) {
     page.innerHTML = '<div class="page-status error">Seu perfil nao tem permissao para revisar sugestoes.</div>';
@@ -14,15 +14,20 @@ export async function RevisarSugestoesPage({ session } = {}) {
   }
 
   page.innerHTML = `
-    <h1>Sugestoes de musicas</h1>
+    <header class="dashboard-header">
+      <div>
+        <h1>Sugestoes de musicas</h1>
+        <p>Revise envios da equipe antes de transformar em cifra oficial.</p>
+      </div>
+    </header>
     <div class="suggestions-review-grid">
-      <section>
+      <section class="suggestion-panel suggestion-pending-panel">
         <h2>Pendentes</h2>
         <div class="list-slot">
           <p class="page-status">Carregando sugestoes...</p>
         </div>
       </section>
-      <section>
+      <section class="suggestion-panel suggestion-review-panel">
         <h2 data-role="review-title">Revisao</h2>
         <div class="review-slot">
           <p class="page-status">Selecione uma sugestao para revisar.</p>
