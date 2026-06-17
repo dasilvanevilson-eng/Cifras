@@ -846,8 +846,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       || (leaderPresence.active && !leaderIsThisClient);
 
     if (leaderButton) {
-      leaderButton.hidden = !leaderAvailable;
-      leaderButton.disabled = false;
+      leaderButton.hidden = !leaderAvailable || hasAnotherLeader;
+      leaderButton.disabled = hasAnotherLeader;
       leaderButton.textContent = currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
       leaderButton.title = hasAnotherLeader
         ? `${formatLeaderName(leaderPresence)} conectado como lider`
