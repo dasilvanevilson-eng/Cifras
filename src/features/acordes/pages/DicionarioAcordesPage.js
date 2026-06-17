@@ -13,7 +13,7 @@ export function DicionarioAcordesPage() {
       <div>
         <span class="dashboard-kicker">Violao</span>
         <h1>Dicionario de acordes</h1>
-        <p>Digite o acorde desejado e escolha se quer visualizar posicoes com pestana ou sem pestana.</p>
+        <p>Digite o acorde desejado para ver todos os formatos disponiveis no braco do violao.</p>
       </div>
       <div class="dashboard-summary">
         <span><strong>${chords.length}</strong> posicoes</span>
@@ -26,8 +26,8 @@ export function DicionarioAcordesPage() {
         <input data-field="search" type="search" placeholder="Ex: C, Am, F#7, Bbmaj7">
       </label>
       <label class="chord-barre-toggle">
-        <input data-field="barre" type="checkbox">
-        <span>Mostrar acordes com pestana</span>
+        <input data-field="barre" type="checkbox" checked>
+        <span>Incluir formatos com pestana</span>
       </label>
     </section>
 
@@ -40,9 +40,9 @@ export function DicionarioAcordesPage() {
 
   function render() {
     const query = normalizeText(searchInput.value);
-    const shouldShowBarre = barreInput.checked;
+    const shouldIncludeBarre = barreInput.checked;
     const filtered = filterChordsByName(chords, query)
-      .filter((chord) => hasBarre(chord) === shouldShowBarre)
+      .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
       .sort(compareChordPosition)
       .slice(0, 96);
 
@@ -71,7 +71,7 @@ function createChordCard(chord) {
     <header>
       <div>
         <h2>${escapeHtml(chord.name)}</h2>
-        <p>${escapeHtml(chord.quality)} - shape ${escapeHtml(chord.shape)}</p>
+        <p>${escapeHtml(chord.quality)} - ${getBarreLabel(chord)}</p>
       </div>
       <span>${chord.baseFret > 1 ? `${chord.baseFret}a casa` : 'Casa 1'}</span>
     </header>
@@ -79,6 +79,10 @@ function createChordCard(chord) {
   `;
 
   return article;
+}
+
+function getBarreLabel(chord) {
+  return hasBarre(chord) ? 'com pestana' : 'sem pestana';
 }
 
 function hasBarre(chord) {
