@@ -90,7 +90,7 @@ function getBarreLabel(chord) {
 }
 
 function hasBarre(chord) {
-  return createBarres(chord, chord.baseFret, 5).length > 0;
+  return getVisibleBarres(chord, chord.baseFret, 5).length > 0;
 }
 
 function compareChordPosition(a, b) {
@@ -123,7 +123,7 @@ function createChordDiagram(chord) {
 }
 
 function createChordBoard(chord, minFret, fretCount) {
-  const barresData = createBarres(chord, minFret, fretCount);
+  const barresData = getVisibleBarres(chord, minFret, fretCount);
   const stringStates = chord.frets.map((fret, stringIndex) => {
     const marker = fret === -1 ? 'X' : fret === 0 ? 'O' : '';
     return `<span class="chord-string-state" style="left: ${getStringPosition(stringIndex)}%;">${marker}</span>`;
@@ -182,28 +182,12 @@ function createChordBoard(chord, minFret, fretCount) {
   `;
 }
 
-function createBarres(chord, minFret, fretCount) {
-  const groups = new Map();
-
-  chord.frets.forEach((fret, stringIndex) => {
-    const finger = chord.fingers[stringIndex];
-    if (!finger || finger === 0 || fret < minFret || fret >= minFret + fretCount) return;
-
-    const key = `${fret}-${finger}`;
-    const group = groups.get(key) || { fret, finger: String(finger), strings: [] };
-    group.strings.push(stringIndex);
-    groups.set(key, group);
-  });
-
-  return [...groups.values()]
-    .filter((group) => group.strings.length >= 2)
-    .map((group) => ({
-      fret: group.fret,
-      finger: group.finger,
-      startString: Math.min(...group.strings),
-      endString: Math.max(...group.strings),
-    }))
-    .filter((barre) => barre.endString > barre.startString);
+function getVisibleBarres(chord, minFret, fretCount) {
+  return (chord.barres || []).filter((barre) => (
+    barre.fret >= minFret
+    && barre.fret < minFret + fretCount
+    && barre.endString > barre.startString
+  ));
 }
 
 function getStringPosition(stringIndex) {

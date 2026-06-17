@@ -298,9 +298,12 @@ function transposeVoicing(voicing, targetRoot) {
   if (frets.some((fret) => fret < -1 || fret > MAX_FRET)) return null;
 
   const positiveFrets = frets.filter((fret) => fret > 0);
+  const barres = getBarres(frets);
+
   return {
     frets,
-    fingers: assignFingers(frets),
+    fingers: assignFingers(frets, barres),
+    barres,
     baseFret: frets.includes(0) || !positiveFrets.length ? 1 : Math.min(...positiveFrets),
     firstFret: positiveFrets.length ? Math.min(...positiveFrets) : 0,
     lastFret: positiveFrets.length ? Math.max(...positiveFrets) : 0,
@@ -308,7 +311,7 @@ function transposeVoicing(voicing, targetRoot) {
   };
 }
 
-function assignFingers(frets) {
+function assignFingers(frets, barres = []) {
   const fingers = Array(frets.length).fill(0);
   const positiveGroups = new Map();
 
@@ -320,21 +323,18 @@ function assignFingers(frets) {
     positiveGroups.set(fret, strings);
   });
 
-  const barreFrets = [...positiveGroups.entries()]
-    .filter(([fret, strings]) => isBarreGroup(frets, fret, strings))
-    .map(([fret]) => fret)
-    .sort((a, b) => a - b);
-  const mainBarre = barreFrets[0] || null;
+  const mainBarre = barres[0] || null;
 
   if (mainBarre) {
-    positiveGroups.get(mainBarre).forEach((stringIndex) => {
+    for (let stringIndex = mainBarre.startString; stringIndex <= mainBarre.endString; stringIndex += 1) {
+      if (frets[stringIndex] !== mainBarre.fret) continue;
       fingers[stringIndex] = 1;
-    });
+    }
   }
 
   let nextFinger = mainBarre ? 2 : 1;
   [...positiveGroups.keys()]
-    .filter((fret) => fret !== mainBarre)
+    .filter((fret) => fret !== mainBarre?.fret)
     .sort((a, b) => a - b)
     .forEach((fret) => {
       positiveGroups.get(fret).forEach((stringIndex) => {
@@ -346,12 +346,31 @@ function assignFingers(frets) {
   return fingers;
 }
 
-function isBarreGroup(frets, fret, strings) {
-  if (strings.length < 2) return false;
+function getBarres(frets) {
+  const baseFret = getBaseFret(frets);
+  const firstPlayed = frets.findIndex((fret) => fret >= 0);
+  const lastPlayed = frets.findLastIndex((fret) => fret >= 0);
+  if (frets.includes(0) || firstPlayed === -1) return [];
 
-  const start = Math.min(...strings);
-  const end = Math.max(...strings);
-  return frets.slice(start, end + 1).every((value) => value >= fret);
+  const barreIndexes = [];
+  for (let stringIndex = firstPlayed; stringIndex <= lastPlayed; stringIndex += 1) {
+    if (frets[stringIndex] === baseFret) barreIndexes.push(stringIndex);
+  }
+
+  if (barreIndexes.length < 2) return [];
+
+  const startString = Math.min(...barreIndexes);
+  const endString = Math.max(...barreIndexes);
+  const isContinuousBarre = frets
+    .slice(startString, endString + 1)
+    .every((fret) => fret >= baseFret);
+
+  return isContinuousBarre ? [{ fret: baseFret, finger: '1', startString, endString }] : [];
+}
+
+function getBaseFret(frets) {
+  const positiveFrets = frets.filter((fret) => fret > 0);
+  return frets.includes(0) || !positiveFrets.length ? 1 : Math.min(...positiveFrets);
 }
 
 function createChordRecord({ root, quality, rootAliases, name, voicing, index }) {
@@ -367,6 +386,7 @@ function createChordRecord({ root, quality, rootAliases, name, voicing, index })
     rootString: null,
     frets: voicing.frets,
     fingers: voicing.fingers,
+    barres: voicing.barres,
     baseFret: voicing.baseFret,
     firstFret: voicing.firstFret,
     lastFret: voicing.lastFret,
