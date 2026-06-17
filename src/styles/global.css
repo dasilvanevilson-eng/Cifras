@@ -9467,7 +9467,7 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .chord-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
   gap: 12px;
 }
 
@@ -9561,7 +9561,7 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .chord-fret-area {
   position: relative;
-  height: 162px;
+  height: 176px;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
@@ -9641,6 +9641,10 @@ html[data-interface-density="compact"] .account-password-panel {
 
   .chord-card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chord-fret-area {
+    height: 162px;
   }
 }
 
