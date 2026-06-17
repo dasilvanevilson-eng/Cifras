@@ -9404,8 +9404,9 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .chord-dictionary-tools {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(120px, 180px) minmax(180px, 260px);
+  grid-template-columns: minmax(240px, 1fr) auto;
   gap: 12px;
+  align-items: end;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 14px;
@@ -9432,6 +9433,25 @@ html[data-interface-density="compact"] .account-password-panel {
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
+}
+
+.chord-dictionary-tools .chord-barre-toggle {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  min-height: 46px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--color-surface);
+  white-space: nowrap;
+}
+
+.chord-dictionary-tools .chord-barre-toggle input {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--color-primary);
 }
 
 .chord-dictionary-tools input:focus,

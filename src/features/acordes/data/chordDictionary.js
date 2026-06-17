@@ -146,7 +146,7 @@ export function getChordDictionary() {
 
 export function getChordByName(name) {
   const normalized = normalizeChordName(name);
-  return getChordDictionary().filter((chord) => chord.searchText.includes(normalized));
+  return getChordDictionary().filter((chord) => chord.nameSearchText.includes(normalized));
 }
 
 function createChord(root, suffix) {
@@ -186,6 +186,10 @@ function transposeTemplate(root, quality, template) {
       quality.suffix,
       ...quality.search,
       template.shape,
+    ].join(' ')),
+    nameSearchText: normalizeChordName([
+      name,
+      ...rootAliases.map((alias) => `${alias}${quality.suffix}`),
     ].join(' ')),
   };
 }

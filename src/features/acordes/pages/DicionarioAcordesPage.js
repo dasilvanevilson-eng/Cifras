@@ -1,4 +1,4 @@
-import { CHORD_QUALITIES, CHORD_ROOTS, getChordDictionary } from '../data/chordDictionary.js';
+import { getChordDictionary } from '../data/chordDictionary.js';
 
 const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
 
@@ -13,7 +13,7 @@ export function DicionarioAcordesPage() {
       <div>
         <span class="dashboard-kicker">Violao</span>
         <h1>Dicionario de acordes</h1>
-        <p>Busque acordes por nome, nota ou tipo e veja posicoes para tocar no violao.</p>
+        <p>Digite o acorde desejado e escolha se quer visualizar posicoes com pestana ou sem pestana.</p>
       </div>
       <div class="dashboard-summary">
         <span><strong>${chords.length}</strong> posicoes</span>
@@ -25,19 +25,9 @@ export function DicionarioAcordesPage() {
         Buscar acorde
         <input data-field="search" type="search" placeholder="Ex: C, Am, F#7, Bbmaj7">
       </label>
-      <label>
-        Nota
-        <select data-field="root">
-          <option value="">Todas</option>
-          ${CHORD_ROOTS.map((root) => `<option value="${root}">${root}</option>`).join('')}
-        </select>
-      </label>
-      <label>
-        Tipo
-        <select data-field="quality">
-          <option value="">Todos</option>
-          ${CHORD_QUALITIES.map((quality) => `<option value="${quality.suffix}">${escapeHtml(quality.label)}</option>`).join('')}
-        </select>
+      <label class="chord-barre-toggle">
+        <input data-field="barre" type="checkbox">
+        <span>Mostrar acordes com pestana</span>
       </label>
     </section>
 
@@ -45,18 +35,16 @@ export function DicionarioAcordesPage() {
   `;
 
   const searchInput = page.querySelector('[data-field="search"]');
-  const rootSelect = page.querySelector('[data-field="root"]');
-  const qualitySelect = page.querySelector('[data-field="quality"]');
+  const barreInput = page.querySelector('[data-field="barre"]');
   const results = page.querySelector('.chord-dictionary-results');
 
   function render() {
     const query = normalizeText(searchInput.value);
-    const selectedRoot = rootSelect.value;
-    const selectedQuality = qualitySelect.value;
+    const shouldShowBarre = barreInput.checked;
     const filtered = chords
-      .filter((chord) => !selectedRoot || chord.root === selectedRoot)
-      .filter((chord) => !selectedQuality || chord.suffix === selectedQuality)
-      .filter((chord) => !query || chord.searchText.includes(query))
+      .filter((chord) => !query || chord.nameSearchText.includes(query))
+      .filter((chord) => hasBarre(chord) === shouldShowBarre)
+      .sort(compareChordPosition)
       .slice(0, 96);
 
     if (!filtered.length) {
@@ -71,8 +59,7 @@ export function DicionarioAcordesPage() {
   }
 
   searchInput.addEventListener('input', render);
-  rootSelect.addEventListener('change', render);
-  qualitySelect.addEventListener('change', render);
+  barreInput.addEventListener('change', render);
 
   render();
   return page;
@@ -93,6 +80,21 @@ function createChordCard(chord) {
   `;
 
   return article;
+}
+
+function hasBarre(chord) {
+  return createBarres(chord, chord.baseFret, 5).length > 0;
+}
+
+function compareChordPosition(a, b) {
+  return getFirstPositiveFret(a) - getFirstPositiveFret(b)
+    || a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+    || a.shape.localeCompare(b.shape, 'pt-BR', { sensitivity: 'base' });
+}
+
+function getFirstPositiveFret(chord) {
+  const frets = chord.frets.filter((fret) => fret > 0);
+  return frets.length ? Math.min(...frets) : 0;
 }
 
 function createChordDiagram(chord) {
