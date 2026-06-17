@@ -9,35 +9,44 @@ const MONO_FONT_STACKS = {
 };
 
 const LIGHT_THEME_VARS = {
-  '--color-bg': '#f5f7f4',
-  '--color-bg-soft': '#eef3ef',
+  '--color-bg': '#f1f5f2',
+  '--color-bg-soft': '#e7eee9',
   '--color-surface': '#ffffff',
-  '--color-surface-raised': '#fbfdfb',
-  '--color-panel': '#17231f',
-  '--color-panel-soft': '#21322d',
-  '--color-border': '#d7dfd8',
-  '--color-border-strong': '#b8c7bd',
-  '--color-text': '#18211e',
-  '--color-text-muted': '#61706a',
-  '--color-primary-soft': '#e4f4ee',
+  '--color-surface-raised': '#f9fbf8',
+  '--color-panel': '#101916',
+  '--color-panel-soft': '#1f302a',
+  '--color-border': '#c5d1c8',
+  '--color-border-strong': '#8fa196',
+  '--color-text': '#111a17',
+  '--color-text-muted': '#43544d',
+  '--color-primary-strong': '#084d43',
+  '--color-primary-soft': '#dcefe8',
   '--color-accent-soft': '#fff2df',
+  '--color-info': '#2458b8',
+  '--color-success': '#166b3c',
+  '--color-danger': '#a8322e',
   '--color-danger-soft': '#fff0ed',
 };
 
 const DARK_THEME_VARS = {
-  '--color-bg': '#101412',
-  '--color-bg-soft': '#151c18',
-  '--color-surface': '#1b211e',
-  '--color-surface-raised': '#202823',
-  '--color-panel': '#eaf3ee',
-  '--color-panel-soft': '#d6e4dd',
-  '--color-border': '#334139',
-  '--color-border-strong': '#4b5c52',
-  '--color-text': '#edf4ef',
-  '--color-text-muted': '#aebbb4',
-  '--color-primary-soft': '#17372f',
-  '--color-accent-soft': '#3a2817',
-  '--color-danger-soft': '#3b1e1c',
+  '--color-bg': '#0b100e',
+  '--color-bg-soft': '#111915',
+  '--color-surface': '#18211d',
+  '--color-surface-raised': '#202b25',
+  '--color-panel': '#f4fbf7',
+  '--color-panel-soft': '#d9e8df',
+  '--color-border': '#46574e',
+  '--color-border-strong': '#6f8278',
+  '--color-text': '#f4fbf7',
+  '--color-text-muted': '#c3d0c8',
+  '--color-primary-strong': '#9de2d3',
+  '--color-primary-soft': '#13392f',
+  '--color-accent': '#ffb765',
+  '--color-accent-soft': '#3e2815',
+  '--color-info': '#9bbcff',
+  '--color-success': '#8bd7a6',
+  '--color-danger': '#ff9a91',
+  '--color-danger-soft': '#411f1d',
 };
 
 export function applySystemSettings(settings = {}) {
@@ -46,8 +55,10 @@ export function applySystemSettings(settings = {}) {
     ...settings,
   };
   const root = document.documentElement;
+  const themeMode = nextSettings.theme_mode || DEFAULT_SYSTEM_SETTINGS.theme_mode;
 
-  root.dataset.theme = nextSettings.theme_mode || DEFAULT_SYSTEM_SETTINGS.theme_mode;
+  root.dataset.theme = themeMode;
+  root.dataset.effectiveTheme = resolveInterfaceTheme(themeMode);
   root.dataset.interfaceDensity = nextSettings.interface_density || DEFAULT_SYSTEM_SETTINGS.interface_density;
   root.style.setProperty('--color-primary', normalizeColor(nextSettings.primary_color, DEFAULT_SYSTEM_SETTINGS.primary_color));
   root.style.setProperty('--color-primary-strong', normalizeColor(nextSettings.primary_color, DEFAULT_SYSTEM_SETTINGS.primary_color));
@@ -58,9 +69,9 @@ export function applySystemSettings(settings = {}) {
   root.style.setProperty('--system-chord-font-size', `${normalizeNumber(nextSettings.chord_font_size, DEFAULT_SYSTEM_SETTINGS.chord_font_size, 14, 40)}px`);
   root.style.setProperty('--system-execution-font-size', `${normalizeNumber(nextSettings.execution_font_size, DEFAULT_SYSTEM_SETTINGS.execution_font_size, 18, 64)}px`);
 
-  if (nextSettings.theme_mode === 'light') {
+  if (themeMode === 'light') {
     applyThemeVariables(root, LIGHT_THEME_VARS);
-  } else if (nextSettings.theme_mode === 'dark') {
+  } else if (themeMode === 'dark') {
     applyThemeVariables(root, DARK_THEME_VARS);
   } else {
     clearThemeVariables(root);
@@ -103,6 +114,12 @@ function setLocalStorageDefault(key, value) {
 }
 
 function resolveExecutionTheme(theme) {
+  if (theme === 'dark' || theme === 'light') return theme;
+
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function resolveInterfaceTheme(theme) {
   if (theme === 'dark' || theme === 'light') return theme;
 
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

@@ -33,8 +33,8 @@ export async function RepertoriosPage({ session } = {}) {
     <section class="repertorios-search-panel repertorio-library-panel">
       <div class="repertorio-library-heading">
         <div>
-          <h2>Encontrar repertorio</h2>
-          <p>Pesquise por nome ou data para editar, abrir ou executar.</p>
+          <h2>Buscar ou criar repertorio</h2>
+          <p>${canEdit ? 'Digite o nome: se existir, selecione para editar; se nao existir, o formulario abaixo vira uma nova inclusao.' : 'Pesquise por nome ou data para abrir ou executar.'}</p>
         </div>
         <span class="repertorio-library-mode">${canEdit ? 'Modo montagem' : 'Modo consulta'}</span>
       </div>
@@ -52,16 +52,26 @@ export async function RepertoriosPage({ session } = {}) {
   const status = page.querySelector('.page-status');
   const repertoriosCount = page.querySelector('[data-count="repertorios"]');
   let loadedRepertorios = [];
+  let pendingNewRepertorioName = '';
 
-  async function renderForm(selectedRepertorio = null) {
+  async function renderForm(selectedRepertorio = null, options = {}) {
     if (!canEdit) return;
 
     formSlot.innerHTML = '<p class="page-status">Carregando formulario...</p>';
     formSlot.replaceChildren(await createRepertorioUnifiedForm({
       existingRepertorios: loadedRepertorios,
       selectedRepertorio,
-      onNew: () => renderForm(),
+      initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
+      onNew: () => {
+        pendingNewRepertorioName = '';
+        return renderForm();
+      },
     }));
+  }
+
+  async function prepareNewRepertorio(name = '') {
+    pendingNewRepertorioName = name.trim();
+    await renderForm(null, { initialName: pendingNewRepertorioName });
   }
 
   try {
@@ -75,9 +85,9 @@ export async function RepertoriosPage({ session } = {}) {
     repertoriosCount.textContent = String(loadedRepertorios.length);
 
     if (!loadedRepertorios.length) {
-      listSlot.replaceChildren(createRepertoriosBrowser([], { onSelect: renderForm }));
+      listSlot.replaceChildren(createRepertoriosBrowser([], { onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
     } else {
-      listSlot.replaceChildren(createRepertoriosBrowser(loadedRepertorios, { onSelect: renderForm }));
+      listSlot.replaceChildren(createRepertoriosBrowser(loadedRepertorios, { onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
     }
   } catch (error) {
     status.className = 'page-status error';
@@ -103,7 +113,7 @@ export async function RepertoriosPage({ session } = {}) {
   return page;
 }
 
-async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedRepertorio = null, onNew } = {}) {
+async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedRepertorio = null, initialName = '', onNew } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'new-repertorio-panel';
   wrapper.innerHTML = '<p class="page-status">Carregando musicas...</p>';
@@ -154,6 +164,7 @@ async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedR
     musicasAssociadas: musicasAssociadas || [],
     compartilhamentos: compartilhamentos || [],
     historico: historico || [],
+    initialName,
     onNew,
   }));
   return wrapper;
@@ -162,19 +173,18 @@ async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedR
 function createNewRepertorioComposer(musicas, users, existingRepertorios = [], options = {}) {
   const selectedRepertorio = options.selectedRepertorio || null;
   const isEditing = Boolean(selectedRepertorio?.id);
+  const initialName = selectedRepertorio?.nome || options.initialName || '';
   const form = document.createElement('form');
   form.className = 'form new-repertorio-form';
   form.innerHTML = `
     <section class="repertorio-form-section repertorio-basic-fields">
       <div class="repertorio-form-heading">
         <h2>${isEditing ? 'Editar repertorio' : 'Novo repertorio'}</h2>
+        <p class="repertorio-current-name">${escapeHtml(initialName ? `Nome: ${initialName}` : 'Digite um nome no campo acima para iniciar.')}</p>
         <div class="repertorio-inline-actions"></div>
       </div>
       <div class="repertorio-title-date-grid">
-        <label>
-          Nome
-          <input name="nome" type="text" required value="${escapeHtml(selectedRepertorio?.nome || '')}">
-        </label>
+        <input name="nome" type="hidden" required value="${escapeHtml(initialName)}">
 
         <label>
           Data
@@ -731,12 +741,16 @@ function normalizeText(value) {
 function createRepertoriosBrowser(repertorios, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser repertorios-browser';
+  const editableHint = options.canEdit
+    ? 'Digite um nome para buscar. Se nenhum repertorio existir com esse nome, ele sera preparado como novo repertorio.'
+    : 'Digite um nome ou data para buscar repertorios.';
   wrapper.innerHTML = `
     <div class="list-toolbar">
       <label class="repertorio-library-search">
-        <span>Buscar na lista</span>
-        <input class="search-input" type="search" placeholder="Nome, data ou tema">
+        <span>${options.canEdit ? 'Nome do repertorio' : 'Buscar na lista'}</span>
+        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Digite o nome do repertorio' : 'Nome, data ou tema'}" aria-describedby="repertorio-search-help">
       </label>
+      <p class="form-hint" id="repertorio-search-help">${editableHint}</p>
     </div>
     <div class="table-slot search-results" hidden></div>
   `;
@@ -745,8 +759,38 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
   let currentResults = [];
+  let createDraftTimer = null;
+  let lastDraftName = '';
+
+  function getSearchValue() {
+    return searchInput.value.trim();
+  }
+
+  function scheduleCreateDraft() {
+    if (!options.onCreateDraft) return;
+
+    window.clearTimeout(createDraftTimer);
+    createDraftTimer = window.setTimeout(() => {
+      const value = getSearchValue();
+      const exactMatch = findExactRepertorio(value);
+
+      if (!value || exactMatch || normalizeText(value) === normalizeText(lastDraftName)) return;
+
+      lastDraftName = value;
+      options.onCreateDraft(value);
+    }, 220);
+  }
+
+  function findExactRepertorio(value) {
+    const query = normalizeText(value);
+    if (!query) return null;
+
+    return repertorios.find((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name'])) === query) || null;
+  }
 
   function selectRepertorio(repertorio) {
+    window.clearTimeout(createDraftTimer);
+    lastDraftName = '';
     if (!options.onSelect) {
       window.location.href = getRepertorioUrl(repertorio);
       return;
@@ -772,7 +816,9 @@ function createRepertoriosBrowser(repertorios, options = {}) {
     }
 
     if (!currentResults.length) {
-      tableSlot.replaceChildren(createStatus('Nenhum repertorio encontrado para esta busca.'));
+      tableSlot.replaceChildren(createStatus(options.canEdit
+        ? 'Nenhum repertorio encontrado. O formulario abaixo sera preparado para incluir este nome.'
+        : 'Nenhum repertorio encontrado para esta busca.'));
       return;
     }
 
@@ -785,6 +831,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   searchInput.addEventListener('input', () => {
     render();
     tableSlot.hidden = false;
+    scheduleCreateDraft();
   });
 
   searchInput.addEventListener('focus', () => {
@@ -801,10 +848,20 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   });
 
   searchInput.addEventListener('keydown', (event) => {
-    if (event.key !== 'Enter' || !currentResults.length) return;
+    if (event.key !== 'Enter') return;
 
     event.preventDefault();
-    selectRepertorio(currentResults[0]);
+    if (currentResults.length) {
+      selectRepertorio(currentResults[0]);
+      return;
+    }
+
+    if (options.onCreateDraft && getSearchValue()) {
+      window.clearTimeout(createDraftTimer);
+      lastDraftName = getSearchValue();
+      options.onCreateDraft(getSearchValue());
+      tableSlot.hidden = true;
+    }
   });
 
   tableSlot.addEventListener('mouseenter', () => {

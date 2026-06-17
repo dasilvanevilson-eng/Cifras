@@ -4,24 +4,24 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-pill: 999px;
-  --color-bg: #f5f7f4;
-  --color-bg-soft: #eef3ef;
+  --color-bg: #f1f5f2;
+  --color-bg-soft: #e7eee9;
   --color-surface: #ffffff;
-  --color-surface-raised: #fbfdfb;
-  --color-panel: #17231f;
-  --color-panel-soft: #21322d;
-  --color-border: #d7dfd8;
-  --color-border-strong: #b8c7bd;
-  --color-text: #18211e;
-  --color-text-muted: #61706a;
-  --color-primary: #167565;
-  --color-primary-strong: #0f5f52;
-  --color-primary-soft: #e4f4ee;
-  --color-accent: #d9822b;
+  --color-surface-raised: #f9fbf8;
+  --color-panel: #101916;
+  --color-panel-soft: #1f302a;
+  --color-border: #c5d1c8;
+  --color-border-strong: #8fa196;
+  --color-text: #111a17;
+  --color-text-muted: #43544d;
+  --color-primary: #0f6658;
+  --color-primary-strong: #084d43;
+  --color-primary-soft: #dcefe8;
+  --color-accent: #b8661f;
   --color-accent-soft: #fff2df;
-  --color-info: #2d6cdf;
-  --color-success: #1d7a46;
-  --color-danger: #b63d36;
+  --color-info: #2458b8;
+  --color-success: #166b3c;
+  --color-danger: #a8322e;
   --color-danger-soft: #fff0ed;
   --shadow-xs: 0 1px 2px rgba(18, 28, 24, 0.06);
   --shadow-sm: 0 8px 22px rgba(18, 28, 24, 0.08);
@@ -36,8 +36,33 @@
   --system-execution-font-size: 32px;
 
   font-family: Inter, Arial, Helvetica, sans-serif;
+  color-scheme: light;
   color: var(--color-text);
   background: var(--color-bg);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="light"] :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,
+  select
+) {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+  color-scheme: light;
+}
+
+:root[data-theme="light"] input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 * {
@@ -46,9 +71,7 @@
 
 body {
   margin: 0;
-  background:
-    linear-gradient(180deg, #fbfdfb 0, var(--color-bg) 320px),
-    var(--color-bg);
+  background: var(--color-bg);
   color: var(--color-text);
   text-rendering: optimizeLegibility;
 }
@@ -6136,6 +6159,19 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   z-index: 2;
 }
 
+.repertorio-current-name,
+.form-hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.repertorio-current-name {
+  flex: 1 1 220px;
+  font-weight: 700;
+}
+
 .repertorio-inline-actions {
   display: flex;
   flex-wrap: wrap;
@@ -7175,12 +7211,10 @@ html {
   position: relative;
   overflow: hidden;
   margin-bottom: 0;
-  border: 1px solid rgba(184, 199, 189, 0.72);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 18px;
-  background:
-    linear-gradient(135deg, rgba(22, 117, 101, 0.12), rgba(255, 255, 255, 0.92) 48%, rgba(244, 168, 74, 0.12)),
-    var(--color-surface);
+  background: var(--color-surface-raised);
   box-shadow: var(--shadow-sm);
 }
 
@@ -7192,10 +7226,10 @@ html {
 
 .dashboard-kicker {
   width: fit-content;
-  border: 1px solid rgba(22, 117, 101, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-primary), var(--color-border) 45%);
   border-radius: 999px;
   padding: 5px 9px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--color-primary-soft);
   color: var(--color-primary-strong);
   font-size: 12px;
   font-weight: 800;
@@ -7205,10 +7239,10 @@ html {
 .dashboard-home-panel,
 .dashboard-workspace {
   min-width: 0;
-  border: 1px solid rgba(184, 199, 189, 0.72);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-surface-raised);
   box-shadow: var(--shadow-xs);
 }
 
@@ -7247,7 +7281,7 @@ html {
   min-width: 0;
   min-height: 92px;
   align-content: start;
-  border: 1px solid rgba(184, 199, 189, 0.72);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 13px;
   background: var(--color-surface);
@@ -7277,19 +7311,22 @@ html {
 }
 
 .dashboard-action-card--primary {
-  background: linear-gradient(180deg, rgba(22, 117, 101, 0.12), rgba(255, 255, 255, 0.94));
+  border-color: color-mix(in srgb, var(--color-primary), var(--color-border) 48%);
+  background: var(--color-surface);
 }
 
 .dashboard-action-card--secondary {
-  background: linear-gradient(180deg, rgba(48, 91, 184, 0.1), rgba(255, 255, 255, 0.94));
+  border-color: color-mix(in srgb, var(--color-info), var(--color-border) 48%);
+  background: var(--color-surface);
 }
 
 .dashboard-action-card--accent {
-  background: linear-gradient(180deg, rgba(244, 168, 74, 0.16), rgba(255, 255, 255, 0.94));
+  border-color: color-mix(in srgb, var(--color-accent), var(--color-border) 48%);
+  background: var(--color-surface);
 }
 
 .dashboard-action-card--neutral {
-  background: linear-gradient(180deg, rgba(102, 113, 105, 0.1), rgba(255, 255, 255, 0.94));
+  background: var(--color-surface);
 }
 
 .dashboard-home-grid {
@@ -7307,7 +7344,7 @@ html {
 .dashboard-home-item {
   display: grid;
   gap: 3px;
-  border: 1px solid rgba(184, 199, 189, 0.62);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 11px 12px;
   background: var(--color-bg-soft);
@@ -7472,12 +7509,10 @@ html {
   position: relative;
   overflow: hidden;
   margin-bottom: 0;
-  border: 1px solid rgba(184, 199, 189, 0.72);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 18px;
-  background:
-    linear-gradient(135deg, rgba(48, 91, 184, 0.12), rgba(255, 255, 255, 0.92) 46%, rgba(22, 117, 101, 0.12)),
-    var(--color-surface);
+  background: var(--color-surface-raised);
   box-shadow: var(--shadow-sm);
 }
 
@@ -7489,11 +7524,11 @@ html {
 
 .musicas-kicker {
   width: fit-content;
-  border: 1px solid rgba(48, 91, 184, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-info), var(--color-border) 45%);
   border-radius: 999px;
   padding: 5px 9px;
-  background: rgba(255, 255, 255, 0.78);
-  color: #305bb8;
+  background: var(--color-bg-soft);
+  color: var(--color-info);
   font-size: 12px;
   font-weight: 800;
   line-height: 1;
@@ -7501,9 +7536,9 @@ html {
 
 .music-library-panel,
 .music-editor-stage {
-  border-color: rgba(184, 199, 189, 0.72);
+  border-color: var(--color-border);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--color-surface-raised);
   box-shadow: var(--shadow-xs);
 }
 
@@ -7929,12 +7964,10 @@ html {
   position: relative;
   overflow: hidden;
   margin-bottom: 0;
-  border: 1px solid rgba(184, 199, 189, 0.72);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 18px;
-  background:
-    linear-gradient(135deg, rgba(22, 117, 101, 0.12), rgba(255, 255, 255, 0.92) 46%, rgba(48, 91, 184, 0.1)),
-    var(--color-surface);
+  background: var(--color-surface-raised);
   box-shadow: var(--shadow-sm);
 }
 
@@ -7946,10 +7979,10 @@ html {
 
 .repertorios-kicker {
   width: fit-content;
-  border: 1px solid rgba(22, 117, 101, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-primary), var(--color-border) 45%);
   border-radius: 999px;
   padding: 5px 9px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--color-primary-soft);
   color: var(--color-primary-strong);
   font-size: 12px;
   font-weight: 800;
@@ -7958,9 +7991,9 @@ html {
 
 .repertorio-library-panel,
 .repertorio-composer-stage {
-  border-color: rgba(184, 199, 189, 0.72);
+  border-color: var(--color-border);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--color-surface-raised);
   box-shadow: var(--shadow-xs);
 }
 
@@ -8815,89 +8848,336 @@ html {
   accent-color: var(--color-primary);
 }
 
+:root[data-theme="dark"] body {
+  background: var(--color-bg);
+}
+
+:root[data-theme="dark"] .main-nav {
+  border-bottom-color: var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+:root[data-theme="dark"] :where(
+  .main-menu-drawer,
+  .dashboard-hero,
+  .musicas-hero,
+  .repertorios-hero,
+  .dashboard-home-panel,
+  .dashboard-workspace,
+  .dashboard-search-column,
+  .music-search-panel,
+  .music-library-panel,
+  .music-editor-panel,
+  .music-editor-stage,
+  .repertorio-library-panel,
+  .repertorio-composer-stage,
+  .dashboard-selected-panel,
+  .repertorio-songs-panel,
+  .personalization-form,
+  .personalization-preview,
+  .public-invite-form,
+  .public-invites-list-panel,
+  .permissions-users-panel,
+  .permissions-editor-panel,
+  .user-search-panel,
+  .user-form-panel,
+  .editor-panel,
+  .suggestion-panel,
+  .account-summary,
+  .account-password-panel,
+  .password-reset-panel,
+  .system-state-card
+) {
+  border-color: var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+:root[data-theme="dark"] :where(
+  .dashboard-list-item,
+  .dashboard-action-card,
+  .dashboard-home-item,
+  .public-invite-card,
+  .permissions-user-item,
+  .user-search-item,
+  .song-search-item,
+  .selected-repertorio-song,
+  .account-summary p,
+  .data-table,
+  .search-results,
+  .song-search-results,
+  .user-search-results,
+  .chordpro-view,
+  .lyrics-view
+) {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] :where(
+  .dashboard-header p,
+  .musicas-header p,
+  .repertorios-header p,
+  .dashboard-panel-heading p,
+  .music-library-heading p,
+  .music-editor-heading p,
+  .repertorio-library-heading p,
+  .dashboard-action-card span,
+  .dashboard-home-item p,
+  .dashboard-list-item p,
+  .musica-result-card p,
+  .repertorio-result-card p,
+  .form-message,
+  .page-status,
+  .main-menu-header span,
+  .main-menu-section-title,
+  .user-email
+) {
+  color: var(--color-text-muted);
+}
+
+:root[data-theme="dark"] :where(
+  .dashboard-kicker,
+  .repertorios-kicker,
+  .music-library-mode,
+  .repertorio-library-mode,
+  .musica-result-meta span,
+  .repertorio-result-type
+) {
+  border-color: color-mix(in srgb, var(--color-primary-strong), var(--color-border) 42%);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+:root[data-theme="dark"] .musicas-kicker,
+:root[data-theme="dark"] .musica-result-type,
+:root[data-theme="dark"] .repertorio-result-meta span,
+:root[data-theme="dark"] .repertorio-stage-summary span {
+  border-color: color-mix(in srgb, var(--color-info), var(--color-border) 42%);
+  background: color-mix(in srgb, var(--color-info) 14%, var(--color-surface));
+  color: var(--color-info);
+}
+
+:root[data-theme="dark"] :where(
+  .form input,
+  .form textarea,
+  .form select,
+  .dashboard-search input,
+  .music-library-search input,
+  .repertorio-library-search input,
+  .lyrics-sort-control select,
+  .list-toolbar input,
+  .permissions-users-panel input,
+  .user-search-panel input,
+  .banda-standalone-search input,
+  .banda-control-grid input,
+  .banda-session-form input,
+  .chordpro-editor
+) {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #101412;
-    --color-bg-soft: #151c18;
-    --color-surface: #1b211e;
-    --color-surface-raised: #202823;
-    --color-panel: #eaf3ee;
-    --color-panel-soft: #d6e4dd;
-    --color-border: #334139;
-    --color-border-strong: #4b5c52;
-    --color-text: #edf4ef;
-    --color-text-muted: #aebbb4;
-    --color-primary: #61c4ae;
-    --color-primary-strong: #9bd8c9;
-    --color-primary-soft: #17372f;
-    --color-accent: #f4a84a;
-    --color-accent-soft: #3a2817;
-    --color-danger-soft: #3b1e1c;
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-bg: #0b100e;
+    --color-bg-soft: #111915;
+    --color-surface: #18211d;
+    --color-surface-raised: #202b25;
+    --color-panel: #f4fbf7;
+    --color-panel-soft: #d9e8df;
+    --color-border: #46574e;
+    --color-border-strong: #6f8278;
+    --color-text: #f4fbf7;
+    --color-text-muted: #c3d0c8;
+    --color-primary: #0f6658;
+    --color-primary-strong: #9de2d3;
+    --color-primary-soft: #13392f;
+    --color-accent: #ffb765;
+    --color-accent-soft: #3e2815;
+    --color-info: #9bbcff;
+    --color-success: #8bd7a6;
+    --color-danger: #ff9a91;
+    --color-danger-soft: #411f1d;
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.24);
     --shadow-sm: 0 10px 28px rgba(0, 0, 0, 0.28);
     --shadow-md: 0 20px 50px rgba(0, 0, 0, 0.36);
     --focus-ring: 0 0 0 3px rgba(97, 196, 174, 0.22);
   }
 
-  body {
+  :root:not([data-theme="light"]) body {
     background:
-      linear-gradient(180deg, #151c18 0, var(--color-bg) 320px),
       var(--color-bg);
   }
 
-  .main-nav {
+  :root:not([data-theme="light"]) .main-nav {
     border-bottom-color: rgba(51, 65, 57, 0.9);
     background: rgba(27, 33, 30, 0.92);
   }
 
-  .main-nav-brand,
-  .dashboard-header h1,
-  .musicas-header h1,
-  .user-form-panel h2,
-  .public-invite-card h3,
-  .system-state-card h1 {
+  :root:not([data-theme="light"]) .main-nav-brand,
+  :root:not([data-theme="light"]) .dashboard-header h1,
+  :root:not([data-theme="light"]) .musicas-header h1,
+  :root:not([data-theme="light"]) .user-form-panel h2,
+  :root:not([data-theme="light"]) .public-invite-card h3,
+  :root:not([data-theme="light"]) .system-state-card h1 {
     color: var(--color-panel);
   }
 
-  .main-menu-button,
-  .nav-button,
-  .button-link.secondary,
-  .theme-toggle-button,
-  .public-invite-card input[readonly] {
+  :root:not([data-theme="light"]) .main-menu-button,
+  :root:not([data-theme="light"]) .nav-button,
+  :root:not([data-theme="light"]) .button-link.secondary,
+  :root:not([data-theme="light"]) .theme-toggle-button,
+  :root:not([data-theme="light"]) .public-invite-card input[readonly] {
     background: var(--color-surface);
     color: var(--color-primary-strong);
   }
 
-  .main-menu-button span {
+  :root:not([data-theme="light"]) .main-menu-button span {
     background: var(--color-primary-strong);
   }
 
-  .dashboard-list-item,
-  .public-invite-card,
-  .permissions-user-item,
-  .user-search-item,
-  .song-search-item,
-  .account-summary p,
-  .data-table {
+  :root:not([data-theme="light"]) .dashboard-list-item,
+  :root:not([data-theme="light"]) .public-invite-card,
+  :root:not([data-theme="light"]) .permissions-user-item,
+  :root:not([data-theme="light"]) .user-search-item,
+  :root:not([data-theme="light"]) .song-search-item,
+  :root:not([data-theme="light"]) .account-summary p,
+  :root:not([data-theme="light"]) .data-table {
     background: var(--color-surface);
   }
 
-  .form input,
-  .form textarea,
-  .form select,
-  .dashboard-search input,
-  .lyrics-sort-control select {
-    background: #161d19;
+  :root:not([data-theme="light"]) .form input,
+  :root:not([data-theme="light"]) .form textarea,
+  :root:not([data-theme="light"]) .form select,
+  :root:not([data-theme="light"]) .dashboard-search input,
+  :root:not([data-theme="light"]) .music-library-search input,
+  :root:not([data-theme="light"]) .repertorio-library-search input,
+  :root:not([data-theme="light"]) .lyrics-sort-control select,
+  :root:not([data-theme="light"]) .list-toolbar input,
+  :root:not([data-theme="light"]) .permissions-users-panel input,
+  :root:not([data-theme="light"]) .user-search-panel input,
+  :root:not([data-theme="light"]) .banda-standalone-search input,
+  :root:not([data-theme="light"]) .banda-control-grid input,
+  :root:not([data-theme="light"]) .banda-session-form input,
+  :root:not([data-theme="light"]) .chordpro-editor {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface);
+    color: var(--color-text);
+    -webkit-text-fill-color: var(--color-text);
   }
 
-  .form-message.success:not(:empty) {
+  :root:not([data-theme="light"]) :where(
+    .dashboard-hero,
+    .musicas-hero,
+    .repertorios-hero,
+    .dashboard-home-panel,
+    .dashboard-workspace,
+    .dashboard-search-column,
+    .music-search-panel,
+    .music-library-panel,
+    .music-editor-panel,
+    .music-editor-stage,
+    .repertorio-library-panel,
+    .repertorio-composer-stage,
+    .dashboard-selected-panel,
+    .repertorio-songs-panel,
+    .personalization-form,
+    .personalization-preview,
+    .public-invite-form,
+    .public-invites-list-panel,
+    .permissions-users-panel,
+    .permissions-editor-panel,
+    .user-search-panel,
+    .user-form-panel,
+    .editor-panel,
+    .suggestion-panel,
+    .account-summary,
+    .account-password-panel,
+    .password-reset-panel,
+    .system-state-card
+  ) {
+    border-color: var(--color-border);
+    background: var(--color-surface-raised);
+  }
+
+  :root:not([data-theme="light"]) :where(
+    .dashboard-list-item,
+    .dashboard-action-card,
+    .dashboard-home-item,
+    .public-invite-card,
+    .permissions-user-item,
+    .user-search-item,
+    .song-search-item,
+    .selected-repertorio-song,
+    .account-summary p,
+    .data-table,
+    .search-results,
+    .song-search-results,
+    .user-search-results,
+    .chordpro-view,
+    .lyrics-view
+  ) {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  :root:not([data-theme="light"]) :where(
+    .dashboard-header p,
+    .musicas-header p,
+    .repertorios-header p,
+    .dashboard-panel-heading p,
+    .music-library-heading p,
+    .music-editor-heading p,
+    .repertorio-library-heading p,
+    .dashboard-action-card span,
+    .dashboard-home-item p,
+    .dashboard-list-item p,
+    .musica-result-card p,
+    .repertorio-result-card p,
+    .form-message,
+    .page-status,
+    .main-menu-header span,
+    .main-menu-section-title,
+    .user-email
+  ) {
+    color: var(--color-text-muted);
+  }
+
+  :root:not([data-theme="light"]) :where(
+    .dashboard-kicker,
+    .repertorios-kicker,
+    .music-library-mode,
+    .repertorio-library-mode,
+    .musica-result-meta span,
+    .repertorio-result-type
+  ) {
+    border-color: color-mix(in srgb, var(--color-primary-strong), var(--color-border) 42%);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+
+  :root:not([data-theme="light"]) .musicas-kicker,
+  :root:not([data-theme="light"]) .musica-result-type,
+  :root:not([data-theme="light"]) .repertorio-result-meta span,
+  :root:not([data-theme="light"]) .repertorio-stage-summary span {
+    border-color: color-mix(in srgb, var(--color-info), var(--color-border) 42%);
+    background: color-mix(in srgb, var(--color-info) 14%, var(--color-surface));
+    color: var(--color-info);
+  }
+
+  :root:not([data-theme="light"]) .form-message.success:not(:empty) {
     border-color: rgba(97, 196, 174, 0.28);
     background: #17372f;
     color: var(--color-primary-strong);
   }
 
-  .danger-button,
-  .button-link.danger {
+  :root:not([data-theme="light"]) .danger-button,
+  :root:not([data-theme="light"]) .button-link.danger {
     background: var(--color-danger-soft);
   }
 }
@@ -9090,4 +9370,48 @@ html[data-interface-density="compact"] .account-password-panel {
     grid-template-columns: 1fr;
     padding: 12px;
   }
+}
+
+/* Correção final para navegadores mobile que mantêm controles escuros no tema claro. */
+:root[data-effective-theme="light"] :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea,
+  select,
+  .chordpro-editor
+) {
+  border-color: var(--color-border-strong) !important;
+  background: var(--color-surface) !important;
+  background-color: var(--color-surface) !important;
+  background-image: none !important;
+  box-shadow: none;
+  color: var(--color-text) !important;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  -webkit-text-fill-color: var(--color-text) !important;
+  caret-color: var(--color-text);
+  color-scheme: light;
+}
+
+:root[data-effective-theme="light"] :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea,
+  select,
+  .chordpro-editor
+):focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--focus-ring) !important;
+  -webkit-box-shadow:
+    0 0 0 1000px var(--color-surface) inset,
+    var(--focus-ring) !important;
+  outline: 0;
+}
+
+:root[data-effective-theme="light"] :where(
+  input::placeholder,
+  textarea::placeholder
+) {
+  color: var(--color-text-muted) !important;
+  opacity: 1;
+  -webkit-text-fill-color: var(--color-text-muted) !important;
 }
