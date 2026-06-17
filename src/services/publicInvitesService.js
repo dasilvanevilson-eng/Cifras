@@ -228,6 +228,14 @@ export async function releasePublicBandaCoralLeader(token, clientId) {
   });
 }
 
+export async function resetPublicBandaCoralLeader(token, clientId) {
+  assertSupabaseConfig();
+  return supabase.rpc('reset_public_banda_coral_leader', {
+    p_token: token,
+    p_client_id: clientId,
+  });
+}
+
 export async function getPublicBandaCoralPresence(token) {
   assertSupabaseConfig();
   return supabase.rpc('get_public_banda_coral_presence', { p_token: token });

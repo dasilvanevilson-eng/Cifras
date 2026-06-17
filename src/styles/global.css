@@ -5705,6 +5705,11 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   font-weight: 700;
 }
 
+.public-banda-mode-switch {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .public-banda-leader-inline-status {
   margin: -6px 0 0;
   color: #6f6a60;

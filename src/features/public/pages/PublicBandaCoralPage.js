@@ -8,6 +8,7 @@ import {
   getPublicBandaCoralData,
   getPublicBandaCoralState,
   releasePublicBandaCoralLeader,
+  resetPublicBandaCoralLeader,
   updatePublicBandaCoralState,
 } from '../../../services/publicInvitesService.js';
 
@@ -69,6 +70,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let leaderPresence = getLeaderPresenceFromState(initialState);
   let leaderUser = currentUser || null;
   let leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
+  let leaderLoginAction = 'claim';
   let hasObservedLeaderPresence = false;
 
   wrapper.className = 'public-banda-shell';
@@ -81,6 +83,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       <div class="banda-mode-switch public-banda-mode-switch">
         <button class="nav-button" type="button" data-mode="lider">Lider</button>
         <button class="nav-button" type="button" data-mode="integrante">Integrante</button>
+        <button class="nav-button" type="button" data-action="reset-leader">Resetar Lider</button>
       </div>
       <p class="public-banda-leader-inline-status" data-role="leader-inline-status">Lider desconectado</p>
     </header>
@@ -163,6 +166,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const leaderLoginPassword = wrapper.querySelector('.public-banda-login-form input[name="password"]');
   const leaderLoginMessage = wrapper.querySelector('.public-banda-login-form .form-message');
   const leaderLoginSubmitButton = wrapper.querySelector('.public-banda-login-form button[type="submit"]');
+  const leaderLoginTitle = wrapper.querySelector('#public-banda-login-title');
+  const resetLeaderButton = wrapper.querySelector('[data-action="reset-leader"]');
   const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
   const executeTempRepertorioButton = wrapper.querySelector('[data-action="execute-temp-repertorio"]');
   const executeTempAcervoButton = wrapper.querySelector('[data-action="execute-temp-acervo"]');
@@ -243,6 +248,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     });
   });
 
+  resetLeaderButton?.addEventListener('click', () => {
+    openLeaderLogin({ action: 'reset' });
+  });
   wrapper.querySelector('[data-action="close-leader-login"]')?.addEventListener('click', closeLeaderLogin);
   leaderLoginModal?.addEventListener('click', (event) => {
     if (event.target === leaderLoginModal) {
@@ -635,10 +643,34 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     updateLeaderPresenceUi();
   }
 
-  function openLeaderLogin() {
+  async function resetLeaderRole() {
+    const { data, error } = await resetPublicBandaCoralLeader(token, clientId);
+    if (error || !data?.valid) {
+      throw new Error(error?.message || 'Nao foi possivel resetar o lider.');
+    }
+
+    forgetPublicBandaLeaderAuth(token);
+    leaderAuthenticatedForRoom = false;
+    leaderPresence = normalizeLeaderPresence(data.leader);
+    memberFollowingLeader = false;
+    lastMirroredStateKey = '';
+    stopMemberMirror();
+    updateMemberMirrorState();
+    updateLeaderPresenceUi();
+  }
+
+  function openLeaderLogin(options = {}) {
     if (!leaderLoginModal) return;
 
+    leaderLoginAction = options.action === 'reset' ? 'reset' : 'claim';
     const loggedEmail = String(leaderUser?.email || '').trim();
+    const isReset = leaderLoginAction === 'reset';
+    if (leaderLoginTitle) {
+      leaderLoginTitle.textContent = isReset ? 'Resetar Lider' : 'Entrar como Lider';
+    }
+    if (leaderLoginSubmitButton) {
+      leaderLoginSubmitButton.textContent = isReset ? 'Resetar Lider' : 'Entrar como Lider';
+    }
     if (leaderLoginEmailField) {
       leaderLoginEmailField.hidden = Boolean(loggedEmail);
     }
@@ -674,7 +706,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     leaderLoginSubmitButton.disabled = true;
     leaderLoginMessage.className = 'form-message';
-    leaderLoginMessage.textContent = 'Entrando...';
+    leaderLoginMessage.textContent = leaderLoginAction === 'reset' ? 'Resetando...' : 'Entrando...';
 
     try {
       const { data, error } = await signInWithPassword(email, password);
@@ -684,6 +716,18 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       }
 
       leaderUser = data?.user || await getCurrentUser();
+      if (leaderLoginAction === 'reset') {
+        await resetLeaderRole();
+        closeLeaderLogin();
+        await setMode('integrante', {
+          followLeader: false,
+          skipRelease: true,
+          skipCredentialPrompt: true,
+        });
+        showLeaderStatus('Lider resetado.');
+        return;
+      }
+
       const claimed = await claimLeaderRole();
       if (!claimed) {
         throw new Error('Nao foi possivel assumir a lideranca deste convite.');
@@ -743,6 +787,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       }
 
       hasObservedLeaderPresence = true;
+      if (wasLeaderActive && !isLeaderActive && currentMode === 'integrante' && memberFollowingLeader) {
+        await disconnectMemberFromLeader();
+      }
       updateLeaderPresenceUi();
       updateMemberMirrorState();
     }
@@ -780,6 +827,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   function updateLeaderPresenceUi() {
     const leaderButton = wrapper.querySelector('[data-mode="lider"]');
     const memberButton = wrapper.querySelector('[data-mode="integrante"]');
+    const resetButton = wrapper.querySelector('[data-action="reset-leader"]');
     const leaderIsThisClient = isCurrentLeader();
     const hasAnotherLeader = currentMode === 'integrante' && leaderPresence.active && !leaderIsThisClient;
     const offerMemberLeaderConnection = shouldOfferMemberLeaderConnection();
@@ -808,6 +856,14 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         ? 'Conectar ao Lider'
         : currentMode === 'lider' ? 'Desconectar como lider' : 'Entrar como integrante';
       memberButton.setAttribute('aria-label', memberButton.title);
+    }
+    if (resetButton) {
+      resetButton.hidden = !leaderPresence.active || leaderIsThisClient;
+      resetButton.disabled = !leaderPresence.active || leaderIsThisClient;
+      resetButton.title = leaderPresence.active
+        ? 'Resetar lider ausente'
+        : 'Nenhum lider conectado';
+      resetButton.setAttribute('aria-label', resetButton.title);
     }
     if (leaderInlineStatus) {
       leaderInlineStatus.textContent = leaderPresence.active
