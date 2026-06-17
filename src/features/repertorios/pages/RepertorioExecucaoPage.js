@@ -10,6 +10,7 @@ import {
   createPerformanceToolbar,
   fitCifraToWidth as fitPerformanceCifraToWidth,
   formatTransposeStatus as formatPerformanceTransposeStatus,
+  getCurrentPerformanceFontSize as getCurrentPerformanceFontSizeV2,
   getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize as setPerformanceFontSizeV2,
@@ -513,14 +514,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
   fontDownButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.max(8, fontSize - 1);
+    fontSize = Math.max(8, getCurrentPerformanceFontSizeV2(wrapper, fontSize) - 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     renderCurrentSong();
   });
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, fontSize + 1);
+    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, getCurrentPerformanceFontSizeV2(wrapper, fontSize) + 1);
     setPerformanceFontSizeV2(wrapper, fontSize);
     renderCurrentSong();
   });

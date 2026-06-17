@@ -23,6 +23,7 @@ import {
   createPerformanceToolbar,
   fitCifraToWidth,
   formatTransposeStatus,
+  getCurrentPerformanceFontSize,
   getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize,
@@ -987,14 +988,14 @@ function setupPerformanceControls(wrapper, options = {}) {
 
   fontDownButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.max(8, fontSize - 1);
+    fontSize = Math.max(8, getCurrentPerformanceFontSize(wrapper, fontSize) - 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderPerformance();
   });
 
   fontUpButton.addEventListener('click', () => {
     fitFontToMobileWidth = false;
-    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, fontSize + 1);
+    fontSize = Math.min(MAX_PERFORMANCE_FONT_SIZE, getCurrentPerformanceFontSize(wrapper, fontSize) + 1);
     setPerformanceFontSize(wrapper, fontSize);
     renderPerformance();
   });
