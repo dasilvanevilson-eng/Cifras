@@ -10,6 +10,7 @@ import {
   createPerformanceToolbar,
   fitCifraToWidth as fitPerformanceCifraToWidth,
   formatTransposeStatus as formatPerformanceTransposeStatus,
+  getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize as setPerformanceFontSizeV2,
   setPerformanceTheme as setPerformanceThemeV2,
@@ -490,15 +491,16 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
 
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  let fontSize = 32;
+  let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
   let fitFontToMobileWidth = true;
-  let twoColumns = false;
+  let twoColumns = getDefaultTwoColumnView();
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
   speedInput.value = savedSpeed;
   capoSelect.value = String(capo);
   setPerformanceThemeV2(wrapper, themeButton, theme);
   setPerformanceFontSizeV2(wrapper, fontSize);
+  setPerformanceTwoColumnView(wrapper, twoColumnsButton, twoColumns);
   renderCurrentSong();
   window.requestAnimationFrame(renderCurrentSong);
   window.setTimeout(renderCurrentSong, 0);
@@ -593,7 +595,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     if (nextSongIndex === currentSongIndex) return;
 
     currentSongIndex = nextSongIndex;
-    fontSize = 32;
+    fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
     fitFontToMobileWidth = true;
     renderCurrentSong();
     notifySongChange();

@@ -31,6 +31,9 @@
   --app-max-width: 1180px;
   --lyrics-execution-font: 'IBM Plex Mono', 'Courier New', monospace;
   --chords-execution-font: 'IBM Plex Mono', 'Courier New', monospace;
+  --chord-color: var(--color-accent);
+  --system-chord-font-size: 22px;
+  --system-execution-font-size: 32px;
 
   font-family: Inter, Arial, Helvetica, sans-serif;
   color: var(--color-text);
@@ -3106,7 +3109,7 @@ a {
 
 .repertorio-song-view .chordpro-view {
   font-family: var(--lyrics-execution-font);
-  font-size: var(--repertorio-song-font-size, 22px);
+  font-size: var(--repertorio-song-font-size, var(--system-execution-font-size));
   font-weight: 700;
   line-height: 1.35;
   white-space: pre;
@@ -3188,7 +3191,7 @@ a {
 
 .repertorio-song-view.is-dark .chord-token,
 .repertorio-song-view.is-dark .chord-line {
-  color: #ffad5a;
+  color: var(--chord-color);
 }
 
 .song-header p {
@@ -3252,9 +3255,9 @@ a {
   border: 1px solid #ddd6c8;
   border-radius: var(--border-radius-default);
   background: #ffffff;
-  font-family: Consolas, 'Courier New', monospace;
+  font-family: var(--lyrics-execution-font);
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--system-chord-font-size);
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -8973,5 +8976,118 @@ html {
   .account-password-panel .password-form,
   .password-reset-panel .password-form {
     max-width: none;
+  }
+}
+
+.personalization-form fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: var(--color-surface);
+}
+
+.personalization-form fieldset legend {
+  padding: 0 7px;
+  color: var(--color-primary-strong);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.personalization-form input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.personalization-chord-preview {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: var(--color-surface);
+}
+
+.personalization-chord-preview > span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.personalization-chord-preview pre {
+  overflow: auto;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  font-family: var(--preview-chord-font);
+  font-size: var(--preview-chord-font-size);
+  font-weight: 750;
+  line-height: 1.45;
+  white-space: pre;
+}
+
+.personalization-chord-preview [data-preview="chord"],
+.chord-token,
+.chord-line {
+  color: var(--chord-color);
+}
+
+html[data-interface-density="compact"] {
+  --tap-target: 38px;
+  --radius-lg: 10px;
+}
+
+html[data-interface-density="compact"] .page {
+  padding-top: 20px;
+}
+
+html[data-interface-density="compact"] .dashboard-header {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+}
+
+html[data-interface-density="compact"] .form,
+html[data-interface-density="compact"] .personalization-form fieldset,
+html[data-interface-density="compact"] .dashboard-grid,
+html[data-interface-density="compact"] .public-invites-layout,
+html[data-interface-density="compact"] .permissions-layout,
+html[data-interface-density="compact"] .account-layout {
+  gap: 10px;
+}
+
+html[data-interface-density="compact"] .dashboard-search-column,
+html[data-interface-density="compact"] .music-search-panel,
+html[data-interface-density="compact"] .music-editor-panel,
+html[data-interface-density="compact"] .dashboard-selected-panel,
+html[data-interface-density="compact"] .personalization-form,
+html[data-interface-density="compact"] .personalization-preview,
+html[data-interface-density="compact"] .public-invite-form,
+html[data-interface-density="compact"] .public-invites-list-panel,
+html[data-interface-density="compact"] .permissions-users-panel,
+html[data-interface-density="compact"] .permissions-editor-panel,
+html[data-interface-density="compact"] .user-search-panel,
+html[data-interface-density="compact"] .user-form-panel,
+html[data-interface-density="compact"] .suggestion-panel,
+html[data-interface-density="compact"] .account-summary,
+html[data-interface-density="compact"] .account-password-panel {
+  padding: 12px;
+}
+
+@media (max-width: 620px) {
+  .personalization-form fieldset {
+    grid-template-columns: 1fr;
+    padding: 12px;
   }
 }

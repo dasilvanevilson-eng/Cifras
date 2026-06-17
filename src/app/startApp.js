@@ -3,10 +3,12 @@ import { AppLayout } from '../components/layout/AppLayout.js';
 import { getCurrentUser, signOut } from '../services/authService.js';
 import { createDefaultProfile, getProfileByUserId } from '../services/profilesService.js';
 import { countSugestoesPendentes } from '../services/sugestoesMusicasService.js';
+import { getPublicSystemSettings } from '../services/settingsService.js';
 import { canEditContent } from '../features/auth/roles.js';
 import { resolvePermissions } from '../features/auth/permissions.js';
 import { listCurrentUserPermissionOverrides } from '../services/permissionsService.js';
 import { installYoutubeFloatingPlayer } from '../utils/youtubePlayer.js';
+import { applySystemSettings } from '../utils/systemSettings.js';
 
 export async function startApp() {
   const root = document.querySelector('#app');
@@ -16,6 +18,7 @@ export async function startApp() {
   }
 
   installYoutubeFloatingPlayer();
+  await loadAndApplySystemSettings();
 
   const session = await loadSession();
   const pendingSuggestionsCount = await loadPendingSuggestionsCount(session);
@@ -32,6 +35,15 @@ export async function startApp() {
       window.location.href = '/login';
     },
   }));
+}
+
+async function loadAndApplySystemSettings() {
+  try {
+    const { data } = await getPublicSystemSettings();
+    applySystemSettings(data);
+  } catch (_error) {
+    applySystemSettings();
+  }
 }
 
 async function loadPendingSuggestionsCount(session) {

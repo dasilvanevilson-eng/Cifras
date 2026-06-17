@@ -6,6 +6,15 @@ export const DEFAULT_SYSTEM_SETTINGS = {
   login_background_url: '/assets/login-background.jpg',
   primary_color: '#1d4f45',
   accent_color: '#c8792b',
+  theme_mode: 'auto',
+  chord_color: '#c8792b',
+  chord_font_family: 'ibm_plex_mono',
+  chord_font_size: 22,
+  interface_density: 'comfortable',
+  execution_theme: 'auto',
+  execution_font_size: 32,
+  execution_autoscroll_speed: 3,
+  execution_two_columns: false,
   show_app_name_on_login: true,
 };
 
@@ -101,7 +110,10 @@ function normalizeSettings(rows = []) {
 }
 
 function getSettingCategory(key) {
-  return key.includes('color') ? 'theme' : 'login';
+  if (key.startsWith('login_') || key === 'app_name' || key === 'show_app_name_on_login') return 'login';
+  if (key.startsWith('chord_')) return 'cifras';
+  if (key.startsWith('execution_')) return 'execucao';
+  return 'theme';
 }
 
 function getSettingLabel(key) {
@@ -111,6 +123,15 @@ function getSettingLabel(key) {
     login_background_url: 'Imagem de fundo do login',
     primary_color: 'Cor principal',
     accent_color: 'Cor de destaque',
+    theme_mode: 'Tema do sistema',
+    chord_color: 'Cor dos acordes',
+    chord_font_family: 'Fonte das cifras',
+    chord_font_size: 'Tamanho padrao da cifra',
+    interface_density: 'Densidade da interface',
+    execution_theme: 'Tema padrao da execucao',
+    execution_font_size: 'Fonte padrao da execucao',
+    execution_autoscroll_speed: 'Velocidade padrao da rolagem',
+    execution_two_columns: 'Duas colunas por padrao',
     show_app_name_on_login: 'Mostrar nome no login',
   };
 
@@ -124,6 +145,15 @@ function getSettingDescription(key) {
     login_background_url: 'URL publica ou caminho local da imagem de fundo.',
     primary_color: 'Cor principal para futuras personalizacoes visuais.',
     accent_color: 'Cor de destaque para futuras personalizacoes visuais.',
+    theme_mode: 'Define se a interface usa tema claro, escuro ou automatico.',
+    chord_color: 'Cor aplicada aos acordes nas cifras.',
+    chord_font_family: 'Fonte monoespacada usada nas cifras para preservar alinhamento.',
+    chord_font_size: 'Tamanho visual padrao usado para leitura de cifras.',
+    interface_density: 'Controla espacamentos gerais da interface.',
+    execution_theme: 'Tema inicial do modo execucao para usuarios sem preferencia local.',
+    execution_font_size: 'Tamanho inicial da fonte no modo execucao.',
+    execution_autoscroll_speed: 'Velocidade inicial da rolagem automatica.',
+    execution_two_columns: 'Preferencia visual para leitura em duas colunas.',
     show_app_name_on_login: 'Controla se o nome do sistema aparece sobre a tela inicial.',
   };
 

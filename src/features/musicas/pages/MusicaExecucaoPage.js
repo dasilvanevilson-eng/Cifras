@@ -5,6 +5,7 @@ import {
   createPerformanceToolbar,
   fitCifraToWidth,
   formatTransposeStatus,
+  getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize,
   setPerformanceTheme,
@@ -89,9 +90,9 @@ function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } 
   let scrollTimer = null;
   let semitones = 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
-  let fontSize = 32;
+  let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
   let fitFontToMobileWidth = true;
-  let twoColumns = false;
+  let twoColumns = getDefaultTwoColumnView();
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
 
@@ -99,6 +100,7 @@ function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } 
   capoSelect.value = String(capo);
   setPerformanceTheme(wrapper, themeButton, theme);
   setPerformanceFontSize(wrapper, fontSize);
+  setTwoColumnView(wrapper, twoColumnsButton, twoColumns);
   renderPerformance();
   window.requestAnimationFrame(renderPerformance);
 

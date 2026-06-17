@@ -5,6 +5,7 @@ import {
   createPerformanceToolbar,
   fitCifraToWidth,
   formatTransposeStatus,
+  getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize,
   setPerformanceTheme,
@@ -126,14 +127,15 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
   let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
-  let fontSize = 32;
+  let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
   let fitFontToMobileWidth = true;
-  let twoColumns = false;
+  let twoColumns = getDefaultTwoColumnView();
 
   speedInput.value = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
   capoSelect.value = String(capo);
   setPerformanceTheme(wrapper, themeButton, theme);
   setPerformanceFontSize(wrapper, fontSize);
+  setTwoColumnView(wrapper, twoColumnsButton, twoColumns);
   renderCurrentSong();
   window.requestAnimationFrame(renderCurrentSong);
 
@@ -216,7 +218,7 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
 
   function goToSong(direction) {
     currentSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
-    fontSize = 32;
+    fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
     fitFontToMobileWidth = true;
     renderCurrentSong();
   }

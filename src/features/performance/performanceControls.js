@@ -97,6 +97,19 @@ export function setTwoColumnView(wrapper, button, enabled) {
   button.textContent = enabled ? '1 col' : '2 col';
   button.title = enabled ? 'Visualizacao em uma coluna' : 'Visualizacao em duas colunas';
   button.setAttribute('aria-label', button.title);
+  try {
+    window.localStorage.setItem('masterCifras.performanceTwoColumns', enabled ? 'true' : 'false');
+  } catch (_error) {
+    // A preferencia visual continua na tela atual mesmo sem localStorage.
+  }
+}
+
+export function getDefaultTwoColumnView() {
+  try {
+    return window.localStorage.getItem('masterCifras.performanceTwoColumns') === 'true';
+  } catch (_error) {
+    return false;
+  }
 }
 
 export function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontToMobileWidth) {
