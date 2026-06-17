@@ -1,4 +1,4 @@
-import { getChordDictionary } from '../data/chordDictionary.js';
+import { filterChordsByName, getChordDictionary } from '../data/chordDictionary.js';
 
 const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
 
@@ -41,8 +41,7 @@ export function DicionarioAcordesPage() {
   function render() {
     const query = normalizeText(searchInput.value);
     const shouldShowBarre = barreInput.checked;
-    const filtered = chords
-      .filter((chord) => !query || chord.nameSearchText.includes(query))
+    const filtered = filterChordsByName(chords, query)
       .filter((chord) => hasBarre(chord) === shouldShowBarre)
       .sort(compareChordPosition)
       .slice(0, 96);

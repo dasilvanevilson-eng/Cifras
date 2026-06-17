@@ -146,7 +146,17 @@ export function getChordDictionary() {
 
 export function getChordByName(name) {
   const normalized = normalizeChordName(name);
-  return getChordDictionary().filter((chord) => chord.nameSearchText.includes(normalized));
+  return filterChordsByName(getChordDictionary(), normalized);
+}
+
+export function filterChordsByName(chords, name) {
+  const normalized = normalizeChordName(name);
+  if (!normalized) return chords;
+
+  const exactMatches = chords.filter((chord) => chord.exactSearchTerms.includes(normalized));
+  return exactMatches.length
+    ? exactMatches
+    : chords.filter((chord) => chord.nameSearchText.includes(normalized));
 }
 
 function createChord(root, suffix) {
@@ -191,6 +201,10 @@ function transposeTemplate(root, quality, template) {
       name,
       ...rootAliases.map((alias) => `${alias}${quality.suffix}`),
     ].join(' ')),
+    exactSearchTerms: [
+      name,
+      ...rootAliases.map((alias) => `${alias}${quality.suffix}`),
+    ].map(normalizeChordName),
   };
 }
 
