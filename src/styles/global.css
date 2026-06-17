@@ -6693,12 +6693,14 @@ html {
 
 .main-menu-backdrop {
   background: rgba(13, 22, 19, 0.48);
+  z-index: 220;
 }
 
 .main-menu-drawer {
   border: 1px solid rgba(184, 199, 189, 0.78);
   background: var(--color-surface-raised);
   box-shadow: var(--shadow-md);
+  z-index: 230;
   width: max-content;
   min-width: 260px;
   max-width: calc(100vw - 20px);
@@ -9383,6 +9385,202 @@ html[data-interface-density="compact"] .account-password-panel {
   .personalization-form fieldset {
     grid-template-columns: 1fr;
     padding: 12px;
+  }
+}
+
+.chord-dictionary-page {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 1240px);
+}
+
+.chord-dictionary-header {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.chord-dictionary-tools {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(120px, 180px) minmax(180px, 260px);
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-xs);
+}
+
+.chord-dictionary-tools label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.chord-dictionary-tools input,
+.chord-dictionary-tools select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.chord-dictionary-tools input:focus,
+.chord-dictionary-tools select:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+  outline: 0;
+}
+
+.chord-dictionary-results {
+  min-width: 0;
+}
+
+.chord-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.chord-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.chord-card header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.chord-card h2 {
+  margin: 0;
+  color: var(--color-panel);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.chord-card p {
+  margin: 5px 0 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.chord-card header > span {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 5px 8px;
+  background: var(--color-bg-soft);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.chord-diagram {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 6px 8px;
+  align-items: start;
+}
+
+.chord-strings {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.chord-board {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: 22px repeat(5, 32px);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent calc((100% - 5px) / 6), var(--color-border) calc((100% - 5px) / 6), var(--color-border) calc((100% - 5px) / 6 + 1px)),
+    var(--color-surface-raised);
+}
+
+.chord-string-state {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chord-fret-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+}
+
+.chord-fret-cell:nth-child(6n + 7) {
+  border-left: 0;
+}
+
+.chord-fret-cell span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.chord-fret-labels {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: repeat(5, 32px);
+  padding-top: 22px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.chord-fret-labels span {
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 720px) {
+  .chord-dictionary-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .chord-card-grid {
+    grid-template-columns: 1fr;
   }
 }
 
