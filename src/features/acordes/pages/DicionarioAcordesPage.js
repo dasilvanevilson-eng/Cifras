@@ -1,4 +1,4 @@
-import { filterChordsByName, getChordDictionary } from '../data/chordDictionary.js';
+import { findChordVoicings, getChordDictionarySize } from '../data/chordDictionary.js';
 
 const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
 
@@ -6,7 +6,7 @@ export function DicionarioAcordesPage() {
   const page = document.createElement('section');
   page.className = 'page chord-dictionary-page';
 
-  const chords = getChordDictionary();
+  const chordTypeCount = getChordDictionarySize();
 
   page.innerHTML = `
     <header class="dashboard-header chord-dictionary-header">
@@ -16,7 +16,7 @@ export function DicionarioAcordesPage() {
         <p>Digite o acorde desejado para ver todos os formatos disponiveis no braco do violao.</p>
       </div>
       <div class="dashboard-summary">
-        <span><strong>${chords.length}</strong> posicoes</span>
+        <span><strong>${chordTypeCount}</strong> acordes</span>
       </div>
     </header>
 
@@ -40,14 +40,18 @@ export function DicionarioAcordesPage() {
 
   function render() {
     const query = normalizeText(searchInput.value);
+    if (!query) {
+      results.replaceChildren(createEmptyState('Digite um acorde para visualizar as posicoes no braco.'));
+      return;
+    }
+
     const shouldIncludeBarre = barreInput.checked;
-    const filtered = filterChordsByName(chords, query)
+    const filtered = findChordVoicings(query)
       .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
-      .sort(compareChordPosition)
-      .slice(0, 96);
+      .sort(compareChordPosition);
 
     if (!filtered.length) {
-      results.replaceChildren(createEmptyState());
+      results.replaceChildren(createEmptyState('Nenhum acorde encontrado para esta busca.'));
       return;
     }
 
@@ -92,7 +96,9 @@ function hasBarre(chord) {
 function compareChordPosition(a, b) {
   return getFirstPositiveFret(a) - getFirstPositiveFret(b)
     || a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
-    || a.shape.localeCompare(b.shape, 'pt-BR', { sensitivity: 'base' });
+    || (a.lastFret || 0) - (b.lastFret || 0)
+    || (b.playedStringCount || 0) - (a.playedStringCount || 0)
+    || a.id.localeCompare(b.id, 'pt-BR', { sensitivity: 'base' });
 }
 
 function getFirstPositiveFret(chord) {
@@ -212,10 +218,10 @@ function getFretNotePosition(fretOffset, fretCount) {
   return ((fretOffset + 0.5) / fretCount) * 100;
 }
 
-function createEmptyState() {
+function createEmptyState(message) {
   const state = document.createElement('p');
   state.className = 'page-status';
-  state.textContent = 'Nenhum acorde encontrado para esta busca.';
+  state.textContent = message;
   return state;
 }
 
