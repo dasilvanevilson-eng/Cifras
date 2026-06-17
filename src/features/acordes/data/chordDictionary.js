@@ -14,7 +14,7 @@ const ROOTS = [
 ];
 
 const ROOT_INDEX = Object.fromEntries(ROOTS.map((root, index) => [root.name, index]));
-const MAX_FRET = 15;
+const MAX_FRET = 20;
 
 export const CHORD_ROOTS = ROOTS.map((root) => root.name);
 
@@ -47,11 +47,27 @@ const BASE_VOICINGS = {
   '': [
     { root: 'A', frets: [-1, 0, 2, 2, 2, 0] },
     { root: 'C', frets: [-1, 3, 2, 0, 1, 0] },
+    { root: 'C', frets: [-1, 3, 2, 0, 1, 3] },
+    { root: 'C', frets: [-1, 3, 2, 0, 5, 3] },
     { root: 'D', frets: [-1, -1, 0, 2, 3, 2] },
     { root: 'E', frets: [0, 2, 2, 1, 0, 0] },
     { root: 'F', frets: [1, 3, 3, 2, 1, 1] },
     { root: 'G', frets: [3, 2, 0, 0, 0, 3] },
     { root: 'G', frets: [3, 2, 0, 0, 3, 3] },
+    { root: 'C', frets: [-1, 3, 5, 5, 5, -1] },
+    { root: 'C', frets: [-1, 3, 5, 5, 5, 3] },
+    { root: 'C', frets: [8, 7, 5, 5, 5, 8] },
+    { root: 'C', frets: [8, 10, 10, 9, 8, 8] },
+    { root: 'C', frets: [-1, 10, 10, 9, 8, 8] },
+    { root: 'C', frets: [-1, 10, 10, 9, 8, -1] },
+    { root: 'C', frets: [-1, -1, 10, 9, 8, 8] },
+    { root: 'C', frets: [-1, -1, 10, 12, 13, 12] },
+    { root: 'C', frets: [12, 15, 14, 12, 13, 12] },
+    { root: 'C', frets: [-1, 15, 14, 12, 13, 12] },
+    { root: 'C', frets: [-1, 15, 17, 17, 17, -1] },
+    { root: 'C', frets: [-1, 15, 17, 17, 17, 15] },
+    { root: 'C', frets: [20, 19, 17, 17, 17, 20] },
+    { root: 'C', frets: [20, -1, 17, 17, 17, 20] },
   ],
   m: [
     { root: 'A', frets: [-1, 0, 2, 2, 1, 0] },
@@ -285,7 +301,7 @@ function transposeVoicing(voicing, targetRoot) {
   return {
     frets,
     fingers: assignFingers(frets),
-    baseFret: positiveFrets.length ? Math.max(1, Math.min(...positiveFrets)) : 1,
+    baseFret: frets.includes(0) || !positiveFrets.length ? 1 : Math.min(...positiveFrets),
     firstFret: positiveFrets.length ? Math.min(...positiveFrets) : 0,
     lastFret: positiveFrets.length ? Math.max(...positiveFrets) : 0,
     playedStringCount: frets.filter((fret) => fret >= 0).length,
@@ -305,7 +321,7 @@ function assignFingers(frets) {
   });
 
   const barreFrets = [...positiveGroups.entries()]
-    .filter(([, strings]) => strings.length >= 2)
+    .filter(([fret, strings]) => isBarreGroup(frets, fret, strings))
     .map(([fret]) => fret)
     .sort((a, b) => a - b);
   const mainBarre = barreFrets[0] || null;
@@ -316,17 +332,26 @@ function assignFingers(frets) {
     });
   }
 
+  let nextFinger = mainBarre ? 2 : 1;
   [...positiveGroups.keys()]
     .filter((fret) => fret !== mainBarre)
     .sort((a, b) => a - b)
-    .forEach((fret, index) => {
-      const finger = Math.min(index + (mainBarre ? 2 : 1), 4);
+    .forEach((fret) => {
       positiveGroups.get(fret).forEach((stringIndex) => {
-        fingers[stringIndex] = finger;
+        fingers[stringIndex] = Math.min(nextFinger, 4);
+        nextFinger += 1;
       });
     });
 
   return fingers;
+}
+
+function isBarreGroup(frets, fret, strings) {
+  if (strings.length < 2) return false;
+
+  const start = Math.min(...strings);
+  const end = Math.max(...strings);
+  return frets.slice(start, end + 1).every((value) => value >= fret);
 }
 
 function createChordRecord({ root, quality, rootAliases, name, voicing, index }) {
