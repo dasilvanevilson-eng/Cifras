@@ -110,7 +110,7 @@ const TEMPLATES = {
   ],
   9: [
     { shape: 'E9', rootString: 6, frets: [0, 2, 0, 1, 0, 2], fingers: [1, 3, 1, 2, 1, 4] },
-    { shape: 'A9', rootString: 5, frets: [-1, 0, 2, 0, 0, 0], fingers: [0, 1, 3, 1, 1, 1] },
+    { shape: 'A9', rootString: 5, frets: [-1, 0, 2, 2, 0, 0], fingers: [0, 1, 2, 3, 1, 1] },
   ],
   m9: [
     { shape: 'Em9', rootString: 6, frets: [0, 2, 0, 0, 0, 2], fingers: [1, 3, 1, 1, 1, 4] },
