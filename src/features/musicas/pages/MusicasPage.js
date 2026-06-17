@@ -29,8 +29,8 @@ export async function MusicasPage({ session } = {}) {
     <section class="music-search-panel music-library-panel">
       <div class="music-library-heading">
         <div>
-          <h2>Encontrar cifra</h2>
-          <p>Pesquise por titulo, artista, tag ou trecho da letra.</p>
+          <h2>Buscar ou criar cifra</h2>
+          <p>${canEdit ? 'Digite o titulo: se existir, selecione para editar; se nao existir, o formulario abaixo vira uma nova inclusao.' : 'Pesquise por titulo, artista, tag ou trecho da letra.'}</p>
         </div>
         <span class="music-library-mode">${canEdit ? 'Modo edicao' : 'Modo execucao'}</span>
       </div>
@@ -43,7 +43,7 @@ export async function MusicasPage({ session } = {}) {
         <div class="music-editor-heading">
           <div>
             <h2>${canEdit ? 'Cadastro e revisao' : 'Acesso restrito'}</h2>
-            <p>${canEdit ? 'Selecione uma cifra acima para editar ou preencha o formulario para criar uma nova.' : 'Seu perfil pode consultar e executar, mas nao alterar o acervo.'}</p>
+            <p>${canEdit ? 'Use o campo acima para buscar uma cifra existente ou iniciar uma nova.' : 'Seu perfil pode consultar e executar, mas nao alterar o acervo.'}</p>
           </div>
         </div>
         <div class="form-slot"></div>
@@ -55,6 +55,7 @@ export async function MusicasPage({ session } = {}) {
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
   const musicasCount = page.querySelector('[data-count="musicas"]');
+  let pendingNewMusicaTitle = '';
 
   try {
     const { data, error } = await listMusicas();
@@ -76,6 +77,7 @@ export async function MusicasPage({ session } = {}) {
         selectedMusica: pendingSugestaoMusica || null,
         pendingSugestao,
         session,
+        hideTitleField: true,
       });
     } else {
       formSlot.append(createReadOnlyNotice(
@@ -88,16 +90,27 @@ export async function MusicasPage({ session } = {}) {
       ));
     }
 
-    if (!musicas.length) {
+    if (!musicas.length && !canEdit) {
       status.textContent = 'Nenhuma musica cadastrada ainda.';
       return page;
     }
 
     listSlot.replaceChildren(createMusicasBrowser(musicas, {
       canEdit,
-      onSelect: (musica) => {
+      onCreateDraft: (title) => {
+        pendingNewMusicaTitle = title.trim();
         clearPendingSugestaoMusica();
-        renderForm(formSlot, { musicas, selectedMusica: musica, session });
+        renderForm(formSlot, {
+          musicas,
+          initialTitle: pendingNewMusicaTitle,
+          session,
+          hideTitleField: true,
+        });
+      },
+      onSelect: (musica) => {
+        pendingNewMusicaTitle = '';
+        clearPendingSugestaoMusica();
+        renderForm(formSlot, { musicas, selectedMusica: musica, session, hideTitleField: true });
         window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
       },
     }));
@@ -109,13 +122,13 @@ export async function MusicasPage({ session } = {}) {
   return page;
 }
 
-function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, session = {} }) {
+function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, initialTitle = '', session = {}, hideTitleField = false }) {
   const initialValues = pendingSugestao || selectedMusica || {};
   const reviewerName = getReviewerName(session);
 
   formSlot.replaceChildren(MusicaForm({
     initialValues: {
-      titulo: initialValues.titulo || '',
+      titulo: initialValues.titulo || initialTitle || '',
       artista: initialValues.artista || '',
       tom: initialValues.tom || '',
       tags: initialValues.tags || '',
@@ -128,9 +141,10 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
     },
     submitLabel: selectedMusica ? 'Salvar alteracoes' : 'Salvar musica',
     canDelete: Boolean(selectedMusica),
+    hideTitleField,
     onClear: () => {
       clearPendingSugestaoMusica();
-      renderForm(formSlot, { musicas, session });
+      renderForm(formSlot, { musicas, session, hideTitleField });
     },
     onDelete: selectedMusica
       ? async () => {
@@ -141,7 +155,7 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
         }
 
         removeMusicaFromList(musicas, selectedMusica.id);
-        renderForm(formSlot, { musicas, session });
+        renderForm(formSlot, { musicas, session, hideTitleField });
         return true;
       }
       : null,
@@ -293,12 +307,16 @@ function createReadOnlyNotice(text, items = []) {
 function createMusicasBrowser(musicas, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser musicas-browser';
+  const editableHint = options.canEdit
+    ? 'Digite um titulo para buscar. Se nenhuma cifra existir com esse titulo, ela sera preparada como nova cifra.'
+    : 'Digite um titulo, artista, tag ou trecho para buscar cifras.';
   wrapper.innerHTML = `
     <div class="list-toolbar">
       <label class="music-library-search">
-        <span>Buscar no acervo</span>
-        <input class="search-input" type="search" placeholder="Titulo, artista ou trecho da cifra">
+        <span>${options.canEdit ? 'Titulo da cifra' : 'Buscar no acervo'}</span>
+        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Digite o titulo da cifra' : 'Titulo, artista ou trecho da cifra'}" aria-describedby="music-search-help">
       </label>
+      <p class="form-hint" id="music-search-help">${editableHint}</p>
     </div>
     <div class="table-slot search-results" hidden></div>
   `;
@@ -306,24 +324,57 @@ function createMusicasBrowser(musicas, options = {}) {
   const searchInput = wrapper.querySelector('.search-input');
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
+  let currentResults = [];
+  let createDraftTimer = null;
+  let lastDraftTitle = '';
+
+  function getSearchValue() {
+    return searchInput.value.trim();
+  }
+
+  function findExactMusica(value) {
+    const query = normalizeText(value);
+    if (!query) return null;
+
+    return musicas.find((musica) => normalizeText(getField(musica, ['titulo', 'nome', 'title'])) === query) || null;
+  }
+
+  function scheduleCreateDraft() {
+    if (!options.onCreateDraft) return;
+
+    window.clearTimeout(createDraftTimer);
+    createDraftTimer = window.setTimeout(() => {
+      const value = getSearchValue();
+      const exactMatch = findExactMusica(value);
+
+      if (!value || exactMatch || normalizeText(value) === normalizeText(lastDraftTitle)) return;
+
+      lastDraftTitle = value;
+      options.onCreateDraft(value);
+    }, 220);
+  }
 
   function render() {
     const query = normalizeText(searchInput.value);
-    const filtered = musicas
+    currentResults = musicas
       .filter((musica) => matchesSearch(musica, query))
       .sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
 
-    if (!filtered.length) {
+    if (!currentResults.length) {
       const empty = document.createElement('p');
       empty.className = 'page-status';
-      empty.textContent = 'Nenhuma musica encontrada para esta busca.';
+      empty.textContent = options.canEdit
+        ? 'Nenhuma cifra encontrada. O formulario abaixo sera preparado para incluir este titulo.'
+        : 'Nenhuma musica encontrada para esta busca.';
       tableSlot.replaceChildren(empty);
       return;
     }
 
-    tableSlot.replaceChildren(createMusicasTable(filtered, {
+    tableSlot.replaceChildren(createMusicasTable(currentResults, {
       ...options,
       onSelect: (musica) => {
+        window.clearTimeout(createDraftTimer);
+        lastDraftTitle = '';
         searchInput.value = getField(musica, ['titulo', 'nome', 'title']);
         tableSlot.hidden = true;
 
@@ -334,8 +385,13 @@ function createMusicasBrowser(musicas, options = {}) {
     }));
   }
 
-  searchInput.addEventListener('input', render);
+  searchInput.addEventListener('input', () => {
+    render();
+    tableSlot.hidden = false;
+    scheduleCreateDraft();
+  });
   searchInput.addEventListener('focus', () => {
+    render();
     tableSlot.hidden = false;
   });
   searchInput.addEventListener('blur', () => {
@@ -353,6 +409,29 @@ function createMusicasBrowser(musicas, options = {}) {
     isPointerInsideResults = false;
 
     if (document.activeElement !== searchInput) {
+      tableSlot.hidden = true;
+    }
+  });
+  searchInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+
+    event.preventDefault();
+
+    if (currentResults.length) {
+      const exactMatch = findExactMusica(getSearchValue());
+      const selectedMusica = exactMatch || currentResults[0];
+      window.clearTimeout(createDraftTimer);
+      lastDraftTitle = '';
+      searchInput.value = getField(selectedMusica, ['titulo', 'nome', 'title']);
+      tableSlot.hidden = true;
+      options.onSelect?.(selectedMusica);
+      return;
+    }
+
+    if (options.onCreateDraft && getSearchValue()) {
+      window.clearTimeout(createDraftTimer);
+      lastDraftTitle = getSearchValue();
+      options.onCreateDraft(getSearchValue());
       tableSlot.hidden = true;
     }
   });

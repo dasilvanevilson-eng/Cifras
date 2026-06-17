@@ -4335,6 +4335,18 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   grid-column: span 2;
 }
 
+.musica-current-title {
+  grid-column: 1 / -1;
+}
+
+.musica-form.is-title-unified label:nth-of-type(4) {
+  grid-column: 1 / -1;
+}
+
+.musica-form.is-title-unified label:nth-of-type(5) {
+  grid-column: span 2;
+}
+
 .musica-form label:nth-of-type(5),
 .cifra-editor-grid,
 .music-form-actions,
@@ -6160,6 +6172,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 }
 
 .repertorio-current-name,
+.musica-current-title,
 .form-hint {
   margin: 0;
   color: var(--color-text-muted);
@@ -6167,7 +6180,8 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   line-height: 1.35;
 }
 
-.repertorio-current-name {
+.repertorio-current-name,
+.musica-current-title {
   flex: 1 1 220px;
   font-weight: 700;
 }

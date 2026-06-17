@@ -11,12 +11,19 @@ export function MusicaForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
   const initialChordPro = getInitialChordPro(initialValues);
-  form.className = 'form musica-form';
+  const hideTitleField = Boolean(options.hideTitleField);
+  const titleValue = initialValues.titulo || '';
+  form.className = `form musica-form${hideTitleField ? ' is-title-unified' : ''}`;
   form.innerHTML = `
-    <label>
-      Titulo
-      <input name="titulo" type="text" required value="${escapeHtml(initialValues.titulo || '')}">
-    </label>
+    ${hideTitleField ? `
+      <input name="titulo" type="hidden" required value="${escapeHtml(titleValue)}">
+      <p class="musica-current-title">${escapeHtml(titleValue ? `Titulo: ${titleValue}` : 'Digite um titulo no campo acima para iniciar.')}</p>
+    ` : `
+      <label>
+        Titulo
+        <input name="titulo" type="text" required value="${escapeHtml(titleValue)}">
+      </label>
+    `}
 
     <label>
       Artista
@@ -223,7 +230,12 @@ export function MusicaForm(options = {}) {
     message.textContent = 'Salvando...';
 
     try {
-      await options.onSubmit(getFormValues(form));
+      const values = getFormValues(form);
+      if (!values.titulo) {
+        throw new Error('Digite o titulo da cifra no campo de busca acima.');
+      }
+
+      await options.onSubmit(values);
 
       if (!options.keepValuesAfterSubmit) {
         clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
