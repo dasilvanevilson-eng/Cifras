@@ -133,6 +133,74 @@ Possibilidades futuras:
 - preferencias do modo execucao;
 - preferencias de tela publica.
 
+### Registro de continuidade - atualizacoes recentes
+
+Esta secao resume o estado recente para retomar o trabalho em uma proxima conversa.
+
+#### Link publico Banda/Coral
+
+- Adicionada a migration `supabase/migrations/043_public_banda_reset_leader.sql`.
+- Criada a RPC `reset_public_banda_coral_leader`, que exige usuario autenticado e simula a desconexao do lider do convite publico.
+- No link publico Banda/Coral, quando ja existe lider conectado, o integrante nao deve ter a opcao `Lider`; a opcao disponivel deve ser `Resetar Lider`.
+- O integrante passou a seguir automaticamente o lider quando ja houver lider conectado, ou quando o lider conectar depois com o integrante ja na tela.
+- O espelhamento do integrante foi ajustado para ser mais tolerante quando a RPC de estado nao retornar `is_stage_active`, mas ainda respeita `is_stage_active = false`.
+- Arquivos principais envolvidos:
+  - `src/features/public/pages/PublicBandaCoralPage.js`;
+  - `src/services/publicInvitesService.js`;
+  - `supabase/migrations/043_public_banda_reset_leader.sql`.
+
+#### Personalizacao visual
+
+- A tela `Personalizacao` foi ampliada com grupos de configuracao:
+  - Identidade;
+  - Tema;
+  - Cifras;
+  - Modo execucao.
+- Foram adicionadas preferencias globais:
+  - tema do sistema: automatico, claro ou escuro;
+  - densidade visual: confortavel ou compacta;
+  - cor principal;
+  - cor de destaque;
+  - cor dos acordes;
+  - fonte monoespacada das cifras;
+  - tamanho padrao das cifras;
+  - tema padrao do modo execucao;
+  - tamanho inicial da fonte no modo execucao;
+  - velocidade padrao da rolagem;
+  - preferencia por duas colunas em telas grandes.
+- As fontes das cifras devem permanecer sempre monoespacadas para evitar desalinhamento.
+- Criado o utilitario `src/utils/systemSettings.js` para aplicar configuracoes visuais via CSS variables no carregamento do app.
+- Criada a migration `supabase/migrations/044_seed_extended_system_settings.sql` para popular as novas chaves de configuracao.
+- O ajuste `A-` e `A+` no modo execucao agora parte do tamanho real atualmente aplicado na tela, incluindo quando a fonte foi reduzida automaticamente para caber no mobile.
+
+#### Reestilizacao recente
+
+- Telas de Sugestoes, Minha conta, Alterar senha, Acesso negado e Pagina nao encontrada receberam camada visual mais consistente.
+- O `global.css` recebeu refinamentos para cards, formularios, mensagens, estados, responsividade, modo escuro automatico e densidade compacta.
+- A direcao continua sendo preservar a logica atual e evoluir visualmente sem refatoracoes grandes desnecessarias.
+
+#### Permissoes detalhadas e futuro comercial
+
+- Foi discutido evoluir a tela de Permissoes para refletir acoes reais do sistema, em vez de permissoes genericas.
+- Recomendacao de ordem:
+  1. primeiro evoluir permissoes detalhadas por modulo/acao;
+  2. depois pensar em estrutura comercial multi-tenant;
+  3. por ultimo adicionar Admin Master, organizacoes/clientes, planos e cobranca.
+- A futura estrutura comercial provavelmente tera:
+  - `Admin Master` da plataforma;
+  - organizacoes/clientes isolados;
+  - administradores por organizacao;
+  - dados separados por `organizacao_id`;
+  - politicas RLS fortes no Supabase;
+  - planos por modulo/limite de uso.
+
+#### Validacao recente
+
+- As rodadas recentes foram validadas com:
+  - `npm test`;
+  - `npm run build`.
+- O build segue emitindo apenas o aviso conhecido de chunks grandes do Vite.
+
 ## Como rodar futuramente
 
 Depois que instalarmos as dependencias:
