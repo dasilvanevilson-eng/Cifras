@@ -98,42 +98,113 @@ function createChordCard(chord) {
 function createChordDiagram(chord) {
   const minFret = chord.baseFret;
   const fretCount = 5;
-  const cells = [];
-
-  chord.frets.forEach((fret, stringIndex) => {
-    const marker = fret === -1
-      ? 'X'
-      : fret === 0
-        ? 'O'
-        : '';
-
-    cells.push(`
-      <div class="chord-string-state" style="grid-column: ${stringIndex + 1};">${marker}</div>
-    `);
-
-    for (let offset = 0; offset < fretCount; offset += 1) {
-      const currentFret = minFret + offset;
-      const finger = chord.fingers[stringIndex] || '';
-      const hasNote = fret === currentFret;
-      cells.push(`
-        <div class="chord-fret-cell" style="grid-column: ${stringIndex + 1}; grid-row: ${offset + 2};">
-          ${hasNote ? `<span>${escapeHtml(finger || '')}</span>` : ''}
-        </div>
-      `);
-    }
-  });
+  const board = createChordBoard(chord, minFret, fretCount);
 
   return `
     <div class="chord-diagram" aria-label="Diagrama do acorde ${escapeHtml(chord.name)}">
       <div class="chord-strings">${STRING_LABELS.map((label) => `<span>${label}</span>`).join('')}</div>
-      <div class="chord-board">
-        ${cells.join('')}
-      </div>
+      ${board}
       <div class="chord-fret-labels">
         ${Array.from({ length: fretCount }, (_, index) => `<span>${minFret + index}</span>`).join('')}
       </div>
     </div>
   `;
+}
+
+function createChordBoard(chord, minFret, fretCount) {
+  const barresData = createBarres(chord, minFret, fretCount);
+  const stringStates = chord.frets.map((fret, stringIndex) => {
+    const marker = fret === -1 ? 'X' : fret === 0 ? 'O' : '';
+    return `<span class="chord-string-state" style="left: ${getStringPosition(stringIndex)}%;">${marker}</span>`;
+  }).join('');
+
+  const strings = STRING_LABELS.map((_, stringIndex) => (
+    `<span class="chord-string-line" style="left: ${getStringPosition(stringIndex)}%;"></span>`
+  )).join('');
+
+  const frets = Array.from({ length: fretCount + 1 }, (_, index) => (
+    `<span class="chord-fret-line${index === 0 ? ' is-nut' : ''}" style="top: ${getFretLinePosition(index, fretCount)}%;"></span>`
+  )).join('');
+
+  const barres = barresData.map((barre) => `
+    <span
+      class="chord-barre"
+      style="
+        left: ${getStringPosition(barre.startString)}%;
+        width: ${getStringPosition(barre.endString) - getStringPosition(barre.startString)}%;
+        top: ${getFretNotePosition(barre.fret - minFret, fretCount)}%;
+      "
+    >${escapeHtml(barre.finger)}</span>
+  `).join('');
+
+  const notes = chord.frets.map((fret, stringIndex) => {
+    if (fret < minFret || fret >= minFret + fretCount) return '';
+
+    const finger = chord.fingers[stringIndex] || '';
+    const barre = barresData.find((item) => (
+      item.fret === fret
+      && item.finger === finger
+      && stringIndex >= item.startString
+      && stringIndex <= item.endString
+    ));
+
+    if (barre) return '';
+
+    return `
+      <span
+        class="chord-note"
+        style="left: ${getStringPosition(stringIndex)}%; top: ${getFretNotePosition(fret - minFret, fretCount)}%;"
+      >${escapeHtml(finger)}</span>
+    `;
+  }).join('');
+
+  return `
+    <div class="chord-board">
+      <div class="chord-string-states">${stringStates}</div>
+      <div class="chord-fret-area">
+        ${strings}
+        ${frets}
+        ${barres}
+        ${notes}
+      </div>
+    </div>
+  `;
+}
+
+function createBarres(chord, minFret, fretCount) {
+  const groups = new Map();
+
+  chord.frets.forEach((fret, stringIndex) => {
+    const finger = chord.fingers[stringIndex];
+    if (!finger || finger === 0 || fret < minFret || fret >= minFret + fretCount) return;
+
+    const key = `${fret}-${finger}`;
+    const group = groups.get(key) || { fret, finger: String(finger), strings: [] };
+    group.strings.push(stringIndex);
+    groups.set(key, group);
+  });
+
+  return [...groups.values()]
+    .filter((group) => group.strings.length >= 2)
+    .map((group) => ({
+      fret: group.fret,
+      finger: group.finger,
+      startString: Math.min(...group.strings),
+      endString: Math.max(...group.strings),
+    }))
+    .filter((barre) => barre.endString > barre.startString);
+}
+
+function getStringPosition(stringIndex) {
+  return (stringIndex / (STRING_LABELS.length - 1)) * 100;
+}
+
+function getFretLinePosition(lineIndex, fretCount) {
+  return (lineIndex / fretCount) * 100;
+}
+
+function getFretNotePosition(fretOffset, fretCount) {
+  return ((fretOffset + 0.5) / fretCount) * 100;
 }
 
 function createEmptyState() {
