@@ -509,6 +509,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       return;
     }
 
+    await connectMemberToLeader();
+  }
+
+  async function connectMemberToLeader() {
     memberFollowingLeader = true;
     lastMirroredStateKey = '';
     updateMemberMirrorState();
@@ -787,6 +791,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       }
 
       hasObservedLeaderPresence = true;
+      if (!wasLeaderActive && isLeaderActive && currentMode === 'integrante' && !memberFollowingLeader && !isCurrentLeader() && executionSlot.hidden) {
+        await connectMemberToLeader();
+      }
       if (wasLeaderActive && !isLeaderActive && currentMode === 'integrante' && memberFollowingLeader) {
         await disconnectMemberFromLeader();
       }
@@ -840,7 +847,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     if (leaderButton) {
       leaderButton.hidden = !leaderAvailable;
-      leaderButton.disabled = hasAnotherLeader;
+      leaderButton.disabled = false;
       leaderButton.textContent = currentMode === 'lider' ? 'Voce e o lider' : 'Lider';
       leaderButton.title = hasAnotherLeader
         ? `${formatLeaderName(leaderPresence)} conectado como lider`
@@ -858,8 +865,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       memberButton.setAttribute('aria-label', memberButton.title);
     }
     if (resetButton) {
-      resetButton.hidden = !leaderPresence.active || leaderIsThisClient;
-      resetButton.disabled = !leaderPresence.active || leaderIsThisClient;
+      resetButton.hidden = !leaderPresence.active || currentMode === 'lider';
+      resetButton.disabled = !leaderPresence.active || currentMode === 'lider';
       resetButton.title = leaderPresence.active
         ? 'Resetar lider ausente'
         : 'Nenhum lider conectado';
@@ -1118,14 +1125,18 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const initialMode = isCurrentLeader() && leaderAuthenticatedForRoom
       ? 'lider'
       : 'integrante';
+    const shouldAutoFollowLeader = initialMode === 'integrante'
+      && leaderPresence.active
+      && !isCurrentLeader();
 
     await setMode(initialMode, {
+      followLeader: shouldAutoFollowLeader,
       skipClaim: true,
       skipRelease: true,
       skipCredentialPrompt: true,
     });
 
-    if (initialMode === 'integrante') {
+    if (initialMode === 'integrante' && !shouldAutoFollowLeader) {
       showLocalReleasedContent();
     }
   });
@@ -1223,7 +1234,7 @@ function normalizeLeaderPresence(leader = {}) {
 }
 
 function getStateKey(state) {
-  if (state?.is_stage_active !== true) return '';
+  if (state?.is_stage_active === false) return '';
   if (!state?.item_type) return '';
   const toneKey = `${state.transpose_semitones || 0}:${state.updated_at || ''}`;
   if (state.item_type === 'musica' && state.musica_id) return `musica:${state.musica_id}:${toneKey}`;
