@@ -19,6 +19,7 @@ export async function listSessoesBanda() {
         cifra_original,
         cifra_chordpro,
         cifra_exibicao,
+        cifra_editor_state,
         musica_link
       )
     `)
@@ -45,6 +46,7 @@ export async function getSessaoBandaById(id) {
         cifra_original,
         cifra_chordpro,
         cifra_exibicao,
+        cifra_editor_state,
         musica_link
       )
     `)
@@ -209,6 +211,7 @@ export async function listMusicasSessaoRepertorio(repertorioId) {
         cifra_original,
         cifra_chordpro,
         cifra_exibicao,
+        cifra_editor_state,
         musica_link
       )
     `)
@@ -229,6 +232,7 @@ export async function listMusicasAvulsasBanda() {
       cifra_original,
       cifra_chordpro,
       cifra_exibicao,
+      cifra_editor_state,
       musica_link
     `)
     .order('titulo', { ascending: true });

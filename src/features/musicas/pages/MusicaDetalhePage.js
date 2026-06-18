@@ -7,7 +7,7 @@ import {
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones, getVoiceLabelsFromMusica, renderCifraOriginalForDisplayHtml, renderMusicaCifraForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 
@@ -110,11 +110,12 @@ function createMusicaView(musica, options = {}) {
         <h1>${escapeHtml(title)}</h1>
       </div>
     ` : ''}
-    <pre class="chordpro-view">${renderCifraOriginalForDisplayHtml(cifraExibicao)}</pre>
+    <pre class="chordpro-view">${renderMusicaCifraForDisplayHtml(musica, { cifra: cifraExibicao })}</pre>
   `;
 
   setupTransposeControls(wrapper, {
     cifraOriginal: cifraExibicao,
+    voiceLabels: getVoiceLabelsFromMusica(musica),
     originalKey,
     key,
     associationId: options.associationId,
@@ -142,7 +143,7 @@ function normalizeTags(value) {
     .filter(Boolean);
 }
 
-function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, associationId, useFractionStep, defaultStatusLabel, returnTo }) {
+function setupTransposeControls(wrapper, { cifraOriginal, voiceLabels = {}, originalKey, key, associationId, useFractionStep, defaultStatusLabel, returnTo }) {
   if (associationId) {
     setupAutoHideToolbar(wrapper, { toolbarSelector: '.transpose-toolbar' });
   }
@@ -222,8 +223,8 @@ function setupTransposeControls(wrapper, { cifraOriginal, originalKey, key, asso
     const displayedCifra = transposeCifraOriginal(cifraOriginal, semitones - capo);
     const displayedKey = transposeKey(originalKey, semitones);
     const displayHtml = showNumbers
-      ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey))
-      : renderCifraOriginalForDisplayHtml(displayedCifra);
+      ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey), { voiceLabels })
+      : renderCifraOriginalForDisplayHtml(displayedCifra, { voiceLabels });
     chordproView.innerHTML = displayHtml;
     if (currentKey) {
       currentKey.textContent = displayedKey;

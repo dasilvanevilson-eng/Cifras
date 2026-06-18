@@ -11,10 +11,12 @@ import {
   createCifraExibicao,
   getCifraExibicao,
   getTransposeSemitones,
+  getVoiceLabelsFromMusica,
   normalizeChordProLyrics,
   renderChordProForDisplay,
   renderCifraOriginalForDisplayHtml,
   renderCifraOriginalPreviewHtml,
+  renderMusicaCifraForDisplayHtml,
   renderVoiceLegendHtml,
   transposeCifraOriginal,
   transposeChordPro,
@@ -217,6 +219,28 @@ assert.equal(
     },
   }),
   '{voice-label: voz_principal=Maria}\n{voice: voz_principal}A ALEGRIA{/voice}',
+);
+
+assert.equal(
+  getVoiceLabelsFromMusica({
+    cifra_editor_state: {
+      text: 'A ALEGRIA',
+      voiceLabels: { voz_principal: 'Maria' },
+      voiceMarks: [{ start: 0, end: 9, markerId: 'voz_principal' }],
+    },
+  }).voz_principal,
+  'Maria',
+);
+
+assert.equal(
+  renderMusicaCifraForDisplayHtml({
+    cifra_editor_state: {
+      text: 'A ALEGRIA',
+      voiceLabels: { voz_principal: 'Maria' },
+      voiceMarks: [{ start: 0, end: 9, markerId: 'voz_principal' }],
+    },
+  }).includes('>Maria</span>'),
+  true,
 );
 
 assert.equal(

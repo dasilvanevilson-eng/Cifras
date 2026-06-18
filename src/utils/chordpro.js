@@ -84,7 +84,7 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
 
   let activeVoice = '';
   const usedVoices = new Set();
-  const voiceLabels = getVoiceLabels(input);
+  const voiceLabels = { ...getVoiceLabels(input), ...(options.voiceLabels || {}) };
 
   const lines = normalizeTabs(String(input))
     .split('\n')
@@ -121,6 +121,17 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
   }
 
   return lines.join('\n');
+}
+
+export function renderMusicaCifraForDisplayHtml(musica = {}, options = {}) {
+  const cifra = options.cifra ?? getCifraExibicao(musica);
+  return renderCifraOriginalForDisplayHtml(cifra, {
+    ...options,
+    voiceLabels: {
+      ...getVoiceLabelsFromMusica(musica),
+      ...(options.voiceLabels || {}),
+    },
+  });
 }
 
 export function renderCifraOriginalPreviewHtml(input) {
@@ -324,6 +335,16 @@ export function getVoiceLabels(input) {
   });
 
   return labels;
+}
+
+export function getVoiceLabelsFromMusica(musica = {}) {
+  const editorState = normalizeCifraEditorState(musica.cifra_editor_state);
+
+  return {
+    ...getVoiceLabels(musica.cifra_chordpro || ''),
+    ...getVoiceLabels(musica.cifra_exibicao || ''),
+    ...editorState.voiceLabels,
+  };
 }
 
 export function getUsedVoiceIds(input) {
