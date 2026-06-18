@@ -153,6 +153,7 @@ export function MusicaForm(options = {}) {
   setupResponsiveCifraEditor(cifraEditorGrid);
 
   originalEditor.addEventListener('input', () => {
+    const previousOriginal = originalTextarea.value;
     originalTextarea.value = getEditableText(originalEditor);
     syncChordProFromOriginal({
       originalTextarea,
@@ -161,6 +162,7 @@ export function MusicaForm(options = {}) {
       chordProEditor,
       previewPanel,
       form,
+      previousOriginal,
     });
   });
 
@@ -387,9 +389,17 @@ function syncChordProFromOriginal({
   chordProEditor,
   previewPanel,
   form,
+  previousOriginal = '',
 }) {
+  const previousMarkedText = normalizeVoiceBlocksToInline(renderChordProForDisplay(chordProTextarea.value, {
+    keepVoiceDirectives: true,
+  }));
+  const previousRanges = getVoiceRangesFromMarkedText(previousMarkedText);
+  const nextRanges = transformVoiceRangesForTextChange(previousOriginal, originalTextarea.value, previousRanges)
+    .filter((range) => range.start < range.end);
+  const markedOriginal = applyVoiceRangesToText(originalTextarea.value, nextRanges);
   const nextAutoChordPro = applyVoiceLabelsToChordPro(
-    convertToChordPro(originalTextarea.value),
+    convertToChordPro(markedOriginal),
     getVoiceLabelValues(form),
   );
   setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
@@ -662,6 +672,67 @@ function replaceVoiceRanges(existingRanges, targetRanges, markerId) {
   return nextRanges
     .filter((range) => range.start < range.end)
     .sort((a, b) => a.start - b.start || a.end - b.end);
+}
+
+function transformVoiceRangesForTextChange(previousText, nextText, ranges) {
+  if (!ranges.length || previousText === nextText) {
+    return ranges;
+  }
+
+  const previousValue = String(previousText || '');
+  const nextValue = String(nextText || '');
+  let prefixLength = 0;
+  const prefixLimit = Math.min(previousValue.length, nextValue.length);
+
+  while (
+    prefixLength < prefixLimit
+    && previousValue[prefixLength] === nextValue[prefixLength]
+  ) {
+    prefixLength += 1;
+  }
+
+  let suffixLength = 0;
+  const previousSuffixLimit = previousValue.length - prefixLength;
+  const nextSuffixLimit = nextValue.length - prefixLength;
+
+  while (
+    suffixLength < previousSuffixLimit
+    && suffixLength < nextSuffixLimit
+    && previousValue[previousValue.length - 1 - suffixLength] === nextValue[nextValue.length - 1 - suffixLength]
+  ) {
+    suffixLength += 1;
+  }
+
+  const previousChangeEnd = previousValue.length - suffixLength;
+  const nextChangeEnd = nextValue.length - suffixLength;
+  const delta = nextChangeEnd - previousChangeEnd;
+
+  return ranges.map((range) => {
+    if (range.end <= prefixLength) {
+      return range;
+    }
+
+    if (range.start >= previousChangeEnd) {
+      return {
+        ...range,
+        start: Math.max(0, range.start + delta),
+        end: Math.max(0, range.end + delta),
+      };
+    }
+
+    const nextStart = range.start < prefixLength
+      ? range.start
+      : Math.min(nextChangeEnd, nextValue.length);
+    const nextEnd = range.end > previousChangeEnd
+      ? Math.max(nextStart, Math.min(nextValue.length, range.end + delta))
+      : Math.max(nextStart, Math.min(prefixLength, range.end));
+
+    return {
+      ...range,
+      start: nextStart,
+      end: nextEnd,
+    };
+  });
 }
 
 function subtractRange(range, target) {
