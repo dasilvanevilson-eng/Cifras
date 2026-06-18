@@ -119,13 +119,16 @@ export function AfinadorPage() {
           <span data-role="target-note">--</span>
           <strong data-role="cents">0</strong>
         </div>
-        <div class="tuner-scale" aria-hidden="true">
-          <span>-50</span>
-          <span>-25</span>
-          <span>0</span>
-          <span>+25</span>
-          <span>+50</span>
+        <div class="tuner-scale tuner-analog-meter" aria-hidden="true">
+          <div class="tuner-analog-arc"></div>
+          <div class="tuner-analog-band"></div>
+          <span class="tuner-tick tuner-tick-left">-50</span>
+          <span class="tuner-tick tuner-tick-mid-left">-25</span>
+          <span class="tuner-tick tuner-tick-center">0</span>
+          <span class="tuner-tick tuner-tick-mid-right">+25</span>
+          <span class="tuner-tick tuner-tick-right">+50</span>
           <i data-role="needle"></i>
+          <b></b>
         </div>
         <p data-role="hint">Toque uma corda por vez, de preferencia perto do microfone.</p>
       </div>
@@ -256,7 +259,7 @@ export function AfinadorPage() {
 
   function updatePitchReadout(data) {
     if (!data) {
-      needle.style.left = '50%';
+      needle.style.setProperty('--needle-angle', '0deg');
       targetNote.textContent = '--';
       centsLabel.textContent = '0';
       frequencyLabel.textContent = '-- Hz';
@@ -268,7 +271,7 @@ export function AfinadorPage() {
     }
 
     const clampedCents = Math.max(-50, Math.min(50, data.cents));
-    needle.style.left = `${50 + clampedCents}%`;
+    needle.style.setProperty('--needle-angle', `${clampedCents * 1.6}deg`);
     targetNote.textContent = data.target.label;
     centsLabel.textContent = `${data.cents > 0 ? '+' : ''}${Math.round(data.cents)} cents`;
     frequencyLabel.textContent = formatFrequency(data.pitch.frequency);

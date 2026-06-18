@@ -9951,40 +9951,144 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .tuner-scale {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  align-items: end;
-  min-height: 64px;
-  border-bottom: 3px solid var(--color-border-strong);
+  width: min(100%, 640px);
+  min-height: clamp(190px, 34vw, 270px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 14px 14px 8px 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface-raised) 70%, #ffffff 18%), var(--color-surface));
   color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 800;
   text-align: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -18px 32px rgba(0, 0, 0, 0.08);
 }
 
 .tuner-scale::before {
   content: "";
   position: absolute;
-  right: 50%;
-  bottom: -9px;
-  width: 3px;
-  height: 58px;
+  left: 50%;
+  bottom: -45%;
+  width: 78%;
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-top-color: var(--color-border-strong);
+  border-left-color: var(--color-border-strong);
+  border-radius: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  opacity: 0.9;
+}
+
+.tuner-scale::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: 2px;
+  height: 54%;
   border-radius: var(--radius-pill);
-  background: var(--color-border-strong);
-  transform: translateX(50%);
+  background: color-mix(in srgb, var(--color-border-strong) 78%, transparent);
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+}
+
+.tuner-analog-arc,
+.tuner-analog-band {
+  position: absolute;
+  left: 50%;
+  bottom: -45%;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.tuner-analog-arc {
+  background:
+    conic-gradient(from 220deg,
+      transparent 0deg 37deg,
+      color-mix(in srgb, var(--color-accent) 56%, transparent) 37deg 72deg,
+      color-mix(in srgb, var(--color-success) 64%, transparent) 72deg 88deg,
+      color-mix(in srgb, var(--color-accent) 56%, transparent) 88deg 123deg,
+      transparent 123deg 360deg);
+  opacity: 0.9;
+}
+
+.tuner-analog-band {
+  width: 62%;
+  bottom: -36%;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.tuner-tick {
+  position: absolute;
+  z-index: 2;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tuner-tick-left {
+  left: 10%;
+  bottom: 18%;
+}
+
+.tuner-tick-mid-left {
+  left: 26%;
+  bottom: 54%;
+}
+
+.tuner-tick-center {
+  left: 50%;
+  top: 11%;
+  color: var(--color-text);
+  transform: translateX(-50%);
+}
+
+.tuner-tick-mid-right {
+  right: 26%;
+  bottom: 54%;
+}
+
+.tuner-tick-right {
+  right: 10%;
+  bottom: 18%;
 }
 
 .tuner-scale i {
   position: absolute;
-  bottom: -10px;
+  z-index: 4;
+  bottom: 12%;
   left: 50%;
-  width: 5px;
-  height: 70px;
+  width: 4px;
+  height: 58%;
   border-radius: var(--radius-pill);
   background: var(--color-primary);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent),
+    0 10px 18px rgba(0, 0, 0, 0.18);
+  transform: translateX(-50%) rotate(var(--needle-angle, 0deg));
+  transform-origin: bottom center;
+  transition: transform 120ms ease-out, background-color 120ms ease-out;
+}
+
+.tuner-scale b {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(12% - 11px);
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   transform: translateX(-50%);
-  transition: left 120ms ease-out, background-color 120ms ease-out;
 }
 
 .tuner-meter p {
