@@ -128,6 +128,7 @@ function getVisibleLinks(options = {}) {
     { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
     { href: '/acordes', label: 'Dicionario de acordes', group: 'Acervo', moduleKey: 'acordes', match: ['/acordes'] },
+    { href: '/afinador', label: 'Afinador', group: 'Acervo', moduleKey: 'afinador', match: ['/afinador'] },
     { href: '/musicas-letras', label: 'Letras', group: 'Acervo', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
     { href: '/repertorios-pdf', label: 'PDF Repertorio', group: 'Acervo', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
     { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },

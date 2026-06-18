@@ -31,12 +31,14 @@ import { canManageUsers } from '../features/auth/roles.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { BandaCoralPage } from '../features/bandaCoral/pages/BandaCoralPage.js';
 import { DicionarioAcordesPage } from '../features/acordes/pages/DicionarioAcordesPage.js';
+import { AfinadorPage } from '../features/afinador/pages/AfinadorPage.js';
 import { getFirstVisibleMenuRoute } from '../features/auth/permissions.js';
 
 const routes = {
   '/dashboard': DashboardPage,
   '/banda-coral': BandaCoralPage,
   '/acordes': DicionarioAcordesPage,
+  '/afinador': AfinadorPage,
   '/login': LoginPage,
   '/alterar-senha': AlterarSenhaPage,
   '/minha-conta': MinhaContaPage,
