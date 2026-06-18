@@ -10137,3 +10137,27 @@ html[data-interface-density="compact"] .account-password-panel {
   opacity: 1;
   -webkit-text-fill-color: var(--color-text-muted) !important;
 }
+
+.cifra-original-editor-shell .cifra-original-source,
+:root[data-theme="dark"] .cifra-original-editor-shell .cifra-original-source,
+:root[data-effective-theme="light"] .cifra-original-editor-shell .cifra-original-source,
+:root:not([data-theme="light"]) .cifra-original-editor-shell .cifra-original-source {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none;
+  color: transparent !important;
+  -webkit-box-shadow: none !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: var(--color-text) !important;
+}
+
+.cifra-original-editor-shell .cifra-original-source:focus,
+:root[data-theme="dark"] .cifra-original-editor-shell .cifra-original-source:focus,
+:root[data-effective-theme="light"] .cifra-original-editor-shell .cifra-original-source:focus,
+:root:not([data-theme="light"]) .cifra-original-editor-shell .cifra-original-source:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--focus-ring) !important;
+  -webkit-box-shadow: var(--focus-ring) !important;
+  outline: 0;
+}
