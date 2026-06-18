@@ -97,7 +97,7 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
   wrapper.innerHTML = `
     <section class="dashboard-search-column lyrics-search-column" data-lyrics-column="musicas">
       <label class="dashboard-search">
-        Buscar texto
+        Buscar musica
         <input class="search-input" type="search" placeholder="Titulo, artista, repertorio ou trecho da letra">
       </label>
       <label class="lyrics-sort-control">
@@ -257,9 +257,17 @@ function createLetrasList(musicas, filteredCount, totalCount) {
         <p>${escapeHtml(artist)}</p>
       </div>
       <div class="dashboard-item-actions">
-        <a class="button-link secondary" href="/musicas-letras/detalhe?id=${encodeURIComponent(id)}">Abrir</a>
+        <button class="button-link secondary" type="button" data-action="export-txt">Gerar TXT</button>
       </div>
     `;
+
+    item.querySelector('[data-action="export-txt"]').addEventListener('click', () => {
+      downloadTextFile({
+        filename: `${slugifyFilename(title, 'musica-letra')}.txt`,
+        content: createMusicaLyricsText(musica),
+      });
+    });
+
     item.addEventListener('click', (event) => {
       if (event.target.closest('a, button')) return;
       window.location.href = `/musicas-letras/detalhe?id=${encodeURIComponent(id)}`;
@@ -272,6 +280,21 @@ function createLetrasList(musicas, filteredCount, totalCount) {
   });
 
   return wrapper;
+}
+
+function createMusicaLyricsText(musica = {}) {
+  const title = getField(musica, ['titulo', 'nome', 'title']);
+  const artist = getField(musica, ['artista', 'autor', 'artist']);
+  const letra = getLyricsFromMusica(musica);
+  const lines = [
+    title,
+    artist !== '-' ? artist : '',
+    '',
+    letra || 'Letra nao encontrada.',
+    '',
+  ];
+
+  return `${lines.filter((line, index) => line !== '' || lines[index - 1] !== '').join('\n')}\n`;
 }
 
 function createRepertoriosList(repertoriosComMusicas, filteredCount, totalCount) {
