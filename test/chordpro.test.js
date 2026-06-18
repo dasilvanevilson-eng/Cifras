@@ -208,6 +208,18 @@ assert.equal(
 );
 
 assert.equal(
+  getCifraExibicao({
+    cifra_exibicao: '{voice: voz_principal}A ALEGRIA{/voice}',
+    cifra_editor_state: {
+      text: 'A ALEGRIA',
+      voiceLabels: { voz_principal: 'Maria' },
+      voiceMarks: [{ start: 0, end: 9, markerId: 'voz_principal' }],
+    },
+  }),
+  '{voice-label: voz_principal=Maria}\n{voice: voz_principal}A ALEGRIA{/voice}',
+);
+
+assert.equal(
   normalizeChordProLyrics('[G]Grande [D/F#]es Tu'),
   '[G]GRANDE [D/F#]ES TU',
 );

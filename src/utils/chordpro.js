@@ -136,6 +136,12 @@ export function createCifraExibicao(input) {
 }
 
 export function getCifraExibicao(record = {}) {
+  const editorState = normalizeCifraEditorState(record.cifra_editor_state);
+
+  if (hasCifraEditorStateContent(editorState)) {
+    return createCifraExibicaoFromCifraEditorState(editorState);
+  }
+
   if (record.cifra_exibicao) {
     return String(record.cifra_exibicao);
   }
@@ -147,6 +153,10 @@ export function getCifraExibicao(record = {}) {
   }
 
   return createCifraExibicao(record.cifra_original || '');
+}
+
+function hasCifraEditorStateContent(state) {
+  return Boolean(state?.text || state?.voiceMarks?.length);
 }
 
 export function createCifraEditorStateFromRecord(record = {}) {
