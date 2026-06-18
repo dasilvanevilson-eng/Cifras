@@ -54,7 +54,11 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
       </div>
     </header>
     <section class="public-lyrics-song-list" aria-label="Musicas do repertorio" aria-live="polite"></section>
-    <section class="public-lyrics-video-player is-bottom" data-role="public-lyrics-video-player" hidden>
+    <section class="public-lyrics-video-player" data-role="public-lyrics-video-player" hidden>
+      <div class="public-lyrics-video-dragbar" data-action="drag-video-player">
+        <span data-role="video-drag-title">Playlist de videos</span>
+        <button class="nav-button" type="button" data-action="minimize-video">Minimizar</button>
+      </div>
       <div class="public-lyrics-video-frame" data-role="video-frame"></div>
       <div class="public-lyrics-video-controls" aria-label="Controles da playlist">
         <label class="public-lyrics-loop-toggle">
@@ -71,14 +75,21 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   `;
 
   const listSlot = wrapper.querySelector('.public-lyrics-song-list');
-  const playlistPlayer = setupPublicLyricsPlaylistPlayer(wrapper);
+  let state = null;
+  const playlistPlayer = setupPublicLyricsPlaylistPlayer(wrapper, {
+    onStop: () => {
+      if (!state) return;
+      state.playlistIds.clear();
+      render();
+    },
+  });
 
   if (!musicasAssociadas.length) {
     listSlot.innerHTML = '<p class="page-status">Nenhuma musica adicionada a este repertorio.</p>';
     return wrapper;
   }
 
-  const state = {
+  state = {
     selectedId: null,
     contentMode: getInviteContentMode(invite),
     playlistIds: getInitialPlaylistIds(musicasAssociadas),
@@ -261,18 +272,21 @@ function setupPublicLyricsFontControls(detail) {
   renderFontSize();
 }
 
-function setupPublicLyricsPlaylistPlayer(wrapper) {
+function setupPublicLyricsPlaylistPlayer(wrapper, options = {}) {
   const panel = wrapper.querySelector('[data-role="public-lyrics-video-player"]');
   const frameSlot = wrapper.querySelector('[data-role="video-frame"]');
   const status = wrapper.querySelector('[data-role="video-status"]');
+  const dragbar = wrapper.querySelector('[data-action="drag-video-player"]');
   const loopInput = wrapper.querySelector('[data-action="toggle-loop"]');
   const pauseButton = wrapper.querySelector('[data-action="pause-video"]');
+  const minimizeButton = wrapper.querySelector('[data-action="minimize-video"]');
   let player = null;
   let playerElementId = `public-lyrics-youtube-${Date.now()}`;
   let playlist = [];
   let currentIndex = -1;
   let isPaused = false;
   let apiReadyPromise = null;
+  let hasManualPosition = false;
 
   function play(items, startId = null) {
     playlist = items.filter((item) => isYoutubeUrl(item.link));
@@ -281,10 +295,12 @@ function setupPublicLyricsPlaylistPlayer(wrapper) {
     const requestedIndex = playlist.findIndex((item) => item.id === startId);
     currentIndex = requestedIndex >= 0 ? requestedIndex : 0;
     panel.hidden = false;
+    panel.classList.remove('is-minimized');
+    minimizeButton.textContent = 'Minimizar';
+    setInitialPosition();
     isPaused = false;
     pauseButton.textContent = 'Pausar';
     loadCurrentVideo();
-    updateFloatingPosition();
   }
 
   function loadCurrentVideo() {
@@ -348,7 +364,7 @@ function setupPublicLyricsPlaylistPlayer(wrapper) {
       return;
     }
 
-    stop();
+    stop({ clearSelection: true });
   }
 
   function playNext() {
@@ -386,7 +402,7 @@ function setupPublicLyricsPlaylistPlayer(wrapper) {
     isPaused = true;
   }
 
-  function stop() {
+  function stop({ clearSelection = true } = {}) {
     player?.stopVideo?.();
     player?.destroy?.();
     player = null;
@@ -395,24 +411,74 @@ function setupPublicLyricsPlaylistPlayer(wrapper) {
     frameSlot.innerHTML = '';
     status.textContent = 'Nenhum video em execucao';
     panel.hidden = true;
+    panel.classList.remove('is-minimized');
+    minimizeButton.textContent = 'Minimizar';
+    if (clearSelection) {
+      options.onStop?.();
+    }
   }
 
-  function updateFloatingPosition() {
-    if (panel.hidden) return;
+  function setInitialPosition() {
+    if (hasManualPosition) return;
 
-    const scrollMiddle = window.scrollY + (window.innerHeight / 2);
-    const pageMiddle = document.documentElement.scrollHeight / 2;
-    const shouldStayTop = scrollMiddle > pageMiddle;
-    panel.classList.toggle('is-top', shouldStayTop);
-    panel.classList.toggle('is-bottom', !shouldStayTop);
+    panel.style.left = '';
+    panel.style.top = '';
+    panel.style.right = 'max(10px, env(safe-area-inset-right))';
+    panel.style.bottom = 'max(10px, env(safe-area-inset-bottom))';
+  }
+
+  function toggleMinimize() {
+    const minimized = !panel.classList.contains('is-minimized');
+    panel.classList.toggle('is-minimized', minimized);
+    minimizeButton.textContent = minimized ? 'Restaurar' : 'Minimizar';
+  }
+
+  function restoreFromMinimized() {
+    if (!panel.classList.contains('is-minimized')) return;
+    panel.classList.remove('is-minimized');
+    minimizeButton.textContent = 'Minimizar';
+  }
+
+  function startDrag(event) {
+    if (event.target.closest('button')) return;
+
+    event.preventDefault();
+    restoreFromMinimized();
+    hasManualPosition = true;
+    const rect = panel.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    panel.setPointerCapture?.(event.pointerId);
+
+    function move(pointerEvent) {
+      const maxLeft = window.innerWidth - panel.offsetWidth - 8;
+      const maxTop = window.innerHeight - panel.offsetHeight - 8;
+      const nextLeft = Math.max(8, Math.min(maxLeft, pointerEvent.clientX - offsetX));
+      const nextTop = Math.max(8, Math.min(maxTop, pointerEvent.clientY - offsetY));
+      panel.style.left = `${nextLeft}px`;
+      panel.style.top = `${nextTop}px`;
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+    }
+
+    function endDrag() {
+      panel.removeEventListener('pointermove', move);
+      panel.removeEventListener('pointerup', endDrag);
+      panel.removeEventListener('pointercancel', endDrag);
+    }
+
+    panel.addEventListener('pointermove', move);
+    panel.addEventListener('pointerup', endDrag);
+    panel.addEventListener('pointercancel', endDrag);
   }
 
   wrapper.querySelector('[data-action="next-video"]').addEventListener('click', playNext);
   wrapper.querySelector('[data-action="previous-video"]').addEventListener('click', playPrevious);
   wrapper.querySelector('[data-action="pause-video"]').addEventListener('click', togglePause);
-  wrapper.querySelector('[data-action="stop-video"]').addEventListener('click', stop);
-  window.addEventListener('scroll', updateFloatingPosition, { passive: true });
-  window.addEventListener('resize', updateFloatingPosition, { passive: true });
+  wrapper.querySelector('[data-action="stop-video"]').addEventListener('click', () => stop({ clearSelection: true }));
+  minimizeButton.addEventListener('click', toggleMinimize);
+  frameSlot.addEventListener('click', restoreFromMinimized);
+  dragbar.addEventListener('pointerdown', startDrag);
 
   function loadYoutubeIframeApi() {
     if (window.YT?.Player) return Promise.resolve();
