@@ -9642,15 +9642,45 @@ html[data-interface-density="compact"] .account-password-panel {
   }
 
   .chord-card-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .chord-card {
+    padding: 10px;
+  }
+
+  .chord-card h2 {
+    font-size: 18px;
+  }
+
+  .chord-card p {
+    font-size: 11px;
+  }
+
+  .chord-card header > span {
+    padding: 4px 6px;
+    font-size: 10px;
   }
 
   .chord-diagram {
-    width: min(100%, 156px);
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 5px 6px;
+    width: min(100%, 126px);
   }
 
   .chord-fret-area {
-    height: 186px;
+    height: 164px;
+  }
+
+  .chord-note,
+  .chord-barre {
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .chord-note {
+    width: 18px;
   }
 }
 
