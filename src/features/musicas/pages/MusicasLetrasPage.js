@@ -334,22 +334,26 @@ function createLetrasList(musicas, filteredCount, totalCount, openTxtEditor) {
     `;
 
     item.querySelector('[data-action="export-txt"]').addEventListener('click', () => {
+      openMusicaTxtEditor();
+    });
+
+    item.addEventListener('click', (event) => {
+      if (event.target.closest('a, button')) return;
+      openMusicaTxtEditor();
+    });
+    item.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      openMusicaTxtEditor();
+    });
+    list.append(item);
+
+    function openMusicaTxtEditor() {
       openTxtEditor({
         title,
         filename: `${slugifyFilename(title, 'musica-letra')}.txt`,
         content: createMusicaLyricsText(musica),
       });
-    });
-
-    item.addEventListener('click', (event) => {
-      if (event.target.closest('a, button')) return;
-      window.location.href = `/musicas-letras/detalhe?id=${encodeURIComponent(id)}`;
-    });
-    item.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter') return;
-      window.location.href = `/musicas-letras/detalhe?id=${encodeURIComponent(id)}`;
-    });
-    list.append(item);
+    }
   });
 
   return wrapper;
