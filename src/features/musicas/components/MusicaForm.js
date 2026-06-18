@@ -159,6 +159,7 @@ export function MusicaForm(options = {}) {
   let pendingOriginalEditorInput = null;
 
   updateLinkAction(linkInput, linkAction);
+  syncVoiceMarkerButtonLabels(form);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
   renderOriginalEditor(originalEditor, chordProTextarea.value);
   updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
@@ -238,6 +239,7 @@ export function MusicaForm(options = {}) {
         previewPanel,
         form,
       });
+      syncVoiceMarkerButtonLabels(form);
 
       if (!previewPanel.hidden) {
         updatePreview(form, previewPanel, editorState);
@@ -613,6 +615,20 @@ function getVoiceLabelValues(form) {
   });
 
   return labels;
+}
+
+function syncVoiceMarkerButtonLabels(form) {
+  VOICE_MARKERS.forEach((marker) => {
+    const button = form.querySelector(`[data-voice-marker="${marker.id}"]`);
+    const input = form.querySelector(`[name="voice_label_${marker.id}"]`);
+    const label = String(input?.value || '').trim() || marker.label;
+
+    if (button) {
+      button.textContent = label;
+      button.title = marker.label === label ? marker.label : `${marker.label}: ${label}`;
+      button.setAttribute('aria-label', `Marcar ${label}`);
+    }
+  });
 }
 
 function getInitialVoiceLabels(chordProValue) {

@@ -233,6 +233,18 @@ assert.equal(
 );
 
 assert.equal(
+  getVoiceLabelsFromMusica({
+    cifra_chordpro: '{voice-label: voz_principal=Maria}\n{voice: voz_principal}A ALEGRIA{/voice}',
+    cifra_editor_state: {
+      text: 'A ALEGRIA',
+      voiceLabels: { voz_principal: 'Voz principal' },
+      voiceMarks: [{ start: 0, end: 9, markerId: 'voz_principal' }],
+    },
+  }).voz_principal,
+  'Maria',
+);
+
+assert.equal(
   renderMusicaCifraForDisplayHtml({
     cifra_editor_state: {
       text: 'A ALEGRIA',

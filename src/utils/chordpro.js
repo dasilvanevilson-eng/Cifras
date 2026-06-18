@@ -338,13 +338,23 @@ export function getVoiceLabels(input) {
 }
 
 export function getVoiceLabelsFromMusica(musica = {}) {
-  const editorState = normalizeCifraEditorState(musica.cifra_editor_state);
-
   return {
-    ...getVoiceLabels(musica.cifra_chordpro || ''),
-    ...getVoiceLabels(musica.cifra_exibicao || ''),
-    ...editorState.voiceLabels,
+    ...getDefaultVoiceLabels(),
+    ...getCustomVoiceLabels(getVoiceLabels(musica.cifra_chordpro || '')),
+    ...getCustomVoiceLabels(getVoiceLabels(musica.cifra_exibicao || '')),
+    ...getCustomVoiceLabels(getRawEditorStateVoiceLabels(musica.cifra_editor_state)),
   };
+}
+
+function getRawEditorStateVoiceLabels(state = {}) {
+  const value = typeof state === 'string' ? parseJsonSafely(state) : state;
+  return value?.voiceLabels || value?.voice_labels || {};
+}
+
+function getCustomVoiceLabels(labels = {}) {
+  return Object.fromEntries(Object.entries(labels)
+    .map(([id, label]) => [String(id || '').trim().toLowerCase(), String(label || '').trim()])
+    .filter(([id, label]) => id && label && label !== VOICE_LABELS[id]));
 }
 
 export function getUsedVoiceIds(input) {
