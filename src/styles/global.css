@@ -4350,6 +4350,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 
 .musica-form label:nth-of-type(5),
 .voice-marker-toolbar,
+.voice-label-settings,
 .cifra-editor-grid,
 .music-form-actions,
 .song-preview,
@@ -4383,6 +4384,27 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.voice-label-settings {
+  border: 1px solid rgba(95, 89, 79, 0.18);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.voice-label-settings summary {
+  cursor: pointer;
+  color: #5f594f;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.voice-label-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .voice-marker-toolbar span {
@@ -4470,6 +4492,14 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   font-size: 12px;
   font-weight: 850;
   line-height: 1;
+}
+
+.voice-editor-legend {
+  min-height: 30px;
+}
+
+.voice-editor-legend:empty {
+  display: none;
 }
 
 .inline-transpose-controls {
@@ -5200,6 +5230,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   .musica-form .field-reviewer,
   .music-form-actions,
   .voice-marker-toolbar,
+  .voice-label-settings,
   .cifra-editor-grid,
   .song-preview,
   .musica-form .form-message {

@@ -64,6 +64,14 @@ export function renderChordProForDisplay(input, options = {}) {
         return;
       }
 
+      if (isVoiceLabelDirectiveLine(line)) {
+        if (options.keepVoiceDirectives) {
+          lines.push(normalizeVoiceLabelDirective(line));
+        }
+
+        return;
+      }
+
       const renderedLine = renderChordProLineForDisplay(line);
       lines.push(options.keepVoiceDirectives ? normalizeVoiceDirectives(renderedLine) : stripVoiceDirectives(renderedLine));
     });
@@ -76,6 +84,7 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
 
   let activeVoice = '';
   const usedVoices = new Set();
+  const voiceLabels = getVoiceLabels(input);
 
   const lines = normalizeTabs(String(input))
     .split('\n')
@@ -87,6 +96,10 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
         if (activeVoice) {
           usedVoices.add(activeVoice);
         }
+        return output;
+      }
+
+      if (parseVoiceLabelDirective(line)) {
         return output;
       }
 
@@ -103,7 +116,7 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
   if (usedVoices.size && options.includeVoiceLegend !== false) {
     lines.push('');
     lines.push(`<span class="voice-legend">${[...usedVoices].map((voiceId) => (
-      `<span class="voice-legend-item voice-highlight-${escapeHtml(voiceId)}">${escapeHtml(getVoiceLabel(voiceId))}</span>`
+      `<span class="voice-legend-item voice-highlight-${escapeHtml(voiceId)}">${escapeHtml(getVoiceLabel(voiceId, voiceLabels))}</span>`
     )).join(' ')}</span>`);
   }
 
@@ -189,6 +202,60 @@ export function extractLyricsFromCifraOriginal(input) {
 
 export function isCifraOriginalChordLine(line) {
   return isChordLine(line);
+}
+
+export function getDefaultVoiceLabels() {
+  return { ...VOICE_LABELS };
+}
+
+export function getVoiceLabels(input) {
+  const labels = getDefaultVoiceLabels();
+
+  String(input || '').split('\n').forEach((line) => {
+    const directive = parseVoiceLabelDirective(line);
+
+    if (directive) {
+      labels[directive.id] = directive.label;
+    }
+  });
+
+  return labels;
+}
+
+export function getUsedVoiceIds(input) {
+  const usedVoices = new Set();
+
+  String(input || '').replace(/\{voice\s*:\s*([a-z0-9_-]+)\}/gi, (match, voiceId) => {
+    usedVoices.add(voiceId.toLowerCase());
+    return match;
+  });
+
+  return [...usedVoices];
+}
+
+export function renderVoiceLegendHtml(input, options = {}) {
+  const usedVoices = options.usedVoiceIds || getUsedVoiceIds(input);
+  const labels = { ...getVoiceLabels(input), ...(options.voiceLabels || {}) };
+
+  if (!usedVoices.length) return '';
+
+  return `<span class="voice-legend">${usedVoices.map((voiceId) => (
+    `<span class="voice-legend-item voice-highlight-${escapeHtml(voiceId)}">${escapeHtml(getVoiceLabel(voiceId, labels))}</span>`
+  )).join(' ')}</span>`;
+}
+
+export function applyVoiceLabelsToChordPro(chordPro, voiceLabels = {}) {
+  const cleanChordPro = String(chordPro || '')
+    .split('\n')
+    .filter((line) => !parseVoiceLabelDirective(line))
+    .join('\n')
+    .trim();
+  const labelLines = Object.entries(voiceLabels)
+    .map(([id, label]) => [String(id || '').trim().toLowerCase(), String(label || '').trim()])
+    .filter(([id, label]) => id && label && label !== VOICE_LABELS[id])
+    .map(([id, label]) => `{voice-label: ${id}=${label}}`);
+
+  return [...labelLines, cleanChordPro].filter(Boolean).join('\n');
 }
 
 function mergeChordLineWithLyrics(chordLine, lyricLine) {
@@ -455,6 +522,7 @@ function uppercaseChordProLyrics(line) {
 }
 
 function normalizeChordProLine(line) {
+  if (isVoiceLabelDirectiveLine(line)) return normalizeVoiceLabelDirective(line);
   return isVoiceDirectiveLine(line) ? normalizeVoiceDirective(line) : normalizeVoiceDirectives(uppercaseChordProLyrics(line));
 }
 
@@ -480,8 +548,17 @@ function normalizeVoiceDirectives(value) {
   });
 }
 
+function normalizeVoiceLabelDirective(line) {
+  const directive = parseVoiceLabelDirective(line);
+
+  if (!directive) return String(line || '');
+  return `{voice-label: ${directive.id}=${directive.label}}`;
+}
+
 function stripVoiceDirectives(value) {
-  return String(value || '').replace(/\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi, '');
+  return String(value || '')
+    .replace(/\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi, '')
+    .replace(/\{voice-label\s*:\s*[a-z0-9_-]+\s*=[^}]*\}/gi, '');
 }
 
 function hasInlineVoiceDirective(line) {
@@ -536,8 +613,23 @@ function parseVoiceDirective(line) {
   return { closing: false, id: openingMatch[1].toLowerCase() };
 }
 
-function getVoiceLabel(voiceId) {
-  return VOICE_LABELS[voiceId] || voiceId.replaceAll('_', ' ');
+function isVoiceLabelDirectiveLine(line) {
+  return Boolean(parseVoiceLabelDirective(line));
+}
+
+function parseVoiceLabelDirective(line) {
+  const match = String(line || '').trim().match(/^\{voice-label\s*:\s*([a-z0-9_-]+)\s*=\s*([^}]*)\}$/i);
+
+  if (!match) return null;
+
+  return {
+    id: match[1].toLowerCase(),
+    label: match[2].trim(),
+  };
+}
+
+function getVoiceLabel(voiceId, labels = VOICE_LABELS) {
+  return labels[voiceId] || VOICE_LABELS[voiceId] || voiceId.replaceAll('_', ' ');
 }
 
 function isOnlyChordsAndSeparators(value) {

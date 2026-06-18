@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  applyVoiceLabelsToChordPro,
   convertCifraOriginalToNumbers,
   convertToChordPro,
   extractLyricsFromCifraOriginal,
@@ -10,6 +11,7 @@ import {
   renderChordProForDisplay,
   renderCifraOriginalForDisplayHtml,
   renderCifraOriginalPreviewHtml,
+  renderVoiceLegendHtml,
   transposeCifraOriginal,
   transposeChordPro,
   transposeKey,
@@ -64,6 +66,11 @@ assert.equal(
 );
 
 assert.equal(
+  renderChordProForDisplay(['{voice-label: voz_principal=Joao}', '{voice: voz_principal}', '[G]GRANDE ES TU', '{/voice}'].join('\n')),
+  ['G', 'GRANDE ES TU'].join('\n'),
+);
+
+assert.equal(
   renderChordProForDisplay(['{voice: segunda_voz}', '[G]GRANDE [D/F#]ES TU', '{/voice}'].join('\n')),
   ['G      D/F#', 'GRANDE ES TU'].join('\n'),
 );
@@ -114,6 +121,16 @@ assert.equal(
     '',
     '<span class="voice-legend"><span class="voice-legend-item voice-highlight-voz_principal">Voz principal</span></span>',
   ].join('\n'),
+);
+
+assert.equal(
+  renderVoiceLegendHtml(['{voice-label: voz_principal=Joao}', 'A {voice: voz_principal}ALEGRIA{/voice}'].join('\n')),
+  '<span class="voice-legend"><span class="voice-legend-item voice-highlight-voz_principal">Joao</span></span>',
+);
+
+assert.equal(
+  applyVoiceLabelsToChordPro('{voice: voz_principal}\n[G]GRANDE ES TU\n{/voice}', { voz_principal: 'Joao' }),
+  '{voice-label: voz_principal=Joao}\n{voice: voz_principal}\n[G]GRANDE ES TU\n{/voice}',
 );
 
 assert.equal(
