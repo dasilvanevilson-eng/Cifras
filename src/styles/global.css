@@ -784,6 +784,65 @@ a {
   gap: 10px;
 }
 
+.lyrics-txt-editor {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.lyrics-txt-editor[hidden] {
+  display: none;
+}
+
+.lyrics-txt-editor header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.lyrics-txt-editor h2,
+.lyrics-txt-editor p {
+  margin: 0;
+}
+
+.lyrics-txt-editor h2 {
+  color: var(--color-text);
+  font-size: 18px;
+}
+
+.lyrics-txt-editor header p {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.lyrics-txt-editor textarea {
+  width: 100%;
+  min-height: 46vh;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: 650 15px/1.55 Consolas, 'Courier New', monospace;
+  resize: vertical;
+  white-space: pre;
+}
+
+.lyrics-txt-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .dashboard-grid > section {
   display: grid;
   align-content: start;

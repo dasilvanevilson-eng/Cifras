@@ -125,6 +125,21 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
     </section>
     <div class="dashboard-list-slot dashboard-cascade-results lyrics-results" data-slot="musicas" hidden></div>
     <div class="dashboard-list-slot dashboard-cascade-results lyrics-results" data-slot="repertorios" hidden></div>
+    <section class="lyrics-txt-editor" data-role="txt-editor" hidden>
+      <header>
+        <div>
+          <h2 data-role="txt-editor-title">TXT</h2>
+          <p>Ajuste o texto antes de salvar o arquivo.</p>
+        </div>
+        <button class="nav-button" type="button" data-action="close-txt-editor">Fechar</button>
+      </header>
+      <textarea data-field="txt-content" spellcheck="false"></textarea>
+      <div class="lyrics-txt-editor-actions">
+        <button class="button-link secondary" type="button" data-action="copy-txt">Copiar</button>
+        <button class="button" type="button" data-action="save-txt">Salvar TXT</button>
+      </div>
+      <p class="form-message" data-role="txt-editor-message" aria-live="polite"></p>
+    </section>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
@@ -133,6 +148,7 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
   const repertorioSearchInput = wrapper.querySelector('.repertorio-search-input');
   const repertorioSortSelect = wrapper.querySelector('.repertorio-sort-select');
   const repertorioTableSlot = wrapper.querySelector('[data-slot="repertorios"]');
+  const txtEditor = setupTxtEditor(wrapper);
 
   function renderMusicas() {
     const query = normalizeText(searchInput.value);
@@ -148,7 +164,7 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
       return;
     }
 
-    tableSlot.replaceChildren(createLetrasList(filtered, filtered.length, musicas.length));
+    tableSlot.replaceChildren(createLetrasList(filtered, filtered.length, musicas.length, txtEditor.open));
   }
 
   function renderRepertorios() {
@@ -165,7 +181,7 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
       return;
     }
 
-    repertorioTableSlot.replaceChildren(createRepertoriosList(filtered, filtered.length, repertoriosComMusicas.length));
+    repertorioTableSlot.replaceChildren(createRepertoriosList(filtered, filtered.length, repertoriosComMusicas.length, txtEditor.open));
   }
 
   searchInput.addEventListener('input', renderMusicas);
@@ -234,7 +250,63 @@ function clearActiveLyricsColumn(wrapper) {
   });
 }
 
-function createLetrasList(musicas, filteredCount, totalCount) {
+function setupTxtEditor(wrapper) {
+  const editor = wrapper.querySelector('[data-role="txt-editor"]');
+  const title = wrapper.querySelector('[data-role="txt-editor-title"]');
+  const textarea = wrapper.querySelector('[data-field="txt-content"]');
+  const message = wrapper.querySelector('[data-role="txt-editor-message"]');
+  const closeButton = wrapper.querySelector('[data-action="close-txt-editor"]');
+  const copyButton = wrapper.querySelector('[data-action="copy-txt"]');
+  const saveButton = wrapper.querySelector('[data-action="save-txt"]');
+  let currentFilename = 'letras.txt';
+
+  function open({ title: nextTitle, filename, content }) {
+    currentFilename = filename || 'letras.txt';
+    title.textContent = `TXT - ${nextTitle || currentFilename}`;
+    textarea.value = content || '';
+    message.textContent = '';
+    message.className = 'form-message';
+    editor.hidden = false;
+    window.requestAnimationFrame(() => {
+      editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      textarea.focus();
+      textarea.setSelectionRange(0, 0);
+    });
+  }
+
+  function close() {
+    editor.hidden = true;
+    message.textContent = '';
+    message.className = 'form-message';
+  }
+
+  closeButton.addEventListener('click', close);
+
+  copyButton.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(textarea.value);
+      message.className = 'form-message success';
+      message.textContent = 'Texto copiado.';
+    } catch (error) {
+      textarea.select();
+      message.className = 'form-message error';
+      message.textContent = 'Nao foi possivel copiar automaticamente.';
+    }
+  });
+
+  saveButton.addEventListener('click', () => {
+    downloadTextFile({
+      filename: currentFilename,
+      content: textarea.value.endsWith('\n') ? textarea.value : `${textarea.value}\n`,
+    });
+    message.className = 'form-message success';
+    message.textContent = 'Arquivo TXT gerado.';
+  });
+
+  return { open, close };
+}
+
+function createLetrasList(musicas, filteredCount, totalCount, openTxtEditor) {
   const wrapper = document.createElement('section');
   wrapper.className = 'lyrics-results-panel';
   wrapper.innerHTML = `
@@ -262,7 +334,8 @@ function createLetrasList(musicas, filteredCount, totalCount) {
     `;
 
     item.querySelector('[data-action="export-txt"]').addEventListener('click', () => {
-      downloadTextFile({
+      openTxtEditor({
+        title,
         filename: `${slugifyFilename(title, 'musica-letra')}.txt`,
         content: createMusicaLyricsText(musica),
       });
@@ -297,7 +370,7 @@ function createMusicaLyricsText(musica = {}) {
   return `${lines.filter((line, index) => line !== '' || lines[index - 1] !== '').join('\n')}\n`;
 }
 
-function createRepertoriosList(repertoriosComMusicas, filteredCount, totalCount) {
+function createRepertoriosList(repertoriosComMusicas, filteredCount, totalCount, openTxtEditor) {
   const wrapper = document.createElement('section');
   wrapper.className = 'lyrics-results-panel';
   wrapper.innerHTML = `
@@ -324,7 +397,8 @@ function createRepertoriosList(repertoriosComMusicas, filteredCount, totalCount)
     `;
 
     item.querySelector('[data-action="export-txt"]').addEventListener('click', () => {
-      downloadTextFile({
+      openTxtEditor({
+        title: nome,
         filename: `${slugifyFilename(nome, 'repertorio-letras')}.txt`,
         content: createRepertorioLyricsText(entry),
       });
