@@ -171,6 +171,7 @@ export function MusicaForm(options = {}) {
         getVoiceLabelValues(form),
       );
       setChordProValue(chordProTextarea, chordProEditor, normalizedChordPro);
+      renderOriginalEditor(originalEditor, chordProTextarea.value);
       updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
 
       if (!previewPanel.hidden) {
