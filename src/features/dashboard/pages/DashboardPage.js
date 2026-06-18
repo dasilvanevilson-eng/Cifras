@@ -462,7 +462,8 @@ function createRepertorioMusicasList(repertorio, musicasAssociadas, { publicMode
 }
 
 function createMusicasList(musicas, context = {}) {
-  const orderedMusicas = orderMusicasForDashboardSearch(musicas, context.selectedMusicas);
+  const orderedMusicas = orderMusicasForDashboardSearch(musicas, context.selectedMusicas)
+    .filter((musica) => musica?.id);
 
   if (!orderedMusicas.length) {
     return createEmptyState('Nenhuma musica cadastrada ainda.');
@@ -632,6 +633,7 @@ function getRepertorioUrl(repertorio) {
 }
 
 function getMusicaUrl(musica) {
+  if (!musica?.id) return '/dashboard';
   return `/musicas/execucao?id=${encodeURIComponent(musica.id)}&returnTo=/dashboard`;
 }
 
@@ -649,6 +651,7 @@ function getPublicRepertorioUrl(repertorio, token) {
 }
 
 function getPublicMusicaUrl(musica, token) {
+  if (!musica?.id) return token ? `/publico/dashboard?token=${encodeURIComponent(token)}` : '/dashboard';
   return `/publico/musicas/execucao?id=${encodeURIComponent(musica.id)}&token=${encodeURIComponent(token)}`;
 }
 

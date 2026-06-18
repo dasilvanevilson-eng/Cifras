@@ -68,11 +68,11 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
     </section>
   `;
 
-  setupPerformanceControls(wrapper, { initiallyExpandedToolbar });
+  setupPerformanceControls(wrapper, { musica, initiallyExpandedToolbar });
   return wrapper;
 }
 
-function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } = {}) {
+function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolbar = false } = {}) {
   setupAutoHideToolbar(wrapper, { initiallyExpanded: initiallyExpandedToolbar });
 
   const themeButton = wrapper.querySelector('[data-action="theme"]');
@@ -96,6 +96,7 @@ function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } 
   let twoColumns = getDefaultTwoColumnView();
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
+  let currentMusica = musica;
 
   speedInput.value = savedSpeed;
   capoSelect.value = String(capo);
@@ -192,6 +193,7 @@ function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } 
     }
 
     view.dataset.originalCifra = nextData.cifraOriginal;
+    currentMusica = nextMusica || {};
     semitones = 0;
     fitFontToMobileWidth = true;
     renderPerformance();
@@ -203,7 +205,7 @@ function setupPerformanceControls(wrapper, { initiallyExpandedToolbar = false } 
 
   function renderPerformance() {
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
-    view.innerHTML = renderMusicaCifraForDisplayHtml(musica, { cifra: displayedCifra });
+    view.innerHTML = renderMusicaCifraForDisplayHtml(currentMusica, { cifra: displayedCifra });
     fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
     transposeStatus.textContent = formatTransposeStatus(semitones, capo);
   }
