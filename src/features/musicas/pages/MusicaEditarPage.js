@@ -58,6 +58,7 @@ function createEditView(id, musica, session = {}) {
       revisado_por_nome: musica.revisado_por_nome || getReviewerName(session),
       cifra_original: musica.cifra_original || '',
       cifra_chordpro: musica.cifra_chordpro || musica.chordpro || musica.conteudo_chordpro || '',
+      cifra_editor_state: musica.cifra_editor_state || null,
     },
     submitLabel: 'Salvar alteracoes',
     keepValuesAfterSubmit: true,

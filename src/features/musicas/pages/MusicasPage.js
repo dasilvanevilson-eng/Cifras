@@ -138,6 +138,7 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
       cifra_original: initialValues.cifra_original || '',
       cifra_chordpro: initialValues.cifra_chordpro || initialValues.chordpro || initialValues.conteudo_chordpro || '',
       cifra_exibicao: initialValues.cifra_exibicao || '',
+      cifra_editor_state: initialValues.cifra_editor_state || null,
     },
     submitLabel: selectedMusica ? 'Salvar alteracoes' : 'Salvar musica',
     canDelete: Boolean(selectedMusica),

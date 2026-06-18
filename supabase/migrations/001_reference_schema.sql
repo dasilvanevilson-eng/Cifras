@@ -78,6 +78,7 @@ create table if not exists musicas (
   musica_link text,
   cifra_original text not null,
   cifra_chordpro text not null,
+  cifra_editor_state jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 

@@ -149,6 +149,88 @@ export function getCifraExibicao(record = {}) {
   return createCifraExibicao(record.cifra_original || '');
 }
 
+export function createCifraEditorStateFromRecord(record = {}) {
+  const existingState = normalizeCifraEditorState(record.cifra_editor_state);
+
+  if (existingState.text || existingState.voiceMarks.length) {
+    return existingState;
+  }
+
+  const chordPro = normalizeChordProLyrics(record.cifra_chordpro
+    || record.chordpro
+    || record.conteudo_chordpro
+    || convertToChordPro(record.cifra_original || ''));
+
+  if (!chordPro) {
+    return normalizeCifraEditorState({
+      text: record.cifra_original || '',
+      voiceLabels: getDefaultVoiceLabels(),
+      voiceMarks: [],
+    });
+  }
+
+  return createCifraEditorStateFromChordPro(chordPro);
+}
+
+export function createCifraEditorStateFromChordPro(chordPro) {
+  const displayText = renderChordProForDisplay(chordPro, {
+    keepVoiceDirectives: true,
+  });
+  const inlineMarkedText = normalizeVoiceBlocksToInlineForEditor(displayText);
+
+  return normalizeCifraEditorState({
+    text: stripVoiceDirectives(inlineMarkedText),
+    voiceLabels: getVoiceLabels(chordPro),
+    voiceMarks: getVoiceRangesFromMarkedText(inlineMarkedText),
+  });
+}
+
+export function normalizeCifraEditorState(state = {}) {
+  const value = typeof state === 'string' ? parseJsonSafely(state) : state;
+  const text = String(value?.text || '');
+  const textLength = text.length;
+  const voiceLabels = {
+    ...getDefaultVoiceLabels(),
+    ...(value?.voiceLabels || value?.voice_labels || {}),
+  };
+  const voiceMarks = Array.isArray(value?.voiceMarks || value?.voice_marks)
+    ? (value.voiceMarks || value.voice_marks)
+      .map((mark) => ({
+        start: clampInteger(mark.start, 0, textLength),
+        end: clampInteger(mark.end, 0, textLength),
+        markerId: String(mark.markerId || mark.marker_id || mark.voice || '').trim().toLowerCase(),
+      }))
+      .filter((mark) => mark.markerId && mark.start < mark.end)
+      .sort((a, b) => a.start - b.start || a.end - b.end)
+    : [];
+
+  return {
+    version: 1,
+    text,
+    voiceLabels,
+    voiceMarks,
+  };
+}
+
+export function createChordProFromCifraEditorState(state = {}) {
+  const normalizedState = normalizeCifraEditorState(state);
+  const markedOriginal = applyVoiceRangesToText(
+    normalizedState.text,
+    normalizedState.voiceMarks,
+  );
+
+  return applyVoiceLabelsToChordPro(
+    convertToChordPro(markedOriginal),
+    normalizedState.voiceLabels,
+  );
+}
+
+export function createCifraExibicaoFromCifraEditorState(state = {}) {
+  return renderChordProForDisplay(createChordProFromCifraEditorState(state), {
+    keepVoiceDirectives: true,
+  });
+}
+
 export function transposeCifraOriginal(input, semitones) {
   if (!input || !Number(semitones)) return input || '';
 
@@ -571,6 +653,106 @@ function stripVoiceDirectives(value) {
   return String(value || '')
     .replace(/\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi, '')
     .replace(/\{voice-label\s*:\s*[a-z0-9_-]+\s*=[^}]*\}/gi, '');
+}
+
+function normalizeVoiceBlocksToInlineForEditor(markedText) {
+  const output = [];
+  let activeMarker = '';
+
+  String(markedText || '').split('\n').forEach((line) => {
+    const openingMatch = line.trim().match(/^\{voice\s*:\s*([a-z0-9_-]+)\}$/i);
+
+    if (openingMatch) {
+      activeMarker = openingMatch[1].toLowerCase();
+      return;
+    }
+
+    if (/^\{\/voice\}$/i.test(line.trim())) {
+      activeMarker = '';
+      return;
+    }
+
+    if (parseVoiceLabelDirective(line)) {
+      return;
+    }
+
+    output.push(activeMarker && !isDisplayChordLine(stripVoiceDirectives(line)) && String(line || '').trim()
+      ? `{voice: ${activeMarker}}${line}{/voice}`
+      : line);
+  });
+
+  return output.join('\n');
+}
+
+function getVoiceRangesFromMarkedText(markedText) {
+  const ranges = [];
+  let cleanOffset = 0;
+  let activeMarker = '';
+  let activeStart = 0;
+  const tokenPattern = /\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi;
+  let sourceIndex = 0;
+
+  String(markedText || '').replace(tokenPattern, (token, tokenIndex) => {
+    cleanOffset += tokenIndex - sourceIndex;
+    closeActiveRange();
+
+    const openingMatch = token.match(/^\{voice\s*:\s*([a-z0-9_-]+)\}$/i);
+    if (openingMatch) {
+      activeMarker = openingMatch[1].toLowerCase();
+      activeStart = cleanOffset;
+    }
+
+    sourceIndex = tokenIndex + token.length;
+    return token;
+  });
+
+  cleanOffset += String(markedText || '').length - sourceIndex;
+  closeActiveRange();
+  return ranges;
+
+  function closeActiveRange() {
+    if (activeMarker && activeStart < cleanOffset) {
+      ranges.push({ start: activeStart, end: cleanOffset, markerId: activeMarker });
+    }
+    activeMarker = '';
+  }
+}
+
+function applyVoiceRangesToText(text, ranges) {
+  const value = String(text || '');
+  const inserts = [];
+
+  ranges.forEach((range) => {
+    const start = clampInteger(range.start, 0, value.length);
+    const end = clampInteger(range.end, 0, value.length);
+    const markerId = String(range.markerId || range.marker_id || range.voice || '').trim().toLowerCase();
+
+    if (!markerId || start >= end) return;
+
+    inserts.push({ index: start, text: `{voice: ${markerId}}` });
+    inserts.push({ index: end, text: '{/voice}' });
+  });
+
+  inserts.sort((a, b) => b.index - a.index || (a.text.startsWith('{/') ? 1 : -1));
+
+  return inserts.reduce((result, insert) => (
+    `${result.slice(0, insert.index)}${insert.text}${result.slice(insert.index)}`
+  ), value);
+}
+
+function parseJsonSafely(value) {
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return {};
+  }
+}
+
+function clampInteger(value, min, max) {
+  const number = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(number)) return min;
+  return Math.max(min, Math.min(max, number));
 }
 
 function hasInlineVoiceDirective(line) {

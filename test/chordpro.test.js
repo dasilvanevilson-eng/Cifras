@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
 import {
   applyVoiceLabelsToChordPro,
+  createChordProFromCifraEditorState,
   convertCifraOriginalToNumbers,
   convertToChordPro,
+  createCifraEditorStateFromChordPro,
+  createCifraEditorStateFromRecord,
+  createCifraExibicaoFromCifraEditorState,
   extractLyricsFromCifraOriginal,
   createCifraExibicao,
   getCifraExibicao,
@@ -131,6 +135,48 @@ assert.equal(
 assert.equal(
   applyVoiceLabelsToChordPro('{voice: voz_principal}\n[G]GRANDE ES TU\n{/voice}', { voz_principal: 'Joao' }),
   '{voice-label: voz_principal=Joao}\n{voice: voz_principal}\n[G]GRANDE ES TU\n{/voice}',
+);
+
+const editorState = createCifraEditorStateFromChordPro([
+  '{voice-label: voz_principal=Joao}',
+  '[G]A ALEGRIA {voice: voz_principal}[D/F#]ESTA{/voice} NO CORACAO',
+].join('\n'));
+
+assert.deepEqual(
+  {
+    text: editorState.text,
+    voiceMarks: editorState.voiceMarks,
+    voiceLabel: editorState.voiceLabels.voz_principal,
+  },
+  {
+    text: ['G         D/F#', 'A ALEGRIA ESTA NO CORACAO'].join('\n'),
+    voiceMarks: [{ start: 25, end: 29, markerId: 'voz_principal' }],
+    voiceLabel: 'Joao',
+  },
+);
+
+assert.equal(
+  createChordProFromCifraEditorState(editorState),
+  [
+    '{voice-label: voz_principal=Joao}',
+    '[G]A ALEGRIA {voice: voz_principal}[D/F#]ESTA{/voice} NO CORACAO',
+  ].join('\n'),
+);
+
+assert.equal(
+  createCifraExibicaoFromCifraEditorState(editorState),
+  ['{voice-label: voz_principal=Joao}', 'G         D/F#', 'A ALEGRIA {voice: voz_principal}ESTA{/voice} NO CORACAO'].join('\n'),
+);
+
+assert.equal(
+  createCifraEditorStateFromRecord({
+    cifra_editor_state: {
+      text: 'G\nA ALEGRIA',
+      voiceMarks: [{ start: 2, end: 11, markerId: 'todos' }],
+    },
+    cifra_chordpro: '[C]IGNORAR',
+  }).text,
+  'G\nA ALEGRIA',
 );
 
 assert.equal(

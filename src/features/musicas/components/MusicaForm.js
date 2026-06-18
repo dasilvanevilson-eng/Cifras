@@ -1,9 +1,14 @@
 import {
   applyVoiceLabelsToChordPro,
+  createChordProFromCifraEditorState,
+  createCifraEditorStateFromChordPro,
+  createCifraEditorStateFromRecord,
+  createCifraExibicaoFromCifraEditorState,
   convertToChordPro,
   getDefaultVoiceLabels,
   getVoiceLabels,
   isCifraOriginalChordLine,
+  normalizeCifraEditorState,
   normalizeChordProLyrics,
   renderCifraOriginalForDisplayHtml,
   renderChordProForDisplay,
@@ -16,7 +21,8 @@ import { createPerformanceView } from '../pages/MusicaExecucaoPage.js';
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
-  const initialChordPro = getInitialChordPro(initialValues);
+  const initialEditorState = createCifraEditorStateFromRecord(initialValues);
+  const initialChordPro = createChordProFromCifraEditorState(initialEditorState);
   const hideTitleField = Boolean(options.hideTitleField);
   const titleValue = initialValues.titulo || '';
   form.className = `form musica-form${hideTitleField ? ' is-title-unified' : ''}`;
@@ -102,7 +108,7 @@ export function MusicaForm(options = {}) {
     <div class="cifra-editor-grid">
       <label>
         Cifra original
-        <textarea class="cifra-original-source" name="cifra_original" rows="14" required>${escapeHtml(getInitialOriginalText(initialValues, initialChordPro))}</textarea>
+        <textarea class="cifra-original-source" name="cifra_original" rows="14" required>${escapeHtml(initialEditorState.text)}</textarea>
         <div class="cifra-original-editor" contenteditable="true" role="textbox" aria-label="Cifra original" spellcheck="false"></div>
         <div class="voice-editor-legend" data-role="original-voice-legend"></div>
       </label>
@@ -110,6 +116,7 @@ export function MusicaForm(options = {}) {
       <label>
         ChordPro interno
         <textarea class="chordpro-source" name="cifra_chordpro">${escapeHtml(initialChordPro)}</textarea>
+        <textarea class="cifra-editor-state-source" name="cifra_editor_state" hidden>${escapeHtml(JSON.stringify(initialEditorState))}</textarea>
         <div class="chordpro-editor" contenteditable="true" role="textbox" aria-label="ChordPro interno" spellcheck="false"></div>
         <div class="voice-editor-legend" data-role="chordpro-voice-legend"></div>
       </label>
@@ -130,6 +137,7 @@ export function MusicaForm(options = {}) {
   const originalTextarea = form.querySelector('[name="cifra_original"]');
   const originalEditor = form.querySelector('.cifra-original-editor');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
+  const editorStateTextarea = form.querySelector('[name="cifra_editor_state"]');
   const chordProEditor = form.querySelector('.chordpro-editor');
   const voiceLegendSlots = form.querySelectorAll('.voice-editor-legend');
   const voiceLabelInputs = form.querySelectorAll('[name^="voice_label_"]');
@@ -145,6 +153,7 @@ export function MusicaForm(options = {}) {
   const formTransposeState = {
     semitones: 0,
   };
+  let editorState = normalizeCifraEditorState(initialEditorState);
 
   updateLinkAction(linkInput, linkAction);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
@@ -153,33 +162,48 @@ export function MusicaForm(options = {}) {
   setupResponsiveCifraEditor(cifraEditorGrid);
 
   originalEditor.addEventListener('input', () => {
-    const previousOriginal = originalTextarea.value;
     const selectionOffsets = getEditorSelectionOffsets(originalEditor);
-    originalTextarea.value = getEditableText(originalEditor);
-    syncChordProFromOriginal({
+    const previousOriginal = editorState.text;
+    const nextOriginal = getEditableText(originalEditor);
+    editorState = normalizeCifraEditorState({
+      ...editorState,
+      text: nextOriginal,
+      voiceLabels: getVoiceLabelValues(form),
+      voiceMarks: transformVoiceRangesForTextChange(previousOriginal, nextOriginal, editorState.voiceMarks)
+        .filter((range) => range.start < range.end),
+    });
+    syncEditorStateOutputs({
+      editorState,
       originalTextarea,
       originalEditor,
       chordProTextarea,
+      editorStateTextarea,
       chordProEditor,
       previewPanel,
       form,
-      previousOriginal,
       restoreSelection: selectionOffsets,
     });
   });
 
   voiceLabelInputs.forEach((input) => {
     input.addEventListener('input', () => {
-      const normalizedChordPro = applyVoiceLabelsToChordPro(
-        normalizeChordProLyrics(chordProTextarea.value),
-        getVoiceLabelValues(form),
-      );
-      setChordProValue(chordProTextarea, chordProEditor, normalizedChordPro);
-      renderOriginalEditor(originalEditor, chordProTextarea.value);
-      updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
+      editorState = normalizeCifraEditorState({
+        ...editorState,
+        voiceLabels: getVoiceLabelValues(form),
+      });
+      syncEditorStateOutputs({
+        editorState,
+        originalTextarea,
+        originalEditor,
+        chordProTextarea,
+        editorStateTextarea,
+        chordProEditor,
+        previewPanel,
+        form,
+      });
 
       if (!previewPanel.hidden) {
-        updatePreview(form, previewPanel);
+        updatePreview(form, previewPanel, editorState);
       }
     });
   });
@@ -191,15 +215,18 @@ export function MusicaForm(options = {}) {
 
     voiceMarkerButton.addEventListener('click', () => {
       updateVoiceMarkedChordPro({
+        editorState,
         originalEditor,
         originalTextarea,
         chordProTextarea,
+        editorStateTextarea,
         chordProEditor,
         markerId: voiceMarkerButton.dataset.voiceMarker,
         mode: 'selection',
         previewPanel,
         form,
       });
+      editorState = normalizeCifraEditorState(JSON.parse(editorStateTextarea.value || '{}'));
 
       originalEditor.focus();
     });
@@ -211,32 +238,37 @@ export function MusicaForm(options = {}) {
 
   unmarkVoiceButton.addEventListener('click', () => {
     updateVoiceMarkedChordPro({
+      editorState,
       originalEditor,
       originalTextarea,
       chordProTextarea,
+      editorStateTextarea,
       chordProEditor,
       markerId: '',
       mode: 'line',
       previewPanel,
       form,
     });
+    editorState = normalizeCifraEditorState(JSON.parse(editorStateTextarea.value || '{}'));
     originalEditor.focus();
   });
 
   clearVoiceMarkersButton.addEventListener('click', () => {
-    const cleanOriginal = originalTextarea.value || renderChordProForDisplay(chordProTextarea.value);
-    originalTextarea.value = cleanOriginal;
-    setChordProValue(chordProTextarea, chordProEditor, applyVoiceLabelsToChordPro(
-      convertToChordPro(cleanOriginal),
-      getVoiceLabelValues(form),
-    ));
-    renderOriginalEditor(originalEditor, chordProTextarea.value);
-    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
-
-    if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
-    }
-
+    editorState = normalizeCifraEditorState({
+      ...editorState,
+      voiceLabels: getVoiceLabelValues(form),
+      voiceMarks: [],
+    });
+    syncEditorStateOutputs({
+      editorState,
+      originalTextarea,
+      originalEditor,
+      chordProTextarea,
+      editorStateTextarea,
+      chordProEditor,
+      previewPanel,
+      form,
+    });
     originalEditor.focus();
   });
 
@@ -246,23 +278,28 @@ export function MusicaForm(options = {}) {
 
   chordProEditor.addEventListener('input', () => {
     chordProTextarea.value = getEditableText(chordProEditor);
-    originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
+    editorState = normalizeCifraEditorState(createCifraEditorStateFromChordPro(chordProTextarea.value));
+    originalTextarea.value = editorState.text;
+    editorStateTextarea.value = JSON.stringify(editorState);
     renderOriginalEditor(originalEditor, chordProTextarea.value);
     syncVoiceLabelInputs(form, chordProTextarea.value);
     updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
 
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
+      updatePreview(form, previewPanel, editorState);
     }
   });
 
   chordProEditor.addEventListener('blur', () => {
     const normalizedChordPro = normalizeChordProLyrics(chordProTextarea.value);
-    setChordProValue(chordProTextarea, chordProEditor, normalizedChordPro);
-    originalTextarea.value = renderChordProForDisplay(normalizedChordPro);
-    renderOriginalEditor(originalEditor, normalizedChordPro);
-    syncVoiceLabelInputs(form, normalizedChordPro);
-    updateVoiceLegends(form, voiceLegendSlots, normalizedChordPro);
+    editorState = normalizeCifraEditorState(createCifraEditorStateFromChordPro(normalizedChordPro));
+    const nextChordPro = createChordProFromCifraEditorState(editorState);
+    setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
+    originalTextarea.value = editorState.text;
+    editorStateTextarea.value = JSON.stringify(editorState);
+    renderOriginalEditor(originalEditor, nextChordPro);
+    syncVoiceLabelInputs(form, nextChordPro);
+    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
   });
 
   linkInput.addEventListener('input', () => {
@@ -275,7 +312,8 @@ export function MusicaForm(options = {}) {
       return;
     }
 
-    clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
+    editorState = normalizeCifraEditorState();
+    clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
   });
 
   if (deleteButton) {
@@ -302,11 +340,13 @@ export function MusicaForm(options = {}) {
   }
 
   transposeFormDownButton.addEventListener('click', () => {
-    transposeFormFields({
+    editorState = transposeFormFields({
       semitones: -1,
+      editorState,
       originalTextarea,
       originalEditor,
       chordProTextarea,
+      editorStateTextarea,
       chordProEditor,
       tomInput,
       previewPanel,
@@ -316,11 +356,13 @@ export function MusicaForm(options = {}) {
   });
 
   transposeFormUpButton.addEventListener('click', () => {
-    transposeFormFields({
+    editorState = transposeFormFields({
       semitones: 1,
+      editorState,
       originalTextarea,
       originalEditor,
       chordProTextarea,
+      editorStateTextarea,
       chordProEditor,
       tomInput,
       previewPanel,
@@ -343,7 +385,7 @@ export function MusicaForm(options = {}) {
 
   form.addEventListener('input', () => {
     if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
+      updatePreview(form, previewPanel, editorState);
     }
   });
 
@@ -357,7 +399,7 @@ export function MusicaForm(options = {}) {
     message.textContent = 'Salvando...';
 
     try {
-      const values = getFormValues(form);
+      const values = getFormValues(form, editorState);
       if (!values.titulo) {
         throw new Error('Digite o titulo da cifra no campo de busca acima.');
       }
@@ -365,7 +407,8 @@ export function MusicaForm(options = {}) {
       await options.onSubmit(values);
 
       if (!options.keepValuesAfterSubmit) {
-        clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
+        editorState = normalizeCifraEditorState();
+        clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
       }
       message.className = 'form-message success';
       message.textContent = 'Musica salva com sucesso.';
@@ -436,9 +479,11 @@ function renderOriginalEditor(editor, chordProValue, options = {}) {
 }
 
 function updateVoiceMarkedChordPro({
+  editorState,
   originalEditor,
   originalTextarea,
   chordProTextarea,
+  editorStateTextarea,
   chordProEditor,
   markerId,
   mode,
@@ -455,21 +500,51 @@ function updateVoiceMarkedChordPro({
 
   if (!targetRanges.length) return;
 
-  const currentMarkedText = normalizeVoiceBlocksToInline(renderChordProForDisplay(chordProTextarea.value, {
-    keepVoiceDirectives: true,
-  }));
-  const existingRanges = getVoiceRangesFromMarkedText(currentMarkedText);
-  const nextRanges = replaceVoiceRanges(existingRanges, targetRanges, markerId);
-  const markedOriginal = applyVoiceRangesToText(cleanText, nextRanges);
+  const nextEditorState = normalizeCifraEditorState({
+    ...editorState,
+    text: cleanText,
+    voiceLabels: getVoiceLabelValues(form),
+    voiceMarks: replaceVoiceRanges(editorState.voiceMarks, targetRanges, markerId),
+  });
 
-  const nextChordPro = applyVoiceLabelsToChordPro(convertToChordPro(markedOriginal), getVoiceLabelValues(form));
+  syncEditorStateOutputs({
+    editorState: nextEditorState,
+    originalTextarea,
+    originalEditor,
+    chordProTextarea,
+    editorStateTextarea,
+    chordProEditor,
+    previewPanel,
+    form,
+  });
+}
+
+function syncEditorStateOutputs({
+  editorState,
+  originalTextarea,
+  originalEditor,
+  chordProTextarea,
+  editorStateTextarea,
+  chordProEditor,
+  previewPanel,
+  form,
+  restoreSelection = null,
+}) {
+  const normalizedState = normalizeCifraEditorState(editorState);
+  const nextChordPro = createChordProFromCifraEditorState(normalizedState);
+
+  originalTextarea.value = normalizedState.text;
+  if (editorStateTextarea) {
+    editorStateTextarea.value = JSON.stringify(normalizedState);
+  }
   setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
-  originalTextarea.value = cleanText;
-  renderOriginalEditor(originalEditor, chordProTextarea.value);
-  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), chordProTextarea.value);
+  renderOriginalEditor(originalEditor, nextChordPro, {
+    restoreSelection,
+  });
+  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextChordPro);
 
   if (!previewPanel.hidden) {
-    updatePreview(form, previewPanel);
+    updatePreview(form, previewPanel, normalizedState);
   }
 }
 
@@ -829,10 +904,13 @@ function applyVoiceRangesToText(text, ranges) {
   ), value);
 }
 
-function clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {
+function clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {
   form.querySelectorAll('input, textarea').forEach((field) => {
     field.value = '';
   });
+  if (editorStateTextarea) {
+    editorStateTextarea.value = JSON.stringify(normalizeCifraEditorState());
+  }
   setChordProValue(chordProTextarea, chordProEditor, '');
   renderOriginalEditor(form.querySelector('.cifra-original-editor'), '');
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
@@ -850,31 +928,42 @@ function clearForm(form, chordProTextarea, chordProEditor, previewPanel, preview
 
 function transposeFormFields({
   semitones,
+  editorState,
   originalTextarea,
   originalEditor,
   chordProTextarea,
+  editorStateTextarea,
   chordProEditor,
   tomInput,
   previewPanel,
   form,
 }) {
-  originalTextarea.value = transposeCifraOriginal(originalTextarea.value, semitones);
+  const previousText = editorState.text;
+  const nextText = transposeCifraOriginal(previousText, semitones);
+  const nextEditorState = normalizeCifraEditorState({
+    ...editorState,
+    text: nextText,
+    voiceLabels: getVoiceLabelValues(form),
+    voiceMarks: transformVoiceRangesForTextChange(previousText, nextText, editorState.voiceMarks),
+  });
 
   const currentTom = String(tomInput.value || '').trim();
   if (currentTom) {
     tomInput.value = transposeKey(currentTom, semitones);
   }
 
-  setChordProValue(chordProTextarea, chordProEditor, applyVoiceLabelsToChordPro(
-    convertToChordPro(originalTextarea.value),
-    getVoiceLabelValues(form),
-  ));
-  renderOriginalEditor(originalEditor, chordProTextarea.value);
-  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), chordProTextarea.value);
+  syncEditorStateOutputs({
+    editorState: nextEditorState,
+    originalTextarea,
+    originalEditor,
+    chordProTextarea,
+    editorStateTextarea,
+    chordProEditor,
+    previewPanel,
+    form,
+  });
 
-  if (!previewPanel.hidden) {
-    updatePreview(form, previewPanel);
-  }
+  return nextEditorState;
 }
 
 function updateFormTransposeStatus(status, formTransposeState, delta) {
@@ -923,12 +1012,10 @@ function setupResponsiveCifraEditor(container) {
   window.addEventListener('resize', updateLayout);
 }
 
-function getFormValues(form) {
+function getFormValues(form, editorState = null) {
   const formData = new FormData(form);
-  const normalizedChordPro = applyVoiceLabelsToChordPro(
-    normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '').trim()),
-    getVoiceLabelValues(form),
-  );
+  const normalizedEditorState = normalizeCifraEditorState(editorState || formData.get('cifra_editor_state'));
+  const normalizedChordPro = createChordProFromCifraEditorState(normalizedEditorState).trim();
 
   return {
     titulo: String(formData.get('titulo') || '').trim(),
@@ -938,11 +1025,10 @@ function getFormValues(form) {
     musica_link: String(formData.get('musica_link') || '').trim() || null,
     colaborador_nome: String(formData.get('colaborador_nome') || '').trim() || null,
     revisado_por_nome: String(formData.get('revisado_por_nome') || '').trim() || null,
-    cifra_original: renderChordProForDisplay(normalizedChordPro).trim(),
+    cifra_editor_state: normalizedEditorState,
+    cifra_original: normalizedEditorState.text.trim(),
     cifra_chordpro: normalizedChordPro,
-    cifra_exibicao: renderChordProForDisplay(normalizedChordPro, {
-      keepVoiceDirectives: true,
-    }),
+    cifra_exibicao: createCifraExibicaoFromCifraEditorState(normalizedEditorState),
   };
 }
 
@@ -961,8 +1047,8 @@ function getInitialOriginalText(initialValues, initialChordPro) {
   return renderChordProForDisplay(convertToChordPro(initialValues.cifra_original || ''));
 }
 
-function updatePreview(form, previewPanel) {
-  const musica = getPreviewMusica(form);
+function updatePreview(form, previewPanel, editorState = null) {
+  const musica = getPreviewMusica(form, editorState);
   const performanceView = previewPanel.querySelector('.repertorio-performance-view');
 
   if (performanceView) {
@@ -977,8 +1063,8 @@ function updatePreview(form, previewPanel) {
   }));
 }
 
-function getPreviewMusica(form) {
-  const values = getFormValues(form);
+function getPreviewMusica(form, editorState = null) {
+  const values = getFormValues(form, editorState);
   const renderedCifra = renderChordProForDisplay(values.cifra_chordpro, {
     keepVoiceDirectives: true,
   })
