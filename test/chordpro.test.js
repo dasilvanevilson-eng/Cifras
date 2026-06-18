@@ -49,6 +49,11 @@ assert.equal(
 );
 
 assert.equal(
+  convertToChordPro(['{voice: segunda_voz}', 'G      D/F#', 'Grande es Tu', '{/voice}'].join('\n')),
+  ['{voice: segunda_voz}', '[G]GRANDE [D/F#]ES TU', '{/voice}'].join('\n'),
+);
+
+assert.equal(
   renderChordProForDisplay('[G]GRANDE [D/F#]ES TU'),
   ['G      D/F#', 'GRANDE ES TU'].join('\n'),
 );
@@ -66,6 +71,14 @@ assert.equal(
 assert.equal(
   renderCifraOriginalForDisplayHtml(['G  D/F#  Em', 'Grande es Tu'].join('\n')),
   ['<span class="chord-line">G  D/F#  Em</span>', 'Grande es Tu'].join('\n'),
+);
+
+assert.equal(
+  renderCifraOriginalForDisplayHtml(['{voice: segunda_voz}', 'G  D/F#  Em', 'Grande es Tu', '{/voice}'].join('\n')),
+  [
+    '<span class="voice-highlight voice-highlight-segunda_voz"><span class="chord-line">G  D/F#  Em</span></span>',
+    '<span class="voice-highlight voice-highlight-segunda_voz">Grande es Tu</span>',
+  ].join('\n'),
 );
 
 assert.equal(

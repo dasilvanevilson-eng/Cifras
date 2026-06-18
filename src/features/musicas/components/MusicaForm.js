@@ -70,6 +70,15 @@ export function MusicaForm(options = {}) {
       <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
     </div>
 
+    <div class="voice-marker-toolbar" aria-label="Marcacoes de vozes">
+      <span>Destacar selecao</span>
+      ${VOICE_MARKERS.map((marker) => `
+        <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}">
+          ${escapeHtml(marker.label)}
+        </button>
+      `).join('')}
+    </div>
+
     <div class="cifra-editor-grid">
       <label>
         Cifra original
@@ -104,6 +113,7 @@ export function MusicaForm(options = {}) {
   const linkAction = form.querySelector('.field-action-link');
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
+  const voiceMarkerButtons = form.querySelectorAll('[data-voice-marker]');
   const formTransposeState = {
     semitones: 0,
   };
@@ -113,12 +123,28 @@ export function MusicaForm(options = {}) {
   setupResponsiveCifraEditor(cifraEditorGrid);
 
   originalTextarea.addEventListener('input', () => {
-    const nextAutoChordPro = convertToChordPro(originalTextarea.value);
-    setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
+    syncChordProFromOriginal({
+      originalTextarea,
+      chordProTextarea,
+      chordProEditor,
+      previewPanel,
+      form,
+    });
+  });
 
-    if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel);
-    }
+  voiceMarkerButtons.forEach((voiceMarkerButton) => {
+    voiceMarkerButton.addEventListener('click', () => {
+      applyVoiceMarkerToSelection(originalTextarea, voiceMarkerButton.dataset.voiceMarker);
+      syncChordProFromOriginal({
+        originalTextarea,
+        chordProTextarea,
+        chordProEditor,
+        previewPanel,
+        form,
+      });
+
+      originalTextarea.focus();
+    });
   });
 
   chordProEditor.addEventListener('focus', () => {
@@ -255,6 +281,42 @@ export function MusicaForm(options = {}) {
   });
 
   return form;
+}
+
+function syncChordProFromOriginal({
+  originalTextarea,
+  chordProTextarea,
+  chordProEditor,
+  previewPanel,
+  form,
+}) {
+  const nextAutoChordPro = convertToChordPro(originalTextarea.value);
+  setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
+
+  if (!previewPanel.hidden) {
+    updatePreview(form, previewPanel);
+  }
+}
+
+function applyVoiceMarkerToSelection(textarea, markerId) {
+  if (!textarea || !markerId) return;
+
+  const value = textarea.value || '';
+  const selectionStart = textarea.selectionStart ?? 0;
+  const selectionEnd = textarea.selectionEnd ?? selectionStart;
+  const effectiveSelectionEnd = selectionEnd > selectionStart && value[selectionEnd - 1] === '\n'
+    ? selectionEnd - 1
+    : selectionEnd;
+  const lineStart = value.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
+  const nextLineBreak = value.indexOf('\n', effectiveSelectionEnd);
+  const lineEnd = nextLineBreak === -1 ? value.length : nextLineBreak;
+  const selectedText = value.slice(lineStart, lineEnd);
+
+  if (!selectedText.trim()) return;
+
+  const wrappedText = `{voice: ${markerId}}\n${selectedText}\n{/voice}`;
+  textarea.value = `${value.slice(0, lineStart)}${wrappedText}${value.slice(lineEnd)}`;
+  textarea.setSelectionRange(lineStart, lineStart + wrappedText.length);
 }
 
 function clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {
@@ -439,6 +501,14 @@ function formatTagsInput(value) {
 
   return String(value || '');
 }
+
+const VOICE_MARKERS = [
+  { id: 'voz_principal', label: 'Voz principal', className: 'voice-marker-primary' },
+  { id: 'segunda_voz', label: 'Segunda voz', className: 'voice-marker-secondary' },
+  { id: 'terca_voz', label: 'Terceira voz', className: 'voice-marker-tertiary' },
+  { id: 'todos', label: 'Todos', className: 'voice-marker-all' },
+  { id: 'solo', label: 'Solo', className: 'voice-marker-solo' },
+];
 
 function escapeHtml(value) {
   return String(value)

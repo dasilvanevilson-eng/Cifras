@@ -9,6 +9,11 @@ export function convertToChordPro(input) {
     const nextLine = lines[index + 1];
     const label = getChordSectionLabel(line);
 
+    if (isVoiceDirectiveLine(line)) {
+      output.push(normalizeVoiceDirective(line));
+      continue;
+    }
+
     if (label && nextLine !== undefined && isChordLine(nextLine)) {
       output.push(`[*${label}]`);
       output.push(convertStandaloneChordLine(nextLine, { includeLabel: false }));
@@ -25,7 +30,7 @@ export function convertToChordPro(input) {
     output.push(convertStandaloneChordLine(line));
   }
 
-  return output.map((line) => uppercaseChordProLyrics(line.trimEnd())).join('\n');
+  return output.map((line) => normalizeChordProLine(line.trimEnd())).join('\n');
 }
 
 export function transposeChordPro(input, semitones) {
@@ -39,7 +44,7 @@ export function normalizeChordProLyrics(input) {
 
   return String(input)
     .split('\n')
-    .map(uppercaseChordProLyrics)
+    .map(normalizeChordProLine)
     .join('\n');
 }
 
@@ -48,19 +53,36 @@ export function renderChordProForDisplay(input) {
 
   return String(input)
     .split('\n')
-    .map(renderChordProLineForDisplay)
+    .map((line) => (isVoiceDirectiveLine(line) ? normalizeVoiceDirective(line) : renderChordProLineForDisplay(line)))
     .join('\n');
 }
 
 export function renderCifraOriginalForDisplayHtml(input) {
   if (!input) return '';
 
+  let activeVoice = '';
+
   return normalizeTabs(String(input))
     .split('\n')
-    .map((line) => {
+    .reduce((output, line) => {
+      const directive = parseVoiceDirective(line);
+
+      if (directive) {
+        activeVoice = directive.closing ? '' : directive.id;
+        return output;
+      }
+
       const escapedLine = escapeHtml(line);
-      return isDisplayChordLine(line) ? `<span class="chord-line">${escapedLine}</span>` : escapedLine;
-    })
+      const renderedLine = isDisplayChordLine(line) ? `<span class="chord-line">${escapedLine}</span>` : escapedLine;
+
+      if (activeVoice) {
+        output.push(`<span class="voice-highlight voice-highlight-${escapeHtml(activeVoice)}">${renderedLine}</span>`);
+        return output;
+      }
+
+      output.push(renderedLine);
+      return output;
+    }, [])
     .join('\n');
 }
 
@@ -353,6 +375,37 @@ function uppercaseChordProLyrics(line) {
 
     return part.toLocaleUpperCase('pt-BR');
   });
+}
+
+function normalizeChordProLine(line) {
+  return isVoiceDirectiveLine(line) ? normalizeVoiceDirective(line) : uppercaseChordProLyrics(line);
+}
+
+function isVoiceDirectiveLine(line) {
+  return Boolean(parseVoiceDirective(line));
+}
+
+function normalizeVoiceDirective(line) {
+  const directive = parseVoiceDirective(line);
+
+  if (!directive) return String(line || '');
+  if (directive.closing) return '{/voice}';
+
+  return `{voice: ${directive.id}}`;
+}
+
+function parseVoiceDirective(line) {
+  const value = String(line || '').trim();
+
+  if (/^\{\/(?:voice|part)\}$/i.test(value)) {
+    return { closing: true, id: '' };
+  }
+
+  const openingMatch = value.match(/^\{(?:voice|part)\s*:\s*([a-z0-9_-]+)\}$/i);
+
+  if (!openingMatch) return null;
+
+  return { closing: false, id: openingMatch[1].toLowerCase() };
 }
 
 function isOnlyChordsAndSeparators(value) {

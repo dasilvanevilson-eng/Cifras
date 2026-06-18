@@ -4348,6 +4348,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 }
 
 .musica-form label:nth-of-type(5),
+.voice-marker-toolbar,
 .cifra-editor-grid,
 .music-form-actions,
 .song-preview,
@@ -4374,6 +4375,76 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   align-items: center;
   border-top: 1px solid #eee7da;
   padding-top: 14px;
+}
+
+.voice-marker-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.voice-marker-toolbar span {
+  color: #5f594f;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.voice-marker-button {
+  border: 1px solid rgba(95, 89, 79, 0.22);
+  border-radius: var(--radius-md);
+  min-height: 38px;
+  padding: 8px 10px;
+  color: #20211f;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.voice-marker-button:hover,
+.voice-marker-button:focus {
+  border-color: rgba(29, 79, 69, 0.42);
+  box-shadow: var(--focus-ring);
+  outline: 0;
+}
+
+.voice-marker-primary,
+.voice-highlight-voz_principal {
+  background: #ffe08a;
+}
+
+.voice-marker-secondary,
+.voice-highlight-segunda_voz {
+  background: #a7d8ff;
+}
+
+.voice-marker-tertiary,
+.voice-highlight-terca_voz {
+  background: #b8f2c8;
+}
+
+.voice-marker-all,
+.voice-highlight-todos {
+  background: #e9d5ff;
+}
+
+.voice-marker-solo,
+.voice-highlight-solo {
+  background: #ffc4c4;
+}
+
+.voice-highlight {
+  display: block;
+  margin: 0 -4px;
+  border-radius: 4px;
+  padding: 0 4px;
+  color: #1d1b17;
+}
+
+.voice-highlight .chord-line {
+  color: #9b4f12;
 }
 
 .inline-transpose-controls {
@@ -4407,6 +4478,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 
 .musica-form.is-previewing > label,
 .musica-form.is-previewing > .music-form-actions,
+.musica-form.is-previewing > .voice-marker-toolbar,
 .musica-form.is-previewing > .cifra-editor-grid,
 .musica-form.is-previewing > .form-message {
   display: none;
@@ -5098,6 +5170,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   .musica-form .field-collaborator,
   .musica-form .field-reviewer,
   .music-form-actions,
+  .voice-marker-toolbar,
   .cifra-editor-grid,
   .song-preview,
   .musica-form .form-message {
