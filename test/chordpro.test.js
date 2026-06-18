@@ -238,4 +238,15 @@ assert.equal(
   ['Grande es Tu', '', 'Santo Senhor'].join('\n'),
 );
 
+assert.equal(
+  extractLyricsFromCifraOriginal([
+    '{voice-label: voz_principal=Joao}',
+    '[G]A ALEGRIA {voice: voz_principal}ESTA NO CORACAO{/voice}',
+    '{voice: segunda_voz}',
+    '[D/F#]DE QUEM CANTA',
+    '{/voice}',
+  ].join('\n')),
+  ['A ALEGRIA ESTA NO CORACAO', 'DE QUEM CANTA'].join('\n'),
+);
+
 console.log('chordpro tests passed');

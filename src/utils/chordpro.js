@@ -193,8 +193,9 @@ export function extractLyricsFromCifraOriginal(input) {
 
   return normalizeTabs(input)
     .split('\n')
+    .map(cleanLyricsLine)
+    .filter((line) => line !== null)
     .filter((line) => !isChordLine(line))
-    .map((line) => line.replace(/\[[^\]]+\]/g, '').trimEnd())
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -202,6 +203,17 @@ export function extractLyricsFromCifraOriginal(input) {
 
 export function isCifraOriginalChordLine(line) {
   return isChordLine(line);
+}
+
+function cleanLyricsLine(line) {
+  const value = String(line || '');
+  const cleaned = stripVoiceDirectives(value)
+    .replace(/\[[^\]]+\]/g, '')
+    .trimEnd();
+
+  if (value.trim() && !cleaned.trim()) return null;
+
+  return cleaned;
 }
 
 export function getDefaultVoiceLabels() {
