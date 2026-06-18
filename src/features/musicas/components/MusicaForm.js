@@ -154,6 +154,7 @@ export function MusicaForm(options = {}) {
     semitones: 0,
   };
   let editorState = normalizeCifraEditorState(initialEditorState);
+  let pendingOriginalEditorInput = null;
 
   updateLinkAction(linkInput, linkAction);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
@@ -161,17 +162,47 @@ export function MusicaForm(options = {}) {
   updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
   setupResponsiveCifraEditor(cifraEditorGrid);
 
+  originalEditor.addEventListener('beforeinput', (event) => {
+    pendingOriginalEditorInput = null;
+
+    if (!['insertParagraph', 'insertLineBreak'].includes(event.inputType)) {
+      return;
+    }
+
+    const selectionOffsets = getEditorSelectionOffsets(originalEditor);
+    const activeVoiceRange = getVoiceRangeAtOffset(editorState.voiceMarks, selectionOffsets.start);
+
+    if (!activeVoiceRange) {
+      return;
+    }
+
+    pendingOriginalEditorInput = {
+      type: event.inputType,
+      offset: selectionOffsets.start,
+      range: { ...activeVoiceRange },
+    };
+  });
+
   originalEditor.addEventListener('input', () => {
     const selectionOffsets = getEditorSelectionOffsets(originalEditor);
     const previousOriginal = editorState.text;
     const nextOriginal = getEditableText(originalEditor);
+    const previousVoiceMarks = editorState.voiceMarks;
+    const transformedVoiceMarks = transformVoiceRangesForTextChange(previousOriginal, nextOriginal, previousVoiceMarks)
+      .filter((range) => range.start < range.end);
     editorState = normalizeCifraEditorState({
       ...editorState,
       text: nextOriginal,
       voiceLabels: getVoiceLabelValues(form),
-      voiceMarks: transformVoiceRangesForTextChange(previousOriginal, nextOriginal, editorState.voiceMarks)
-        .filter((range) => range.start < range.end),
+      voiceMarks: ensurePendingLineBreakKeepsVoiceRange({
+        previousText: previousOriginal,
+        nextText: nextOriginal,
+        previousRanges: previousVoiceMarks,
+        nextRanges: transformedVoiceMarks,
+        pendingInput: pendingOriginalEditorInput,
+      }),
     });
+    pendingOriginalEditorInput = null;
     syncEditorStateOutputs({
       editorState,
       originalTextarea,
@@ -875,6 +906,93 @@ function transformVoiceRangesForTextChange(previousText, nextText, ranges) {
       end: nextEnd,
     };
   });
+}
+
+function getVoiceRangeAtOffset(ranges, offset) {
+  return ranges.find((range) => range.start < offset && range.end > offset)
+    || ranges.find((range) => range.start <= offset && range.end >= offset)
+    || null;
+}
+
+function ensurePendingLineBreakKeepsVoiceRange({
+  previousText,
+  nextText,
+  previousRanges,
+  nextRanges,
+  pendingInput,
+}) {
+  if (!pendingInput || !['insertParagraph', 'insertLineBreak'].includes(pendingInput.type)) {
+    return nextRanges;
+  }
+
+  const previousRange = pendingInput.range;
+
+  if (!previousRange?.markerId) {
+    return nextRanges;
+  }
+
+  const change = getSingleTextChange(previousText, nextText);
+  const insertedText = String(nextText || '').slice(change.nextStart, change.nextEnd);
+
+  if (!insertedText.includes('\n')) {
+    return nextRanges;
+  }
+
+  const transformedRange = transformVoiceRangesForTextChange(previousText, nextText, [previousRange])[0];
+
+  if (!transformedRange || transformedRange.start >= transformedRange.end) {
+    return nextRanges;
+  }
+
+  const rangesWithoutReplacedVoice = nextRanges.filter((range) => !rangesOverlap(range, transformedRange)
+    || range.markerId !== previousRange.markerId);
+
+  return [
+    ...rangesWithoutReplacedVoice,
+    {
+      ...transformedRange,
+      markerId: previousRange.markerId,
+    },
+  ]
+    .filter((range) => range.start < range.end)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+}
+
+function getSingleTextChange(previousText, nextText) {
+  const previousValue = String(previousText || '');
+  const nextValue = String(nextText || '');
+  let prefixLength = 0;
+  const prefixLimit = Math.min(previousValue.length, nextValue.length);
+
+  while (
+    prefixLength < prefixLimit
+    && previousValue[prefixLength] === nextValue[prefixLength]
+  ) {
+    prefixLength += 1;
+  }
+
+  let suffixLength = 0;
+  const previousSuffixLimit = previousValue.length - prefixLength;
+  const nextSuffixLimit = nextValue.length - prefixLength;
+
+  while (
+    suffixLength < previousSuffixLimit
+    && suffixLength < nextSuffixLimit
+    && previousValue[previousValue.length - 1 - suffixLength] === nextValue[nextValue.length - 1 - suffixLength]
+  ) {
+    suffixLength += 1;
+  }
+
+  return {
+    previousStart: prefixLength,
+    previousEnd: previousValue.length - suffixLength,
+    nextStart: prefixLength,
+    nextEnd: nextValue.length - suffixLength,
+  };
+}
+
+function rangesOverlap(firstRange, secondRange) {
+  return firstRange.start < secondRange.end && firstRange.end > secondRange.start;
 }
 
 function subtractRange(range, target) {
