@@ -64,6 +64,10 @@ export async function ConvitesPublicosPage({ session } = {}) {
         </fieldset>
         <fieldset class="public-invite-permissions field-full" data-role="letras-permissions" hidden>
           <legend>Repertorio liberado</legend>
+          <label class="checkbox-label">
+            <input name="letras_share_full_cifra" type="checkbox">
+            <span>Compartilhar cifra completa conforme execução</span>
+          </label>
           <div class="public-invite-repertorios" data-role="letras-repertorios">
             <div data-role="letras-repertorios-list">
               <p class="page-status">Carregando repertorios...</p>
@@ -211,6 +215,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.module_key.value = invite.module_key || 'dashboard';
     form.elements.access_mode.value = metadata.access_mode || 'ambos';
     form.elements.allow_acervo.checked = metadata.allow_acervo !== false;
+    form.elements.letras_share_full_cifra.checked = metadata.letras_content_mode === 'full_cifra';
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
     form.elements.max_uses.value = invite.max_uses || '';
     setCheckedRepertorios(form, getInviteRepertorioIds(invite, metadata));
@@ -226,6 +231,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     cancelEditButton.hidden = true;
     form.elements.expires_at.value = getDefaultExpiresAt();
     form.elements.allow_acervo.checked = true;
+    form.elements.letras_share_full_cifra.checked = false;
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
   }
 }
@@ -320,6 +326,7 @@ function readInviteForm(form, session) {
     createdBy: session?.user?.id,
     accessMode: form.elements.access_mode?.value || 'ambos',
     allowAcervo: Boolean(form.elements.allow_acervo?.checked),
+    letrasContentMode: form.elements.letras_share_full_cifra?.checked ? 'full_cifra' : 'lyrics_only',
     repertorioIds: getSelectedRepertorioIds(form, moduleKey),
   };
 }

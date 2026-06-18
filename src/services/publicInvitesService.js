@@ -73,6 +73,7 @@ export async function createLetrasRepertorioPublicInvite({
   maxUses,
   createdBy,
   repertorioIds = [],
+  letrasContentMode = 'lyrics_only',
 }) {
   assertSupabaseConfig();
 
@@ -90,6 +91,7 @@ export async function createLetrasRepertorioPublicInvite({
       metadata: {
         version: 1,
         repertorio_ids: repertorioId ? [repertorioId] : [],
+        letras_content_mode: letrasContentMode === 'full_cifra' ? 'full_cifra' : 'lyrics_only',
         description: 'Acesso publico temporario ao modo Letras de um repertorio.',
       },
       expires_at: expiresAt,
@@ -108,6 +110,7 @@ export async function updatePublicInvite(id, {
   accessMode = 'ambos',
   repertorioIds = [],
   allowAcervo = true,
+  letrasContentMode = 'lyrics_only',
 }) {
   assertSupabaseConfig();
 
@@ -135,6 +138,7 @@ export async function updatePublicInvite(id, {
           ? {
               version: 1,
               repertorio_ids: repertorioId ? [repertorioId] : [],
+              letras_content_mode: letrasContentMode === 'full_cifra' ? 'full_cifra' : 'lyrics_only',
               description: 'Acesso publico temporario ao modo Letras de um repertorio.',
             }
         : {

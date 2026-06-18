@@ -1,5 +1,5 @@
 import { getPublicLetrasRepertorioData } from '../../../services/publicInvitesService.js';
-import { extractLyricsFromCifraOriginal, getCifraExibicao } from '../../../utils/chordpro.js';
+import { extractLyricsFromCifraOriginal, getCifraExibicao, renderCifraOriginalForDisplayHtml } from '../../../utils/chordpro.js';
 import { isYoutubeUrl, openYoutubeFloatingPlayer } from '../../../utils/youtubePlayer.js';
 
 export async function PublicLetrasRepertorioPage() {
@@ -59,6 +59,7 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
 
   const state = {
     selectedId: null,
+    contentMode: getInviteContentMode(invite),
   };
 
   function render() {
@@ -87,7 +88,7 @@ function createSongList(items, state, { onSelect, onClose }) {
     list.append(songRow);
 
     if (item.id === state.selectedId) {
-      const detail = createSongDetail(item);
+      const detail = createSongDetail(item, state.contentMode);
       list.append(detail);
     }
   });
@@ -140,16 +141,17 @@ function createSongRow(item, index, state, { onSelect, onClose }) {
   return row;
 }
 
-function createSongDetail(item) {
+function createSongDetail(item, contentMode = 'lyrics_only') {
   const detail = document.createElement('article');
   detail.className = 'public-lyrics-detail-inner';
   detail.dataset.expandedSong = 'true';
 
-  const lyrics = getLyricsFromItem(item);
+  const content = getContentFromItem(item, contentMode);
+  const isFullCifra = contentMode === 'full_cifra';
 
   detail.innerHTML = `
     ${isDeletedSong(item) ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>' : ''}
-    <pre class="lyrics-text public-lyrics-text">${escapeHtml(lyrics || 'Letra nao encontrada.')}</pre>
+    <pre class="${isFullCifra ? 'chordpro-view' : 'lyrics-text public-lyrics-text'}">${isFullCifra ? renderCifraOriginalForDisplayHtml(content || 'Cifra nao encontrada.') : escapeHtml(content || 'Letra nao encontrada.')}</pre>
   `;
 
   return detail;
@@ -170,11 +172,22 @@ function getSongLink(item) {
   return link !== '-' ? link : '';
 }
 
-function getLyricsFromItem(item = {}) {
+function getContentFromItem(item = {}, contentMode = 'lyrics_only') {
   if (isDeletedSong(item)) return '';
   const musica = item.musicas || {};
-  const source = musica.cifra_chordpro || getCifraExibicao(musica);
+  const cifra = getCifraExibicao(musica);
+
+  if (contentMode === 'full_cifra') {
+    return cifra;
+  }
+
+  const source = musica.cifra_chordpro || cifra;
   return extractLyricsFromCifraOriginal(source);
+}
+
+function getInviteContentMode(invite = {}) {
+  const metadata = invite?.metadata && typeof invite.metadata === 'object' ? invite.metadata : {};
+  return metadata.letras_content_mode === 'full_cifra' ? 'full_cifra' : 'lyrics_only';
 }
 
 function isDeletedSong(item = {}) {
