@@ -108,8 +108,10 @@ export function MusicaForm(options = {}) {
     <div class="cifra-editor-grid">
       <label>
         Cifra original
-        <textarea class="cifra-original-source" name="cifra_original" rows="14" required>${escapeHtml(initialEditorState.text)}</textarea>
-        <div class="cifra-original-editor" contenteditable="true" role="textbox" aria-label="Cifra original" spellcheck="false"></div>
+        <div class="cifra-original-editor-shell">
+          <pre class="cifra-original-editor" aria-hidden="true"></pre>
+          <textarea class="cifra-original-source" name="cifra_original" rows="14" required spellcheck="false" wrap="off">${escapeHtml(initialEditorState.text)}</textarea>
+        </div>
         <div class="voice-editor-legend" data-role="original-voice-legend"></div>
       </label>
 
@@ -162,14 +164,14 @@ export function MusicaForm(options = {}) {
   updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
   setupResponsiveCifraEditor(cifraEditorGrid);
 
-  originalEditor.addEventListener('beforeinput', (event) => {
+  originalTextarea.addEventListener('beforeinput', (event) => {
     pendingOriginalEditorInput = null;
 
     if (!['insertParagraph', 'insertLineBreak'].includes(event.inputType)) {
       return;
     }
 
-    const selectionOffsets = getEditorSelectionOffsets(originalEditor);
+    const selectionOffsets = getEditorSelectionOffsets(originalTextarea);
     const activeVoiceRange = getVoiceRangeAtOffset(editorState.voiceMarks, selectionOffsets.start);
 
     if (!activeVoiceRange) {
@@ -183,10 +185,10 @@ export function MusicaForm(options = {}) {
     };
   });
 
-  originalEditor.addEventListener('input', () => {
-    const selectionOffsets = getEditorSelectionOffsets(originalEditor);
+  originalTextarea.addEventListener('input', () => {
+    const selectionOffsets = getEditorSelectionOffsets(originalTextarea);
     const previousOriginal = editorState.text;
-    const nextOriginal = getEditableText(originalEditor);
+    const nextOriginal = originalTextarea.value;
     const previousVoiceMarks = editorState.voiceMarks;
     const transformedVoiceMarks = transformVoiceRangesForTextChange(previousOriginal, nextOriginal, previousVoiceMarks)
       .filter((range) => range.start < range.end);
@@ -214,6 +216,10 @@ export function MusicaForm(options = {}) {
       form,
       restoreSelection: selectionOffsets,
     });
+  });
+
+  originalTextarea.addEventListener('scroll', () => {
+    syncOriginalEditorScroll(originalTextarea, originalEditor);
   });
 
   voiceLabelInputs.forEach((input) => {
@@ -259,7 +265,7 @@ export function MusicaForm(options = {}) {
       });
       editorState = normalizeCifraEditorState(JSON.parse(editorStateTextarea.value || '{}'));
 
-      originalEditor.focus();
+      originalTextarea.focus();
     });
   });
 
@@ -281,7 +287,7 @@ export function MusicaForm(options = {}) {
       form,
     });
     editorState = normalizeCifraEditorState(JSON.parse(editorStateTextarea.value || '{}'));
-    originalEditor.focus();
+    originalTextarea.focus();
   });
 
   clearVoiceMarkersButton.addEventListener('click', () => {
@@ -300,7 +306,7 @@ export function MusicaForm(options = {}) {
       previewPanel,
       form,
     });
-    originalEditor.focus();
+    originalTextarea.focus();
   });
 
   chordProEditor.addEventListener('focus', () => {
@@ -500,13 +506,16 @@ function renderOriginalEditor(editor, chordProValue, options = {}) {
   });
   editor.innerHTML = renderCifraOriginalForDisplayHtml(displayValue, {
     includeVoiceLegend: false,
-  });
+  }) || '<br>';
   editor.scrollTop = scrollTop;
   editor.scrollLeft = scrollLeft;
+}
 
-  if (options.restoreSelection) {
-    restoreEditorSelection(editor, options.restoreSelection);
-  }
+function syncOriginalEditorScroll(textarea, editor) {
+  if (!textarea || !editor) return;
+
+  editor.scrollTop = textarea.scrollTop;
+  editor.scrollLeft = textarea.scrollLeft;
 }
 
 function updateVoiceMarkedChordPro({
@@ -524,7 +533,7 @@ function updateVoiceMarkedChordPro({
   if (!originalEditor || !originalTextarea) return;
 
   const cleanText = originalTextarea.value || '';
-  const selectionOffsets = getEditorSelectionOffsets(originalEditor);
+  const selectionOffsets = getEditorSelectionOffsets(originalTextarea);
   const targetRanges = mode === 'line'
     ? getMarkableRangesForCursorLine(cleanText, selectionOffsets.start)
     : getMarkableRangesForSelection(cleanText, selectionOffsets);
@@ -572,6 +581,10 @@ function syncEditorStateOutputs({
   renderOriginalEditor(originalEditor, nextChordPro, {
     restoreSelection,
   });
+  syncOriginalEditorScroll(originalTextarea, originalEditor);
+  if (restoreSelection) {
+    restoreEditorSelection(originalTextarea, restoreSelection);
+  }
   updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextChordPro);
 
   if (!previewPanel.hidden) {
@@ -621,6 +634,13 @@ function syncVoiceLabelInputs(form, chordProValue) {
 }
 
 function getEditorSelectionOffsets(editor) {
+  if (editor && typeof editor.selectionStart === 'number' && typeof editor.selectionEnd === 'number') {
+    return {
+      start: Math.min(editor.selectionStart, editor.selectionEnd),
+      end: Math.max(editor.selectionStart, editor.selectionEnd),
+    };
+  }
+
   const selection = window.getSelection();
 
   if (!selection || selection.rangeCount === 0 || !editor.contains(selection.anchorNode)) {
@@ -648,6 +668,14 @@ function getEditorSelectionOffsets(editor) {
 
 function restoreEditorSelection(editor, offsets) {
   if (!editor || !offsets) return;
+
+  if (typeof editor.setSelectionRange === 'function') {
+    const textLength = String(editor.value || '').length;
+    const start = Math.max(0, Math.min(textLength, offsets.start));
+    const end = Math.max(0, Math.min(textLength, offsets.end));
+    editor.setSelectionRange(start, end);
+    return;
+  }
 
   const selection = window.getSelection();
   if (!selection) return;
