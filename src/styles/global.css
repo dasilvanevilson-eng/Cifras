@@ -665,16 +665,22 @@ a {
   padding-bottom: 14px;
 }
 
+.dashboard-header > div:first-child {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
 .dashboard-header h1 {
   margin: 0;
   color: #1d3f38;
   font-size: clamp(24px, 3vw, 32px);
-  line-height: 1.05;
+  line-height: 1.12;
 }
 
 .dashboard-header p {
   max-width: 42rem;
-  margin: 5px 0 0;
+  margin: 0;
   color: #635d52;
   font-size: 14px;
   line-height: 1.35;
@@ -7467,12 +7473,13 @@ html {
 
 .dashboard-hero-copy {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   min-width: min(100%, 320px);
 }
 
 .dashboard-kicker {
   width: fit-content;
+  margin-bottom: 2px;
   border: 1px solid color-mix(in srgb, var(--color-primary), var(--color-border) 45%);
   border-radius: 999px;
   padding: 5px 9px;
@@ -7765,12 +7772,13 @@ html {
 
 .musicas-hero-copy {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   min-width: min(100%, 320px);
 }
 
 .musicas-kicker {
   width: fit-content;
+  margin-bottom: 2px;
   border: 1px solid color-mix(in srgb, var(--color-info), var(--color-border) 45%);
   border-radius: 999px;
   padding: 5px 9px;
@@ -8220,12 +8228,13 @@ html {
 
 .repertorios-hero-copy {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   min-width: min(100%, 320px);
 }
 
 .repertorios-kicker {
   width: fit-content;
+  margin-bottom: 2px;
   border: 1px solid color-mix(in srgb, var(--color-primary), var(--color-border) 45%);
   border-radius: 999px;
   padding: 5px 9px;
