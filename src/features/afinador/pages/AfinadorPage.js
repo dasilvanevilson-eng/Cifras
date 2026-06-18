@@ -1,10 +1,15 @@
 const A4 = 440;
-const CLARITY_THRESHOLD = 0.9;
-const MIN_RMS = 0.012;
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+const SENSITIVITY_SETTINGS = {
+  baixa: { label: 'Baixa', gain: 1, minRms: 0.014, clarityThreshold: 0.9, trimThreshold: 0.16 },
+  normal: { label: 'Normal', gain: 1.4, minRms: 0.009, clarityThreshold: 0.86, trimThreshold: 0.1 },
+  alta: { label: 'Alta', gain: 2.4, minRms: 0.0045, clarityThreshold: 0.78, trimThreshold: 0.055 },
+  maxima: { label: 'Maxima', gain: 3.4, minRms: 0.0025, clarityThreshold: 0.7, trimThreshold: 0.035 },
+};
+
 const TUNINGS = {
-  6: [
+  violao_6: [
     { id: 'E2', label: 'E', description: '6a corda', frequency: 82.41 },
     { id: 'A2', label: 'A', description: '5a corda', frequency: 110 },
     { id: 'D3', label: 'D', description: '4a corda', frequency: 146.83 },
@@ -12,7 +17,7 @@ const TUNINGS = {
     { id: 'B3', label: 'B', description: '2a corda', frequency: 246.94 },
     { id: 'E4', label: 'E', description: '1a corda', frequency: 329.63 },
   ],
-  12: [
+  violao_12: [
     { id: 'E2', label: 'E grave', description: '6o par', frequency: 82.41 },
     { id: 'E3', label: 'E oitava', description: '6o par', frequency: 164.81 },
     { id: 'A2', label: 'A grave', description: '5o par', frequency: 110 },
@@ -26,7 +31,48 @@ const TUNINGS = {
     { id: 'E4a', label: 'E', description: '1o par', frequency: 329.63 },
     { id: 'E4b', label: 'E dupla', description: '1o par', frequency: 329.63 },
   ],
+  baixo_4: [
+    { id: 'E1', label: 'E', description: '4a corda', frequency: 41.2 },
+    { id: 'A1', label: 'A', description: '3a corda', frequency: 55 },
+    { id: 'D2', label: 'D', description: '2a corda', frequency: 73.42 },
+    { id: 'G2', label: 'G', description: '1a corda', frequency: 98 },
+  ],
+  baixo_5: [
+    { id: 'B0', label: 'B', description: '5a corda', frequency: 30.87 },
+    { id: 'E1', label: 'E', description: '4a corda', frequency: 41.2 },
+    { id: 'A1', label: 'A', description: '3a corda', frequency: 55 },
+    { id: 'D2', label: 'D', description: '2a corda', frequency: 73.42 },
+    { id: 'G2', label: 'G', description: '1a corda', frequency: 98 },
+  ],
+  ukulele: [
+    { id: 'G4', label: 'G', description: '4a corda', frequency: 392 },
+    { id: 'C4', label: 'C', description: '3a corda', frequency: 261.63 },
+    { id: 'E4', label: 'E', description: '2a corda', frequency: 329.63 },
+    { id: 'A4', label: 'A', description: '1a corda', frequency: 440 },
+  ],
+  cavaquinho: [
+    { id: 'D4', label: 'D', description: '4a corda', frequency: 293.66 },
+    { id: 'G4', label: 'G', description: '3a corda', frequency: 392 },
+    { id: 'B4', label: 'B', description: '2a corda', frequency: 493.88 },
+    { id: 'D5', label: 'D', description: '1a corda', frequency: 587.33 },
+  ],
+  violino: [
+    { id: 'G3', label: 'G', description: '4a corda', frequency: 196 },
+    { id: 'D4', label: 'D', description: '3a corda', frequency: 293.66 },
+    { id: 'A4', label: 'A', description: '2a corda', frequency: 440 },
+    { id: 'E5', label: 'E', description: '1a corda', frequency: 659.25 },
+  ],
 };
+
+const INSTRUMENT_OPTIONS = [
+  { id: 'violao_6', label: 'Violao 6 cordas' },
+  { id: 'violao_12', label: 'Violao 12 cordas' },
+  { id: 'baixo_4', label: 'Baixo 4 cordas' },
+  { id: 'baixo_5', label: 'Baixo 5 cordas' },
+  { id: 'ukulele', label: 'Ukulele' },
+  { id: 'cavaquinho', label: 'Cavaquinho' },
+  { id: 'violino', label: 'Violino' },
+];
 
 export function AfinadorPage() {
   const page = document.createElement('section');
@@ -34,9 +80,9 @@ export function AfinadorPage() {
   page.innerHTML = `
     <header class="dashboard-header tuner-header">
       <div>
-        <span class="dashboard-kicker">Violao</span>
+        <span class="dashboard-kicker">Instrumentos de cordas</span>
         <h1>Afinador</h1>
-        <p>Afinador cromatico para violao de 6 ou 12 cordas usando o microfone do dispositivo.</p>
+        <p>Afinador cromatico para violao, baixo, ukulele e outros instrumentos de cordas usando o microfone do dispositivo.</p>
       </div>
       <div class="dashboard-summary">
         <span data-role="tuner-state">Parado</span>
@@ -48,13 +94,22 @@ export function AfinadorPage() {
         <label>
           Instrumento
           <select data-field="instrument">
-            <option value="6">Violao 6 cordas</option>
-            <option value="12">Violao 12 cordas</option>
+            ${INSTRUMENT_OPTIONS.map((instrument) => (
+              `<option value="${instrument.id}">${instrument.label}</option>`
+            )).join('')}
           </select>
         </label>
         <label>
           Corda alvo
           <select data-field="target"></select>
+        </label>
+        <label>
+          Sensibilidade
+          <select data-field="sensitivity">
+            ${Object.entries(SENSITIVITY_SETTINGS).map(([id, setting]) => (
+              `<option value="${id}"${id === 'alta' ? ' selected' : ''}>${setting.label}</option>`
+            )).join('')}
+          </select>
         </label>
         <button class="button-link" type="button" data-action="toggle-tuner">Iniciar afinador</button>
       </div>
@@ -79,6 +134,7 @@ export function AfinadorPage() {
         <span>Detectado <strong data-role="frequency">-- Hz</strong></span>
         <span>Alvo <strong data-role="target-frequency">-- Hz</strong></span>
         <span>Nota <strong data-role="detected-note">--</strong></span>
+        <span>Sinal <strong data-role="signal">--</strong></span>
       </div>
     </section>
   `;
@@ -86,6 +142,7 @@ export function AfinadorPage() {
   const stateLabel = page.querySelector('[data-role="tuner-state"]');
   const instrumentInput = page.querySelector('[data-field="instrument"]');
   const targetInput = page.querySelector('[data-field="target"]');
+  const sensitivityInput = page.querySelector('[data-field="sensitivity"]');
   const toggleButton = page.querySelector('[data-action="toggle-tuner"]');
   const meter = page.querySelector('.tuner-meter');
   const targetNote = page.querySelector('[data-role="target-note"]');
@@ -95,10 +152,12 @@ export function AfinadorPage() {
   const frequencyLabel = page.querySelector('[data-role="frequency"]');
   const targetFrequencyLabel = page.querySelector('[data-role="target-frequency"]');
   const detectedNoteLabel = page.querySelector('[data-role="detected-note"]');
+  const signalLabel = page.querySelector('[data-role="signal"]');
 
   const tuner = {
     audioContext: null,
     analyser: null,
+    gain: null,
     source: null,
     stream: null,
     frameId: null,
@@ -143,10 +202,13 @@ export function AfinadorPage() {
         },
       });
       tuner.source = tuner.audioContext.createMediaStreamSource(tuner.stream);
+      tuner.gain = tuner.audioContext.createGain();
       tuner.analyser = tuner.audioContext.createAnalyser();
-      tuner.analyser.fftSize = 4096;
+      tuner.analyser.fftSize = 8192;
       tuner.buffer = new Float32Array(tuner.analyser.fftSize);
-      tuner.source.connect(tuner.analyser);
+      updateInputGain();
+      tuner.source.connect(tuner.gain);
+      tuner.gain.connect(tuner.analyser);
       tuner.running = true;
       toggleButton.textContent = 'Parar afinador';
       setStatus('Ouvindo', 'listening');
@@ -167,6 +229,7 @@ export function AfinadorPage() {
     tuner.audioContext?.close?.();
     tuner.audioContext = null;
     tuner.analyser = null;
+    tuner.gain = null;
     tuner.source = null;
     tuner.stream = null;
     toggleButton.textContent = 'Iniciar afinador';
@@ -177,7 +240,7 @@ export function AfinadorPage() {
     if (!tuner.running || !tuner.analyser || !tuner.buffer) return;
 
     tuner.analyser.getFloatTimeDomainData(tuner.buffer);
-    const pitch = detectPitch(tuner.buffer, tuner.audioContext.sampleRate);
+    const pitch = detectPitch(tuner.buffer, tuner.audioContext.sampleRate, getSensitivitySettings());
 
     if (!pitch) {
       updatePitchReadout(null);
@@ -198,6 +261,7 @@ export function AfinadorPage() {
       centsLabel.textContent = '0';
       frequencyLabel.textContent = '-- Hz';
       detectedNoteLabel.textContent = '--';
+      signalLabel.textContent = '--';
       hint.textContent = 'Toque uma corda por vez, de preferencia perto do microfone.';
       meter.dataset.state = tuner.running ? 'quiet' : 'idle';
       return;
@@ -210,6 +274,7 @@ export function AfinadorPage() {
     frequencyLabel.textContent = formatFrequency(data.pitch.frequency);
     targetFrequencyLabel.textContent = formatFrequency(data.target.frequency);
     detectedNoteLabel.textContent = frequencyToNoteName(data.pitch.frequency);
+    signalLabel.textContent = `${Math.round(data.pitch.rms * 100)}%`;
 
     if (Math.abs(data.cents) <= 4) {
       hint.textContent = 'Afinada';
@@ -235,7 +300,17 @@ export function AfinadorPage() {
   }
 
   function getCurrentTuning() {
-    return TUNINGS[instrumentInput.value] || TUNINGS[6];
+    return TUNINGS[instrumentInput.value] || TUNINGS.violao_6;
+  }
+
+  function getSensitivitySettings() {
+    return SENSITIVITY_SETTINGS[sensitivityInput.value] || SENSITIVITY_SETTINGS.alta;
+  }
+
+  function updateInputGain() {
+    if (tuner.gain) {
+      tuner.gain.gain.value = getSensitivitySettings().gain;
+    }
   }
 
   function getTargetForFrequency(frequency) {
@@ -260,6 +335,7 @@ export function AfinadorPage() {
   }
 
   instrumentInput.addEventListener('change', renderTargets);
+  sensitivityInput.addEventListener('change', updateInputGain);
   targetInput.addEventListener('change', () => updateTargetReadout(getSelectedTarget()));
   toggleButton.addEventListener('click', toggleTuner);
   page.addEventListener('master-cifras:destroy', stopTuner);
@@ -268,13 +344,13 @@ export function AfinadorPage() {
   return page;
 }
 
-function detectPitch(buffer, sampleRate) {
+function detectPitch(buffer, sampleRate, settings = SENSITIVITY_SETTINGS.alta) {
   const rms = Math.sqrt(buffer.reduce((sum, value) => sum + value * value, 0) / buffer.length);
-  if (rms < MIN_RMS) return null;
+  if (rms < settings.minRms) return null;
 
   let start = 0;
   let end = buffer.length - 1;
-  const threshold = 0.2;
+  const threshold = settings.trimThreshold;
 
   while (start < buffer.length / 2 && Math.abs(buffer[start]) < threshold) start += 1;
   while (end > buffer.length / 2 && Math.abs(buffer[end]) < threshold) end -= 1;
@@ -304,10 +380,15 @@ function detectPitch(buffer, sampleRate) {
     }
   }
 
-  if (peak <= 0 || peakValue / correlations[0] < CLARITY_THRESHOLD) return null;
+  const clarity = peakValue / correlations[0];
+  if (peak <= 0 || clarity < settings.clarityThreshold) return null;
 
   const shift = interpolatePeak(correlations, peak);
-  return { frequency: sampleRate / (peak + shift), clarity: peakValue / correlations[0] };
+  const frequency = sampleRate / (peak + shift);
+
+  if (frequency < 24 || frequency > 1400) return null;
+
+  return { frequency, clarity, rms };
 }
 
 function interpolatePeak(correlations, peak) {
