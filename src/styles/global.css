@@ -1618,8 +1618,25 @@ a {
 
 .public-lyrics-row-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+  justify-content: flex-end;
+}
+
+.public-lyrics-video-choice {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 40px;
+  border: 1px solid #d7d0c1;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #ffffff;
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .public-lyrics-detail-inner {
@@ -1662,6 +1679,84 @@ a {
 
 .public-lyrics-detail-inner .chordpro-view {
   font-size: var(--public-lyrics-font-size, 32px);
+}
+
+.public-lyrics-video-player {
+  position: fixed;
+  right: max(10px, env(safe-area-inset-right));
+  z-index: 70;
+  display: grid;
+  grid-template-columns: minmax(220px, 360px);
+  gap: 8px;
+  width: min(92vw, 380px);
+  border: 1px solid rgba(29, 79, 69, 0.28);
+  border-radius: 10px;
+  padding: 8px;
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 18px 42px rgba(32, 33, 31, 0.18);
+}
+
+.public-lyrics-video-player[hidden] {
+  display: none;
+}
+
+.public-lyrics-video-player.is-bottom {
+  bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+.public-lyrics-video-player.is-top {
+  top: max(10px, env(safe-area-inset-top));
+}
+
+.public-lyrics-video-frame {
+  overflow: hidden;
+  border-radius: 8px;
+  background: #111;
+  aspect-ratio: 16 / 9;
+}
+
+.public-lyrics-video-frame iframe,
+.public-lyrics-video-frame > div {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.public-lyrics-video-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.public-lyrics-video-controls .nav-button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 7px;
+  font-size: 12px;
+}
+
+.public-lyrics-loop-toggle,
+.public-lyrics-video-controls [data-role="video-status"] {
+  grid-column: 1 / -1;
+}
+
+.public-lyrics-loop-toggle {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.public-lyrics-video-controls [data-role="video-status"] {
+  overflow: hidden;
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .public-banda-page {

@@ -79,7 +79,7 @@ function closeYoutubeModal(modal) {
   document.body.classList.remove('has-youtube-modal');
 }
 
-function getYoutubeEmbedUrl(value) {
+export function getYoutubeEmbedUrl(value, options = {}) {
   if (!value || !/^https?:\/\//i.test(value)) return '';
 
   try {
@@ -103,7 +103,11 @@ function getYoutubeEmbedUrl(value) {
 
     const embed = new URL(`https://www.youtube.com/embed/${videoId}`);
     embed.searchParams.set('rel', '0');
-    embed.searchParams.set('autoplay', '1');
+    embed.searchParams.set('autoplay', options.autoplay === false ? '0' : '1');
+    if (options.enableJsApi) {
+      embed.searchParams.set('enablejsapi', '1');
+      embed.searchParams.set('origin', window.location.origin);
+    }
     return embed.toString();
   } catch {
     return '';

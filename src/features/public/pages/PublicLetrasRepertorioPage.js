@@ -1,7 +1,7 @@
 import { getPublicLetrasRepertorioData } from '../../../services/publicInvitesService.js';
 import { extractLyricsFromCifraOriginal, getCifraExibicao, renderCifraOriginalForDisplayHtml } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
-import { isYoutubeUrl, openYoutubeFloatingPlayer } from '../../../utils/youtubePlayer.js';
+import { getYoutubeEmbedUrl, isYoutubeUrl } from '../../../utils/youtubePlayer.js';
 
 const PUBLIC_LYRICS_FONT_STORAGE_KEY = 'masterCifras.publicLyricsFontSize';
 const PUBLIC_LYRICS_MAX_FONT_SIZE = 128;
@@ -54,9 +54,24 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
       </div>
     </header>
     <section class="public-lyrics-song-list" aria-label="Musicas do repertorio" aria-live="polite"></section>
+    <section class="public-lyrics-video-player is-bottom" data-role="public-lyrics-video-player" hidden>
+      <div class="public-lyrics-video-frame" data-role="video-frame"></div>
+      <div class="public-lyrics-video-controls" aria-label="Controles da playlist">
+        <label class="public-lyrics-loop-toggle">
+          <input type="checkbox" data-action="toggle-loop">
+          Execucao em Loop
+        </label>
+        <button class="nav-button" type="button" data-action="previous-video">Anterior</button>
+        <button class="nav-button" type="button" data-action="pause-video">Pausar</button>
+        <button class="nav-button" type="button" data-action="stop-video">Parar</button>
+        <button class="nav-button" type="button" data-action="next-video">Proximo</button>
+        <span data-role="video-status">Nenhum video em execucao</span>
+      </div>
+    </section>
   `;
 
   const listSlot = wrapper.querySelector('.public-lyrics-song-list');
+  const playlistPlayer = setupPublicLyricsPlaylistPlayer(wrapper);
 
   if (!musicasAssociadas.length) {
     listSlot.innerHTML = '<p class="page-status">Nenhuma musica adicionada a este repertorio.</p>';
@@ -66,6 +81,7 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   const state = {
     selectedId: null,
     contentMode: getInviteContentMode(invite),
+    playlistIds: getInitialPlaylistIds(musicasAssociadas),
   };
 
   function render() {
@@ -78,6 +94,20 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
         state.selectedId = null;
         render();
       },
+      onTogglePlaylist: (item, checked) => {
+        if (checked) {
+          state.playlistIds.add(item.id);
+        } else {
+          state.playlistIds.delete(item.id);
+        }
+        render();
+      },
+      onPlayPlaylist: (item) => {
+        state.playlistIds.add(item.id);
+        playlistPlayer.play(getPlaylistItems(musicasAssociadas, state.playlistIds), item.id);
+        state.selectedId = item.id;
+        render();
+      },
     }));
   }
 
@@ -85,12 +115,17 @@ function createPublicLyricsView({ invite, repertorio, musicasAssociadas }) {
   return wrapper;
 }
 
-function createSongList(items, state, { onSelect, onClose }) {
+function createSongList(items, state, { onSelect, onClose, onTogglePlaylist, onPlayPlaylist }) {
   const list = document.createElement('div');
   list.className = 'public-lyrics-list';
 
   items.forEach((item, index) => {
-    const songRow = createSongRow(item, index, state, { onSelect, onClose });
+    const songRow = createSongRow(item, index, state, {
+      onSelect,
+      onClose,
+      onTogglePlaylist,
+      onPlayPlaylist,
+    });
     list.append(songRow);
 
     if (item.id === state.selectedId) {
@@ -102,7 +137,7 @@ function createSongList(items, state, { onSelect, onClose }) {
   return list;
 }
 
-function createSongRow(item, index, state, { onSelect, onClose }) {
+function createSongRow(item, index, state, { onSelect, onClose, onTogglePlaylist, onPlayPlaylist }) {
   const song = item.musicas || {};
   const title = getSongTitle(item);
   const momento = getField(item, ['observacao']);
@@ -112,7 +147,13 @@ function createSongRow(item, index, state, { onSelect, onClose }) {
   row.className = `public-lyrics-list-item${isSelected ? ' is-selected' : ''}${isDeletedSong(item) ? ' is-deleted' : ''}`;
   const youtubeLink = isYoutubeUrl(link);
   const actions = [
-    youtubeLink ? '<button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar link da musica" title="Executar link da musica">&#9658;</button>' : '',
+    youtubeLink ? `
+      <label class="public-lyrics-video-choice" title="Incluir na playlist">
+        <input type="checkbox" data-action="toggle-playlist" ${state.playlistIds.has(item.id) ? 'checked' : ''}>
+        Playlist
+      </label>
+      <button class="nav-button public-lyrics-play" type="button" data-action="play-song" aria-label="Executar playlist a partir desta musica" title="Executar playlist a partir desta musica">&#9658;</button>
+    ` : '',
     isSelected ? '<button class="nav-button public-lyrics-close" type="button" data-action="close-detail" aria-label="Fechar exibicao" title="Fechar exibicao">Fechar</button>' : '',
   ].filter(Boolean).join('');
 
@@ -132,8 +173,12 @@ function createSongRow(item, index, state, { onSelect, onClose }) {
   });
 
   row.querySelector('[data-action="play-song"]')?.addEventListener('click', () => {
-    openYoutubeFloatingPlayer(link);
+    onPlayPlaylist(item);
     onSelect(item);
+  });
+
+  row.querySelector('[data-action="toggle-playlist"]')?.addEventListener('change', (event) => {
+    onTogglePlaylist(item, event.currentTarget.checked);
   });
 
   row.querySelector('[data-action="close-detail"]')?.addEventListener('click', () => {
@@ -214,6 +259,224 @@ function setupPublicLyricsFontControls(detail) {
   }, { passive: true });
 
   renderFontSize();
+}
+
+function setupPublicLyricsPlaylistPlayer(wrapper) {
+  const panel = wrapper.querySelector('[data-role="public-lyrics-video-player"]');
+  const frameSlot = wrapper.querySelector('[data-role="video-frame"]');
+  const status = wrapper.querySelector('[data-role="video-status"]');
+  const loopInput = wrapper.querySelector('[data-action="toggle-loop"]');
+  const pauseButton = wrapper.querySelector('[data-action="pause-video"]');
+  let player = null;
+  let playerElementId = `public-lyrics-youtube-${Date.now()}`;
+  let playlist = [];
+  let currentIndex = -1;
+  let isPaused = false;
+  let apiReadyPromise = null;
+
+  function play(items, startId = null) {
+    playlist = items.filter((item) => isYoutubeUrl(item.link));
+    if (!playlist.length) return;
+
+    const requestedIndex = playlist.findIndex((item) => item.id === startId);
+    currentIndex = requestedIndex >= 0 ? requestedIndex : 0;
+    panel.hidden = false;
+    isPaused = false;
+    pauseButton.textContent = 'Pausar';
+    loadCurrentVideo();
+    updateFloatingPosition();
+  }
+
+  function loadCurrentVideo() {
+    const current = playlist[currentIndex];
+    if (!current) {
+      stop();
+      return;
+    }
+
+    status.textContent = `${currentIndex + 1}/${playlist.length} - ${current.title}`;
+    const embedUrl = getYoutubeEmbedUrl(current.link, {
+      enableJsApi: true,
+      autoplay: true,
+    });
+
+    if (!embedUrl) {
+      playNext();
+      return;
+    }
+
+    playerElementId = `public-lyrics-youtube-${Date.now()}`;
+    frameSlot.innerHTML = `<div id="${playerElementId}"></div>`;
+
+    loadYoutubeIframeApi().then(() => {
+      player = new window.YT.Player(playerElementId, {
+        videoId: getYoutubeVideoId(current.link),
+        playerVars: {
+          autoplay: 1,
+          rel: 0,
+        },
+        events: {
+          onStateChange: (event) => {
+            if (event.data === window.YT.PlayerState.ENDED) {
+              playNextAfterEnd();
+            }
+          },
+        },
+      });
+    }).catch(() => {
+      frameSlot.innerHTML = `
+        <iframe
+          title="Execucao do video"
+          src="${escapeHtml(embedUrl)}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      `;
+    });
+  }
+
+  function playNextAfterEnd() {
+    if (currentIndex < playlist.length - 1) {
+      currentIndex += 1;
+      loadCurrentVideo();
+      return;
+    }
+
+    if (loopInput.checked) {
+      currentIndex = 0;
+      loadCurrentVideo();
+      return;
+    }
+
+    stop();
+  }
+
+  function playNext() {
+    if (!playlist.length) return;
+    currentIndex = currentIndex < playlist.length - 1
+      ? currentIndex + 1
+      : 0;
+    isPaused = false;
+    pauseButton.textContent = 'Pausar';
+    loadCurrentVideo();
+  }
+
+  function playPrevious() {
+    if (!playlist.length) return;
+    currentIndex = currentIndex > 0
+      ? currentIndex - 1
+      : playlist.length - 1;
+    isPaused = false;
+    pauseButton.textContent = 'Pausar';
+    loadCurrentVideo();
+  }
+
+  function togglePause() {
+    if (!player) return;
+
+    if (isPaused) {
+      player.playVideo?.();
+      pauseButton.textContent = 'Pausar';
+      isPaused = false;
+      return;
+    }
+
+    player.pauseVideo?.();
+    pauseButton.textContent = 'Continuar';
+    isPaused = true;
+  }
+
+  function stop() {
+    player?.stopVideo?.();
+    player?.destroy?.();
+    player = null;
+    playlist = [];
+    currentIndex = -1;
+    frameSlot.innerHTML = '';
+    status.textContent = 'Nenhum video em execucao';
+    panel.hidden = true;
+  }
+
+  function updateFloatingPosition() {
+    if (panel.hidden) return;
+
+    const scrollMiddle = window.scrollY + (window.innerHeight / 2);
+    const pageMiddle = document.documentElement.scrollHeight / 2;
+    const shouldStayTop = scrollMiddle > pageMiddle;
+    panel.classList.toggle('is-top', shouldStayTop);
+    panel.classList.toggle('is-bottom', !shouldStayTop);
+  }
+
+  wrapper.querySelector('[data-action="next-video"]').addEventListener('click', playNext);
+  wrapper.querySelector('[data-action="previous-video"]').addEventListener('click', playPrevious);
+  wrapper.querySelector('[data-action="pause-video"]').addEventListener('click', togglePause);
+  wrapper.querySelector('[data-action="stop-video"]').addEventListener('click', stop);
+  window.addEventListener('scroll', updateFloatingPosition, { passive: true });
+  window.addEventListener('resize', updateFloatingPosition, { passive: true });
+
+  function loadYoutubeIframeApi() {
+    if (window.YT?.Player) return Promise.resolve();
+    if (apiReadyPromise) return apiReadyPromise;
+
+    apiReadyPromise = new Promise((resolve, reject) => {
+      const previousCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        previousCallback?.();
+        resolve();
+      };
+
+      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://www.youtube.com/iframe_api';
+        script.onerror = reject;
+        document.head.append(script);
+      }
+
+      window.setTimeout(() => {
+        if (!window.YT?.Player) reject(new Error('YouTube API indisponivel.'));
+      }, 6000);
+    });
+
+    return apiReadyPromise;
+  }
+
+  return { play, stop };
+}
+
+function getInitialPlaylistIds(items) {
+  return new Set();
+}
+
+function getPlaylistItems(items, playlistIds) {
+  return items
+    .filter((item) => playlistIds.has(item.id) && isYoutubeUrl(getSongLink(item)))
+    .map((item) => ({
+      id: item.id,
+      title: getSongTitle(item),
+      link: getSongLink(item),
+    }));
+}
+
+function getYoutubeVideoId(value) {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace(/^www\./, '');
+
+    if (host === 'youtu.be') {
+      return url.pathname.split('/').filter(Boolean)[0] || '';
+    }
+
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+      if (url.pathname === '/watch') return url.searchParams.get('v') || '';
+      if (url.pathname.startsWith('/embed/') || url.pathname.startsWith('/shorts/')) {
+        return url.pathname.split('/').filter(Boolean)[1] || '';
+      }
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
 }
 
 function getCurrentPublicLyricsFontSize(detail, fallback) {
