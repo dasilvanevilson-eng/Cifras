@@ -1,5 +1,6 @@
 import {
   convertToChordPro,
+  isCifraOriginalChordLine,
   normalizeChordProLyrics,
   renderCifraOriginalForDisplayHtml,
   renderChordProForDisplay,
@@ -337,6 +338,7 @@ function createVoiceMarkedTextFromSelection(editor, textarea, markerId, currentC
   if (!editor || !textarea || !markerId) return '';
 
   const value = textarea.value || '';
+  const originalLines = value.split('\n');
   const selectionOffsets = getEditorSelectionOffsets(editor);
   const selectionStart = selectionOffsets.start;
   const selectionEnd = selectionOffsets.end;
@@ -352,9 +354,9 @@ function createVoiceMarkedTextFromSelection(editor, textarea, markerId, currentC
 
   const selectionStartLine = getLineIndexAt(value, lineStart);
   const selectionEndLine = selectionStartLine + selectedText.split('\n').length - 1;
-  const existingMarkers = getVoiceMarkersByDisplayLine(currentChordPro);
+  const existingMarkers = getVoiceMarkersByOriginalLine(currentChordPro, originalLines);
   const wrappedText = createVoiceMarkedText(value, (lineIndex) => (
-    lineIndex >= selectionStartLine && lineIndex <= selectionEndLine
+    lineIndex >= selectionStartLine && lineIndex <= selectionEndLine && isVoiceMarkableLine(originalLines[lineIndex])
       ? markerId
       : existingMarkers.get(lineIndex)
   ));
@@ -415,13 +417,13 @@ function createVoiceMarkedText(value, getMarkerForLine) {
   return output.join('\n');
 }
 
-function getVoiceMarkersByDisplayLine(chordProValue) {
+function getVoiceMarkersByOriginalLine(chordProValue, originalLines) {
   const markers = new Map();
   const displayValue = renderChordProForDisplay(chordProValue, {
     keepVoiceDirectives: true,
   });
   let activeMarker = '';
-  let displayLineIndex = 0;
+  let originalLineIndex = 0;
 
   displayValue.split('\n').forEach((line) => {
     const openingMatch = String(line || '').trim().match(/^\{voice\s*:\s*([a-z0-9_-]+)\}$/i);
@@ -436,14 +438,29 @@ function getVoiceMarkersByDisplayLine(chordProValue) {
       return;
     }
 
-    if (activeMarker) {
-      markers.set(displayLineIndex, activeMarker);
+    while (
+      originalLineIndex < originalLines.length
+      && normalizeComparableLine(originalLines[originalLineIndex]) !== normalizeComparableLine(line)
+    ) {
+      originalLineIndex += 1;
     }
 
-    displayLineIndex += 1;
+    if (activeMarker && isVoiceMarkableLine(originalLines[originalLineIndex])) {
+      markers.set(originalLineIndex, activeMarker);
+    }
+
+    originalLineIndex += 1;
   });
 
   return markers;
+}
+
+function isVoiceMarkableLine(line) {
+  return Boolean(String(line || '').trim()) && !isCifraOriginalChordLine(line);
+}
+
+function normalizeComparableLine(line) {
+  return String(line || '').trimEnd().toLocaleUpperCase('pt-BR');
 }
 
 function getLineIndexAt(value, index) {

@@ -88,7 +88,7 @@ assert.equal(
 assert.equal(
   renderCifraOriginalForDisplayHtml(['{voice: segunda_voz}', 'G  D/F#  Em', 'Grande es Tu', '{/voice}'].join('\n')),
   [
-    '<span class="voice-highlight voice-highlight-segunda_voz"><span class="chord-line">G  D/F#  Em</span></span>',
+    '<span class="chord-line">G  D/F#  Em</span>',
     '<span class="voice-highlight voice-highlight-segunda_voz">Grande es Tu</span>',
     '',
     '<span class="voice-legend"><span class="voice-legend-item voice-highlight-segunda_voz">Segunda voz</span></span>',

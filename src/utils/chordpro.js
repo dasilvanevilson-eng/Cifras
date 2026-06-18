@@ -90,9 +90,10 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
       }
 
       const escapedLine = escapeHtml(line);
-      const renderedLine = isDisplayChordLine(line) ? `<span class="chord-line">${escapedLine}</span>` : escapedLine;
+      const isChordLine = isDisplayChordLine(line);
+      const renderedLine = isChordLine ? `<span class="chord-line">${escapedLine}</span>` : escapedLine;
 
-      if (activeVoice) {
+      if (activeVoice && !isChordLine) {
         output.push(`<span class="voice-highlight voice-highlight-${escapeHtml(activeVoice)}">${renderedLine}</span>`);
         return output;
       }
@@ -186,6 +187,10 @@ export function extractLyricsFromCifraOriginal(input) {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+export function isCifraOriginalChordLine(line) {
+  return isChordLine(line);
 }
 
 function mergeChordLineWithLyrics(chordLine, lyricLine) {
