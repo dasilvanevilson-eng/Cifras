@@ -70,18 +70,22 @@ export function renderChordProForDisplay(input, options = {}) {
   return lines.join('\n');
 }
 
-export function renderCifraOriginalForDisplayHtml(input) {
+export function renderCifraOriginalForDisplayHtml(input, options = {}) {
   if (!input) return '';
 
   let activeVoice = '';
+  const usedVoices = new Set();
 
-  return normalizeTabs(String(input))
+  const lines = normalizeTabs(String(input))
     .split('\n')
     .reduce((output, line) => {
       const directive = parseVoiceDirective(line);
 
       if (directive) {
         activeVoice = directive.closing ? '' : directive.id;
+        if (activeVoice) {
+          usedVoices.add(activeVoice);
+        }
         return output;
       }
 
@@ -96,7 +100,15 @@ export function renderCifraOriginalForDisplayHtml(input) {
       output.push(renderedLine);
       return output;
     }, [])
-    .join('\n');
+
+  if (usedVoices.size && options.includeVoiceLegend !== false) {
+    lines.push('');
+    lines.push(`<span class="voice-legend">${[...usedVoices].map((voiceId) => (
+      `<span class="voice-legend-item voice-highlight-${escapeHtml(voiceId)}">${escapeHtml(getVoiceLabel(voiceId))}</span>`
+    )).join(' ')}</span>`);
+  }
+
+  return lines.join('\n');
 }
 
 export function renderCifraOriginalPreviewHtml(input) {
@@ -427,6 +439,10 @@ function parseVoiceDirective(line) {
   return { closing: false, id: openingMatch[1].toLowerCase() };
 }
 
+function getVoiceLabel(voiceId) {
+  return VOICE_LABELS[voiceId] || voiceId.replaceAll('_', ' ');
+}
+
 function isOnlyChordsAndSeparators(value) {
   return String(value || '')
     .replace(CHORD_PATTERN, '')
@@ -490,6 +506,13 @@ const FLAT_TO_SHARP = {
   Gb: 'F#',
   Ab: 'G#',
   Bb: 'A#',
+};
+const VOICE_LABELS = {
+  voz_principal: 'Voz principal',
+  segunda_voz: 'Segunda voz',
+  terca_voz: 'Terceira voz',
+  todos: 'Todos',
+  solo: 'Solo',
 };
 
 function mod(value, size) {

@@ -83,8 +83,8 @@ export function MusicaForm(options = {}) {
     <div class="cifra-editor-grid">
       <label>
         Cifra original
-        <textarea name="cifra_original" rows="14" required>${escapeHtml(getInitialOriginalText(initialValues, initialChordPro))}</textarea>
-        <div class="cifra-original-voice-preview" aria-label="Previa da divisao de vozes" hidden></div>
+        <textarea class="cifra-original-source" name="cifra_original" rows="14" required>${escapeHtml(getInitialOriginalText(initialValues, initialChordPro))}</textarea>
+        <div class="cifra-original-editor" contenteditable="true" role="textbox" aria-label="Cifra original" spellcheck="false"></div>
       </label>
 
       <label>
@@ -107,9 +107,9 @@ export function MusicaForm(options = {}) {
   const transposeFormUpButton = form.querySelector('[data-action="transpose-form-up"]');
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
   const originalTextarea = form.querySelector('[name="cifra_original"]');
+  const originalEditor = form.querySelector('.cifra-original-editor');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
   const chordProEditor = form.querySelector('.chordpro-editor');
-  const originalVoicePreview = form.querySelector('.cifra-original-voice-preview');
   const tomInput = form.querySelector('[name="tom"]');
   const cifraEditorGrid = form.querySelector('.cifra-editor-grid');
   const linkInput = form.querySelector('[name="musica_link"]');
@@ -123,23 +123,29 @@ export function MusicaForm(options = {}) {
 
   updateLinkAction(linkInput, linkAction);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
-  updateOriginalVoicePreview(originalVoicePreview, chordProTextarea.value);
+  renderOriginalEditor(originalEditor, chordProTextarea.value);
   setupResponsiveCifraEditor(cifraEditorGrid);
 
-  originalTextarea.addEventListener('input', () => {
+  originalEditor.addEventListener('input', () => {
+    originalTextarea.value = getEditableText(originalEditor);
     syncChordProFromOriginal({
       originalTextarea,
+      originalEditor,
       chordProTextarea,
       chordProEditor,
-      originalVoicePreview,
       previewPanel,
       form,
     });
   });
 
   voiceMarkerButtons.forEach((voiceMarkerButton) => {
+    voiceMarkerButton.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+    });
+
     voiceMarkerButton.addEventListener('click', () => {
       const markedOriginal = createVoiceMarkedTextFromSelection(
+        originalEditor,
         originalTextarea,
         voiceMarkerButton.dataset.voiceMarker,
         chordProTextarea.value,
@@ -147,15 +153,15 @@ export function MusicaForm(options = {}) {
 
       if (markedOriginal) {
         setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(markedOriginal));
+        originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
+        renderOriginalEditor(originalEditor, chordProTextarea.value);
 
         if (!previewPanel.hidden) {
           updatePreview(form, previewPanel);
         }
-
-        updateOriginalVoicePreview(originalVoicePreview, chordProTextarea.value);
       }
 
-      originalTextarea.focus();
+      originalEditor.focus();
     });
   });
 
@@ -166,7 +172,7 @@ export function MusicaForm(options = {}) {
   chordProEditor.addEventListener('input', () => {
     chordProTextarea.value = getEditableText(chordProEditor);
     originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
-    updateOriginalVoicePreview(originalVoicePreview, chordProTextarea.value);
+    renderOriginalEditor(originalEditor, chordProTextarea.value);
 
     if (!previewPanel.hidden) {
       updatePreview(form, previewPanel);
@@ -177,7 +183,7 @@ export function MusicaForm(options = {}) {
     const normalizedChordPro = normalizeChordProLyrics(chordProTextarea.value);
     setChordProValue(chordProTextarea, chordProEditor, normalizedChordPro);
     originalTextarea.value = renderChordProForDisplay(normalizedChordPro);
-    updateOriginalVoicePreview(originalVoicePreview, normalizedChordPro);
+    renderOriginalEditor(originalEditor, normalizedChordPro);
   });
 
   linkInput.addEventListener('input', () => {
@@ -220,6 +226,7 @@ export function MusicaForm(options = {}) {
     transposeFormFields({
       semitones: -1,
       originalTextarea,
+      originalEditor,
       chordProTextarea,
       chordProEditor,
       tomInput,
@@ -233,6 +240,7 @@ export function MusicaForm(options = {}) {
     transposeFormFields({
       semitones: 1,
       originalTextarea,
+      originalEditor,
       chordProTextarea,
       chordProEditor,
       tomInput,
@@ -299,39 +307,39 @@ export function MusicaForm(options = {}) {
 
 function syncChordProFromOriginal({
   originalTextarea,
+  originalEditor,
   chordProTextarea,
   chordProEditor,
-  originalVoicePreview,
   previewPanel,
   form,
 }) {
   const nextAutoChordPro = convertToChordPro(originalTextarea.value);
   setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
-  updateOriginalVoicePreview(originalVoicePreview, nextAutoChordPro);
+  renderOriginalEditor(originalEditor, nextAutoChordPro);
 
   if (!previewPanel.hidden) {
     updatePreview(form, previewPanel);
   }
 }
 
-function updateOriginalVoicePreview(preview, chordProValue) {
-  if (!preview) return;
+function renderOriginalEditor(editor, chordProValue) {
+  if (!editor) return;
 
   const displayValue = renderChordProForDisplay(chordProValue, {
     keepVoiceDirectives: true,
   });
-  const hasVoiceDirectives = /\{(?:\/voice|voice\s*:)/i.test(displayValue);
-
-  preview.hidden = !hasVoiceDirectives;
-  preview.innerHTML = hasVoiceDirectives ? renderCifraOriginalForDisplayHtml(displayValue) : '';
+  editor.innerHTML = renderCifraOriginalForDisplayHtml(displayValue, {
+    includeVoiceLegend: false,
+  });
 }
 
-function createVoiceMarkedTextFromSelection(textarea, markerId, currentChordPro = '') {
-  if (!textarea || !markerId) return '';
+function createVoiceMarkedTextFromSelection(editor, textarea, markerId, currentChordPro = '') {
+  if (!editor || !textarea || !markerId) return '';
 
   const value = textarea.value || '';
-  const selectionStart = textarea.selectionStart ?? 0;
-  const selectionEnd = textarea.selectionEnd ?? selectionStart;
+  const selectionOffsets = getEditorSelectionOffsets(editor);
+  const selectionStart = selectionOffsets.start;
+  const selectionEnd = selectionOffsets.end;
   const effectiveSelectionEnd = selectionEnd > selectionStart && value[selectionEnd - 1] === '\n'
     ? selectionEnd - 1
     : selectionEnd;
@@ -351,8 +359,33 @@ function createVoiceMarkedTextFromSelection(textarea, markerId, currentChordPro 
       : existingMarkers.get(lineIndex)
   ));
 
-  textarea.setSelectionRange(lineStart, lineEnd);
   return wrappedText;
+}
+
+function getEditorSelectionOffsets(editor) {
+  const selection = window.getSelection();
+
+  if (!selection || selection.rangeCount === 0 || !editor.contains(selection.anchorNode)) {
+    const textLength = getEditableText(editor).length;
+    return { start: textLength, end: textLength };
+  }
+
+  const range = selection.getRangeAt(0);
+  const startRange = range.cloneRange();
+  startRange.selectNodeContents(editor);
+  startRange.setEnd(range.startContainer, range.startOffset);
+
+  const endRange = range.cloneRange();
+  endRange.selectNodeContents(editor);
+  endRange.setEnd(range.endContainer, range.endOffset);
+
+  const start = startRange.toString().length;
+  const end = endRange.toString().length;
+
+  return {
+    start: Math.min(start, end),
+    end: Math.max(start, end),
+  };
 }
 
 function createVoiceMarkedText(value, getMarkerForLine) {
@@ -422,6 +455,7 @@ function clearForm(form, chordProTextarea, chordProEditor, previewPanel, preview
     field.value = '';
   });
   setChordProValue(chordProTextarea, chordProEditor, '');
+  renderOriginalEditor(form.querySelector('.cifra-original-editor'), '');
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
   if (formTransposeStatus) {
     if (formTransposeState) {
@@ -430,11 +464,6 @@ function clearForm(form, chordProTextarea, chordProEditor, previewPanel, preview
     renderFormTransposeStatus(formTransposeStatus, 0);
   }
   previewPanel.hidden = true;
-  const originalVoicePreview = form.querySelector('.cifra-original-voice-preview');
-  if (originalVoicePreview) {
-    originalVoicePreview.hidden = true;
-    originalVoicePreview.innerHTML = '';
-  }
   form.classList.remove('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
   updateLinkAction(form.querySelector('[name="musica_link"]'), form.querySelector('.field-action-link'));
@@ -443,6 +472,7 @@ function clearForm(form, chordProTextarea, chordProEditor, previewPanel, preview
 function transposeFormFields({
   semitones,
   originalTextarea,
+  originalEditor,
   chordProTextarea,
   chordProEditor,
   tomInput,
@@ -457,6 +487,7 @@ function transposeFormFields({
   }
 
   setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(originalTextarea.value));
+  renderOriginalEditor(originalEditor, chordProTextarea.value);
 
   if (!previewPanel.hidden) {
     updatePreview(form, previewPanel);
