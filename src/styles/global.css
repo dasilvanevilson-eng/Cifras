@@ -1730,6 +1730,7 @@ a {
 }
 
 .public-lyrics-video-frame {
+  position: relative;
   overflow: hidden;
   border-radius: 8px;
   background: #111;
@@ -1796,6 +1797,17 @@ a {
 .public-lyrics-video-player.is-minimized .public-lyrics-video-frame {
   cursor: pointer;
   border-radius: 6px;
+}
+
+.public-lyrics-video-player.is-minimized .public-lyrics-video-frame::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.public-lyrics-video-player.is-minimized .public-lyrics-video-frame iframe,
+.public-lyrics-video-player.is-minimized .public-lyrics-video-frame > div {
+  pointer-events: none;
 }
 
 .public-banda-page {
