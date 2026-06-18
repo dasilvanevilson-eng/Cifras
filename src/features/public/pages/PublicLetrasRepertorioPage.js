@@ -439,18 +439,26 @@ function setupPublicLyricsPlaylistPlayer(wrapper, options = {}) {
     minimizeButton.textContent = 'Minimizar';
   }
 
-  function startDrag(event) {
+  function startDrag(event, { restoreOnStart = true } = {}) {
     if (event.target.closest('button')) return;
 
     event.preventDefault();
-    restoreFromMinimized();
+    if (restoreOnStart) {
+      restoreFromMinimized();
+    }
     hasManualPosition = true;
     const rect = panel.getBoundingClientRect();
     const offsetX = event.clientX - rect.left;
     const offsetY = event.clientY - rect.top;
+    const initialX = event.clientX;
+    const initialY = event.clientY;
+    let hasMoved = false;
     panel.setPointerCapture?.(event.pointerId);
 
     function move(pointerEvent) {
+      if (Math.abs(pointerEvent.clientX - initialX) > 4 || Math.abs(pointerEvent.clientY - initialY) > 4) {
+        hasMoved = true;
+      }
       const maxLeft = window.innerWidth - panel.offsetWidth - 8;
       const maxTop = window.innerHeight - panel.offsetHeight - 8;
       const nextLeft = Math.max(8, Math.min(maxLeft, pointerEvent.clientX - offsetX));
@@ -465,6 +473,9 @@ function setupPublicLyricsPlaylistPlayer(wrapper, options = {}) {
       panel.removeEventListener('pointermove', move);
       panel.removeEventListener('pointerup', endDrag);
       panel.removeEventListener('pointercancel', endDrag);
+      if (!restoreOnStart && !hasMoved) {
+        restoreFromMinimized();
+      }
     }
 
     panel.addEventListener('pointermove', move);
@@ -477,7 +488,10 @@ function setupPublicLyricsPlaylistPlayer(wrapper, options = {}) {
   wrapper.querySelector('[data-action="pause-video"]').addEventListener('click', togglePause);
   wrapper.querySelector('[data-action="stop-video"]').addEventListener('click', () => stop({ clearSelection: true }));
   minimizeButton.addEventListener('click', toggleMinimize);
-  frameSlot.addEventListener('click', restoreFromMinimized);
+  frameSlot.addEventListener('pointerdown', (event) => {
+    if (!panel.classList.contains('is-minimized')) return;
+    startDrag(event, { restoreOnStart: false });
+  });
   dragbar.addEventListener('pointerdown', startDrag);
 
   function loadYoutubeIframeApi() {

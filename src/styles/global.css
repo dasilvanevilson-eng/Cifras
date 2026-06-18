@@ -1795,8 +1795,13 @@ a {
 }
 
 .public-lyrics-video-player.is-minimized .public-lyrics-video-frame {
-  cursor: pointer;
+  cursor: grab;
   border-radius: 6px;
+  touch-action: none;
+}
+
+.public-lyrics-video-player.is-minimized .public-lyrics-video-frame:active {
+  cursor: grabbing;
 }
 
 .public-lyrics-video-player.is-minimized .public-lyrics-video-frame::after {
