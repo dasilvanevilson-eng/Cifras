@@ -154,6 +154,7 @@ export function MusicaForm(options = {}) {
 
   originalEditor.addEventListener('input', () => {
     const previousOriginal = originalTextarea.value;
+    const selectionOffsets = getEditorSelectionOffsets(originalEditor);
     originalTextarea.value = getEditableText(originalEditor);
     syncChordProFromOriginal({
       originalTextarea,
@@ -163,6 +164,7 @@ export function MusicaForm(options = {}) {
       previewPanel,
       form,
       previousOriginal,
+      restoreSelection: selectionOffsets,
     });
   });
 
@@ -390,6 +392,7 @@ function syncChordProFromOriginal({
   previewPanel,
   form,
   previousOriginal = '',
+  restoreSelection = null,
 }) {
   const previousMarkedText = normalizeVoiceBlocksToInline(renderChordProForDisplay(chordProTextarea.value, {
     keepVoiceDirectives: true,
@@ -403,7 +406,9 @@ function syncChordProFromOriginal({
     getVoiceLabelValues(form),
   );
   setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
-  renderOriginalEditor(originalEditor, nextAutoChordPro);
+  renderOriginalEditor(originalEditor, nextAutoChordPro, {
+    restoreSelection,
+  });
   updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextAutoChordPro);
 
   if (!previewPanel.hidden) {
@@ -411,15 +416,23 @@ function syncChordProFromOriginal({
   }
 }
 
-function renderOriginalEditor(editor, chordProValue) {
+function renderOriginalEditor(editor, chordProValue, options = {}) {
   if (!editor) return;
 
+  const scrollTop = editor.scrollTop;
+  const scrollLeft = editor.scrollLeft;
   const displayValue = renderChordProForDisplay(chordProValue, {
     keepVoiceDirectives: true,
   });
   editor.innerHTML = renderCifraOriginalForDisplayHtml(displayValue, {
     includeVoiceLegend: false,
   });
+  editor.scrollTop = scrollTop;
+  editor.scrollLeft = scrollLeft;
+
+  if (options.restoreSelection) {
+    restoreEditorSelection(editor, options.restoreSelection);
+  }
 }
 
 function updateVoiceMarkedChordPro({
@@ -524,6 +537,60 @@ function getEditorSelectionOffsets(editor) {
   return {
     start: Math.min(start, end),
     end: Math.max(start, end),
+  };
+}
+
+function restoreEditorSelection(editor, offsets) {
+  if (!editor || !offsets) return;
+
+  const selection = window.getSelection();
+  if (!selection) return;
+
+  const startPosition = getTextNodePositionAtOffset(editor, offsets.start);
+  const endPosition = getTextNodePositionAtOffset(editor, offsets.end);
+
+  if (!startPosition || !endPosition) return;
+
+  const range = document.createRange();
+  range.setStart(startPosition.node, startPosition.offset);
+  range.setEnd(endPosition.node, endPosition.offset);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function getTextNodePositionAtOffset(root, targetOffset) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let currentOffset = 0;
+  let node = walker.nextNode();
+  let lastTextNode = null;
+
+  while (node) {
+    const nextOffset = currentOffset + node.textContent.length;
+    lastTextNode = node;
+
+    if (targetOffset <= nextOffset) {
+      return {
+        node,
+        offset: Math.max(0, Math.min(node.textContent.length, targetOffset - currentOffset)),
+      };
+    }
+
+    currentOffset = nextOffset;
+    node = walker.nextNode();
+  }
+
+  if (lastTextNode) {
+    return {
+      node: lastTextNode,
+      offset: lastTextNode.textContent.length,
+    };
+  }
+
+  const emptyTextNode = document.createTextNode('');
+  root.append(emptyTextNode);
+  return {
+    node: emptyTextNode,
+    offset: 0,
   };
 }
 
