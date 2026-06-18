@@ -48,13 +48,26 @@ export function normalizeChordProLyrics(input) {
     .join('\n');
 }
 
-export function renderChordProForDisplay(input) {
+export function renderChordProForDisplay(input, options = {}) {
   if (!input) return '';
 
-  return String(input)
+  const lines = [];
+
+  String(input)
     .split('\n')
-    .map((line) => (isVoiceDirectiveLine(line) ? normalizeVoiceDirective(line) : renderChordProLineForDisplay(line)))
-    .join('\n');
+    .forEach((line) => {
+      if (isVoiceDirectiveLine(line)) {
+        if (options.keepVoiceDirectives) {
+          lines.push(normalizeVoiceDirective(line));
+        }
+
+        return;
+      }
+
+      lines.push(renderChordProLineForDisplay(line));
+    });
+
+  return lines.join('\n');
 }
 
 export function renderCifraOriginalForDisplayHtml(input) {
@@ -87,11 +100,15 @@ export function renderCifraOriginalForDisplayHtml(input) {
 }
 
 export function renderCifraOriginalPreviewHtml(input) {
-  return renderCifraOriginalForDisplayHtml(renderChordProForDisplay(convertToChordPro(input || '')));
+  return renderCifraOriginalForDisplayHtml(renderChordProForDisplay(convertToChordPro(input || ''), {
+    keepVoiceDirectives: true,
+  }));
 }
 
 export function createCifraExibicao(input) {
-  return renderChordProForDisplay(convertToChordPro(input || ''));
+  return renderChordProForDisplay(convertToChordPro(input || ''), {
+    keepVoiceDirectives: true,
+  });
 }
 
 export function getCifraExibicao(record = {}) {
@@ -100,7 +117,9 @@ export function getCifraExibicao(record = {}) {
   }
 
   if (record.cifra_chordpro) {
-    return renderChordProForDisplay(record.cifra_chordpro);
+    return renderChordProForDisplay(record.cifra_chordpro, {
+      keepVoiceDirectives: true,
+    });
   }
 
   return createCifraExibicao(record.cifra_original || '');

@@ -59,6 +59,18 @@ assert.equal(
 );
 
 assert.equal(
+  renderChordProForDisplay(['{voice: segunda_voz}', '[G]GRANDE [D/F#]ES TU', '{/voice}'].join('\n')),
+  ['G      D/F#', 'GRANDE ES TU'].join('\n'),
+);
+
+assert.equal(
+  renderChordProForDisplay(['{voice: segunda_voz}', '[G]GRANDE [D/F#]ES TU', '{/voice}'].join('\n'), {
+    keepVoiceDirectives: true,
+  }),
+  ['{voice: segunda_voz}', 'G      D/F#', 'GRANDE ES TU', '{/voice}'].join('\n'),
+);
+
+assert.equal(
   renderChordProForDisplay('[*Solo:]\n[G] [D] [Em] [C]'),
   ['*Solo:', 'G  D  Em  C'].join('\n'),
 );

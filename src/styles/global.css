@@ -4677,6 +4677,23 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   resize: vertical;
 }
 
+.cifra-original-voice-preview {
+  overflow: auto;
+  border: 1px solid rgba(95, 89, 79, 0.18);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #20211f;
+  font-family: Consolas, 'Courier New', monospace;
+  font-weight: 650;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.cifra-original-voice-preview[hidden] {
+  display: none;
+}
+
 .form-message {
   min-height: 24px;
   margin: 0;
