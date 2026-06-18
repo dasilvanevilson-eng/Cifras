@@ -79,6 +79,8 @@ export function MusicaForm(options = {}) {
           ${escapeHtml(marker.label)}
         </button>
       `).join('')}
+      <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar</button>
+      <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
     </div>
 
     <div class="cifra-editor-grid">
@@ -118,6 +120,8 @@ export function MusicaForm(options = {}) {
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
   const voiceMarkerButtons = form.querySelectorAll('[data-voice-marker]');
+  const unmarkVoiceButton = form.querySelector('[data-action="unmark-voice"]');
+  const clearVoiceMarkersButton = form.querySelector('[data-action="clear-voice-markers"]');
   const formTransposeState = {
     semitones: 0,
   };
@@ -145,25 +149,50 @@ export function MusicaForm(options = {}) {
     });
 
     voiceMarkerButton.addEventListener('click', () => {
-      const markedOriginal = createVoiceMarkedTextFromSelection(
+      updateVoiceMarkedChordPro({
         originalEditor,
         originalTextarea,
-        voiceMarkerButton.dataset.voiceMarker,
-        chordProTextarea.value,
-      );
-
-      if (markedOriginal) {
-        setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(markedOriginal));
-        originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
-        renderOriginalEditor(originalEditor, chordProTextarea.value);
-
-        if (!previewPanel.hidden) {
-          updatePreview(form, previewPanel);
-        }
-      }
+        chordProTextarea,
+        chordProEditor,
+        markerId: voiceMarkerButton.dataset.voiceMarker,
+        mode: 'selection',
+        previewPanel,
+        form,
+      });
 
       originalEditor.focus();
     });
+  });
+
+  unmarkVoiceButton.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
+
+  unmarkVoiceButton.addEventListener('click', () => {
+    updateVoiceMarkedChordPro({
+      originalEditor,
+      originalTextarea,
+      chordProTextarea,
+      chordProEditor,
+      markerId: '',
+      mode: 'line',
+      previewPanel,
+      form,
+    });
+    originalEditor.focus();
+  });
+
+  clearVoiceMarkersButton.addEventListener('click', () => {
+    const cleanOriginal = renderChordProForDisplay(chordProTextarea.value);
+    originalTextarea.value = cleanOriginal;
+    setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(cleanOriginal));
+    renderOriginalEditor(originalEditor, chordProTextarea.value);
+
+    if (!previewPanel.hidden) {
+      updatePreview(form, previewPanel);
+    }
+
+    originalEditor.focus();
   });
 
   chordProEditor.addEventListener('focus', () => {
@@ -334,34 +363,40 @@ function renderOriginalEditor(editor, chordProValue) {
   });
 }
 
-function createVoiceMarkedTextFromSelection(editor, textarea, markerId, currentChordPro = '') {
-  if (!editor || !textarea || !markerId) return '';
+function updateVoiceMarkedChordPro({
+  originalEditor,
+  originalTextarea,
+  chordProTextarea,
+  chordProEditor,
+  markerId,
+  mode,
+  previewPanel,
+  form,
+}) {
+  if (!originalEditor || !originalTextarea) return;
 
-  const value = textarea.value || '';
-  const originalLines = value.split('\n');
-  const selectionOffsets = getEditorSelectionOffsets(editor);
-  const selectionStart = selectionOffsets.start;
-  const selectionEnd = selectionOffsets.end;
-  const effectiveSelectionEnd = selectionEnd > selectionStart && value[selectionEnd - 1] === '\n'
-    ? selectionEnd - 1
-    : selectionEnd;
-  const lineStart = value.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
-  const nextLineBreak = value.indexOf('\n', effectiveSelectionEnd);
-  const lineEnd = nextLineBreak === -1 ? value.length : nextLineBreak;
-  const selectedText = value.slice(lineStart, lineEnd);
+  const cleanText = originalTextarea.value || '';
+  const selectionOffsets = getEditorSelectionOffsets(originalEditor);
+  const targetRanges = mode === 'line'
+    ? getMarkableRangesForCursorLine(cleanText, selectionOffsets.start)
+    : getMarkableRangesForSelection(cleanText, selectionOffsets);
 
-  if (!selectedText.trim()) return '';
+  if (!targetRanges.length) return;
 
-  const selectionStartLine = getLineIndexAt(value, lineStart);
-  const selectionEndLine = selectionStartLine + selectedText.split('\n').length - 1;
-  const existingMarkers = getVoiceMarkersByOriginalLine(currentChordPro, originalLines);
-  const wrappedText = createVoiceMarkedText(value, (lineIndex) => (
-    lineIndex >= selectionStartLine && lineIndex <= selectionEndLine && isVoiceMarkableLine(originalLines[lineIndex])
-      ? markerId
-      : existingMarkers.get(lineIndex)
-  ));
+  const currentMarkedText = normalizeVoiceBlocksToInline(renderChordProForDisplay(chordProTextarea.value, {
+    keepVoiceDirectives: true,
+  }));
+  const existingRanges = getVoiceRangesFromMarkedText(currentMarkedText);
+  const nextRanges = replaceVoiceRanges(existingRanges, targetRanges, markerId);
+  const markedOriginal = applyVoiceRangesToText(cleanText, nextRanges);
 
-  return wrappedText;
+  setChordProValue(chordProTextarea, chordProEditor, convertToChordPro(markedOriginal));
+  originalTextarea.value = renderChordProForDisplay(chordProTextarea.value);
+  renderOriginalEditor(originalEditor, chordProTextarea.value);
+
+  if (!previewPanel.hidden) {
+    updatePreview(form, previewPanel);
+  }
 }
 
 function getEditorSelectionOffsets(editor) {
@@ -390,81 +425,178 @@ function getEditorSelectionOffsets(editor) {
   };
 }
 
-function createVoiceMarkedText(value, getMarkerForLine) {
+function isVoiceMarkableLine(line) {
+  return Boolean(String(line || '').trim()) && !isCifraOriginalChordLine(line);
+}
+
+function getMarkableRangesForSelection(text, selectionOffsets) {
+  const start = Math.min(selectionOffsets.start, selectionOffsets.end);
+  const end = Math.max(selectionOffsets.start, selectionOffsets.end);
+
+  if (start === end) return [];
+
+  return getMarkableRangesInInterval(text, start, end);
+}
+
+function getMarkableRangesForCursorLine(text, cursorOffset) {
+  const lineStart = String(text || '').lastIndexOf('\n', Math.max(0, cursorOffset - 1)) + 1;
+  const nextLineBreak = String(text || '').indexOf('\n', cursorOffset);
+  const lineEnd = nextLineBreak === -1 ? String(text || '').length : nextLineBreak;
+
+  return getMarkableRangesInInterval(text, lineStart, lineEnd);
+}
+
+function getMarkableRangesInInterval(text, start, end) {
+  const value = String(text || '');
+  const ranges = [];
+  let lineStart = 0;
+
+  value.split('\n').forEach((line) => {
+    const lineEnd = lineStart + line.length;
+    const rangeStart = Math.max(start, lineStart);
+    const rangeEnd = Math.min(end, lineEnd);
+
+    if (rangeStart < rangeEnd && isVoiceMarkableLine(line)) {
+      ranges.push({
+        start: trimRangeStart(value, rangeStart, rangeEnd),
+        end: trimRangeEnd(value, rangeStart, rangeEnd),
+      });
+    }
+
+    lineStart = lineEnd + 1;
+  });
+
+  return ranges.filter((range) => range.start < range.end);
+}
+
+function trimRangeStart(value, start, end) {
+  let nextStart = start;
+
+  while (nextStart < end && /\s/.test(value[nextStart])) {
+    nextStart += 1;
+  }
+
+  return nextStart;
+}
+
+function trimRangeEnd(value, start, end) {
+  let nextEnd = end;
+
+  while (nextEnd > start && /\s/.test(value[nextEnd - 1])) {
+    nextEnd -= 1;
+  }
+
+  return nextEnd;
+}
+
+function normalizeVoiceBlocksToInline(markedText) {
   const output = [];
   let activeMarker = '';
 
-  String(value || '').split('\n').forEach((line, lineIndex) => {
-    const marker = getMarkerForLine(lineIndex) || '';
-
-    if (activeMarker && marker !== activeMarker) {
-      output.push('{/voice}');
-      activeMarker = '';
-    }
-
-    if (marker && marker !== activeMarker) {
-      output.push(`{voice: ${marker}}`);
-      activeMarker = marker;
-    }
-
-    output.push(line);
-  });
-
-  if (activeMarker) {
-    output.push('{/voice}');
-  }
-
-  return output.join('\n');
-}
-
-function getVoiceMarkersByOriginalLine(chordProValue, originalLines) {
-  const markers = new Map();
-  const displayValue = renderChordProForDisplay(chordProValue, {
-    keepVoiceDirectives: true,
-  });
-  let activeMarker = '';
-  let originalLineIndex = 0;
-
-  displayValue.split('\n').forEach((line) => {
-    const openingMatch = String(line || '').trim().match(/^\{voice\s*:\s*([a-z0-9_-]+)\}$/i);
+  String(markedText || '').split('\n').forEach((line) => {
+    const openingMatch = line.trim().match(/^\{voice\s*:\s*([a-z0-9_-]+)\}$/i);
 
     if (openingMatch) {
       activeMarker = openingMatch[1].toLowerCase();
       return;
     }
 
-    if (/^\{\/voice\}$/i.test(String(line || '').trim())) {
+    if (/^\{\/voice\}$/i.test(line.trim())) {
       activeMarker = '';
       return;
     }
 
-    while (
-      originalLineIndex < originalLines.length
-      && normalizeComparableLine(originalLines[originalLineIndex]) !== normalizeComparableLine(line)
-    ) {
-      originalLineIndex += 1;
-    }
-
-    if (activeMarker && isVoiceMarkableLine(originalLines[originalLineIndex])) {
-      markers.set(originalLineIndex, activeMarker);
-    }
-
-    originalLineIndex += 1;
+    output.push(activeMarker && isVoiceMarkableLine(line)
+      ? `{voice: ${activeMarker}}${line}{/voice}`
+      : line);
   });
 
-  return markers;
+  return output.join('\n');
 }
 
-function isVoiceMarkableLine(line) {
-  return Boolean(String(line || '').trim()) && !isCifraOriginalChordLine(line);
+function getVoiceRangesFromMarkedText(markedText) {
+  const ranges = [];
+  let cleanOffset = 0;
+  let activeMarker = '';
+  let activeStart = 0;
+  const tokenPattern = /\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi;
+  let sourceIndex = 0;
+
+  String(markedText || '').replace(tokenPattern, (token, tokenIndex) => {
+    cleanOffset += tokenIndex - sourceIndex;
+    closeActiveRange();
+
+    const openingMatch = token.match(/^\{voice\s*:\s*([a-z0-9_-]+)\}$/i);
+    if (openingMatch) {
+      activeMarker = openingMatch[1].toLowerCase();
+      activeStart = cleanOffset;
+    }
+
+    sourceIndex = tokenIndex + token.length;
+    return token;
+  });
+
+  cleanOffset += String(markedText || '').length - sourceIndex;
+  closeActiveRange();
+  return ranges;
+
+  function closeActiveRange() {
+    if (activeMarker && activeStart < cleanOffset) {
+      ranges.push({ start: activeStart, end: cleanOffset, markerId: activeMarker });
+    }
+    activeMarker = '';
+  }
 }
 
-function normalizeComparableLine(line) {
-  return String(line || '').trimEnd().toLocaleUpperCase('pt-BR');
+function replaceVoiceRanges(existingRanges, targetRanges, markerId) {
+  const nextRanges = [];
+
+  existingRanges.forEach((range) => {
+    let fragments = [{ ...range }];
+
+    targetRanges.forEach((target) => {
+      fragments = fragments.flatMap((fragment) => subtractRange(fragment, target));
+    });
+
+    nextRanges.push(...fragments);
+  });
+
+  if (markerId) {
+    targetRanges.forEach((range) => {
+      nextRanges.push({ ...range, markerId });
+    });
+  }
+
+  return nextRanges
+    .filter((range) => range.start < range.end)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
 }
 
-function getLineIndexAt(value, index) {
-  return String(value || '').slice(0, index).split('\n').length - 1;
+function subtractRange(range, target) {
+  if (target.end <= range.start || target.start >= range.end) {
+    return [range];
+  }
+
+  return [
+    { ...range, end: Math.max(range.start, target.start) },
+    { ...range, start: Math.min(range.end, target.end) },
+  ].filter((fragment) => fragment.start < fragment.end);
+}
+
+function applyVoiceRangesToText(text, ranges) {
+  const value = String(text || '');
+  const inserts = [];
+
+  ranges.forEach((range) => {
+    inserts.push({ index: range.start, text: `{voice: ${range.markerId}}` });
+    inserts.push({ index: range.end, text: '{/voice}' });
+  });
+
+  inserts.sort((a, b) => b.index - a.index || (a.text.startsWith('{/') ? 1 : -1));
+
+  return inserts.reduce((result, insert) => (
+    `${result.slice(0, insert.index)}${insert.text}${result.slice(insert.index)}`
+  ), value);
 }
 
 function clearForm(form, chordProTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {

@@ -64,7 +64,8 @@ export function renderChordProForDisplay(input, options = {}) {
         return;
       }
 
-      lines.push(renderChordProLineForDisplay(line));
+      const renderedLine = renderChordProLineForDisplay(line);
+      lines.push(options.keepVoiceDirectives ? normalizeVoiceDirectives(renderedLine) : stripVoiceDirectives(renderedLine));
     });
 
   return lines.join('\n');
@@ -89,14 +90,11 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
         return output;
       }
 
-      const escapedLine = escapeHtml(line);
-      const isChordLine = isDisplayChordLine(line);
-      const renderedLine = isChordLine ? `<span class="chord-line">${escapedLine}</span>` : escapedLine;
-
-      if (activeVoice && !isChordLine) {
-        output.push(`<span class="voice-highlight voice-highlight-${escapeHtml(activeVoice)}">${renderedLine}</span>`);
-        return output;
-      }
+      const plainLine = stripVoiceDirectives(line);
+      const isChordLine = isDisplayChordLine(plainLine);
+      const renderedLine = isChordLine
+        ? `<span class="chord-line">${escapeHtml(plainLine)}</span>`
+        : renderVoiceHighlightedLine(line, activeVoice, usedVoices);
 
       output.push(renderedLine);
       return output;
@@ -197,16 +195,48 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
   const parsed = parseChordLine(chordLine);
   const chords = findChords(parsed.chordText);
   let result = lyricLine;
-  let offset = 0;
 
   chords.forEach(({ chord, index }) => {
-    const position = Math.min(index + offset, result.length);
+    const position = getSourceIndexForVisiblePosition(result, index);
     const tag = `[${chord}]`;
     result = `${result.slice(0, position)}${tag}${result.slice(position)}`;
-    offset += tag.length;
   });
 
   return parsed.label ? `[*${parsed.label}]\n${result}` : result;
+}
+
+function getSourceIndexForVisiblePosition(value, visiblePosition) {
+  const source = String(value || '');
+  let visibleIndex = 0;
+  let index = 0;
+
+  while (index < source.length) {
+    if (source[index] === '[') {
+      const endIndex = source.indexOf(']', index);
+      if (endIndex > index) {
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    if (source[index] === '{') {
+      const endIndex = source.indexOf('}', index);
+      const token = endIndex > index ? source.slice(index, endIndex + 1) : '';
+      if (/^\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}$/i.test(token)) {
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    if (visibleIndex >= visiblePosition) {
+      return index;
+    }
+
+    visibleIndex += 1;
+    index += 1;
+  }
+
+  return source.length;
 }
 
 function renderChordProLineForDisplay(line) {
@@ -404,8 +434,8 @@ function transposeNote(note, semitones) {
 }
 
 function uppercaseChordProLyrics(line) {
-  return String(line).replace(/\[[^\]]+\]|[^\[]+/g, (part) => {
-    if (part.startsWith('[')) {
+  return String(line).replace(/\[[^\]]+\]|\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}|[^\[{]+/gi, (part) => {
+    if (part.startsWith('[') || part.startsWith('{')) {
       return part;
     }
 
@@ -414,7 +444,7 @@ function uppercaseChordProLyrics(line) {
 }
 
 function normalizeChordProLine(line) {
-  return isVoiceDirectiveLine(line) ? normalizeVoiceDirective(line) : uppercaseChordProLyrics(line);
+  return isVoiceDirectiveLine(line) ? normalizeVoiceDirective(line) : normalizeVoiceDirectives(uppercaseChordProLyrics(line));
 }
 
 function isVoiceDirectiveLine(line) {
@@ -428,6 +458,57 @@ function normalizeVoiceDirective(line) {
   if (directive.closing) return '{/voice}';
 
   return `{voice: ${directive.id}}`;
+}
+
+function normalizeVoiceDirectives(value) {
+  return String(value || '').replace(/\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi, (match) => {
+    const directive = parseVoiceDirective(match);
+
+    if (!directive) return match;
+    return directive.closing ? '{/voice}' : `{voice: ${directive.id}}`;
+  });
+}
+
+function stripVoiceDirectives(value) {
+  return String(value || '').replace(/\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi, '');
+}
+
+function hasInlineVoiceDirective(line) {
+  return /\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/i.test(String(line || ''))
+    && !isVoiceDirectiveLine(line);
+}
+
+function renderVoiceHighlightedLine(line, activeVoice, usedVoices) {
+  const output = [];
+  let currentVoice = activeVoice || '';
+  let index = 0;
+  const value = String(line || '');
+  const directivePattern = /\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}/gi;
+
+  value.replace(directivePattern, (match, offset) => {
+    output.push(renderVoiceTextSegment(value.slice(index, offset), currentVoice));
+
+    const directive = parseVoiceDirective(match);
+    currentVoice = directive?.closing ? '' : directive?.id || currentVoice;
+    if (currentVoice) {
+      usedVoices.add(currentVoice);
+    }
+
+    index = offset + match.length;
+    return match;
+  });
+
+  output.push(renderVoiceTextSegment(value.slice(index), currentVoice));
+  return output.join('');
+}
+
+function renderVoiceTextSegment(text, voiceId) {
+  if (!text) return '';
+
+  const escapedText = escapeHtml(text);
+  return voiceId
+    ? `<span class="voice-highlight voice-highlight-${escapeHtml(voiceId)}">${escapedText}</span>`
+    : escapedText;
 }
 
 function parseVoiceDirective(line) {

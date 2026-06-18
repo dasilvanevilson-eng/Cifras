@@ -54,6 +54,11 @@ assert.equal(
 );
 
 assert.equal(
+  convertToChordPro(['G      D/F#', 'Grande {voice: voz_principal}es{/voice} Tu'].join('\n')),
+  '[G]GRANDE {voice: voz_principal}[D/F#]ES{/voice} TU',
+);
+
+assert.equal(
   renderChordProForDisplay('[G]GRANDE [D/F#]ES TU'),
   ['G      D/F#', 'GRANDE ES TU'].join('\n'),
 );
@@ -92,6 +97,15 @@ assert.equal(
     '<span class="voice-highlight voice-highlight-segunda_voz">Grande es Tu</span>',
     '',
     '<span class="voice-legend"><span class="voice-legend-item voice-highlight-segunda_voz">Segunda voz</span></span>',
+  ].join('\n'),
+);
+
+assert.equal(
+  renderCifraOriginalForDisplayHtml('A ALEGRIA ESTA {voice: voz_principal}NO CORACAO{/voice}, DE QUEM CANTA'),
+  [
+    'A ALEGRIA ESTA <span class="voice-highlight voice-highlight-voz_principal">NO CORACAO</span>, DE QUEM CANTA',
+    '',
+    '<span class="voice-legend"><span class="voice-legend-item voice-highlight-voz_principal">Voz principal</span></span>',
   ].join('\n'),
 );
 
