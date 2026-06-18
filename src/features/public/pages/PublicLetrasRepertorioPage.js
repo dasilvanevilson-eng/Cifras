@@ -1,6 +1,12 @@
 import { getPublicLetrasRepertorioData } from '../../../services/publicInvitesService.js';
 import { extractLyricsFromCifraOriginal, getCifraExibicao, renderCifraOriginalForDisplayHtml } from '../../../utils/chordpro.js';
+import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
 import { isYoutubeUrl, openYoutubeFloatingPlayer } from '../../../utils/youtubePlayer.js';
+
+const PUBLIC_LYRICS_FONT_STORAGE_KEY = 'masterCifras.publicLyricsFontSize';
+const PUBLIC_LYRICS_MAX_FONT_SIZE = 128;
+const PUBLIC_LYRICS_MAX_AUTO_FIT_FONT_SIZE = 32;
+const PUBLIC_LYRICS_MIN_FONT_SIZE = 8;
 
 export async function PublicLetrasRepertorioPage() {
   const page = document.createElement('section');
@@ -151,10 +157,68 @@ function createSongDetail(item, contentMode = 'lyrics_only') {
 
   detail.innerHTML = `
     ${isDeletedSong(item) ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>' : ''}
+    <div class="public-lyrics-font-toolbar" role="group" aria-label="Tamanho da fonte">
+      <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
+      <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
+    </div>
     <pre class="${isFullCifra ? 'chordpro-view' : 'lyrics-text public-lyrics-text'}">${isFullCifra ? renderCifraOriginalForDisplayHtml(content || 'Cifra nao encontrada.') : escapeHtml(content || 'Letra nao encontrada.')}</pre>
   `;
 
+  setupPublicLyricsFontControls(detail);
   return detail;
+}
+
+function setupPublicLyricsFontControls(detail) {
+  const view = detail.querySelector('.lyrics-text, .chordpro-view');
+  const fontDownButton = detail.querySelector('[data-action="font-down"]');
+  const fontUpButton = detail.querySelector('[data-action="font-up"]');
+
+  if (!view || !fontDownButton || !fontUpButton) return;
+
+  let fontSize = Number(window.localStorage.getItem(PUBLIC_LYRICS_FONT_STORAGE_KEY) || 32);
+  let fitFontToWidth = true;
+
+  function setFontSize(value) {
+    const nextValue = Math.max(PUBLIC_LYRICS_MIN_FONT_SIZE, Math.min(PUBLIC_LYRICS_MAX_FONT_SIZE, Number(value) || 32));
+    detail.style.setProperty('--public-lyrics-font-size', `${nextValue}px`);
+  }
+
+  function renderFontSize() {
+    fitPreformattedTextToWidth({
+      wrapper: detail,
+      view,
+      desiredFontSize: fontSize,
+      fitToWidth: fitFontToWidth,
+      maxFontSize: PUBLIC_LYRICS_MAX_AUTO_FIT_FONT_SIZE,
+      minFontSize: PUBLIC_LYRICS_MIN_FONT_SIZE,
+      setFontSize,
+    });
+  }
+
+  fontDownButton.addEventListener('click', () => {
+    fitFontToWidth = false;
+    fontSize = Math.max(PUBLIC_LYRICS_MIN_FONT_SIZE, getCurrentPublicLyricsFontSize(detail, fontSize) - 1);
+    window.localStorage.setItem(PUBLIC_LYRICS_FONT_STORAGE_KEY, String(fontSize));
+    setFontSize(fontSize);
+  });
+
+  fontUpButton.addEventListener('click', () => {
+    fitFontToWidth = false;
+    fontSize = Math.min(PUBLIC_LYRICS_MAX_FONT_SIZE, getCurrentPublicLyricsFontSize(detail, fontSize) + 1);
+    window.localStorage.setItem(PUBLIC_LYRICS_FONT_STORAGE_KEY, String(fontSize));
+    setFontSize(fontSize);
+  });
+
+  window.addEventListener('resize', () => {
+    if (fitFontToWidth) renderFontSize();
+  }, { passive: true });
+
+  renderFontSize();
+}
+
+function getCurrentPublicLyricsFontSize(detail, fallback) {
+  const value = window.getComputedStyle(detail).getPropertyValue('--public-lyrics-font-size');
+  return Number.parseFloat(value) || fallback;
 }
 
 function normalizeOrder(items) {

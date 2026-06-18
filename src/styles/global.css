@@ -1574,13 +1574,29 @@ a {
   color: #5f594f;
 }
 
+.public-lyrics-font-toolbar {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.public-lyrics-font-toolbar .nav-button {
+  min-width: 44px;
+  min-height: 38px;
+  padding: 6px 10px;
+}
+
 .public-lyrics-text {
   margin: 0;
   font-family: var(--lyrics-execution-font);
-  font-size: clamp(22px, 2.4vw, 32px);
+  font-size: var(--public-lyrics-font-size, 32px);
   font-weight: 700;
   line-height: 1.35;
   white-space: pre-wrap;
+}
+
+.public-lyrics-detail-inner .chordpro-view {
+  font-size: var(--public-lyrics-font-size, 32px);
 }
 
 .public-banda-page {
