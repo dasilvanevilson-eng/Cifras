@@ -164,6 +164,19 @@ assert.equal(
 );
 
 assert.equal(
+  createChordProFromCifraEditorState({
+    text: 'A ALEGRIA ESTA\nNO CORACAO',
+    voiceLabels: { voz_principal: 'Joao' },
+    voiceMarks: [{ start: 0, end: 26, markerId: 'voz_principal' }],
+  }),
+  [
+    '{voice-label: voz_principal=Joao}',
+    '{voice: voz_principal}A ALEGRIA ESTA{/voice}',
+    '{voice: voz_principal}NO CORACAO{/voice}',
+  ].join('\n'),
+);
+
+assert.equal(
   createCifraExibicaoFromCifraEditorState(editorState),
   ['{voice-label: voz_principal=Joao}', 'G         D/F#', 'A ALEGRIA {voice: voz_principal}ESTA{/voice} NO CORACAO'].join('\n'),
 );

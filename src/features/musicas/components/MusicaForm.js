@@ -893,8 +893,10 @@ function applyVoiceRangesToText(text, ranges) {
   const inserts = [];
 
   ranges.forEach((range) => {
-    inserts.push({ index: range.start, text: `{voice: ${range.markerId}}` });
-    inserts.push({ index: range.end, text: '{/voice}' });
+    getVoiceRangeLineFragments(value, range.start, range.end, range.markerId).forEach((fragment) => {
+      inserts.push({ index: fragment.start, text: `{voice: ${fragment.markerId}}` });
+      inserts.push({ index: fragment.end, text: '{/voice}' });
+    });
   });
 
   inserts.sort((a, b) => b.index - a.index || (a.text.startsWith('{/') ? 1 : -1));
@@ -902,6 +904,33 @@ function applyVoiceRangesToText(text, ranges) {
   return inserts.reduce((result, insert) => (
     `${result.slice(0, insert.index)}${insert.text}${result.slice(insert.index)}`
   ), value);
+}
+
+function getVoiceRangeLineFragments(value, start, end, markerId) {
+  const fragments = [];
+  let cursor = start;
+
+  while (cursor < end) {
+    const nextLineBreak = value.indexOf('\n', cursor);
+    const fragmentEnd = nextLineBreak === -1 || nextLineBreak >= end
+      ? end
+      : nextLineBreak;
+
+    if (cursor < fragmentEnd) {
+      fragments.push({
+        start: cursor,
+        end: fragmentEnd,
+        markerId,
+      });
+    }
+
+    cursor = fragmentEnd;
+    if (value[cursor] === '\n') {
+      cursor += 1;
+    }
+  }
+
+  return fragments;
 }
 
 function clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {
