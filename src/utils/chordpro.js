@@ -262,6 +262,17 @@ function renderChordProLineForDisplay(line) {
       }
     }
 
+    if (line[index] === '{') {
+      const endIndex = line.indexOf('}', index);
+      const token = endIndex > index ? line.slice(index, endIndex + 1) : '';
+
+      if (/^\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}$/i.test(token)) {
+        lyricLine.push(token);
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
     lyricLine.push(line[index]);
     lyricPosition += 1;
     index += 1;
