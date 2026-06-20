@@ -237,7 +237,7 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
     <p class="permissions-editor-intro">O acesso à tela é a permissão principal. Ao removê-lo, as demais ações dessa tela também são removidas.</p>
     <p class="permissions-scope-note"><strong>Escopo atual:</strong> Sistema inteiro. A estrutura já separa o escopo da permissão para suportar organizações no futuro.</p>
     <label class="permissions-expand-all">
-      <input type="checkbox" data-action="toggle-all-modules">
+      <input class="permission-checkbox" type="checkbox" data-action="toggle-all-modules">
       <span data-role="toggle-all-label">Expandir tudo</span>
     </label>
     <div class="permissions-modules-list">
@@ -358,6 +358,7 @@ function createModuleViewToggle(module, modulePermissions) {
     <label class="permission-module-view" title="Permitir acesso a ${escapeHtml(module.label)}">
       <input
         type="checkbox"
+        class="permission-checkbox"
         name="${escapeHtml(module.key)}.can_view"
         data-permission-view="${escapeHtml(module.key)}"
         ${modulePermissions.can_view ? 'checked' : ''}
@@ -374,6 +375,7 @@ function createActionToggle(module, action, modulePermissions) {
       <label class="permission-action-control">
         <input
           type="checkbox"
+          class="permission-checkbox"
           name="${escapeHtml(module.key)}.${escapeHtml(action.key)}"
           data-permission-action="${escapeHtml(module.key)}"
           ${modulePermissions[action.key] ? 'checked' : ''}

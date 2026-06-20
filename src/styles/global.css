@@ -2464,6 +2464,44 @@ a {
   cursor: pointer;
 }
 
+.permissions-editor.form .permission-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  flex: 0 0 var(--permission-checkbox-size);
+  width: var(--permission-checkbox-size);
+  min-width: var(--permission-checkbox-size);
+  height: var(--permission-checkbox-size);
+  min-height: var(--permission-checkbox-size);
+  border: 1.5px solid #68746d;
+  border-radius: 3px;
+  margin: 0;
+  background-color: #ffffff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 11px 11px;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.permissions-editor.form .permission-checkbox:checked {
+  border-color: var(--color-primary, #1d4f45);
+  background-color: var(--color-primary, #1d4f45);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 8 3 3 7-7' fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2'/%3E%3C/svg%3E");
+}
+
+.permissions-editor.form .permission-checkbox:focus-visible {
+  outline: 3px solid rgba(29, 79, 69, 0.24);
+  outline-offset: 2px;
+}
+
+.permissions-editor.form .permission-checkbox:disabled {
+  border-color: #b9b5ad;
+  background-color: #ece9e2;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .permission-module {
   min-width: 0;
   margin: 0;
