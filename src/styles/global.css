@@ -9411,6 +9411,11 @@ html {
   color: #ffb45f;
 }
 
+.repertorio-set-stage.is-dark .performance-song header.repertorio-song-title-bar > span {
+  border-color: #3d443f;
+  background: #0f1210;
+}
+
 .repertorio-set-stage:fullscreen,
 .repertorio-set-stage.is-fullscreen {
   border-radius: 0;
