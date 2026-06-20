@@ -5342,6 +5342,12 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 .cifra-original-codemirror .cm-content { padding: 10px 12px; white-space: pre; }
 .cifra-original-codemirror .cm-focused { outline: 0; box-shadow: 0 0 0 3px rgba(29, 79, 69, .14); }
 
+/* O textarea permanece apenas como fonte de dados para a conversão/salvamento.
+   A interação é exclusivamente do CodeMirror, evitando duas camadas desalinhadas. */
+.cifra-original-editor-shell .cifra-original-codemirror ~ .cifra-original-source {
+  display: none !important;
+}
+
 .cifra-original-editor-shell .cifra-original-editor,
 .cifra-original-editor-shell .cifra-original-source {
   position: absolute;
