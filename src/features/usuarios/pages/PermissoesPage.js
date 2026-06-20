@@ -56,7 +56,8 @@ export async function PermissoesPage({ session } = {}) {
   function renderUsers() {
     usersSlot.replaceChildren(createUsersList(users, searchInput.value, async (user) => {
       selectedUser = user;
-      searchInput.value = formatUserLabel(user);
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
       renderSelectedUser(selectedUserLabel, selectedUser);
       hideUsersList(usersSlot);
       await renderEditor(editorSlot, selectedUser, users);

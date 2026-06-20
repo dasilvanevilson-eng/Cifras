@@ -34,6 +34,7 @@ import { DicionarioAcordesPage } from '../features/acordes/pages/DicionarioAcord
 import { AfinadorPage } from '../features/afinador/pages/AfinadorPage.js';
 import { getFirstVisibleMenuRoute } from '../features/auth/permissions.js';
 import { installPageInfoDialogs } from '../utils/pageInfoDialog.js';
+import { installSearchClearButtons } from '../utils/searchClearButtons.js';
 
 const routes = {
   '/dashboard': DashboardPage,
@@ -120,6 +121,7 @@ export function createRouter() {
 
       const page = await Page({ session });
       installPageInfoDialogs(page);
+      installSearchClearButtons(page);
       return page;
     },
   };
