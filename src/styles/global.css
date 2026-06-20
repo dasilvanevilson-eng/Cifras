@@ -4781,8 +4781,8 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   margin-bottom: 4px;
 }
 
-.repertorio-performance-view:fullscreen .performance-toolbar,
-.repertorio-performance-view.is-fullscreen .performance-toolbar {
+.repertorio-performance-view:fullscreen:not(.has-auto-toolbar) .performance-toolbar,
+.repertorio-performance-view.is-fullscreen:not(.has-auto-toolbar) .performance-toolbar {
   top: 0;
 }
 
