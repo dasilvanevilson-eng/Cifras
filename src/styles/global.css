@@ -2537,6 +2537,10 @@ a {
   padding: 7px 12px 9px 54px;
 }
 
+.permission-actions-list[hidden] {
+  display: none;
+}
+
 .permission-actions-list::before {
   position: absolute;
   top: 0;
@@ -2586,9 +2590,9 @@ a {
 
 .permission-action input {
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  margin: 1px 0 0;
+  width: 1em;
+  height: 1em;
+  margin: 0;
   accent-color: var(--color-primary, #1d4f45);
 }
 
