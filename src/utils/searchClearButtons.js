@@ -17,11 +17,42 @@ export function installSearchClearButtons(root = document) {
     button.setAttribute('aria-label', `Limpar busca: ${getSearchLabel(input)}`);
     button.textContent = '×';
     field.append(button);
+    const history = document.createElement('div');
+    history.className = 'search-history-menu';
+    history.hidden = true;
+    field.append(history);
+    const historyKey = `master-cifras:search:${input.dataset.searchHistoryKey || input.dataset.search || input.dataset.action || input.name || input.placeholder || 'default'}`;
+
+    const readHistory = () => {
+      try { return JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch { return []; }
+    };
+    const saveSearch = (value) => {
+      const query = String(value || '').trim();
+      if (!query) return;
+      const items = [query, ...readHistory().filter((item) => item !== query)].slice(0, 8);
+      localStorage.setItem(historyKey, JSON.stringify(items));
+    };
+    const showHistory = () => {
+      const items = readHistory();
+      history.replaceChildren();
+      if (!items.length || input.value) { history.hidden = true; return; }
+      const title = document.createElement('span');
+      title.className = 'search-history-title'; title.textContent = 'Buscas recentes'; history.append(title);
+      items.forEach((item) => {
+        const itemButton = document.createElement('button');
+        itemButton.type = 'button'; itemButton.textContent = item;
+        itemButton.addEventListener('mousedown', (event) => event.preventDefault());
+        itemButton.addEventListener('click', () => { input.value = item; input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); });
+        history.append(itemButton);
+      });
+      history.hidden = false;
+    };
 
     const update = () => {
       const hasValue = Boolean(input.value);
       button.hidden = !hasValue;
       field.classList.toggle('has-value', hasValue);
+      if (hasValue) history.hidden = true;
     };
 
     button.addEventListener('click', () => {
@@ -33,6 +64,10 @@ export function installSearchClearButtons(root = document) {
 
     input.addEventListener('input', update);
     input.addEventListener('change', update);
+    input.addEventListener('focus', showHistory);
+    input.addEventListener('blur', () => window.setTimeout(() => { history.hidden = true; }, 120));
+    input.addEventListener('keydown', (event) => { if (event.key === 'Enter') saveSearch(input.value); });
+    input.addEventListener('change', () => saveSearch(input.value));
     input.dataset[SEARCH_CLEAR_READY] = 'true';
     update();
   };
