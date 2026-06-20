@@ -1,6 +1,6 @@
 import { getMusicaById } from '../../../services/musicasService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { getCifraExibicao, renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
+import { getCifraParaTransposicao, renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
 import {
   createPerformanceToolbar,
   fitCifraToWidth,
@@ -218,7 +218,7 @@ function getPerformanceSongData(musica) {
     title: getField(musica, ['titulo', 'nome', 'title']),
     key: getField(musica, ['tom', 'key']),
     link: getField(musica, ['musica_link']),
-    cifraOriginal: getCifraExibicao(musica),
+    cifraOriginal: getCifraParaTransposicao(musica),
   };
 }
 

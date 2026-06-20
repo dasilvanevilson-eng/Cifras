@@ -166,6 +166,20 @@ export function getCifraExibicao(record = {}) {
   return createCifraExibicao(record.cifra_original || '');
 }
 
+export function getCifraParaTransposicao(record = {}) {
+  const editorState = normalizeCifraEditorState(record.cifra_editor_state);
+
+  if (hasCifraEditorStateContent(editorState)) {
+    return createChordProFromCifraEditorState(editorState);
+  }
+
+  if (record.cifra_chordpro) {
+    return String(record.cifra_chordpro);
+  }
+
+  return getCifraExibicao(record);
+}
+
 function hasCifraEditorStateContent(state) {
   return Boolean(state?.text || state?.voiceMarks?.length);
 }
@@ -253,9 +267,19 @@ export function createCifraExibicaoFromCifraEditorState(state = {}) {
 }
 
 export function transposeCifraOriginal(input, semitones) {
-  if (!input || !Number(semitones)) return input || '';
+  if (!input) return '';
 
-  return normalizeTabs(input)
+  const cifra = normalizeTabs(input);
+
+  if (hasChordProChords(cifra)) {
+    return renderChordProForDisplay(transposeChordPro(cifra, semitones), {
+      keepVoiceDirectives: true,
+    });
+  }
+
+  if (!Number(semitones)) return cifra;
+
+  return cifra
     .split('\n')
     .map((line) => (isChordLine(line) ? transposeChordLine(line, semitones) : line))
     .join('\n');
@@ -563,43 +587,11 @@ function findChords(line) {
 }
 
 function transposeChordLine(line, semitones) {
-  const chords = findChords(line);
-
-  if (!chords.length) return line;
-
-  let output = '';
-  let cursor = 0;
-
-  chords.forEach(({ chord, index }) => {
-    const targetPosition = index;
-    const gap = line.slice(cursor, index);
-    const availableGapLength = Math.max(0, targetPosition - output.length);
-
-    output += fitChordGap(gap, availableGapLength);
-    output += transposeChord(chord, semitones);
-    cursor = index + chord.length;
-  });
-
-  return `${output}${line.slice(cursor)}`;
+  return line.replace(CHORD_PATTERN, (chord) => transposeChord(chord, semitones));
 }
 
-function fitChordGap(gap, length) {
-  if (gap.length === length) return gap;
-  if (gap.length < length) return `${gap}${' '.repeat(length - gap.length)}`;
-
-  let result = gap;
-
-  while (result.length > length) {
-    const whitespaceIndex = result.search(/\s/);
-
-    if (whitespaceIndex === -1) {
-      return result;
-    }
-
-    result = `${result.slice(0, whitespaceIndex)}${result.slice(whitespaceIndex + 1)}`;
-  }
-
-  return result;
+function hasChordProChords(input) {
+  return /\[(?:[A-G](?:#|b)?|\*)/.test(input);
 }
 
 function transposeChord(chord, semitones) {

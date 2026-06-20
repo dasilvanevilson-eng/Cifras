@@ -10,6 +10,7 @@ import {
   extractLyricsFromCifraOriginal,
   createCifraExibicao,
   getCifraExibicao,
+  getCifraParaTransposicao,
   getTransposeSemitones,
   getVoiceLabelsFromMusica,
   normalizeChordProLyrics,
@@ -31,24 +32,19 @@ const cifraOriginal = [
 assert.equal(
   transposeCifraOriginal(cifraOriginal, 2),
   [
-    'A  E/G#  F#m7 D9',
-    'C   G#m7  B7(9)  D7M',
+    'A  E/G#  F#m7  D9',
+    'C  G#m7  B7(9)  D7M',
   ].join('\n'),
 );
 
 assert.equal(
   transposeCifraOriginal('C | G/B | Am7 | F', -2),
-  'A#| F/A | Gm7 | D#',
+  'A# | F/A | Gm7 | D#',
 );
 
 assert.equal(
-  transposeCifraOriginal('C     Bb', 1),
-  'C#    B',
-);
-
-assert.equal(
-  transposeCifraOriginal('Bb     C', 1),
-  'B      C#',
+  transposeCifraOriginal('[C]GRANDE [Bb]E', 1),
+  ['C#     B', 'GRANDE E'].join('\n'),
 );
 
 assert.equal(
@@ -217,6 +213,14 @@ assert.equal(
 assert.equal(
   getCifraExibicao({ cifra_exibicao: 'C\nJA SALVA' }),
   'C\nJA SALVA',
+);
+
+assert.equal(
+  getCifraParaTransposicao({
+    cifra_exibicao: 'C\nJA SALVA',
+    cifra_chordpro: '[C]JA SALVA',
+  }),
+  '[C]JA SALVA',
 );
 
 assert.equal(

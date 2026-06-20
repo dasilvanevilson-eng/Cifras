@@ -4,7 +4,7 @@ import {
   updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraParaTransposicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 import {
   createCapoOptions as createPerformanceCapoOptions,
@@ -137,7 +137,7 @@ function createSongBlockLegacy(item, number) {
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
   const artist = musicaExcluida ? getField(item, ['musica_artista']) : getField(musica, ['artista', 'autor', 'artist']);
   const key = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(musica, ['tom', 'key']);
-  const cifraOriginal = getCifraExibicao(musica);
+  const cifraOriginal = getCifraParaTransposicao(musica);
   const momento = getField(item, ['observacao']);
 
   const block = document.createElement('section');
@@ -440,7 +440,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
   const originalKey = musicaExcluida ? getField(item, ['musica_tom_original']) : getField(musica, ['tom', 'key']);
   const repertorioKey = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : originalKey;
   const baseSemitones = getTransposeSemitones(originalKey, repertorioKey);
-  const cifraOriginal = getCifraExibicao(musica);
+  const cifraOriginal = getCifraParaTransposicao(musica);
   const link = musicaExcluida ? '-' : getField(musica, ['musica_link']);
   const momento = getField(item, ['observacao']);
   const subtitleParts = [
