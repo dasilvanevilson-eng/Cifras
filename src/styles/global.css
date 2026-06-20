@@ -5342,6 +5342,13 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 .cifra-original-codemirror .cm-content { padding: 10px 12px; white-space: pre; }
 .cifra-original-codemirror .cm-focused { outline: 0; box-shadow: 0 0 0 3px rgba(29, 79, 69, .14); }
 
+/* Decorações do CodeMirror: aplicadas no próprio texto editável. */
+.cifra-original-codemirror .cm-content .voice-highlight-voz_principal { background-color: #ffe08a !important; color: #1d1b17 !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-segunda_voz { background-color: #a7d8ff !important; color: #1d1b17 !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-terca_voz { background-color: #b8f2c8 !important; color: #1d1b17 !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-todos { background-color: #e9d5ff !important; color: #1d1b17 !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-solo { background-color: #ffc4c4 !important; color: #1d1b17 !important; }
+
 /* O textarea permanece apenas como fonte de dados para a conversão/salvamento.
    A interação é exclusivamente do CodeMirror, evitando duas camadas desalinhadas. */
 .cifra-original-editor-shell .cifra-original-codemirror ~ .cifra-original-source {
