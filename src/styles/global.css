@@ -2453,11 +2453,12 @@ a {
 
 .permissions-expand-all input,
 .permission-module-view input {
-  width: 17px;
-  height: 17px;
+  width: 1em;
+  height: 1em;
   margin: 0;
   accent-color: var(--color-primary, #1d4f45);
   cursor: pointer;
+  font-size: 13px;
 }
 
 .permission-module {
@@ -2594,6 +2595,7 @@ a {
   height: 1em;
   margin: 0;
   accent-color: var(--color-primary, #1d4f45);
+  font-size: 13px;
 }
 
 .permission-action input:disabled + .permission-action-copy {
