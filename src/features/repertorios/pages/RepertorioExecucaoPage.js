@@ -4,7 +4,7 @@ import {
   updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { getCifraParaTransposicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraParaTransposicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 import {
   createCapoOptions as createPerformanceCapoOptions,
@@ -308,6 +308,8 @@ function renderPagedPerformance({
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
 
     view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+    const voiceLegend = song.querySelector('[data-role="performance-voice-legend"]');
+    if (voiceLegend) voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
     keyElement.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
   });
@@ -714,6 +716,8 @@ function renderPagedPerformanceV2({
     if (view) {
       const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', totalSemitones - capo);
       view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+      const voiceLegend = song.querySelector('[data-role="performance-voice-legend"]');
+      if (voiceLegend) voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
       fitPerformanceCifraToWidth(wrapper, view, displayedCifra, desiredFontSize, fitFontToMobileWidth);
     }
 

@@ -1,4 +1,4 @@
-import { renderCifraOriginalForDisplayHtml } from '../../utils/chordpro.js';
+import { renderCifraOriginalForDisplayHtml, renderVoiceLegendHtml } from '../../utils/chordpro.js';
 
 export function createPerformanceSongBlock({
   title,
@@ -37,7 +37,8 @@ export function createPerformanceSongBlock({
     </header>
     ${deletedNotice
       ? `<p class="deleted-song-notice">${escapeHtml(deletedNotice)}</p>`
-      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderCifraOriginalForDisplayHtml(cifra)}</pre>`}
+      : `<div class="performance-voice-legend" data-role="performance-voice-legend">${renderVoiceLegendHtml(cifra)}</div>
+      <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderCifraOriginalForDisplayHtml(cifra)}</pre>`}
   `;
 
   return block;
