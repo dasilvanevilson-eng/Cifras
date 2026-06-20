@@ -236,6 +236,10 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
     </header>
     <p class="permissions-editor-intro">O acesso à tela é a permissão principal. Ao removê-lo, as demais ações dessa tela também são removidas.</p>
     <p class="permissions-scope-note"><strong>Escopo atual:</strong> Sistema inteiro. A estrutura já separa o escopo da permissão para suportar organizações no futuro.</p>
+    <label class="permissions-expand-all">
+      <input type="checkbox" data-action="toggle-all-modules">
+      <span data-role="toggle-all-label">Expandir tudo</span>
+    </label>
     <div class="permissions-modules-list">
       ${PERMISSION_MODULES.map((module) => createModuleCard(module, permissions[module.key])).join('')}
     </div>
@@ -254,6 +258,36 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
     syncModuleActionState(form, input.dataset.permissionView);
   });
 
+  const expandAllInput = form.querySelector('[data-action="toggle-all-modules"]');
+  const expandAllLabel = form.querySelector('[data-role="toggle-all-label"]');
+  const moduleToggles = [...form.querySelectorAll('[data-action="toggle-module"]')];
+
+  function setModuleExpanded(toggle, isExpanded) {
+    const module = toggle.closest('.permission-module');
+    const actions = module.querySelector('.permission-actions-list');
+    module.classList.toggle('is-expanded', isExpanded);
+    toggle.setAttribute('aria-expanded', String(isExpanded));
+    actions.hidden = !isExpanded;
+  }
+
+  function syncExpandAllState() {
+    expandAllInput.checked = moduleToggles.length > 0
+      && moduleToggles.every((toggle) => toggle.getAttribute('aria-expanded') === 'true');
+    expandAllLabel.textContent = expandAllInput.checked ? 'Esconder tudo' : 'Expandir tudo';
+  }
+
+  moduleToggles.forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      setModuleExpanded(toggle, toggle.getAttribute('aria-expanded') !== 'true');
+      syncExpandAllState();
+    });
+  });
+
+  expandAllInput.addEventListener('change', () => {
+    moduleToggles.forEach((toggle) => setModuleExpanded(toggle, expandAllInput.checked));
+    expandAllLabel.textContent = expandAllInput.checked ? 'Esconder tudo' : 'Expandir tudo';
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     await onSave(readPermissionsFromForm(form), message, saveButton);
@@ -269,25 +303,45 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
 function createModuleCard(module, modulePermissions = {}) {
   return `
     <fieldset class="permission-module" data-module="${escapeHtml(module.key)}">
-      <legend>
-        <strong>${escapeHtml(module.label)}</strong>
-        <span>${escapeHtml(module.description)}</span>
-      </legend>
-      <div class="permission-actions-list">
-        ${(module.actions || []).map((action) => createActionToggle(module, action, modulePermissions)).join('')}
+      <legend class="visually-hidden">${escapeHtml(module.label)}</legend>
+      <div class="permission-module-header">
+        <button class="permission-module-toggle" type="button" data-action="toggle-module" aria-expanded="false" aria-label="Expandir ${escapeHtml(module.label)}">
+          <span aria-hidden="true">›</span>
+        </button>
+        ${createModuleViewToggle(module, modulePermissions)}
+        <div class="permission-module-title">
+          <strong>${escapeHtml(module.label)}</strong>
+          <span>${escapeHtml(module.description)}</span>
+        </div>
+      </div>
+      <div class="permission-actions-list" hidden>
+        ${(module.actions || []).filter((action) => action.key !== 'can_view').map((action) => createActionToggle(module, action, modulePermissions)).join('')}
       </div>
     </fieldset>
   `;
 }
 
-function createActionToggle(module, action, modulePermissions) {
-  const isView = action.key === 'can_view';
+function createModuleViewToggle(module, modulePermissions) {
   return `
-    <label class="permission-action${isView ? ' is-primary' : ''}">
+    <label class="permission-module-view" title="Permitir acesso a ${escapeHtml(module.label)}">
+      <input
+        type="checkbox"
+        name="${escapeHtml(module.key)}.can_view"
+        data-permission-view="${escapeHtml(module.key)}"
+        ${modulePermissions.can_view ? 'checked' : ''}
+      >
+      <span class="visually-hidden">Permitir acesso a ${escapeHtml(module.label)}</span>
+    </label>
+  `;
+}
+
+function createActionToggle(module, action, modulePermissions) {
+  return `
+    <label class="permission-action">
       <input
         type="checkbox"
         name="${escapeHtml(module.key)}.${escapeHtml(action.key)}"
-        ${isView ? `data-permission-view="${escapeHtml(module.key)}"` : `data-permission-action="${escapeHtml(module.key)}"`}
+        data-permission-action="${escapeHtml(module.key)}"
         ${modulePermissions[action.key] ? 'checked' : ''}
       >
       <span class="permission-action-copy">
