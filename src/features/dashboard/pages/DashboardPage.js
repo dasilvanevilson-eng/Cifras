@@ -47,14 +47,26 @@ export function createDashboardView({
     <header class="dashboard-header dashboard-hero">
       <div class="dashboard-hero-copy">
         <span class="dashboard-kicker">${publicMode ? 'Link publico' : 'Central musical'}</span>
-        <h1>${publicMode ? 'Painel publico' : 'Inicio'}</h1>
-        <p>${escapeHtml(publicMode ? (inviteTitle || 'Consulta temporaria de repertorios e musicas.') : 'Busque repertorios, abra cifras e continue rapidamente o que precisa tocar.')}</p>
+        <h1 class="dashboard-title">
+          ${publicMode ? 'Painel publico' : 'Inicio <button class="dashboard-info-button" type="button" data-action="open-dashboard-info" aria-label="Mais informações sobre o início" aria-haspopup="dialog" title="Mais informações">i</button>'}
+        </h1>
+        ${publicMode ? `<p>${escapeHtml(inviteTitle || 'Consulta temporaria de repertorios e musicas.')}</p>` : ''}
       </div>
       <div class="dashboard-summary" aria-label="Resumo do acervo">
         <span><strong>${repertorios.length}</strong> repertorios</span>
         <span><strong>${musicas.length}</strong> musicas</span>
       </div>
     </header>
+    ${publicMode ? '' : `
+      <div class="dashboard-info-modal" data-role="dashboard-info-modal" hidden>
+        <div class="dashboard-info-backdrop" data-action="close-dashboard-info"></div>
+        <section class="dashboard-info-dialog" role="dialog" aria-modal="true" aria-labelledby="dashboard-info-title">
+          <button class="dashboard-info-close" type="button" data-action="close-dashboard-info" aria-label="Fechar">&times;</button>
+          <h2 id="dashboard-info-title">Inicio</h2>
+          <p>Busque repertorios, abra cifras e continue rapidamente o que precisa tocar.</p>
+        </section>
+      </div>
+    `}
     <section class="dashboard-workspace dashboard-home-panel">
       <div class="dashboard-panel-heading">
         <div>
@@ -151,6 +163,8 @@ export function createDashboardView({
   });
   musicasSearchContext.onSelectionChange = musicasSearch.update;
 
+  setupDashboardInfoModal(wrapper);
+
   if (!publicMode) {
     renderSelectedMusicasActions({
       slot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
@@ -160,6 +174,28 @@ export function createDashboardView({
   }
 
   return wrapper;
+}
+
+function setupDashboardInfoModal(wrapper) {
+  const openButton = wrapper.querySelector('[data-action="open-dashboard-info"]');
+  const modal = wrapper.querySelector('[data-role="dashboard-info-modal"]');
+  if (!openButton || !modal) return;
+
+  const closeModal = () => {
+    modal.hidden = true;
+    openButton.focus();
+  };
+
+  openButton.addEventListener('click', () => {
+    modal.hidden = false;
+    modal.querySelector('.dashboard-info-close').focus();
+  });
+  modal.addEventListener('click', (event) => {
+    if (event.target.closest('[data-action="close-dashboard-info"]')) closeModal();
+  });
+  modal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeModal();
+  });
 }
 
 function createDashboardQuickActions(publicMode = false) {

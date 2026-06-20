@@ -24,8 +24,8 @@ export async function PermissoesPage({ session } = {}) {
   page.innerHTML = `
     <header class="dashboard-header">
       <div>
-        <h1>Permissoes</h1>
-        <p>Controle o que cada usuario pode ver e executar.</p>
+        <h1>Permissões</h1>
+        <p>Defina, tela por tela, as ações que cada pessoa pode realizar.</p>
       </div>
     </header>
     <section class="permissions-layout">
@@ -234,18 +234,10 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
       </div>
       <span class="user-role">${hasCustomPermissions ? 'Personalizado' : 'Padrao do perfil'}</span>
     </header>
-    <div class="permissions-table-wrap">
-      <table class="data-table permissions-table">
-        <thead>
-          <tr>
-            <th>Opcao</th>
-            ${PERMISSION_ACTIONS.map((action) => `<th>${escapeHtml(action.label)}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${PERMISSION_MODULES.map((module) => createModuleRow(module, permissions[module.key])).join('')}
-        </tbody>
-      </table>
+    <p class="permissions-editor-intro">O acesso à tela é a permissão principal. Ao removê-lo, as demais ações dessa tela também são removidas.</p>
+    <p class="permissions-scope-note"><strong>Escopo atual:</strong> Sistema inteiro. A estrutura já separa o escopo da permissão para suportar organizações no futuro.</p>
+    <div class="permissions-modules-list">
+      ${PERMISSION_MODULES.map((module) => createModuleCard(module, permissions[module.key])).join('')}
     </div>
     <div class="form-actions">
       <button class="button" type="submit">Salvar permissoes</button>
@@ -256,6 +248,11 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
 
   const message = form.querySelector('.form-message');
   const saveButton = form.querySelector('button[type="submit"]');
+
+  form.querySelectorAll('[data-permission-view]').forEach((input) => {
+    input.addEventListener('change', () => syncModuleActionState(form, input.dataset.permissionView));
+    syncModuleActionState(form, input.dataset.permissionView);
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -269,27 +266,47 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
   return form;
 }
 
-function createModuleRow(module, modulePermissions = {}) {
+function createModuleCard(module, modulePermissions = {}) {
   return `
-    <tr>
-      <th scope="row">
+    <fieldset class="permission-module" data-module="${escapeHtml(module.key)}">
+      <legend>
         <strong>${escapeHtml(module.label)}</strong>
-        <small>${escapeHtml(module.description)}</small>
-      </th>
-      ${PERMISSION_ACTIONS.map((action) => `
-        <td>
-          <label class="permission-toggle" title="${escapeHtml(action.label)} - ${escapeHtml(module.label)}">
-            <input
-              type="checkbox"
-              name="${escapeHtml(module.key)}.${escapeHtml(action.key)}"
-              ${modulePermissions[action.key] ? 'checked' : ''}
-            >
-            <span>${escapeHtml(action.label)}</span>
-          </label>
-        </td>
-      `).join('')}
-    </tr>
+        <span>${escapeHtml(module.description)}</span>
+      </legend>
+      <div class="permission-actions-list">
+        ${(module.actions || []).map((action) => createActionToggle(module, action, modulePermissions)).join('')}
+      </div>
+    </fieldset>
   `;
+}
+
+function createActionToggle(module, action, modulePermissions) {
+  const isView = action.key === 'can_view';
+  return `
+    <label class="permission-action${isView ? ' is-primary' : ''}">
+      <input
+        type="checkbox"
+        name="${escapeHtml(module.key)}.${escapeHtml(action.key)}"
+        ${isView ? `data-permission-view="${escapeHtml(module.key)}"` : `data-permission-action="${escapeHtml(module.key)}"`}
+        ${modulePermissions[action.key] ? 'checked' : ''}
+      >
+      <span class="permission-action-copy">
+        <strong>${escapeHtml(action.label)}</strong>
+        <small>${escapeHtml(action.description)}</small>
+      </span>
+    </label>
+  `;
+}
+
+function syncModuleActionState(form, moduleKey) {
+  const viewInput = form.elements[`${moduleKey}.can_view`];
+  const actionInputs = form.querySelectorAll(`[data-permission-action="${cssEscape(moduleKey)}"]`);
+  const isAllowed = Boolean(viewInput?.checked);
+
+  actionInputs.forEach((input) => {
+    input.disabled = !isAllowed;
+    if (!isAllowed) input.checked = false;
+  });
 }
 
 function readPermissionsFromForm(form) {
@@ -297,9 +314,14 @@ function readPermissionsFromForm(form) {
     module.key,
     Object.fromEntries(PERMISSION_ACTIONS.map((action) => [
       action.key,
-      Boolean(form.elements[`${module.key}.${action.key}`]?.checked),
+      Boolean(form.elements[`${module.key}.can_view`]?.checked)
+        && Boolean(form.elements[`${module.key}.${action.key}`]?.checked),
     ])),
   ]));
+}
+
+function cssEscape(value) {
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 }
 
 function matchesUserSearch(user, normalizedQuery) {
