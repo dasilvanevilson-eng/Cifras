@@ -5176,6 +5176,9 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   line-height: 1;
 }
 
+.performance-voice-legend:empty { display: none; }
+.performance-voice-legend .voice-legend { margin: 0 0 10px; border-top: 0; padding: 0; }
+
 .voice-editor-legend {
   min-height: 30px;
 }
