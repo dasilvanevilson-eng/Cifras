@@ -261,6 +261,7 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
   const expandAllInput = form.querySelector('[data-action="toggle-all-modules"]');
   const expandAllLabel = form.querySelector('[data-role="toggle-all-label"]');
   const moduleToggles = [...form.querySelectorAll('[data-action="toggle-module"]')];
+  const infoButtons = [...form.querySelectorAll('[data-action="toggle-permission-info"]')];
 
   function setModuleExpanded(toggle, isExpanded) {
     const module = toggle.closest('.permission-module');
@@ -288,6 +289,37 @@ function createPermissionsEditor(user, permissions, hasCustomPermissions, onSave
     expandAllLabel.textContent = expandAllInput.checked ? 'Esconder tudo' : 'Expandir tudo';
   });
 
+  function closePermissionInfo(exceptButton = null) {
+    infoButtons.forEach((button) => {
+      if (button === exceptButton) return;
+      button.setAttribute('aria-expanded', 'false');
+      const popover = form.querySelector(`#${cssEscape(button.getAttribute('aria-controls'))}`);
+      if (popover) popover.hidden = true;
+    });
+  }
+
+  infoButtons.forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const popover = form.querySelector(`#${cssEscape(button.getAttribute('aria-controls'))}`);
+      const willOpen = button.getAttribute('aria-expanded') !== 'true';
+      closePermissionInfo(button);
+      button.setAttribute('aria-expanded', String(willOpen));
+      if (popover) popover.hidden = !willOpen;
+    });
+  });
+
+  form.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-action="toggle-permission-info"], .permission-info-popover')) {
+      closePermissionInfo();
+    }
+  });
+
+  form.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closePermissionInfo();
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     await onSave(readPermissionsFromForm(form), message, saveButton);
@@ -311,8 +343,8 @@ function createModuleCard(module, modulePermissions = {}) {
         ${createModuleViewToggle(module, modulePermissions)}
         <div class="permission-module-title">
           <strong>${escapeHtml(module.label)}</strong>
-          <span>${escapeHtml(module.description)}</span>
         </div>
+        ${createPermissionInfoButton(`${module.key}-module`, module.label, module.description)}
       </div>
       <div class="permission-actions-list" hidden>
         ${(module.actions || []).filter((action) => action.key !== 'can_view').map((action) => createActionToggle(module, action, modulePermissions)).join('')}
@@ -336,19 +368,39 @@ function createModuleViewToggle(module, modulePermissions) {
 }
 
 function createActionToggle(module, action, modulePermissions) {
+  const infoId = `${module.key}-${action.key}`;
   return `
-    <label class="permission-action">
-      <input
-        type="checkbox"
-        name="${escapeHtml(module.key)}.${escapeHtml(action.key)}"
-        data-permission-action="${escapeHtml(module.key)}"
-        ${modulePermissions[action.key] ? 'checked' : ''}
-      >
-      <span class="permission-action-copy">
-        <strong>${escapeHtml(action.label)}</strong>
-        <small>${escapeHtml(action.description)}</small>
-      </span>
-    </label>
+    <div class="permission-action">
+      <label class="permission-action-control">
+        <input
+          type="checkbox"
+          name="${escapeHtml(module.key)}.${escapeHtml(action.key)}"
+          data-permission-action="${escapeHtml(module.key)}"
+          ${modulePermissions[action.key] ? 'checked' : ''}
+        >
+        <span class="permission-action-copy">
+          <strong>${escapeHtml(action.label)}</strong>
+        </span>
+      </label>
+      ${createPermissionInfoButton(infoId, action.label, action.description)}
+    </div>
+  `;
+}
+
+function createPermissionInfoButton(id, label, description) {
+  const popoverId = `permission-info-${escapeHtml(id)}`;
+  return `
+    <span class="permission-info">
+      <button
+        class="permission-info-button"
+        type="button"
+        data-action="toggle-permission-info"
+        aria-expanded="false"
+        aria-controls="${popoverId}"
+        aria-label="Ver descrição: ${escapeHtml(label)}"
+      >i</button>
+      <span class="permission-info-popover" id="${popoverId}" role="tooltip" hidden>${escapeHtml(description)}</span>
+    </span>
   `;
 }
 
