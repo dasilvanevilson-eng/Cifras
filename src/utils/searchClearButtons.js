@@ -24,7 +24,8 @@ export function installSearchClearButtons(root = document) {
     history.className = 'search-history-menu';
     history.hidden = true;
     field.append(history);
-    const historyKey = `master-cifras:search:${input.dataset.searchHistoryKey || input.dataset.search || input.dataset.action || input.name || input.placeholder || 'default'}`;
+    const fieldKey = input.dataset.searchHistoryKey || input.dataset.search || input.dataset.action || input.name || input.placeholder || 'default';
+    const historyKey = `master-cifras:search:${window.location.pathname}:${fieldKey}`;
 
     const readHistory = () => {
       try { return JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch { return []; }
@@ -36,16 +37,16 @@ export function installSearchClearButtons(root = document) {
       localStorage.setItem(historyKey, JSON.stringify(items));
     };
     const showHistory = () => {
-      const items = readRecentItems();
+      const items = readHistory();
       history.replaceChildren();
       if (!items.length || input.value) { history.hidden = true; return; }
       const title = document.createElement('span');
       title.className = 'search-history-title'; title.textContent = 'Buscas recentes'; history.append(title);
       items.forEach((item) => {
         const itemButton = document.createElement('button');
-        itemButton.type = 'button'; itemButton.textContent = item.title;
+        itemButton.type = 'button'; itemButton.textContent = item;
         itemButton.addEventListener('mousedown', (event) => event.preventDefault());
-        itemButton.addEventListener('click', () => { window.location.href = item.href; });
+        itemButton.addEventListener('click', () => { input.value = item; input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); });
         history.append(itemButton);
       });
       history.hidden = false;
