@@ -8755,7 +8755,9 @@ html {
 }
 
 .music-performance-stage .performance-song header.repertorio-song-title-bar {
-  position: static;
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -9296,7 +9298,9 @@ html {
 }
 
 .repertorio-set-stage .performance-song header.repertorio-song-title-bar {
-  position: static;
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
   display: flex;
   flex-wrap: wrap;
   gap: 6px 8px;
@@ -9401,6 +9405,15 @@ html {
 .repertorio-set-stage.is-fullscreen {
   border-radius: 0;
   padding: 8px;
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .repertorio-performance-view:fullscreen.has-auto-toolbar > .performance-toolbar,
+  .repertorio-performance-view.is-fullscreen.has-auto-toolbar > .performance-toolbar {
+    width: 220px;
+    height: auto;
+    max-height: min(520px, calc(100dvh - 92px));
+  }
 }
 
 @media (max-width: 760px) {
