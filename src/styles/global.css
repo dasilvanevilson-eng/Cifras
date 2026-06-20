@@ -4627,6 +4627,7 @@ a {
 }
 
 .repertorio-performance-view .chordpro-view {
+  overflow: visible;
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
   font-weight: 700;
