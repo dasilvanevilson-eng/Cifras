@@ -4212,9 +4212,7 @@ a {
 }
 
 .repertorio-performance-view .performance-toolbar {
-  position: sticky;
-  top: 73px;
-  z-index: 10;
+  position: static;
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
