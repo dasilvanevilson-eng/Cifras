@@ -114,6 +114,15 @@ function readRecentItems() {
   } catch { return []; }
 }
 
+export function recordRecentItem(page) {
+  if (!/\/(musicas|repertorios)\/(detalhe|execucao)/.test(window.location.pathname)) return;
+  const title = String(page?.querySelector('h1, h2')?.textContent || '').trim();
+  if (!title) return;
+  const item = { title, href: window.location.href };
+  const items = [item, ...readRecentItems().filter((entry) => entry.href !== item.href)].slice(0, 8);
+  localStorage.setItem(RECENT_ITEMS_KEY, JSON.stringify(items));
+}
+
 function getSearchLabel(input) {
   return input.getAttribute('aria-label')
     || input.getAttribute('placeholder')
