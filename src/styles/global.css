@@ -4789,7 +4789,12 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 .repertorio-song-view:fullscreen .toolbar-hamburger-toggle,
 .repertorio-performance-view.is-fullscreen .toolbar-hamburger-toggle,
 .repertorio-song-view.is-fullscreen .toolbar-hamburger-toggle {
+  position: fixed;
+  top: auto;
+  right: max(12px, env(safe-area-inset-right));
   bottom: max(14px, env(safe-area-inset-bottom));
+  left: auto;
+  transform: none;
 }
 
 .repertorio-performance-view:fullscreen .chordpro-view,
