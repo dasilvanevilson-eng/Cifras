@@ -2302,6 +2302,7 @@ a {
 .permissions-editor.form {
   width: 100%;
   max-width: none;
+  --permission-checkbox-size: 16px;
 }
 
 .permissions-users-panel label {
@@ -2453,12 +2454,14 @@ a {
 
 .permissions-expand-all input,
 .permission-module-view input {
-  width: 1em;
-  height: 1em;
+  flex: 0 0 var(--permission-checkbox-size);
+  width: var(--permission-checkbox-size);
+  min-width: var(--permission-checkbox-size);
+  height: var(--permission-checkbox-size);
+  min-height: var(--permission-checkbox-size);
   margin: 0;
   accent-color: var(--color-primary, #1d4f45);
   cursor: pointer;
-  font-size: 13px;
 }
 
 .permission-module {
@@ -2590,12 +2593,13 @@ a {
 }
 
 .permission-action input {
-  flex: 0 0 auto;
-  width: 1em;
-  height: 1em;
+  flex: 0 0 var(--permission-checkbox-size);
+  width: var(--permission-checkbox-size);
+  min-width: var(--permission-checkbox-size);
+  height: var(--permission-checkbox-size);
+  min-height: var(--permission-checkbox-size);
   margin: 0;
   accent-color: var(--color-primary, #1d4f45);
-  font-size: 13px;
 }
 
 .permission-action input:disabled + .permission-action-copy {
