@@ -17,6 +17,7 @@ import {
   transposeKey,
 } from '../../../utils/chordpro.js';
 import { createPerformanceView } from '../pages/MusicaExecucaoPage.js';
+import { createVoiceCodeMirror } from '../../../components/ui/VoiceCodeMirror.js';
 
 export function MusicaForm(options = {}) {
   const form = document.createElement('form');
@@ -109,7 +110,8 @@ export function MusicaForm(options = {}) {
       <label>
         Cifra original
         <div class="cifra-original-editor-shell">
-          <pre class="cifra-original-editor" aria-hidden="true"></pre>
+          <div class="cifra-original-codemirror" aria-label="Cifra original"></div>
+          <pre class="cifra-original-editor" aria-hidden="true" hidden></pre>
           <textarea class="cifra-original-source" name="cifra_original" rows="14" required spellcheck="false" wrap="off">${escapeHtml(initialEditorState.text)}</textarea>
         </div>
         <div class="voice-editor-legend" data-role="original-voice-legend"></div>
@@ -138,6 +140,7 @@ export function MusicaForm(options = {}) {
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
   const originalTextarea = form.querySelector('[name="cifra_original"]');
   const originalEditor = form.querySelector('.cifra-original-editor');
+  const originalCodeMirrorHost = form.querySelector('.cifra-original-codemirror');
   const chordProTextarea = form.querySelector('[name="cifra_chordpro"]');
   const editorStateTextarea = form.querySelector('[name="cifra_editor_state"]');
   const chordProEditor = form.querySelector('.chordpro-editor');
@@ -157,6 +160,17 @@ export function MusicaForm(options = {}) {
   };
   let editorState = normalizeCifraEditorState(initialEditorState);
   let pendingOriginalEditorInput = null;
+  const voiceCodeMirror = createVoiceCodeMirror({
+    parent: originalCodeMirrorHost,
+    text: editorState.text,
+    marks: editorState.voiceMarks,
+    onChange: (text, selection) => {
+      originalTextarea.value = text;
+      originalTextarea.setSelectionRange(selection.from, selection.to);
+      originalTextarea.dispatchEvent(new Event('input'));
+    },
+  });
+  originalCodeMirrorHost.voiceCodeMirror = voiceCodeMirror;
 
   updateLinkAction(linkInput, linkAction);
   syncVoiceMarkerButtonLabels(form);
@@ -585,6 +599,8 @@ function syncEditorStateOutputs({
     editorStateTextarea.value = JSON.stringify(normalizedState);
   }
   setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
+  const codeMirror = originalEditor?.closest('.musica-form')?.querySelector('.cifra-original-codemirror')?.voiceCodeMirror;
+  codeMirror?.sync(normalizedState.text, normalizedState.voiceMarks, restoreSelection ? { anchor: restoreSelection.start, head: restoreSelection.end } : null);
   renderOriginalEditor(originalEditor, nextChordPro, {
     restoreSelection,
   });

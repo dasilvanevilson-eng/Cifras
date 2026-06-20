@@ -5325,6 +5325,23 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   max-height: 72vh;
 }
 
+.cifra-original-codemirror,
+.cifra-original-codemirror .cm-editor,
+.cifra-original-codemirror .cm-scroller {
+  height: 100%;
+}
+
+.cifra-original-codemirror .cm-editor {
+  border: 1px solid #cfc7b8;
+  border-radius: var(--border-radius-default);
+  background: #fff;
+  font: 600 16px/24px Consolas, 'Courier New', monospace;
+}
+
+.cifra-original-codemirror .cm-scroller { overflow: auto; }
+.cifra-original-codemirror .cm-content { padding: 10px 12px; white-space: pre; }
+.cifra-original-codemirror .cm-focused { outline: 0; box-shadow: 0 0 0 3px rgba(29, 79, 69, .14); }
+
 .cifra-original-editor-shell .cifra-original-editor,
 .cifra-original-editor-shell .cifra-original-source {
   position: absolute;
