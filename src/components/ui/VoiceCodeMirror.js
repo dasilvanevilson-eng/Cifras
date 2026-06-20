@@ -22,11 +22,12 @@ function createDecorations(doc, marks) {
   return builder.finish();
 }
 
-export function createVoiceCodeMirror({ parent, text, marks, onChange }) {
+export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelection }) {
   let syncing = false;
   const view = new EditorView({
     parent,
     state: EditorState.create({ doc: text, extensions: [history(), keymap.of([...defaultKeymap, ...historyKeymap]), voiceMarks, EditorView.lineWrapping, EditorView.updateListener.of((update) => {
+      if (update.selectionSet && !syncing) onSelection?.(update.state.selection.main);
       if (update.docChanged && !syncing) onChange(update.state.doc.toString(), update.state.selection.main);
     })] }),
   });

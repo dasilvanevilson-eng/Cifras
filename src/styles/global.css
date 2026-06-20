@@ -5159,6 +5159,18 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   min-height: 30px;
 }
 
+.cifra-editor-grid .voice-editor-legend .voice-legend {
+  margin: 0 0 8px;
+  border-top: 0;
+  padding: 0;
+}
+
+.cifra-editor-grid .voice-editor-legend .voice-legend-item {
+  min-height: 0;
+  padding: 2px 6px;
+  line-height: 1.25;
+}
+
 .voice-editor-legend:empty {
   display: none;
 }

@@ -109,12 +109,12 @@ export function MusicaForm(options = {}) {
     <div class="cifra-editor-grid">
       <label>
         Cifra original
+        <div class="voice-editor-legend" data-role="original-voice-legend"></div>
         <div class="cifra-original-editor-shell">
           <div class="cifra-original-codemirror" aria-label="Cifra original"></div>
           <pre class="cifra-original-editor" aria-hidden="true" hidden></pre>
           <textarea class="cifra-original-source" name="cifra_original" rows="14" required spellcheck="false" wrap="off">${escapeHtml(initialEditorState.text)}</textarea>
         </div>
-        <div class="voice-editor-legend" data-role="original-voice-legend"></div>
       </label>
 
       <label>
@@ -169,6 +169,7 @@ export function MusicaForm(options = {}) {
       originalTextarea.setSelectionRange(selection.from, selection.to);
       originalTextarea.dispatchEvent(new Event('input'));
     },
+    onSelection: (selection) => originalTextarea.setSelectionRange(selection.from, selection.to),
   });
   originalCodeMirrorHost.voiceCodeMirror = voiceCodeMirror;
 
