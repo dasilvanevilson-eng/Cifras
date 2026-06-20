@@ -13,7 +13,7 @@ import {
   renderCifraOriginalForDisplayHtml,
   renderChordProForDisplay,
   renderVoiceLegendHtml,
-  transposeCifraOriginal,
+  transposeChordPro,
   transposeKey,
 } from '../../../utils/chordpro.js';
 import { createPerformanceView } from '../pages/MusicaExecucaoPage.js';
@@ -1151,13 +1151,10 @@ function transposeFormFields({
   previewPanel,
   form,
 }) {
-  const previousText = editorState.text;
-  const nextText = transposeCifraOriginal(previousText, semitones);
+  const transposedChordPro = transposeChordPro(chordProTextarea.value, semitones);
   const nextEditorState = normalizeCifraEditorState({
-    ...editorState,
-    text: nextText,
+    ...createCifraEditorStateFromChordPro(transposedChordPro),
     voiceLabels: getVoiceLabelValues(form),
-    voiceMarks: transformVoiceRangesForTextChange(previousText, nextText, editorState.voiceMarks),
   });
 
   const currentTom = String(tomInput.value || '').trim();
