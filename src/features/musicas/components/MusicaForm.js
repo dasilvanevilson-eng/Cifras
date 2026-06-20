@@ -503,9 +503,14 @@ function renderOriginalEditor(editor, chordProValue, options = {}) {
 
   const scrollTop = editor.scrollTop;
   const scrollLeft = editor.scrollLeft;
-  const displayValue = renderChordProForDisplay(chordProValue, {
-    keepVoiceDirectives: true,
-  });
+  const form = editor.closest('.musica-form');
+  const sourceTextarea = form?.querySelector('[name="cifra_original"]');
+  const stateTextarea = form?.querySelector('[name="cifra_editor_state"]');
+  const editorState = normalizeCifraEditorState(stateTextarea?.value || {});
+  const displayValue = sourceTextarea
+    ? applyVoiceRangesToText(sourceTextarea.value, editorState.voiceMarks)
+    : renderChordProForDisplay(chordProValue, { keepVoiceDirectives: true });
+
   editor.innerHTML = renderCifraOriginalForDisplayHtml(displayValue, {
     includeVoiceLegend: false,
   }) || '<br>';
