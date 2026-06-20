@@ -9369,6 +9369,10 @@ html {
   background: var(--set-surface);
 }
 
+.repertorio-set-stage.is-dark .performance-song header.repertorio-song-title-bar {
+  background: #0f1210;
+}
+
 .repertorio-set-stage.is-dark .repertorio-stage-kicker {
   border-color: rgba(155, 216, 201, 0.28);
   background: rgba(155, 216, 201, 0.12);
