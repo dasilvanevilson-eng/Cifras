@@ -31,14 +31,24 @@ const cifraOriginal = [
 assert.equal(
   transposeCifraOriginal(cifraOriginal, 2),
   [
-    'A  E/G#  F#m7  D9',
-    'C  G#m7  B7(9)  D7M',
+    'A  E/G#  F#m7 D9',
+    'C   G#m7  B7(9)  D7M',
   ].join('\n'),
 );
 
 assert.equal(
   transposeCifraOriginal('C | G/B | Am7 | F', -2),
-  'A# | F/A | Gm7 | D#',
+  'A#| F/A | Gm7 | D#',
+);
+
+assert.equal(
+  transposeCifraOriginal('C     Bb', 1),
+  'C#    B',
+);
+
+assert.equal(
+  transposeCifraOriginal('Bb     C', 1),
+  'B      C#',
 );
 
 assert.equal(

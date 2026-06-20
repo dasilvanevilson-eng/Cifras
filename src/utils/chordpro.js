@@ -563,7 +563,43 @@ function findChords(line) {
 }
 
 function transposeChordLine(line, semitones) {
-  return line.replace(CHORD_PATTERN, (chord) => transposeChord(chord, semitones));
+  const chords = findChords(line);
+
+  if (!chords.length) return line;
+
+  let output = '';
+  let cursor = 0;
+
+  chords.forEach(({ chord, index }) => {
+    const targetPosition = index;
+    const gap = line.slice(cursor, index);
+    const availableGapLength = Math.max(0, targetPosition - output.length);
+
+    output += fitChordGap(gap, availableGapLength);
+    output += transposeChord(chord, semitones);
+    cursor = index + chord.length;
+  });
+
+  return `${output}${line.slice(cursor)}`;
+}
+
+function fitChordGap(gap, length) {
+  if (gap.length === length) return gap;
+  if (gap.length < length) return `${gap}${' '.repeat(length - gap.length)}`;
+
+  let result = gap;
+
+  while (result.length > length) {
+    const whitespaceIndex = result.search(/\s/);
+
+    if (whitespaceIndex === -1) {
+      return result;
+    }
+
+    result = `${result.slice(0, whitespaceIndex)}${result.slice(whitespaceIndex + 1)}`;
+  }
+
+  return result;
 }
 
 function transposeChord(chord, semitones) {
