@@ -1,6 +1,7 @@
 import {
   getRepertorioById,
   listMusicasDoRepertorio,
+  updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { getCifraExibicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
@@ -489,6 +490,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   let currentSongIndex = initialIndex >= 0 ? initialIndex : 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
   const songSemitones = songs.map(() => 0);
+  let saveTomQueue = Promise.resolve();
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
 
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
@@ -570,11 +572,13 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   transposeDownButton.addEventListener('click', () => {
     songSemitones[currentSongIndex] -= 1;
     renderCurrentSong();
+    saveCurrentSongKey();
   });
 
   transposeUpButton.addEventListener('click', () => {
     songSemitones[currentSongIndex] += 1;
     renderCurrentSong();
+    saveCurrentSongKey();
   });
 
   capoSelect.addEventListener('change', () => {
@@ -634,6 +638,27 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
       transposeSemitones: songSemitones[currentSongIndex] || 0,
       capo,
     });
+  }
+
+  function saveCurrentSongKey() {
+    const song = songs[currentSongIndex];
+    const associationId = song?.dataset.repertorioMusicaId;
+    const key = song?.querySelector('.current-key')?.textContent?.trim();
+
+    if (!associationId || !key || key === '-') return;
+
+    saveTomQueue = saveTomQueue
+      .catch(() => undefined)
+      .then(async () => {
+        const { error } = await updateTomMusicaRepertorio(associationId, key);
+
+        if (error) {
+          throw error;
+        }
+      })
+      .catch((error) => {
+        window.alert(error.message || 'Nao foi possivel salvar o tom desta musica no repertorio.');
+      });
   }
 }
 
