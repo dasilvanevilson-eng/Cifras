@@ -17,7 +17,7 @@ export async function RevisarSugestoesPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Sugestoes de musicas</h1>
-        <p>Revise envios da equipe antes de transformar em cifra oficial.</p>
+        <p data-page-info>Revise envios da equipe antes de transformar em cifra oficial.</p>
       </div>
     </header>
     <div class="suggestions-review-grid">

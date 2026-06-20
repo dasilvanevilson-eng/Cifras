@@ -8,7 +8,7 @@ export function AlterarSenhaPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Alterar senha</h1>
-        <p>Defina uma nova senha para continuar usando o Master Cifras.</p>
+        <p data-page-info>Defina uma nova senha para continuar usando o Master Cifras.</p>
       </div>
     </header>
     <section class="password-reset-panel">

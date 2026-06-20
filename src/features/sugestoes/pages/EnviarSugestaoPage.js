@@ -8,7 +8,7 @@ export async function EnviarSugestaoPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Enviar musica</h1>
-        <p>Compartilhe uma nova cifra ou proponha ajustes em uma musica existente.</p>
+        <p data-page-info>Compartilhe uma nova cifra ou proponha ajustes em uma musica existente.</p>
       </div>
     </header>
     <div class="page-grid">

@@ -13,7 +13,7 @@ export async function SugestoesPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Sugestoes</h1>
-        <p>Envie musicas, acompanhe seus pedidos e revise contribuicoes da equipe.</p>
+        <p data-page-info>Envie musicas, acompanhe seus pedidos e revise contribuicoes da equipe.</p>
       </div>
       <div class="tabs suggestions-tabs" role="tablist">
         <button class="nav-button is-active" type="button" data-tab="enviar">Enviar musica</button>

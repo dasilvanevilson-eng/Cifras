@@ -15,7 +15,7 @@ export async function UsuariosPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Usuarios</h1>
-        <p>Cadastro e manutencao dos acessos do sistema.</p>
+        <p data-page-info>Cadastro e manutencao dos acessos do sistema.</p>
       </div>
     </header>
     <section class="user-account-warning">

@@ -24,7 +24,7 @@ export async function RepertoriosPage({ session } = {}) {
       <div class="repertorios-hero-copy">
         <span class="repertorios-kicker">Central de repertorios</span>
         <h1>Repertorios</h1>
-        <p>${canEdit ? 'Monte, revise e execute sequencias musicais com mais agilidade.' : 'Consulte e execute os repertorios disponiveis para o seu acesso.'}</p>
+        <p data-page-info>${canEdit ? 'Monte, revise e execute sequencias musicais com mais agilidade.' : 'Consulte e execute os repertorios disponiveis para o seu acesso.'}</p>
       </div>
       <div class="repertorios-summary" aria-live="polite">
         <span><strong data-count="repertorios">0</strong> repertorios</span>

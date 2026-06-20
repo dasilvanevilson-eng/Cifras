@@ -7,7 +7,7 @@ export function MinhaContaPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Minha conta</h1>
-        <p>Dados do acesso atual e troca de senha.</p>
+        <p data-page-info>Dados do acesso atual e troca de senha.</p>
       </div>
     </header>
     <div class="account-layout">

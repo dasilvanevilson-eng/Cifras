@@ -82,7 +82,7 @@ export function AfinadorPage() {
       <div>
         <span class="dashboard-kicker">Instrumentos de cordas</span>
         <h1>Afinador</h1>
-        <p>Afinador cromatico para violao, baixo, ukulele e outros instrumentos de cordas usando o microfone do dispositivo.</p>
+        <p data-page-info>Afinador cromatico para violao, baixo, ukulele e outros instrumentos de cordas usando o microfone do dispositivo.</p>
       </div>
       <div class="dashboard-summary">
         <span data-role="tuner-state">Parado</span>

@@ -7,7 +7,7 @@ export async function RepertoriosPdfPage() {
     <header class="dashboard-header">
       <div>
         <h1>PDF Repertorio</h1>
-        <p>Gere arquivos do repertorio com cifras ou somente letras.</p>
+        <p data-page-info>Gere arquivos do repertorio com cifras ou somente letras.</p>
       </div>
     </header>
     <section class="music-search-panel">

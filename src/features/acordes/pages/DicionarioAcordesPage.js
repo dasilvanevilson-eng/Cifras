@@ -13,7 +13,7 @@ export function DicionarioAcordesPage() {
       <div>
         <span class="dashboard-kicker">Violao</span>
         <h1>Dicionario de acordes</h1>
-        <p>Digite o acorde desejado para ver formatos praticos no braco do violao.</p>
+        <p data-page-info>Digite o acorde desejado para ver formatos praticos no braco do violao.</p>
       </div>
       <div class="dashboard-summary">
         <span><strong>${chordTypeCount}</strong> acordes</span>

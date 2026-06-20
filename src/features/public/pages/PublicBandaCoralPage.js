@@ -78,7 +78,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     <header class="dashboard-header">
       <div>
         <h1>${escapeHtml(invite.title || 'Modo Banda/Coral')}</h1>
-        <p>Acesso publico temporario para busca e execucao.</p>
+        <p data-page-info>Acesso publico temporario para busca e execucao.</p>
       </div>
       <div class="banda-mode-switch public-banda-mode-switch">
         <button class="nav-button" type="button" data-mode="lider">Lider</button>

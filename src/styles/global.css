@@ -678,13 +678,13 @@ a {
   line-height: 1.12;
 }
 
-.dashboard-title {
+.page-info-title {
   display: inline-flex;
   gap: 8px;
   align-items: center;
 }
 
-.dashboard-info-button {
+.page-info-button {
   display: inline-grid;
   width: 22px;
   height: 22px;
@@ -701,18 +701,18 @@ a {
   cursor: pointer;
 }
 
-.dashboard-info-button:hover,
-.dashboard-info-button:focus-visible {
+.page-info-button:hover,
+.page-info-button:focus-visible {
   background: var(--color-primary);
   color: var(--color-panel);
   outline: none;
 }
 
-.dashboard-info-modal[hidden] {
+.page-info-modal[hidden] {
   display: none;
 }
 
-.dashboard-info-modal {
+.page-info-modal {
   position: fixed;
   z-index: 130;
   inset: 0;
@@ -721,33 +721,34 @@ a {
   padding: 20px;
 }
 
-.dashboard-info-backdrop {
+.page-info-backdrop {
   position: absolute;
   inset: 0;
   background: rgba(20, 20, 18, 0.58);
   backdrop-filter: blur(2px);
 }
 
-.dashboard-info-dialog {
+.page-info-dialog {
   position: relative;
   width: min(440px, 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 28px;
-  background: var(--color-panel);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
 }
 
-.dashboard-info-dialog h2,
-.dashboard-info-dialog p {
+.page-info-dialog h2,
+.page-info-dialog p {
   margin: 0;
 }
 
-.dashboard-info-dialog p {
+.page-info-dialog p {
   margin-top: 10px;
 }
 
-.dashboard-info-close {
+.page-info-close {
   position: absolute;
   top: 8px;
   right: 10px;

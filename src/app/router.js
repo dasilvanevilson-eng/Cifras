@@ -33,6 +33,7 @@ import { BandaCoralPage } from '../features/bandaCoral/pages/BandaCoralPage.js';
 import { DicionarioAcordesPage } from '../features/acordes/pages/DicionarioAcordesPage.js';
 import { AfinadorPage } from '../features/afinador/pages/AfinadorPage.js';
 import { getFirstVisibleMenuRoute } from '../features/auth/permissions.js';
+import { installPageInfoDialogs } from '../utils/pageInfoDialog.js';
 
 const routes = {
   '/dashboard': DashboardPage,
@@ -117,7 +118,9 @@ export function createRouter() {
         return AccessDeniedPage({ session });
       }
 
-      return Page({ session });
+      const page = await Page({ session });
+      installPageInfoDialogs(page);
+      return page;
     },
   };
 }

@@ -23,7 +23,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Convites publicos</h1>
-        <p>Links temporarios para consulta controlada do sistema.</p>
+        <p data-page-info>Links temporarios para consulta controlada do sistema.</p>
       </div>
     </header>
     <section class="public-invites-layout">

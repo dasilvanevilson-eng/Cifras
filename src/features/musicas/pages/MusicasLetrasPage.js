@@ -10,7 +10,7 @@ export async function MusicasLetrasPage() {
     <header class="dashboard-header">
       <div>
         <h1>Textos</h1>
-        <p>Consulta e exportacao de letras por musica ou repertorio.</p>
+        <p data-page-info>Consulta e exportacao de letras por musica ou repertorio.</p>
       </div>
     </header>
     <section class="text-search-panel">

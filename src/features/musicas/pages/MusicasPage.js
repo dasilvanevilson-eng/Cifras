@@ -20,7 +20,7 @@ export async function MusicasPage({ session } = {}) {
       <div class="musicas-hero-copy">
         <span class="musicas-kicker">Biblioteca de cifras</span>
         <h1>Cifras</h1>
-        <p>${canEdit ? 'Cadastre, revise, encontre e execute musicas do acervo.' : 'Busque e execute as musicas disponiveis para o seu acesso.'}</p>
+        <p data-page-info>${canEdit ? 'Cadastre, revise, encontre e execute musicas do acervo.' : 'Busque e execute as musicas disponiveis para o seu acesso.'}</p>
       </div>
       <div class="musicas-summary" aria-live="polite">
         <span><strong data-count="musicas">0</strong> musicas</span>

@@ -20,7 +20,7 @@ export async function PersonalizacaoPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Personalizacao</h1>
-        <p>Ajustes visuais da porta de entrada do sistema.</p>
+        <p data-page-info>Ajustes visuais da porta de entrada do sistema.</p>
       </div>
     </header>
     <section class="personalization-layout">

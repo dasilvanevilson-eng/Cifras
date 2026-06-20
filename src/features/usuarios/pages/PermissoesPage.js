@@ -25,7 +25,7 @@ export async function PermissoesPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Permissões</h1>
-        <p>Defina, tela por tela, as ações que cada pessoa pode realizar.</p>
+        <p data-page-info>Defina, tela por tela, as ações que cada pessoa pode realizar.</p>
       </div>
     </header>
     <section class="permissions-layout">
