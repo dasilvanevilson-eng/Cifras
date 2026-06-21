@@ -22,7 +22,7 @@ function createDecorations(doc, marks) {
   return builder.finish();
 }
 
-export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelection }) {
+export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelection, onScroll }) {
   let syncing = false;
   const view = new EditorView({
     parent,
@@ -32,8 +32,19 @@ export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelecti
     })] }),
   });
   view.dispatch({ effects: setVoiceMarks.of(marks) });
+  view.scrollDOM.addEventListener('scroll', () => {
+    onScroll?.({
+      top: view.scrollDOM.scrollTop,
+      left: view.scrollDOM.scrollLeft,
+    });
+  });
+
   return {
     focus: () => view.focus(),
+    syncScroll({ top = 0, left = 0 }) {
+      if (view.scrollDOM.scrollTop !== top) view.scrollDOM.scrollTop = top;
+      if (view.scrollDOM.scrollLeft !== left) view.scrollDOM.scrollLeft = left;
+    },
     sync(nextText, nextMarks, selection = null) {
       const currentText = view.state.doc.toString();
       const textChanged = currentText !== nextText;

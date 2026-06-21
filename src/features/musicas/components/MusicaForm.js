@@ -170,6 +170,7 @@ export function MusicaForm(options = {}) {
       originalTextarea.dispatchEvent(new Event('input'));
     },
     onSelection: (selection) => originalTextarea.setSelectionRange(selection.from, selection.to),
+    onScroll: ({ top, left }) => syncEditorScroll(chordProEditor, { top, left }),
   });
   originalCodeMirrorHost.voiceCodeMirror = voiceCodeMirror;
 
@@ -236,6 +237,13 @@ export function MusicaForm(options = {}) {
 
   originalTextarea.addEventListener('scroll', () => {
     syncOriginalEditorScroll(originalTextarea, originalEditor);
+  });
+
+  chordProEditor.addEventListener('scroll', () => {
+    voiceCodeMirror.syncScroll({
+      top: chordProEditor.scrollTop,
+      left: chordProEditor.scrollLeft,
+    });
   });
 
   voiceLabelInputs.forEach((input) => {
@@ -540,6 +548,13 @@ function syncOriginalEditorScroll(textarea, editor) {
 
   editor.scrollTop = textarea.scrollTop;
   editor.scrollLeft = textarea.scrollLeft;
+}
+
+function syncEditorScroll(editor, { top, left }) {
+  if (!editor) return;
+
+  if (editor.scrollTop !== top) editor.scrollTop = top;
+  if (editor.scrollLeft !== left) editor.scrollLeft = left;
 }
 
 function updateVoiceMarkedChordPro({
