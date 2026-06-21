@@ -4165,10 +4165,16 @@ a {
 .toolbar-exit-split {
   display: inline-flex;
   align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
 }
 
 .toolbar-exit-split .song-toolbar-back {
   flex: 1 1 50%;
+  border: 0;
+  border-right: 1px solid var(--color-border-strong);
+  border-radius: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -4176,6 +4182,8 @@ a {
 .toolbar-exit-split .toolbar-exit-collapse {
   flex: 1 1 50%;
   min-width: 0;
+  border: 0;
+  border-radius: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -11560,7 +11568,6 @@ html[data-interface-density="compact"] .account-password-panel {
 
 /* Mantem apenas o texto de saida em destaque, sem quebrar os temas. */
 .toolbar-exit-split .song-toolbar-back {
-  border: 1px solid var(--color-border-strong);
   background: var(--color-surface);
   color: var(--color-danger);
 }
