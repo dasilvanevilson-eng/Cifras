@@ -4168,12 +4168,17 @@ a {
 }
 
 .toolbar-exit-split .song-toolbar-back {
+  flex: 1 1 50%;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  border-color: #b42318;
+  background: #b42318;
+  color: #ffffff;
 }
 
 .toolbar-exit-split .toolbar-exit-collapse {
-  min-width: 38px;
+  flex: 1 1 50%;
+  min-width: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -4256,14 +4261,14 @@ a {
 
 .has-auto-toolbar > .performance-toolbar .toolbar-exit-split .song-toolbar-back,
 .has-auto-toolbar > .transpose-toolbar .toolbar-exit-split .song-toolbar-back {
-  flex: 1;
-  width: auto;
+  flex: 1 1 50%;
+  width: 50%;
 }
 
 .has-auto-toolbar > .performance-toolbar .toolbar-exit-split .toolbar-exit-collapse,
 .has-auto-toolbar > .transpose-toolbar .toolbar-exit-split .toolbar-exit-collapse {
-  flex: 0 0 42px;
-  width: 42px;
+  flex: 1 1 50%;
+  width: 50%;
 }
 
 .has-auto-toolbar.is-toolbar-collapsed > .performance-toolbar,
@@ -11554,4 +11559,19 @@ html[data-interface-density="compact"] .account-password-panel {
   .permissions-table th {
     font-size: 10px;
   }
+}
+
+/* A regra fica no fim para prevalecer tambem sobre os temas globais. */
+.toolbar-exit-split .song-toolbar-back {
+  border-color: #b42318;
+  background: #b42318;
+  color: #ffffff;
+}
+
+.toolbar-exit-split .song-toolbar-back:hover,
+.toolbar-exit-split .song-toolbar-back:focus,
+.toolbar-exit-split .song-toolbar-back:focus-visible {
+  border-color: #8e1b13;
+  background: #8e1b13;
+  color: #ffffff;
 }

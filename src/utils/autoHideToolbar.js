@@ -37,10 +37,10 @@ export function setupAutoHideToolbar(wrapper, {
 
     const collapseButton = document.createElement('button');
     collapseButton.type = 'button';
-    collapseButton.className = 'nav-button icon-button toolbar-exit-collapse';
-    collapseButton.innerHTML = '&#9662;';
-    collapseButton.setAttribute('aria-label', 'Recolher menu');
-    collapseButton.title = 'Recolher menu';
+    collapseButton.className = 'nav-button toolbar-exit-collapse';
+    collapseButton.textContent = 'Minimizar';
+    collapseButton.setAttribute('aria-label', 'Minimizar menu');
+    collapseButton.title = 'Minimizar menu';
     collapseButton.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
