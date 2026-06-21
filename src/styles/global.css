@@ -4162,6 +4162,22 @@ a {
   transition: opacity 180ms ease, transform 180ms ease, max-height 180ms ease, margin 180ms ease, padding 180ms ease, border-width 180ms ease;
 }
 
+.toolbar-exit-split {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.toolbar-exit-split .song-toolbar-back {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.toolbar-exit-split .toolbar-exit-collapse {
+  min-width: 38px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 .toolbar-hamburger-toggle {
   position: fixed;
   bottom: max(14px, env(safe-area-inset-bottom));
@@ -4230,6 +4246,24 @@ a {
 .has-auto-toolbar > .performance-toolbar select,
 .has-auto-toolbar > .transpose-toolbar select {
   width: 100%;
+}
+
+.has-auto-toolbar > .performance-toolbar .toolbar-exit-split,
+.has-auto-toolbar > .transpose-toolbar .toolbar-exit-split {
+  display: flex;
+  width: 100%;
+}
+
+.has-auto-toolbar > .performance-toolbar .toolbar-exit-split .song-toolbar-back,
+.has-auto-toolbar > .transpose-toolbar .toolbar-exit-split .song-toolbar-back {
+  flex: 1;
+  width: auto;
+}
+
+.has-auto-toolbar > .performance-toolbar .toolbar-exit-split .toolbar-exit-collapse,
+.has-auto-toolbar > .transpose-toolbar .toolbar-exit-split .toolbar-exit-collapse {
+  flex: 0 0 42px;
+  width: 42px;
 }
 
 .has-auto-toolbar.is-toolbar-collapsed > .performance-toolbar,

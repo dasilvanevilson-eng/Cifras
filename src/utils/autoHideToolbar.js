@@ -30,6 +30,27 @@ export function setupAutoHideToolbar(wrapper, {
     toggleButton.title = 'Ocultar barra de ferramentas';
   }
 
+  const exitButton = toolbar.querySelector('.song-toolbar-back');
+  if (exitButton) {
+    const exitControl = document.createElement('div');
+    exitControl.className = 'toolbar-exit-split';
+
+    const collapseButton = document.createElement('button');
+    collapseButton.type = 'button';
+    collapseButton.className = 'nav-button icon-button toolbar-exit-collapse';
+    collapseButton.innerHTML = '&#9662;';
+    collapseButton.setAttribute('aria-label', 'Recolher menu');
+    collapseButton.title = 'Recolher menu';
+    collapseButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      collapseToolbar();
+    });
+
+    exitButton.before(exitControl);
+    exitControl.append(exitButton, collapseButton);
+  }
+
   toggleButton.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
