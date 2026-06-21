@@ -8305,12 +8305,59 @@ html {
   padding: 18px;
   background: var(--color-surface-raised);
   box-shadow: var(--shadow-sm);
+  isolation: isolate;
+}
+
+.dashboard-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -120px;
+  right: min(10%, 110px);
+  width: 280px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 68%);
+  pointer-events: none;
 }
 
 .dashboard-hero-copy {
   display: grid;
   gap: 8px;
   min-width: min(100%, 320px);
+}
+
+.dashboard-hero-status {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  width: fit-content;
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dashboard-hero-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 14%, transparent);
+}
+
+.dashboard-hero-ambient {
+  position: absolute;
+  z-index: -1;
+  right: 19px;
+  bottom: 14px;
+  width: 110px;
+  height: 42px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 32%, transparent);
+  border-bottom: 0;
+  border-radius: 110px 110px 0 0;
+  opacity: 0.62;
+  transform: rotate(-9deg);
 }
 
 .dashboard-kicker {
@@ -8366,8 +8413,9 @@ html {
 }
 
 .dashboard-action-card {
-  display: grid;
-  gap: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
   min-width: 0;
   min-height: 92px;
   align-content: start;
@@ -8384,9 +8432,29 @@ html {
 .dashboard-action-card:hover,
 .dashboard-action-card:focus {
   transform: translateY(-1px);
-  border-color: rgba(22, 117, 101, 0.34);
+  border-color: color-mix(in srgb, var(--color-primary) 46%, var(--color-border));
   box-shadow: var(--shadow-sm);
   outline: 0;
+}
+
+.dashboard-action-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.dashboard-action-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
 }
 
 .dashboard-action-card strong {
@@ -8394,7 +8462,7 @@ html {
   line-height: 1.1;
 }
 
-.dashboard-action-card span {
+.dashboard-action-card small {
   color: var(--color-text-muted);
   font-size: 12px;
   line-height: 1.3;
@@ -8410,9 +8478,24 @@ html {
   background: var(--color-surface);
 }
 
+.dashboard-action-card--secondary .dashboard-action-icon {
+  background: color-mix(in srgb, var(--color-info) 13%, var(--color-surface));
+  color: var(--color-info);
+}
+
 .dashboard-action-card--accent {
   border-color: color-mix(in srgb, var(--color-accent), var(--color-border) 48%);
   background: var(--color-surface);
+}
+
+.dashboard-action-card--accent .dashboard-action-icon {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.dashboard-action-card--neutral .dashboard-action-icon {
+  background: var(--color-bg-soft);
+  color: var(--color-text-muted);
 }
 
 .dashboard-action-card--neutral {
@@ -8444,7 +8527,7 @@ html {
 
 .dashboard-home-item:hover,
 .dashboard-home-item:focus {
-  border-color: rgba(22, 117, 101, 0.32);
+  border-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border));
   background: var(--color-primary-soft);
   outline: 0;
 }
@@ -8472,7 +8555,7 @@ html {
 .dashboard-status-card {
   display: grid;
   gap: 2px;
-  border: 1px solid rgba(184, 199, 189, 0.62);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
   border-radius: var(--radius-md);
   padding: 12px;
   background: var(--color-bg-soft);
@@ -8549,7 +8632,7 @@ html {
     padding: 11px;
   }
 
-  .dashboard-action-card span {
+  .dashboard-action-card small {
     font-size: 11px;
   }
 
@@ -10032,7 +10115,7 @@ html {
   .music-library-heading p,
   .music-editor-heading p,
   .repertorio-library-heading p,
-  .dashboard-action-card span,
+  .dashboard-action-card small,
   .dashboard-home-item p,
   .dashboard-list-item p,
   .musica-result-card p,
@@ -10246,7 +10329,7 @@ html {
     .music-library-heading p,
     .music-editor-heading p,
     .repertorio-library-heading p,
-    .dashboard-action-card span,
+    .dashboard-action-card small,
     .dashboard-home-item p,
     .dashboard-list-item p,
     .musica-result-card p,

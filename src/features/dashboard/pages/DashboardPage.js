@@ -49,11 +49,13 @@ export function createDashboardView({
         <span class="dashboard-kicker">${publicMode ? 'Link publico' : 'Central musical'}</span>
         <h1>${publicMode ? 'Painel publico' : 'Inicio'}</h1>
         <p data-page-info>${escapeHtml(publicMode ? (inviteTitle || 'Consulta temporaria de repertorios e musicas.') : 'Busque repertorios, abra cifras e continue rapidamente o que precisa tocar.')}</p>
+        <span class="dashboard-hero-status"><i aria-hidden="true"></i>${publicMode ? 'Acesso disponível' : 'Acervo pronto para o ensaio'}</span>
       </div>
       <div class="dashboard-summary" aria-label="Resumo do acervo">
         <span><strong>${repertorios.length}</strong> repertorios</span>
         <span><strong>${musicas.length}</strong> musicas</span>
       </div>
+      <div class="dashboard-hero-ambient" aria-hidden="true"></div>
     </header>
     <section class="dashboard-workspace dashboard-home-panel">
       <div class="dashboard-panel-heading">
@@ -169,24 +171,28 @@ function createDashboardQuickActions(publicMode = false) {
     {
       label: 'Cifras',
       description: 'Cadastrar, buscar e revisar musicas.',
+      icon: '♪',
       href: '/musicas',
       tone: 'primary',
     },
     {
       label: 'Repertorios',
       description: 'Montar listas para execucao.',
+      icon: '≡',
       href: '/repertorios',
       tone: 'secondary',
     },
     {
       label: 'Banda/Coral',
       description: 'Abrir a area de palco compartilhado.',
+      icon: '◉',
       href: '/banda-coral',
       tone: 'accent',
     },
     {
       label: 'Letras',
       description: 'Consultar letras sem foco em cifra.',
+      icon: 'Aa',
       href: '/musicas-letras',
       tone: 'neutral',
     },
@@ -196,8 +202,8 @@ function createDashboardQuickActions(publicMode = false) {
     <section class="dashboard-quick-actions" aria-label="Acoes rapidas">
       ${actions.map((action) => `
         <a class="dashboard-action-card dashboard-action-card--${action.tone}" href="${action.href}">
-          <strong>${action.label}</strong>
-          <span>${action.description}</span>
+          <span class="dashboard-action-icon" aria-hidden="true">${action.icon}</span>
+          <span class="dashboard-action-copy"><strong>${action.label}</strong><small>${action.description}</small></span>
         </a>
       `).join('')}
     </section>
