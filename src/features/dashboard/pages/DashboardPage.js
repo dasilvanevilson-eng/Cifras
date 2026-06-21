@@ -66,16 +66,14 @@ export function createDashboardView({
       </div>
       <div class="dashboard-grid">
         <section class="dashboard-search-column" data-dashboard-column="repertorios">
-          <h2>Repertorios</h2>
           <label class="dashboard-search">
             Buscar repertorio
             <input type="search" data-search="repertorios" placeholder="Nome, data ou tema">
           </label>
         </section>
         <section class="dashboard-search-column" data-dashboard-column="musicas">
-          <h2>Musicas avulsas</h2>
           <label class="dashboard-search">
-            Buscar musica
+            Buscar musicas acervo
             <input type="search" data-search="musicas" placeholder="Titulo, artista ou tags">
           </label>
           <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
