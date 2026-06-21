@@ -96,7 +96,7 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
         <span class="performance-position" data-role="song-position">1/1</span>
         <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">›</button>
       </div>
-      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">⛶</button>
+      <button class="nav-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">Tela cheia</button>
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
       <div class="key-stepper" role="group" aria-label="Ajuste de tom">
         <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>

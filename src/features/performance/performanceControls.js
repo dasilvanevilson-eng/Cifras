@@ -36,7 +36,7 @@ export function createPerformanceToolbar({
           <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${nextDisabled ? ' disabled' : ''}>&rsaquo;</button>
         </div>
       ` : ''}
-      <button class="nav-button icon-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">&#9974;</button>
+      <button class="nav-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">Tela cheia</button>
       <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
         <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
@@ -172,11 +172,10 @@ export async function toggleInternalFullscreen(wrapper, button, onChange) {
     wrapper.classList.toggle('is-fullscreen', isFullscreen);
     document.documentElement.classList.toggle('has-performance-fullscreen', isFullscreen);
     document.body?.classList.toggle('has-performance-fullscreen', isFullscreen);
-    button.textContent = String.fromCharCode(9974);
-    button.title = isFullscreen
-      ? 'Para sair do modo tela cheia dar um duplo touch na musica'
-      : 'Tela cheia';
-    button.setAttribute('aria-label', button.title);
+    const label = isFullscreen ? 'Tela normal' : 'Tela cheia';
+    button.textContent = label;
+    button.title = label;
+    button.setAttribute('aria-label', label);
 
     if (typeof onChange === 'function') {
       window.requestAnimationFrame(onChange);
