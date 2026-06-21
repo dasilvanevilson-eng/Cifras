@@ -5,7 +5,12 @@ import {
   saveSystemSettings,
   uploadLoginBackgroundImage,
 } from '../../../services/settingsService.js';
-import { applySystemSettings, getMonospaceFontStack } from '../../../utils/systemSettings.js';
+import {
+  applySystemSettings,
+  getColorPalette,
+  getMonospaceFontStack,
+  SYSTEM_COLOR_PALETTES,
+} from '../../../utils/systemSettings.js';
 
 export async function PersonalizacaoPage({ session } = {}) {
   const page = document.createElement('section');
@@ -20,11 +25,16 @@ export async function PersonalizacaoPage({ session } = {}) {
     <header class="dashboard-header">
       <div>
         <h1>Personalizacao</h1>
-        <p data-page-info>Ajustes visuais da porta de entrada do sistema.</p>
+        <p data-page-info>Defina uma identidade clara, acolhedora e consistente para toda a equipe.</p>
       </div>
     </header>
     <section class="personalization-layout">
       <form class="form personalization-form">
+        <div class="personalization-intro field-full">
+          <span class="personalization-kicker">Identidade do sistema</span>
+          <strong>Escolha o clima visual antes de ajustar os detalhes.</strong>
+          <p>As paletas atualizam cores da interface e das cifras. Nada é aplicado para os usuários antes de salvar.</p>
+        </div>
         <fieldset>
           <legend>Identidade</legend>
           <label>
@@ -48,7 +58,32 @@ export async function PersonalizacaoPage({ session } = {}) {
           </label>
         </fieldset>
         <fieldset>
-          <legend>Tema</legend>
+          <legend>Aparência</legend>
+          <div class="palette-picker field-full" role="radiogroup" aria-label="Paleta de cores">
+            <div class="palette-picker-heading">
+              <strong>Paleta base</strong>
+              <span>Você poderá refinar as cores abaixo.</span>
+            </div>
+            <div class="palette-options">
+              ${SYSTEM_COLOR_PALETTES.map((palette) => `
+                <button
+                  class="palette-option"
+                  type="button"
+                  role="radio"
+                  aria-checked="false"
+                  data-palette-id="${palette.id}"
+                  style="--palette-primary: ${palette.primary}; --palette-accent: ${palette.accent}; --palette-chord: ${palette.chord};"
+                >
+                  <span class="palette-option-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="palette-option-copy"><strong>${palette.name}</strong><small>${palette.description}</small></span>
+                </button>
+              `).join('')}
+              <button class="palette-option palette-option-custom" type="button" role="radio" aria-checked="false" data-palette-id="personalizada">
+                <span class="palette-option-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span class="palette-option-copy"><strong>Personalizada</strong><small>Use exatamente as cores que representam sua comunidade.</small></span>
+              </button>
+            </div>
+          </div>
           <label>
             Tema do sistema
             <select name="theme_mode">
@@ -124,6 +159,11 @@ export async function PersonalizacaoPage({ session } = {}) {
         <p class="form-message field-full" aria-live="polite"></p>
       </form>
       <aside class="personalization-preview" aria-label="Previa da tela inicial">
+        <div class="personalization-preview-heading">
+          <span class="personalization-kicker">Prévia ao vivo</span>
+          <strong>Assim a identidade vai aparecer.</strong>
+          <p>Uma leitura rápida do login e das cifras antes de publicar a mudança.</p>
+        </div>
         <div class="personalization-preview-hero">
           <div>
             <strong data-preview="app_name"></strong>
@@ -147,6 +187,7 @@ Por isso estamos alegres</pre>
   const restoreButton = page.querySelector('[data-action="restore-defaults"]');
   const selectBackgroundButton = page.querySelector('[data-action="select-background-image"]');
   const fileStatus = page.querySelector('[data-role="background-file-status"]');
+  const paletteOptions = [...page.querySelectorAll('[data-palette-id]')];
   let settings = { ...DEFAULT_SYSTEM_SETTINGS };
   let selectedBackgroundFile = null;
   let selectedBackgroundPreviewUrl = '';
@@ -158,6 +199,7 @@ Por isso estamos alegres</pre>
     form.elements.login_background_file.value = '';
     form.elements.primary_color.value = nextSettings.primary_color || DEFAULT_SYSTEM_SETTINGS.primary_color;
     form.elements.accent_color.value = nextSettings.accent_color || DEFAULT_SYSTEM_SETTINGS.accent_color;
+    form.dataset.colorPalette = getMatchingPaletteId(nextSettings);
     form.elements.theme_mode.value = nextSettings.theme_mode || DEFAULT_SYSTEM_SETTINGS.theme_mode;
     form.elements.interface_density.value = nextSettings.interface_density || DEFAULT_SYSTEM_SETTINGS.interface_density;
     form.elements.chord_color.value = nextSettings.chord_color || DEFAULT_SYSTEM_SETTINGS.chord_color;
@@ -172,10 +214,30 @@ Por isso estamos alegres</pre>
     revokeBackgroundPreviewUrl();
     fileStatus.textContent = nextSettings.login_background_url ? 'Imagem atual mantida.' : 'Nenhuma imagem configurada.';
     renderPreview(page, readSettingsFromForm(form));
+    syncPaletteSelection(form);
   }
 
-  form.addEventListener('input', () => {
+  form.addEventListener('input', (event) => {
+    if (eventTargetsPaletteColors(event)) form.dataset.colorPalette = 'personalizada';
+    syncPaletteSelection(form);
     renderPreview(page, readSettingsFromForm(form));
+  });
+
+  paletteOptions.forEach((option) => {
+    option.addEventListener('click', () => {
+      const paletteId = option.dataset.paletteId;
+      const palette = getColorPalette(paletteId);
+
+      if (palette) {
+        form.elements.primary_color.value = palette.primary;
+        form.elements.accent_color.value = palette.accent;
+        form.elements.chord_color.value = palette.chord;
+      }
+
+      form.dataset.colorPalette = paletteId;
+      syncPaletteSelection(form);
+      renderPreview(page, readSettingsFromForm(form));
+    });
   });
 
   selectBackgroundButton.addEventListener('click', () => {
@@ -286,6 +348,11 @@ function readSettingsFromForm(form) {
     login_background_url: String(form.elements.login_background_url.value || '').trim() || DEFAULT_SYSTEM_SETTINGS.login_background_url,
     primary_color: form.elements.primary_color.value || DEFAULT_SYSTEM_SETTINGS.primary_color,
     accent_color: form.elements.accent_color.value || DEFAULT_SYSTEM_SETTINGS.accent_color,
+    color_palette: form.dataset.colorPalette || getMatchingPaletteId({
+      primary_color: form.elements.primary_color.value,
+      accent_color: form.elements.accent_color.value,
+      chord_color: form.elements.chord_color.value,
+    }),
     theme_mode: form.elements.theme_mode.value || DEFAULT_SYSTEM_SETTINGS.theme_mode,
     interface_density: form.elements.interface_density.value || DEFAULT_SYSTEM_SETTINGS.interface_density,
     chord_color: form.elements.chord_color.value || DEFAULT_SYSTEM_SETTINGS.chord_color,
@@ -297,6 +364,30 @@ function readSettingsFromForm(form) {
     execution_two_columns: Boolean(form.elements.execution_two_columns.checked),
     show_app_name_on_login: Boolean(form.elements.show_app_name_on_login.checked),
   };
+}
+
+function getMatchingPaletteId(settings) {
+  const palette = SYSTEM_COLOR_PALETTES.find((candidate) => (
+    candidate.primary.toLowerCase() === String(settings.primary_color || '').toLowerCase()
+    && candidate.accent.toLowerCase() === String(settings.accent_color || '').toLowerCase()
+    && candidate.chord.toLowerCase() === String(settings.chord_color || '').toLowerCase()
+  ));
+
+  return palette?.id || 'personalizada';
+}
+
+function syncPaletteSelection(form) {
+  const selectedPalette = form.dataset.colorPalette || 'personalizada';
+
+  form.querySelectorAll('[data-palette-id]').forEach((option) => {
+    const isSelected = option.dataset.paletteId === selectedPalette;
+    option.classList.toggle('is-selected', isSelected);
+    option.setAttribute('aria-checked', String(isSelected));
+  });
+}
+
+function eventTargetsPaletteColors(event) {
+  return ['primary_color', 'accent_color', 'chord_color'].includes(event.target?.name);
 }
 
 function renderPreview(page, settings) {

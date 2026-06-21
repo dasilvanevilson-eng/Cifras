@@ -272,7 +272,7 @@ function createInvitesList(invites, { onChange, onEdit }) {
     `;
 
     item.querySelector('[data-action="copy"]').addEventListener('click', async () => {
-      await copyText(url);
+      await copyText(createInviteShareText(invite.title, url));
       item.querySelector('[data-action="copy"]').textContent = 'Copiado';
       window.setTimeout(() => {
         item.querySelector('[data-action="copy"]').textContent = 'Copiar';
@@ -438,6 +438,10 @@ async function copyText(text) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
   }
+}
+
+function createInviteShareText(title, url) {
+  return `Convite: *${String(title || 'Link publico')}*\n${url}`;
 }
 
 function formatModule(moduleKey) {

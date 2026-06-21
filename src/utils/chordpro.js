@@ -567,7 +567,21 @@ function isChordLine(line) {
 }
 
 function isDisplayChordLine(line) {
-  return isChordLine(line) || isNumberChordLine(line);
+  return isChordLine(line) || isCompactChordLine(line) || isNumberChordLine(line);
+}
+
+function isCompactChordLine(line) {
+  const parsed = parseChordLine(line);
+  const chordText = String(parsed.chordText || '');
+
+  if (![...chordText.matchAll(COMPACT_CHORD_PATTERN)].length) return false;
+
+  const remainingText = chordText
+    .replace(COMPACT_CHORD_PATTERN, '')
+    .replace(CHORD_SEPARATOR_PATTERN, '')
+    .trim();
+
+  return !remainingText;
 }
 
 function isNumberChordLine(line) {
@@ -977,6 +991,7 @@ function formatChordLineLabel(label) {
 }
 
 const CHORD_PATTERN = /(?<![A-Za-zÀ-ÿ])(?:[A-G](?:#|b)?(?:(?:m(?![a-z])|maj|min|dim|aug|sus|add|M|º|°|ø|Δ|\+|-|[#b]?\d{1,2}|\([^)]*\)))*(?:\/(?:[A-G](?:#|b)?|[#b]?\d{1,2}))*)(?![A-Za-zÀ-ÿ])/g;
+const COMPACT_CHORD_PATTERN = /(?:[A-G](?:#|b)?(?:(?:m(?![a-z])|maj|min|dim|aug|sus|add|M|º|°|ø|Δ|\+|-|[#b]?\d{1,2}|\([^)]*\)))*(?:\/(?:[A-G](?:#|b)?|[#b]?\d{1,2}))*)/g;
 const CHORD_SEPARATOR_PATTERN = /[|:.,;()\[\]{}-]/g;
 const NOTE_PATTERN = /[A-G](?:#|b)?/g;
 const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

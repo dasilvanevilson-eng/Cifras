@@ -117,6 +117,11 @@ assert.equal(
 );
 
 assert.equal(
+  renderCifraOriginalForDisplayHtml('C#D'),
+  '<span class="chord-line">C#D</span>',
+);
+
+assert.equal(
   renderCifraOriginalForDisplayHtml(['{voice: segunda_voz}', 'G  D/F#  Em', 'Grande es Tu', '{/voice}'].join('\n')),
   [
     '<span class="chord-line">G  D/F#  Em</span>',
