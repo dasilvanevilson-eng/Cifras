@@ -8007,6 +8007,15 @@ html {
   box-shadow: none;
 }
 
+.button-link.is-disabled,
+.button-link[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+}
+
 .button-link.secondary,
 .nav-button,
 .theme-toggle-button {

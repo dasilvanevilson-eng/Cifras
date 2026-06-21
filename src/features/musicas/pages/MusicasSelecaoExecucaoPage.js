@@ -9,6 +9,7 @@ import {
   getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize,
+  setPerformanceSongLinkState,
   setPerformanceTheme,
   setTwoColumnView,
   setupSongGestureNavigation,
@@ -249,9 +250,7 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
       }
 
       if (linkButton) {
-        const link = song.dataset.link || '';
-        linkButton.hidden = !link;
-        linkButton.href = link || '#';
+        setPerformanceSongLinkState(linkButton, song.dataset.link);
       }
 
       transposeStatus.textContent = formatTransposeStatus(semitones, capo);

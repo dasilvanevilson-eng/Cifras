@@ -9,6 +9,7 @@ import {
   getDefaultTwoColumnView,
   MAX_PERFORMANCE_FONT_SIZE,
   setPerformanceFontSize,
+  setPerformanceSongLinkState,
   setPerformanceTheme,
   setTwoColumnView,
   setupDoubleTapFullscreen,
@@ -188,9 +189,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
       key.textContent = nextData.key;
     }
     if (link) {
-      const hasLink = nextData.link && nextData.link !== '-';
-      link.hidden = !hasLink;
-      link.href = hasLink ? nextData.link : '#';
+      setPerformanceSongLinkState(link, nextData.link);
     }
 
     view.dataset.originalCifra = nextData.cifraOriginal;

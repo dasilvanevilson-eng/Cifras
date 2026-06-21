@@ -52,11 +52,39 @@ export function createPerformanceToolbar({
           ${createCapoOptions()}
         </select>
       </label>
-      ${useDynamicSongLink ? '<a class="button-link secondary toolbar-link" data-action="song-link" href="#" target="_blank" rel="noreferrer" hidden>Link</a>' : ''}
-      ${!useDynamicSongLink && linkHref ? `<a class="button-link secondary toolbar-link" href="${escapedLinkHref}" target="_blank" rel="noreferrer">Link</a>` : ''}
+      ${useDynamicSongLink ? createSongLinkAction() : createSongLinkAction(linkHref, escapedLinkHref)}
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
     </div>
   `;
+}
+
+function createSongLinkAction(linkHref = '', escapedLinkHref = '') {
+  const hasLink = Boolean(String(linkHref || '').trim()) && linkHref !== '-';
+
+  return `<a class="button-link secondary toolbar-link${hasLink ? '' : ' is-disabled'}"${hasLink ? ` href="${escapedLinkHref}" target="_blank" rel="noreferrer"` : ' aria-disabled="true" tabindex="-1" title="Link nao cadastrado"'} data-action="song-link">Link</a>`;
+}
+
+export function setPerformanceSongLinkState(linkElement, linkHref) {
+  if (!linkElement) return;
+
+  const href = String(linkHref || '').trim();
+  const hasLink = Boolean(href) && href !== '-';
+
+  linkElement.classList.toggle('is-disabled', !hasLink);
+  linkElement.setAttribute('aria-disabled', String(!hasLink));
+
+  if (hasLink) {
+    linkElement.href = href;
+    linkElement.target = '_blank';
+    linkElement.rel = 'noreferrer';
+    linkElement.removeAttribute('tabindex');
+    linkElement.removeAttribute('title');
+    return;
+  }
+
+  linkElement.removeAttribute('href');
+  linkElement.setAttribute('tabindex', '-1');
+  linkElement.title = 'Link nao cadastrado';
 }
 
 export function formatTransposeStatus(semitones, capo) {

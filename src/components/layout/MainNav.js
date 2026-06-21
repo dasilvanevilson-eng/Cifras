@@ -1,7 +1,7 @@
 import { canViewModule } from '../../features/auth/permissions.js';
 
 export function MainNav(options = {}) {
-  document.body.classList.toggle('has-touch-nav', hasTouchNavigation());
+  document.body.classList.remove('has-touch-nav');
 
   const nav = document.createElement('nav');
   nav.className = 'main-nav';
@@ -102,22 +102,6 @@ export function MainNav(options = {}) {
   return nav;
 }
 
-export function MobileBottomNav(options = {}) {
-  document.body.classList.toggle('has-touch-nav', hasTouchNavigation());
-
-  const nav = document.createElement('nav');
-  nav.className = 'mobile-bottom-nav';
-  nav.setAttribute('aria-label', 'Atalhos principais');
-
-  if (!options.user) {
-    nav.innerHTML = '<a href="/login">Login</a>';
-    return nav;
-  }
-
-  nav.innerHTML = createMobileBottomNavLinks(getVisibleLinks(options));
-  return nav;
-}
-
 function getVisibleLinks(options = {}) {
   if (!options.user) return [];
 
@@ -144,35 +128,6 @@ function getVisibleLinks(options = {}) {
   ];
 
   return links.filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
-}
-
-function createMobileBottomNavLinks(links) {
-  const preferred = [
-    { href: '/dashboard', label: 'Inicio', moduleKey: 'dashboard' },
-    { href: '/musicas', label: 'Cifras', moduleKey: 'musicas' },
-    { href: '/repertorios', label: 'Repertorios', moduleKey: 'repertorios' },
-    { href: '/banda-coral', label: 'Banda', moduleKey: 'banda_coral' },
-  ];
-  const visibleLinks = preferred
-    .map((item) => links.find((link) => link.moduleKey === item.moduleKey))
-    .filter(Boolean)
-    .slice(0, 4);
-
-  return `
-    ${visibleLinks.map((link) => createMobileBottomLink(link)).join('')}
-    <a href="/minha-conta"${isActiveNavLink(['/minha-conta']) ? ' class="is-active"' : ''}>Conta</a>
-  `;
-}
-
-function createMobileBottomLink(link) {
-  const label = link.href === '/dashboard'
-    ? 'Inicio'
-    : link.href === '/banda-coral'
-      ? 'Banda'
-      : link.label;
-  const classes = isActiveNavLink(link.match) ? ' class="is-active"' : '';
-
-  return `<a${classes} href="${link.href}">${label}</a>`;
 }
 
 function createNavLink(link) {
@@ -213,12 +168,4 @@ function isActiveNavLink(paths = []) {
 
 function getFirstName(name) {
   return String(name || '').trim().split(/\s+/)[0] || '';
-}
-
-function hasTouchNavigation() {
-  return Boolean(
-    navigator.maxTouchPoints > 0
-    || navigator.msMaxTouchPoints > 0
-    || ('ontouchstart' in window)
-  );
 }
