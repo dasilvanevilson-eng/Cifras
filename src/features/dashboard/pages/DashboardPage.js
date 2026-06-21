@@ -46,14 +46,8 @@ export function createDashboardView({
   wrapper.innerHTML = `
     <header class="dashboard-header dashboard-hero">
       <div class="dashboard-hero-copy">
-        <span class="dashboard-kicker">${publicMode ? 'Link publico' : 'Central musical'}</span>
         <h1>${publicMode ? 'Painel publico' : 'Inicio'}</h1>
         <p data-page-info>${escapeHtml(publicMode ? (inviteTitle || 'Consulta temporaria de repertorios e musicas.') : 'Busque repertorios, abra cifras e continue rapidamente o que precisa tocar.')}</p>
-        <span class="dashboard-hero-status"><i aria-hidden="true"></i>${publicMode ? 'Acesso disponível' : 'Acervo pronto para o ensaio'}</span>
-      </div>
-      <div class="dashboard-summary" aria-label="Resumo do acervo">
-        <span><strong>${repertorios.length}</strong> repertorios</span>
-        <span><strong>${musicas.length}</strong> musicas</span>
       </div>
       <div class="dashboard-hero-ambient" aria-hidden="true"></div>
     </header>
