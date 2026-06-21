@@ -8016,6 +8016,15 @@ html {
   box-shadow: none;
 }
 
+/* O menu inferior de atalhos foi descontinuado. */
+body.has-touch-nav .app-layout {
+  padding-bottom: 0 !important;
+}
+
+.mobile-bottom-nav {
+  display: none !important;
+}
+
 .button-link.secondary,
 .nav-button,
 .theme-toggle-button {
