@@ -30,7 +30,7 @@ export async function MusicasPage({ session } = {}) {
       <div class="music-library-heading">
         <div>
           <h2>Buscar ou criar cifra</h2>
-          <p>${canEdit ? 'Digite o titulo: se existir, selecione para editar; se nao existir, o formulario abaixo vira uma nova inclusao.' : 'Pesquise por titulo, artista, tag ou trecho da letra.'}</p>
+          <p data-section-info>${canEdit ? 'Pesquise pelo titulo para encontrar uma cifra existente e edita-la. Quando nao houver resultado, o mesmo fluxo permite iniciar um novo cadastro no acervo.' : 'Pesquise por titulo, artista, tag ou trecho da letra para localizar e executar as cifras liberadas para o seu acesso.'}</p>
         </div>
         <span class="music-library-mode">${canEdit ? 'Modo edicao' : 'Modo execucao'}</span>
       </div>
@@ -43,7 +43,7 @@ export async function MusicasPage({ session } = {}) {
         <div class="music-editor-heading">
           <div>
             <h2>${canEdit ? 'Cadastro e revisao' : 'Acesso restrito'}</h2>
-            <p>${canEdit ? 'Use o campo acima para buscar uma cifra existente ou iniciar uma nova.' : 'Seu perfil pode consultar e executar, mas nao alterar o acervo.'}</p>
+            <p data-section-info>${canEdit ? 'Depois de selecionar uma cifra ou iniciar um novo cadastro, use esta area para preencher, revisar e salvar todas as informacoes da musica.' : 'Seu perfil pode consultar e executar as cifras disponiveis, mas nao possui permissao para alterar o acervo.'}</p>
           </div>
         </div>
         <div class="form-slot"></div>

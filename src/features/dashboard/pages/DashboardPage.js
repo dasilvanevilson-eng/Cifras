@@ -55,7 +55,7 @@ export function createDashboardView({
       <div class="dashboard-panel-heading">
         <div>
           <h2>Buscar e executar</h2>
-          <p>Encontre rapidamente uma cifra, um repertorio ou uma musica dentro de um repertorio.</p>
+          <p data-section-info>Use os campos de busca para localizar repertorios ou cifras do acervo. Ao abrir um repertorio, voce tambem pode acessar e executar as musicas que fazem parte dele.</p>
         </div>
       </div>
       <div class="dashboard-grid">
@@ -83,7 +83,7 @@ export function createDashboardView({
         <div class="dashboard-panel-heading">
           <div>
             <h2>Recentes</h2>
-            <p>Atalhos gerados a partir dos itens carregados no painel.</p>
+            <p data-section-info>Exibe atalhos para os repertorios e as musicas acessados recentemente, facilitando a retomada do ensaio ou da apresentacao.</p>
           </div>
         </div>
         ${createDashboardHighlights({
@@ -97,7 +97,7 @@ export function createDashboardView({
         <div class="dashboard-panel-heading">
           <div>
             <h2>Status</h2>
-            <p>Visao rapida do acervo disponivel.</p>
+            <p data-section-info>Apresenta um resumo do acervo que esta disponivel para o seu perfil, incluindo repertorios e musicas que podem ser consultados ou executados.</p>
           </div>
         </div>
         ${createDashboardStatus({

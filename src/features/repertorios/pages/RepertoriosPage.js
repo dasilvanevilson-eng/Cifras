@@ -34,7 +34,7 @@ export async function RepertoriosPage({ session } = {}) {
       <div class="repertorio-library-heading">
         <div>
           <h2>Buscar ou criar repertorio</h2>
-          <p>${canEdit ? 'Digite o nome: se existir, selecione para editar; se nao existir, o formulario abaixo vira uma nova inclusao.' : 'Pesquise por nome ou data para abrir ou executar.'}</p>
+          <p data-section-info>${canEdit ? 'Pesquise pelo nome para localizar um repertorio existente e edita-lo. Caso nao exista, voce pode iniciar um novo repertorio usando o formulario da pagina.' : 'Pesquise por nome ou data para localizar, abrir e executar os repertorios liberados para o seu acesso.'}</p>
         </div>
         <span class="repertorio-library-mode">${canEdit ? 'Modo montagem' : 'Modo consulta'}</span>
       </div>

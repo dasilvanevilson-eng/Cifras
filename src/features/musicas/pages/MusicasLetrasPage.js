@@ -129,7 +129,7 @@ function createLetrasBrowser({ musicas, repertoriosComMusicas, musicRepertorioMa
       <header>
         <div>
           <h2 data-role="txt-editor-title">TXT</h2>
-          <p>Ajuste o texto antes de salvar o arquivo.</p>
+          <p data-section-info>Revise e ajuste o texto antes de salvar ou copiar o arquivo TXT. As alteracoes feitas aqui afetam apenas o arquivo gerado, nao a cifra original cadastrada.</p>
         </div>
         <button class="nav-button" type="button" data-action="close-txt-editor">Fechar</button>
       </header>

@@ -1,9 +1,8 @@
 export function installPageInfoDialogs(page) {
-  const descriptions = page.querySelectorAll('[data-page-info]');
+  const descriptions = page.querySelectorAll('[data-page-info], [data-section-info]');
 
   descriptions.forEach((description, index) => {
-    const header = description.closest('header');
-    const title = header?.querySelector('h1');
+    const title = findRelatedTitle(description);
     if (!title || title.querySelector('.page-info-button')) return;
 
     const titleText = title.textContent.trim() || 'Informacao';
@@ -52,4 +51,14 @@ export function installPageInfoDialogs(page) {
       if (event.key === 'Escape') closeModal();
     });
   });
+}
+
+function findRelatedTitle(description) {
+  const directTitle = [...(description.parentElement?.children || [])]
+    .find((element) => /^H[1-3]$/.test(element.tagName));
+
+  if (directTitle) return directTitle;
+
+  const header = description.closest('header');
+  return header?.querySelector('h1, h2, h3') || null;
 }
