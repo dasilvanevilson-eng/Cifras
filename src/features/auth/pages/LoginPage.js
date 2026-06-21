@@ -24,7 +24,10 @@ export async function LoginPage() {
 
             <label>
               Senha
-              <input name="password" type="password" autocomplete="current-password" required>
+              <span class="password-input-wrap">
+                <input name="password" type="password" autocomplete="current-password" required>
+                <button class="password-visibility-toggle" type="button" data-action="toggle-password" aria-label="Mostrar senha" title="Mostrar senha" aria-pressed="false">&#128065;</button>
+              </span>
             </label>
 
             <button class="button" type="submit">Acessar sistema</button>
@@ -41,6 +44,8 @@ export async function LoginPage() {
   const openButton = page.querySelector('[data-action="open-login"]');
   const closeButton = page.querySelector('[data-action="close-login"]');
   const emailInput = page.querySelector('input[name="email"]');
+  const passwordInput = page.querySelector('input[name="password"]');
+  const passwordToggle = page.querySelector('[data-action="toggle-password"]');
   const message = page.querySelector('.form-message');
   const button = page.querySelector('button[type="submit"]');
   const forgotButton = page.querySelector('[data-action="forgot-password"]');
@@ -61,6 +66,13 @@ export async function LoginPage() {
 
   openButton.addEventListener('click', openLogin);
   closeButton.addEventListener('click', closeLogin);
+  passwordToggle.addEventListener('click', () => {
+    const showPassword = passwordInput.type === 'password';
+    passwordInput.type = showPassword ? 'text' : 'password';
+    passwordToggle.setAttribute('aria-label', showPassword ? 'Ocultar senha' : 'Mostrar senha');
+    passwordToggle.setAttribute('title', showPassword ? 'Ocultar senha' : 'Mostrar senha');
+    passwordToggle.setAttribute('aria-pressed', String(showPassword));
+  });
   modal.addEventListener('click', (event) => {
     if (event.target === modal) {
       closeLogin();
