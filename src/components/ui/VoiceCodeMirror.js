@@ -35,8 +35,22 @@ export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelecti
   return {
     focus: () => view.focus(),
     sync(nextText, nextMarks, selection = null) {
+      const currentText = view.state.doc.toString();
+      const textChanged = currentText !== nextText;
+      const nextSelection = selection || view.state.selection.main;
+      const selectionChanged = selection
+        && (nextSelection.anchor !== view.state.selection.main.anchor || nextSelection.head !== view.state.selection.main.head);
+
+      // Durante a digitacao o proprio CodeMirror ja aplicou a alteracao no
+      // documento. Reaplicar o texto inteiro aqui recriava o viewport e fazia
+      // a pagina saltar. Ainda despachamos as decoracoes para manter as vozes
+      // atualizadas, mas so trocamos o documento quando ele veio de outra fonte.
       syncing = true;
-      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: nextText }, selection: selection || view.state.selection.main, effects: setVoiceMarks.of(nextMarks) });
+      view.dispatch({
+        ...(textChanged ? { changes: { from: 0, to: view.state.doc.length, insert: nextText } } : {}),
+        ...(selectionChanged ? { selection: nextSelection } : {}),
+        effects: setVoiceMarks.of(nextMarks),
+      });
       syncing = false;
     },
   };
