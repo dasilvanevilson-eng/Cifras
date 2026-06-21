@@ -63,10 +63,7 @@ function createEditView(id, musica, session = {}) {
     submitLabel: 'Salvar alteracoes',
     keepValuesAfterSubmit: true,
     onSubmit: async (values) => {
-      const { error } = await updateMusica(id, {
-        ...values,
-        revisado_por_nome: getReviewerName(session),
-      });
+      const { error } = await updateMusica(id, values);
 
       if (error) {
         throw error;

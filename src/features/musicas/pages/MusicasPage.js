@@ -161,13 +161,9 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
       }
       : null,
     onSubmit: async (musica) => {
-      const musicaValues = {
-        ...musica,
-        revisado_por_nome: reviewerName,
-      };
       const result = selectedMusica
-        ? await updateMusica(selectedMusica.id, musicaValues)
-        : await createMusica(musicaValues);
+        ? await updateMusica(selectedMusica.id, musica)
+        : await createMusica(musica);
 
       if (result.error) {
         throw result.error;

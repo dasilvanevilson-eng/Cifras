@@ -68,7 +68,7 @@ export function MusicaForm(options = {}) {
 
     <label class="field-reviewer">
       Revisor
-      <input name="revisado_por_nome" type="text" value="${escapeHtml(initialValues.revisado_por_nome || '')}" readonly>
+      <input name="revisado_por_nome" type="text" value="${escapeHtml(initialValues.revisado_por_nome || '')}">
     </label>
 
     <div class="music-form-actions">
