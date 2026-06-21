@@ -335,6 +335,7 @@ export function MusicaForm(options = {}) {
     editorState = normalizeCifraEditorState(createCifraEditorStateFromChordPro(chordProTextarea.value));
     originalTextarea.value = editorState.text;
     editorStateTextarea.value = JSON.stringify(editorState);
+    voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
     renderOriginalEditor(originalEditor, chordProTextarea.value);
     syncVoiceLabelInputs(form, chordProTextarea.value);
     updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
@@ -351,6 +352,7 @@ export function MusicaForm(options = {}) {
     setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
     originalTextarea.value = editorState.text;
     editorStateTextarea.value = JSON.stringify(editorState);
+    voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
     renderOriginalEditor(originalEditor, nextChordPro);
     syncVoiceLabelInputs(form, nextChordPro);
     updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
