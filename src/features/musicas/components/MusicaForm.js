@@ -101,20 +101,19 @@ export function MusicaForm(options = {}) {
         `).join('')}
         <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar linha</button>
         <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
+        <details class="voice-label-settings">
+          <summary>Nomes da legenda</summary>
+          <div class="voice-label-grid">
+            ${VOICE_MARKERS.map((marker) => `
+              <label>
+                ${escapeHtml(marker.label)}
+                <input name="voice_label_${escapeHtml(marker.id)}" type="text" value="${escapeHtml(getInitialVoiceLabels(initialChordPro)[marker.id] || marker.label)}">
+              </label>
+            `).join('')}
+          </div>
+        </details>
       </div>
     </div>
-
-    <details class="voice-label-settings">
-      <summary>Nomes da legenda</summary>
-      <div class="voice-label-grid">
-        ${VOICE_MARKERS.map((marker) => `
-          <label>
-            ${escapeHtml(marker.label)}
-            <input name="voice_label_${escapeHtml(marker.id)}" type="text" value="${escapeHtml(getInitialVoiceLabels(initialChordPro)[marker.id] || marker.label)}">
-          </label>
-        `).join('')}
-      </div>
-    </details>
 
     <div class="cifra-editor-grid">
       <label>

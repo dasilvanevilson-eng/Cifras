@@ -5362,6 +5362,10 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   display: none;
 }
 
+.voice-marker-options .voice-label-settings {
+  flex: 1 1 100%;
+}
+
 .voice-label-settings {
   border: 1px solid rgba(95, 89, 79, 0.18);
   border-radius: var(--radius-md);
