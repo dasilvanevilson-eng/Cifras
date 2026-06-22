@@ -1,6 +1,5 @@
 import { listMusicas } from '../../../services/musicasService.js';
 import { listMusicasDoRepertorio, listRepertorios } from '../../../services/repertoriosService.js';
-import { getRecentItems } from '../../../utils/recentItems.js';
 
 export async function DashboardPage() {
   const page = document.createElement('section');
@@ -21,7 +20,6 @@ export async function DashboardPage() {
     page.replaceChildren(createDashboardView({
       musicas: musicas || [],
       repertorios: repertorios || [],
-      recentItems: getRecentItems(),
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -36,7 +34,6 @@ export function createDashboardView({
   repertorios,
   publicMode = false,
   publicToken = '',
-  recentItems = null,
   inviteTitle = '',
   listMusicasDoRepertorioFn = listMusicasDoRepertorio,
 } = {}) {
@@ -81,22 +78,7 @@ export function createDashboardView({
       </div>
     </section>
     ${createDashboardQuickActions(publicMode)}
-    <section class="dashboard-home-grid">
-      <section class="dashboard-home-panel">
-        <div class="dashboard-panel-heading">
-          <div>
-            <h2>Recentes</h2>
-            <p data-section-info>Exibe atalhos para os repertorios e as musicas acessados recentemente, facilitando a retomada do ensaio ou da apresentacao.</p>
-          </div>
-        </div>
-        ${createDashboardHighlights({
-          repertorios: repertoriosOrdenados,
-          musicas: musicasOrdenadas,
-          recentItems,
-          publicMode,
-          publicToken,
-        })}
-      </section>
+    <section class="dashboard-home-grid dashboard-home-grid--status-only">
       <aside class="dashboard-home-panel dashboard-status-panel">
         <div class="dashboard-panel-heading">
           <div>
@@ -204,79 +186,6 @@ function createDashboardQuickActions(publicMode = false) {
       `).join('')}
     </section>
   `;
-}
-
-function createDashboardHighlights({
-  repertorios = [],
-  musicas = [],
-  recentItems = null,
-  publicMode = false,
-  publicToken = '',
-} = {}) {
-  if (recentItems !== null) {
-    const items = (Array.isArray(recentItems) ? recentItems : [])
-      .filter((item) => item?.label && item?.url)
-      .sort((a, b) => String(b.accessedAt || '').localeCompare(String(a.accessedAt || '')))
-      .slice(0, 5);
-
-    if (!items.length) {
-      return '<p class="page-status">Nenhum item acessado recentemente.</p>';
-    }
-
-    return `
-      <div class="dashboard-home-list">
-        ${items.map((item) => `
-          <a class="dashboard-home-item" href="${escapeHtml(item.url)}">
-            <span>${escapeHtml(getRecentItemTypeLabel(item.type))}</span>
-            <strong>${escapeHtml(item.label)}</strong>
-            <small>${escapeHtml(item.detail || '')}</small>
-          </a>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  const items = [
-    ...repertorios.slice(0, 2).map((repertorio) => ({
-      type: 'Repertorio',
-      title: getField(repertorio, ['nome', 'titulo', 'name']),
-      detail: formatDate(getField(repertorio, ['data', 'date'])),
-      href: publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio),
-    })),
-    ...musicas.slice(0, 3).map((musica) => ({
-      type: 'Musica',
-      title: getField(musica, ['titulo', 'nome', 'title']),
-      detail: getField(musica, ['artista', 'autor', 'artist']),
-      href: publicMode ? getPublicMusicaUrl(musica, publicToken) : getMusicaUrl(musica),
-    })),
-  ].slice(0, 5);
-
-  if (!items.length) {
-    return '<p class="page-status">Nenhum item disponivel no momento.</p>';
-  }
-
-  return `
-    <div class="dashboard-home-list">
-      ${items.map((item) => `
-        <a class="dashboard-home-item" href="${escapeHtml(item.href)}">
-          <span>${escapeHtml(item.type)}</span>
-          <strong>${escapeHtml(item.title)}</strong>
-          <small>${escapeHtml(item.detail)}</small>
-        </a>
-      `).join('')}
-    </div>
-  `;
-}
-
-function getRecentItemTypeLabel(type) {
-  const labels = {
-    musica: 'Musica',
-    repertorio: 'Repertorio',
-    execucao: 'Execucao',
-    letra: 'Letra',
-  };
-
-  return labels[type] || 'Item';
 }
 
 function createDashboardStatus({ repertorios = [], musicas = [], publicMode = false } = {}) {
