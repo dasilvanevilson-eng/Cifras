@@ -2,7 +2,12 @@ import { assertSupabaseConfig, supabase } from '../lib/supabase/client.js';
 
 export async function listAgendaEventos(from, to) {
   assertSupabaseConfig();
-  return supabase.from('agenda_eventos').select('*, agenda_evento_repertorios(repertorio_id, repertorios(id,nome,data))').gte('inicio', from).lt('inicio', to).order('inicio');
+  return supabase
+    .from('agenda_eventos')
+    .select('*, agenda_evento_repertorios(repertorio_id, repertorios(id,nome,data))')
+    .lt('inicio', to)
+    .or(`fim.is.null,fim.gte.${from}`)
+    .order('inicio');
 }
 export async function createAgendaEvento(evento, repertorioIds = []) {
   assertSupabaseConfig();
