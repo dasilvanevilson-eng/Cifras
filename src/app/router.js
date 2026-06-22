@@ -27,6 +27,7 @@ import { PublicMusicaExecucaoPage } from '../features/public/pages/PublicMusicaE
 import { PublicRepertorioExecucaoPage } from '../features/public/pages/PublicRepertorioExecucaoPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { ModoOfflinePage } from '../features/offline/pages/ModoOfflinePage.js';
+import { AgendaPage } from '../features/agenda/pages/AgendaPage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
@@ -40,6 +41,7 @@ import { installSearchClearButtons } from '../utils/searchClearButtons.js';
 const routes = {
   '/dashboard': DashboardPage,
   '/modo-offline': ModoOfflinePage,
+  '/agenda': AgendaPage,
   '/banda-coral': BandaCoralPage,
   '/acordes': DicionarioAcordesPage,
   '/afinador': AfinadorPage,
@@ -122,6 +124,9 @@ export function createRouter() {
       }
 
       if (window.location.pathname === '/modo-offline' && !canViewModule(session, 'modo_offline')) {
+        return AccessDeniedPage({ session });
+      }
+      if (window.location.pathname === '/agenda' && !canViewModule(session, 'agenda')) {
         return AccessDeniedPage({ session });
       }
 
