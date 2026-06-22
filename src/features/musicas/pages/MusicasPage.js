@@ -36,12 +36,6 @@ export async function MusicasPage({ session } = {}) {
     </section>
     <div class="page-grid musicas-content-grid">
       <section class="music-editor-panel music-editor-stage">
-        <div class="music-editor-heading">
-          <div>
-            <h2>${canEdit ? 'Cadastro e revisao' : 'Acesso restrito'}</h2>
-            <p data-section-info>${canEdit ? 'Depois de selecionar uma cifra ou iniciar um novo cadastro, use esta area para preencher, revisar e salvar todas as informacoes da musica.' : 'Seu perfil pode consultar e executar as cifras disponiveis, mas nao possui permissao para alterar o acervo.'}</p>
-          </div>
-        </div>
         <div class="form-slot"></div>
       </section>
     </div>
