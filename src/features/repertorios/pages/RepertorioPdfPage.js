@@ -271,7 +271,7 @@ function renderPdfSummary(doc, layout, { musicasAssociadas, songPageByNumber, su
       doc.setTextColor(20, 72, 62);
       doc.textWithLink(text, layout.marginX, y, {
         pageNumber: targetPage,
-        top: layout.pageHeight,
+        top: 0,
         zoom: 'FitH',
       });
       doc.setTextColor(0, 0, 0);
@@ -293,36 +293,15 @@ function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage
   const bodyFont = contentType === 'letras' ? 'helvetica' : 'courier';
   const bodyFontSize = contentType === 'letras' ? 12 : 10;
   const bodyLineHeight = contentType === 'letras' ? 16 : 13;
-  let y = layout.marginTop;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text(`${number}. ${title}${deleted ? ' (excluida)' : ''}`, layout.marginX, y);
-  y += 20;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.text(`${artist} - Tom: ${key}`, layout.marginX, y);
-  y += 18;
-
-  if (momento) {
-    doc.text(`Momento: ${momento}`, layout.marginX, y);
-    y += 18;
-  }
-
-  doc.setTextColor(20, 72, 62);
-  doc.textWithLink('Voltar ao indice', layout.marginX, y, {
-    pageNumber: summaryPage,
-    top: layout.pageHeight,
-    zoom: 'FitH',
+  const songTitle = `${number}. ${title}${deleted ? ' (excluida)' : ''}`;
+  let y = renderPdfSongHeader(doc, layout, {
+    songTitle,
+    artist,
+    key,
+    momento,
+    link,
+    summaryPage,
   });
-
-  if (link) {
-    doc.textWithLink('Link', layout.marginX + 96, y, { url: link });
-  }
-
-  doc.setTextColor(0, 0, 0);
-  y += 28;
 
   doc.setFont(bodyFont, contentType === 'letras' ? 'normal' : 'bold');
   doc.setFontSize(bodyFontSize);
@@ -335,7 +314,11 @@ function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage
   lines.forEach((line) => {
     if (y > layout.pageHeight - layout.marginBottom) {
       doc.addPage();
-      y = layout.marginTop;
+      y = renderPdfSongHeader(doc, layout, {
+        songTitle,
+        summaryPage,
+        isContinuation: true,
+      });
       doc.setFont(bodyFont, contentType === 'letras' ? 'normal' : 'bold');
       doc.setFontSize(bodyFontSize);
     }
@@ -343,6 +326,62 @@ function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage
     doc.text(line, layout.marginX, y);
     y += bodyLineHeight;
   });
+}
+
+function renderPdfSongHeader(doc, layout, {
+  songTitle,
+  artist = '',
+  key = '',
+  momento = '',
+  link = '',
+  summaryPage,
+  isContinuation = false,
+}) {
+  let y = layout.marginTop;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  const titleLines = doc.splitTextToSize(songTitle, layout.pageWidth - (layout.marginX * 2) - 128);
+  doc.text(titleLines, layout.marginX, y);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(20, 72, 62);
+  doc.textWithLink('Voltar ao indice', layout.pageWidth - layout.marginX, y, {
+    align: 'right',
+    pageNumber: summaryPage,
+    top: 0,
+    zoom: 'FitH',
+  });
+  doc.setTextColor(0, 0, 0);
+  y += (titleLines.length * 18) + 4;
+
+  if (isContinuation) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.text('Continuacao', layout.marginX, y);
+    return y + 20;
+  }
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(`${artist} - Tom: ${key}`, layout.marginX, y);
+  y += 18;
+
+  if (momento) {
+    doc.text(`Momento: ${momento}`, layout.marginX, y);
+    y += 18;
+  }
+
+  if (link) {
+    doc.setTextColor(20, 72, 62);
+    doc.textWithLink('Link da musica', layout.marginX, y, { url: link });
+    doc.setTextColor(0, 0, 0);
+    y += 20;
+  }
+
+  return y + 10;
 }
 
 function renderPdfPageTitle(doc, layout, title) {
