@@ -90,14 +90,18 @@ export function MusicaForm(options = {}) {
     </div>
 
     <div class="voice-marker-toolbar" aria-label="Marcacoes de vozes">
-      <span>Destacar selecao</span>
-      ${VOICE_MARKERS.map((marker) => `
-        <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}">
-          ${escapeHtml(marker.label)}
-        </button>
-      `).join('')}
-      <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar</button>
-      <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
+      <button class="voice-marker-toggle" type="button" data-action="toggle-voice-markers" aria-expanded="false">
+        Destacar texto
+      </button>
+      <div class="voice-marker-options" data-role="voice-marker-options" hidden>
+        ${VOICE_MARKERS.map((marker) => `
+          <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}">
+            ${escapeHtml(marker.label)}
+          </button>
+        `).join('')}
+        <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar linha</button>
+        <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
+      </div>
     </div>
 
     <details class="voice-label-settings">
@@ -158,6 +162,8 @@ export function MusicaForm(options = {}) {
   const linkAction = form.querySelector('.field-action-link');
   const previewToggle = form.querySelector('.preview-toggle');
   const previewPanel = form.querySelector('.song-preview');
+  const voiceMarkerToggle = form.querySelector('[data-action="toggle-voice-markers"]');
+  const voiceMarkerOptions = form.querySelector('[data-role="voice-marker-options"]');
   const voiceMarkerButtons = form.querySelectorAll('[data-voice-marker]');
   const unmarkVoiceButton = form.querySelector('[data-action="unmark-voice"]');
   const clearVoiceMarkersButton = form.querySelector('[data-action="clear-voice-markers"]');
@@ -186,6 +192,12 @@ export function MusicaForm(options = {}) {
   renderOriginalEditor(originalEditor, chordProTextarea.value);
   updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
   setupResponsiveCifraEditor(cifraEditorGrid);
+
+  voiceMarkerToggle.addEventListener('click', () => {
+    const isOpen = voiceMarkerOptions.hidden;
+    voiceMarkerOptions.hidden = !isOpen;
+    voiceMarkerToggle.setAttribute('aria-expanded', String(isOpen));
+  });
 
   originalTextarea.addEventListener('beforeinput', (event) => {
     pendingOriginalEditorInput = null;

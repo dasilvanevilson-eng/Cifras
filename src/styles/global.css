@@ -5350,6 +5350,18 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   align-items: center;
 }
 
+.voice-marker-options {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.voice-marker-options[hidden] {
+  display: none;
+}
+
 .voice-label-settings {
   border: 1px solid rgba(95, 89, 79, 0.18);
   border-radius: var(--radius-md);
@@ -5371,12 +5383,7 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   margin-top: 10px;
 }
 
-.voice-marker-toolbar span {
-  color: #5f594f;
-  font-size: 14px;
-  font-weight: 800;
-}
-
+.voice-marker-toggle,
 .voice-marker-button {
   border: 1px solid rgba(95, 89, 79, 0.22);
   border-radius: var(--radius-md);
@@ -5390,6 +5397,18 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   line-height: 1;
 }
 
+.voice-marker-toggle {
+  background: #f4f1ea;
+}
+
+.voice-marker-toggle[aria-expanded="true"] {
+  border-color: rgba(29, 79, 69, 0.42);
+  background: #e5f0e9;
+  color: #1d4f45;
+}
+
+.voice-marker-toggle:hover,
+.voice-marker-toggle:focus,
 .voice-marker-button:hover,
 .voice-marker-button:focus {
   border-color: rgba(29, 79, 69, 0.42);
