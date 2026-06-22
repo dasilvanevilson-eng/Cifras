@@ -18,7 +18,9 @@ export function installPageInfoDialogs(page) {
     button.title = 'Mais informacoes';
     button.textContent = 'i';
     title.classList.add('page-info-title');
-    title.append(' ', button);
+    const accessory = title.querySelector('[data-page-info-accessory]');
+    title.insertBefore(document.createTextNode(' '), accessory || null);
+    title.insertBefore(button, accessory || null);
     description.hidden = true;
 
     const modal = document.createElement('div');

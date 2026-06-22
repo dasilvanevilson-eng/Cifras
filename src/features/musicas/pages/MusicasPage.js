@@ -18,12 +18,8 @@ export async function MusicasPage({ session } = {}) {
   page.innerHTML = `
     <header class="musicas-header musicas-hero">
       <div class="musicas-hero-copy">
-        <span class="musicas-kicker">Biblioteca de cifras</span>
-        <h1>Cifras</h1>
+        <h1>Cifras <span class="musicas-summary" data-page-info-accessory aria-live="polite"><span><strong data-count="musicas">0</strong> musicas</span></span></h1>
         <p data-page-info>${canEdit ? 'Cadastre, revise, encontre e execute musicas do acervo.' : 'Busque e execute as musicas disponiveis para o seu acesso.'}</p>
-      </div>
-      <div class="musicas-summary" aria-live="polite">
-        <span><strong data-count="musicas">0</strong> musicas</span>
       </div>
     </header>
     <section class="music-search-panel music-library-panel">
@@ -304,16 +300,12 @@ function createReadOnlyNotice(text, items = []) {
 function createMusicasBrowser(musicas, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser musicas-browser';
-  const editableHint = options.canEdit
-    ? 'Digite um titulo para buscar. Se nenhuma cifra existir com esse titulo, ela sera preparada como nova cifra.'
-    : 'Digite um titulo, artista, tag ou trecho para buscar cifras.';
   wrapper.innerHTML = `
     <div class="list-toolbar">
       <label class="music-library-search">
         <span>${options.canEdit ? 'Titulo da cifra' : 'Buscar no acervo'}</span>
-        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Digite o titulo da cifra' : 'Titulo, artista ou trecho da cifra'}" aria-describedby="music-search-help">
+        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Digite o titulo da cifra' : 'Titulo, artista ou trecho da cifra'}">
       </label>
-      <p class="form-hint" id="music-search-help">${editableHint}</p>
     </div>
     <div class="table-slot search-results" hidden></div>
   `;
