@@ -175,12 +175,17 @@ function createDashboardQuickActions(publicMode = false) {
 
 function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {
   let currentItems = items;
-  let isFocused = false;
 
   function closeResults() {
-    isFocused = false;
     slot.hidden = true;
-    clearActiveDashboardColumn(renderContext.wrapper);
+
+    // The blur event from the previous field can run just after another
+    // dashboard search receives focus. Only clear the visual state when this
+    // field is still the active one, so the newly focused cascade stays open.
+    const column = input.closest('.dashboard-search-column');
+    if (column?.classList.contains('is-active-search')) {
+      clearActiveDashboardColumn(renderContext.wrapper);
+    }
   }
 
   function update() {
@@ -200,7 +205,6 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
   }
 
   function openResults() {
-    isFocused = true;
     setActiveDashboardColumn(input, renderContext.wrapper);
     update();
   }
