@@ -5320,6 +5320,8 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 
 .musica-form .musica-form-pair > .field-tom,
 .musica-form .musica-form-pair > .field-link,
+.musica-form .musica-form-pair > .field-artist,
+.musica-form .musica-form-pair > .field-tags,
 .musica-form .musica-form-pair > .field-collaborator,
 .musica-form .musica-form-pair > .field-reviewer {
   grid-column: auto;

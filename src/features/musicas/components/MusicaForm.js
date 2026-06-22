@@ -38,10 +38,17 @@ export function MusicaForm(options = {}) {
       </label>
     `}
 
-    <label>
-      Artista
-      <input name="artista" type="text" value="${escapeHtml(initialValues.artista || '')}">
-    </label>
+    <div class="musica-form-pair musica-form-artist-tags">
+      <label class="field-artist">
+        Artista
+        <input name="artista" type="text" value="${escapeHtml(initialValues.artista || '')}">
+      </label>
+
+      <label class="field-tags">
+        Tags
+        <input name="tags" type="text" placeholder="Ex: adoracao, ceia, abertura" value="${escapeHtml(formatTagsInput(initialValues.tags || ''))}">
+      </label>
+    </div>
 
     <div class="musica-form-pair musica-form-key-link">
       <label class="field-tom">
@@ -57,11 +64,6 @@ export function MusicaForm(options = {}) {
         </span>
       </label>
     </div>
-
-    <label class="field-tags">
-      Tags
-      <input name="tags" type="text" placeholder="Ex: adoracao, ceia, abertura" value="${escapeHtml(formatTagsInput(initialValues.tags || ''))}">
-    </label>
 
     <div class="musica-form-pair musica-form-contributors">
       <label class="field-collaborator">
