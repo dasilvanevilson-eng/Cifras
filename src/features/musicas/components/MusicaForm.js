@@ -80,38 +80,40 @@ export function MusicaForm(options = {}) {
     <div class="music-form-actions">
       <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
       <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
-      <span class="inline-transpose-controls" aria-label="Transposicao de tom">
-        <button class="nav-button" type="button" data-action="transpose-form-down" aria-label="Descer meio tom">-1/2</button>
-        <span data-role="form-transpose-status">Tom</span>
-        <button class="nav-button" type="button" data-action="transpose-form-up" aria-label="Subir meio tom">+1/2</button>
-      </span>
-      <div class="voice-marker-toolbar" aria-label="Marcacoes de vozes">
-        <button class="voice-marker-toggle" type="button" data-action="toggle-voice-markers" aria-expanded="false">
-          Destacar texto
-        </button>
-        <div class="voice-marker-options" data-role="voice-marker-options" hidden>
-          ${VOICE_MARKERS.map((marker) => `
-            <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}">
-              ${escapeHtml(marker.label)}
-            </button>
-          `).join('')}
-          <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar linha</button>
-          <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
-          <details class="voice-label-settings">
-            <summary>Nomes da legenda</summary>
-            <div class="voice-label-grid">
-              ${VOICE_MARKERS.map((marker) => `
-                <label>
-                  ${escapeHtml(marker.label)}
-                  <input name="voice_label_${escapeHtml(marker.id)}" type="text" value="${escapeHtml(getInitialVoiceLabels(initialChordPro)[marker.id] || marker.label)}">
-                </label>
-              `).join('')}
-            </div>
-          </details>
-        </div>
-      </div>
       ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
-      <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
+      <div class="music-form-control-row">
+        <span class="inline-transpose-controls" aria-label="Transposicao de tom">
+          <button class="nav-button" type="button" data-action="transpose-form-down" aria-label="Descer meio tom">-1/2</button>
+          <span data-role="form-transpose-status">Tom</span>
+          <button class="nav-button" type="button" data-action="transpose-form-up" aria-label="Subir meio tom">+1/2</button>
+        </span>
+        <div class="voice-marker-toolbar" aria-label="Marcacoes de vozes">
+          <button class="voice-marker-toggle" type="button" data-action="toggle-voice-markers" aria-expanded="false">
+            Destacar texto
+          </button>
+          <div class="voice-marker-options" data-role="voice-marker-options" hidden>
+            ${VOICE_MARKERS.map((marker) => `
+              <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}">
+                ${escapeHtml(marker.label)}
+              </button>
+            `).join('')}
+            <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar linha</button>
+            <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
+            <details class="voice-label-settings">
+              <summary>Nomes da legenda</summary>
+              <div class="voice-label-grid">
+                ${VOICE_MARKERS.map((marker) => `
+                  <label>
+                    ${escapeHtml(marker.label)}
+                    <input name="voice_label_${escapeHtml(marker.id)}" type="text" value="${escapeHtml(getInitialVoiceLabels(initialChordPro)[marker.id] || marker.label)}">
+                  </label>
+                `).join('')}
+              </div>
+            </details>
+          </div>
+        </div>
+        <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
+      </div>
     </div>
 
     <div class="cifra-editor-grid">
