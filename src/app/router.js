@@ -33,7 +33,7 @@ import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
 import { BandaCoralPage } from '../features/bandaCoral/pages/BandaCoralPage.js';
 import { DicionarioAcordesPage } from '../features/acordes/pages/DicionarioAcordesPage.js';
 import { AfinadorPage } from '../features/afinador/pages/AfinadorPage.js';
-import { getFirstVisibleMenuRoute } from '../features/auth/permissions.js';
+import { canViewModule, getFirstVisibleMenuRoute } from '../features/auth/permissions.js';
 import { installPageInfoDialogs } from '../utils/pageInfoDialog.js';
 import { installSearchClearButtons } from '../utils/searchClearButtons.js';
 
@@ -118,6 +118,10 @@ export function createRouter() {
       const canAccessRoute = protectedRoutes[window.location.pathname];
 
       if (canAccessRoute && !canAccessRoute(session.profile?.papel)) {
+        return AccessDeniedPage({ session });
+      }
+
+      if (window.location.pathname === '/modo-offline' && !canViewModule(session, 'modo_offline')) {
         return AccessDeniedPage({ session });
       }
 

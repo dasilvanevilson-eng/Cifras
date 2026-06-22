@@ -15,6 +15,10 @@ export const PERMISSION_MODULES = [
     action('can_view', 'Acessar o Painel', 'Visualizar atalhos, músicas e repertórios recentes.'),
     action('can_execute', 'Iniciar músicas e repertórios pelo Painel', 'Abrir a execução a partir de atalhos e resultados da busca.'),
   ]),
+  module('modo_offline', 'Modo Offline', 'Biblioteca local para consulta e execucao de musicas e repertorios sem internet.', [
+    action('can_view', 'Acessar o Modo Offline', 'Visualizar o conteudo preparado neste dispositivo.'),
+    action('can_execute', 'Executar conteudo offline', 'Pesquisar e abrir musicas e repertorios salvos localmente.'),
+  ]),
   module('banda_coral', 'Banda/Coral', 'Sessões ao vivo para liderança e participação.', [
     action('can_view', 'Acessar Banda/Coral', 'Visualizar e entrar nas sessões disponíveis.'),
     action('can_create', 'Criar sessões ao vivo', 'Iniciar uma nova sessão para banda ou coral.'),
@@ -96,7 +100,7 @@ function action(key, label, description) {
 
 const MENU_ROUTE_ORDER = [
   { href: '/dashboard', moduleKey: 'dashboard' },
-  { href: '/modo-offline', moduleKey: 'musicas' },
+  { href: '/modo-offline', moduleKey: 'modo_offline' },
   { href: '/banda-coral', moduleKey: 'banda_coral' },
   { href: '/musicas', moduleKey: 'musicas' },
   { href: '/acordes', moduleKey: 'acordes' },
@@ -118,6 +122,7 @@ const ROLE_DEFAULTS = {
   [USER_ROLES.ADMIN]: Object.fromEntries(PERMISSION_MODULES.map((module) => [module.key, createActions(true)])),
   [USER_ROLES.EDITOR]: {
     dashboard: createActions(true, { can_manage: false }),
+    modo_offline: createActions(false, { can_view: true, can_execute: true }),
     banda_coral: createActions(true, { can_delete: false, can_export: false, can_manage: false }),
     musicas: createActions(true, { can_manage: false }),
     acordes: createActions(true, { can_create: false, can_edit: false, can_delete: false, can_export: false, can_manage: false }),
@@ -134,6 +139,7 @@ const ROLE_DEFAULTS = {
   },
   [USER_ROLES.MUSICO]: {
     dashboard: createActions(true, { can_create: false, can_edit: false, can_delete: false, can_execute: false, can_export: false, can_manage: false }),
+    modo_offline: createActions(false, { can_view: true, can_execute: true }),
     banda_coral: createActions(true, { can_create: false, can_edit: false, can_delete: false, can_export: false, can_manage: false }),
     musicas: createActions(true, { can_create: false, can_edit: false, can_delete: false, can_manage: false }),
     acordes: createActions(true, { can_create: false, can_edit: false, can_delete: false, can_export: false, can_manage: false }),

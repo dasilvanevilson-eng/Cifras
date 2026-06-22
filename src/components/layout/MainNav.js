@@ -108,7 +108,7 @@ function getVisibleLinks(options = {}) {
   const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
   const links = [
     { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
-    { href: '/modo-offline', label: 'Modo Offline', group: 'Uso', moduleKey: 'musicas', match: ['/modo-offline'] },
+    { href: '/modo-offline', label: 'Modo Offline', group: 'Uso', moduleKey: 'modo_offline', match: ['/modo-offline'] },
     { href: '/banda-coral', label: 'Modo Banda/Coral', group: 'Uso', moduleKey: 'banda_coral', match: ['/banda-coral'] },
     { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
