@@ -19,3 +19,14 @@ export async function replaceAgendaEventoRepertorios(eventoId, repertorioIds = [
   const ids = [...new Set(repertorioIds.filter(Boolean))];
   return ids.length ? supabase.from('agenda_evento_repertorios').insert(ids.map((repertorio_id) => ({ evento_id: eventoId, repertorio_id }))) : { error: null };
 }
+export async function updateAgendaEvento(eventoId, evento, repertorioIds = []) {
+  assertSupabaseConfig();
+  const { data, error } = await supabase.from('agenda_eventos').update(evento).eq('id', eventoId).select().single();
+  if (error || !data) return { data: null, error };
+  const { error: linkError } = await replaceAgendaEventoRepertorios(eventoId, repertorioIds);
+  return { data, error: linkError };
+}
+export async function deleteAgendaEvento(eventoId) {
+  assertSupabaseConfig();
+  return supabase.from('agenda_eventos').delete().eq('id', eventoId);
+}
