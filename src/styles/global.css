@@ -8636,10 +8636,6 @@ body.has-touch-nav .app-layout {
   align-items: start;
 }
 
-.dashboard-home-grid--status-only {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .dashboard-home-list {
   display: grid;
   gap: 8px;

@@ -78,21 +78,6 @@ export function createDashboardView({
       </div>
     </section>
     ${createDashboardQuickActions(publicMode)}
-    <section class="dashboard-home-grid dashboard-home-grid--status-only">
-      <aside class="dashboard-home-panel dashboard-status-panel">
-        <div class="dashboard-panel-heading">
-          <div>
-            <h2>Status</h2>
-            <p data-section-info>Apresenta um resumo do acervo que esta disponivel para o seu perfil, incluindo repertorios e musicas que podem ser consultados ou executados.</p>
-          </div>
-        </div>
-        ${createDashboardStatus({
-          repertorios,
-          musicas,
-          publicMode,
-        })}
-      </aside>
-    </section>
     <footer class="dashboard-test-notice">
       Este sistema esta em fase de teste/implementacao e podem ocorrer instabilidades no uso.
     </footer>
@@ -185,38 +170,6 @@ function createDashboardQuickActions(publicMode = false) {
         </a>
       `).join('')}
     </section>
-  `;
-}
-
-function createDashboardStatus({ repertorios = [], musicas = [], publicMode = false } = {}) {
-  const statusItems = [
-    {
-      label: 'Repertorios',
-      value: repertorios.length,
-      detail: 'listas para tocar',
-    },
-    {
-      label: 'Musicas',
-      value: musicas.length,
-      detail: 'cifras disponiveis',
-    },
-    {
-      label: publicMode ? 'Acesso' : 'Modo',
-      value: publicMode ? 'Publico' : 'Interno',
-      detail: publicMode ? 'link temporario' : 'area autenticada',
-    },
-  ];
-
-  return `
-    <div class="dashboard-status-grid">
-      ${statusItems.map((item) => `
-        <div class="dashboard-status-card">
-          <strong>${escapeHtml(item.value)}</strong>
-          <span>${escapeHtml(item.label)}</span>
-          <small>${escapeHtml(item.detail)}</small>
-        </div>
-      `).join('')}
-    </div>
   `;
 }
 
