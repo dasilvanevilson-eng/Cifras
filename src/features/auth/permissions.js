@@ -96,6 +96,7 @@ function action(key, label, description) {
 
 const MENU_ROUTE_ORDER = [
   { href: '/dashboard', moduleKey: 'dashboard' },
+  { href: '/modo-offline', moduleKey: 'musicas' },
   { href: '/banda-coral', moduleKey: 'banda_coral' },
   { href: '/musicas', moduleKey: 'musicas' },
   { href: '/acordes', moduleKey: 'acordes' },

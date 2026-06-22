@@ -26,6 +26,7 @@ import { PublicLetrasRepertorioPage } from '../features/public/pages/PublicLetra
 import { PublicMusicaExecucaoPage } from '../features/public/pages/PublicMusicaExecucaoPage.js';
 import { PublicRepertorioExecucaoPage } from '../features/public/pages/PublicRepertorioExecucaoPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
+import { ModoOfflinePage } from '../features/offline/pages/ModoOfflinePage.js';
 import { NotFoundPage } from '../features/system/pages/NotFoundPage.js';
 import { canManageUsers } from '../features/auth/roles.js';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage.js';
@@ -38,6 +39,7 @@ import { installSearchClearButtons } from '../utils/searchClearButtons.js';
 
 const routes = {
   '/dashboard': DashboardPage,
+  '/modo-offline': ModoOfflinePage,
   '/banda-coral': BandaCoralPage,
   '/acordes': DicionarioAcordesPage,
   '/afinador': AfinadorPage,

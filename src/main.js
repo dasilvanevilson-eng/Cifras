@@ -2,6 +2,10 @@ import './app/browserCompat.js';
 import { startApp } from './app/startApp.js';
 import './styles/global.css';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/offline-worker.js').catch(() => {}));
+}
+
 startApp().catch((error) => {
   const root = document.querySelector('#app');
 
