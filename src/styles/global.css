@@ -4162,28 +4162,38 @@ a {
   transition: opacity 180ms ease, transform 180ms ease, max-height 180ms ease, margin 180ms ease, padding 180ms ease, border-width 180ms ease;
 }
 
-.toolbar-exit-split {
+.toolbar-exit-split,
+.toolbar-utility-split {
   display: inline-flex;
   align-items: stretch;
-  overflow: hidden;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  flex: 0 0 auto;
+  min-height: 36px;
 }
 
-.toolbar-exit-split .song-toolbar-back {
-  flex: 1 1 50%;
-  border: 0;
-  border-right: 1px solid var(--color-border-strong);
-  border-radius: 0;
+.toolbar-exit-split {
+  width: 170px;
+}
+
+.toolbar-utility-split {
+  width: 140px;
+}
+
+.toolbar-exit-split > *,
+.toolbar-utility-split > * {
+  flex: 1 1 0;
+  width: 50%;
+  min-width: 0;
+}
+
+.toolbar-exit-split > :first-child,
+.toolbar-utility-split > :first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.toolbar-exit-split .toolbar-exit-collapse {
-  flex: 1 1 50%;
-  min-width: 0;
-  border: 0;
-  border-radius: 0;
+.toolbar-exit-split > :last-child,
+.toolbar-utility-split > :last-child {
+  margin-left: -1px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -4259,7 +4269,8 @@ a {
 }
 
 .has-auto-toolbar > .performance-toolbar .toolbar-exit-split,
-.has-auto-toolbar > .transpose-toolbar .toolbar-exit-split {
+.has-auto-toolbar > .transpose-toolbar .toolbar-exit-split,
+.has-auto-toolbar > .performance-toolbar .toolbar-utility-split {
   display: flex;
   width: 100%;
 }
@@ -4272,6 +4283,11 @@ a {
 
 .has-auto-toolbar > .performance-toolbar .toolbar-exit-split .toolbar-exit-collapse,
 .has-auto-toolbar > .transpose-toolbar .toolbar-exit-split .toolbar-exit-collapse {
+  flex: 1 1 50%;
+  width: 50%;
+}
+
+.has-auto-toolbar > .performance-toolbar .toolbar-utility-split > * {
   flex: 1 1 50%;
   width: 50%;
 }
@@ -11578,4 +11594,12 @@ html[data-interface-density="compact"] .account-password-panel {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
   color: var(--color-danger);
+}
+
+/* Preserva duas metades iguais nas barras de execucao com regras proprias. */
+.repertorio-performance-view .performance-toolbar .toolbar-exit-split > *,
+.repertorio-performance-view .performance-toolbar .toolbar-utility-split > * {
+  flex: 1 1 0;
+  width: 50%;
+  min-width: 0;
 }

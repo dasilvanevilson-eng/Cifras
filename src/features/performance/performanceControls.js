@@ -41,7 +41,10 @@ export function createPerformanceToolbar({
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
         <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
       </div>
-      <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
+      <div class="toolbar-utility-split" role="group" aria-label="Layout e link">
+        <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
+        ${useDynamicSongLink ? createSongLinkAction() : createSongLinkAction(linkHref, escapedLinkHref)}
+      </div>
       <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
       <div class="scroll-stepper" role="group" aria-label="Rolagem automatica">
         <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
@@ -52,7 +55,6 @@ export function createPerformanceToolbar({
           ${createCapoOptions()}
         </select>
       </label>
-      ${useDynamicSongLink ? createSongLinkAction() : createSongLinkAction(linkHref, escapedLinkHref)}
       <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
     </div>
   `;
