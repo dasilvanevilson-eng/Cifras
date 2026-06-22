@@ -43,33 +43,37 @@ export function MusicaForm(options = {}) {
       <input name="artista" type="text" value="${escapeHtml(initialValues.artista || '')}">
     </label>
 
-    <label class="field-tom">
-      Tom
-      <input name="tom" type="text" placeholder="Ex: C, D, Em" value="${escapeHtml(initialValues.tom || '')}">
-    </label>
+    <div class="musica-form-pair musica-form-key-link">
+      <label class="field-tom">
+        Tom
+        <input name="tom" type="text" placeholder="Ex: C, D, Em" value="${escapeHtml(initialValues.tom || '')}">
+      </label>
+
+      <label class="field-link">
+        Link
+        <span class="field-with-action">
+          <input name="musica_link" type="url" placeholder="https://..." value="${escapeHtml(initialValues.musica_link || '')}">
+          <a class="field-action-link" href="#" target="_blank" rel="noreferrer" hidden>Abrir</a>
+        </span>
+      </label>
+    </div>
 
     <label class="field-tags">
       Tags
       <input name="tags" type="text" placeholder="Ex: adoracao, ceia, abertura" value="${escapeHtml(formatTagsInput(initialValues.tags || ''))}">
     </label>
 
-    <label>
-      Link
-      <span class="field-with-action">
-        <input name="musica_link" type="url" placeholder="https://..." value="${escapeHtml(initialValues.musica_link || '')}">
-        <a class="field-action-link" href="#" target="_blank" rel="noreferrer" hidden>Abrir</a>
-      </span>
-    </label>
+    <div class="musica-form-pair musica-form-contributors">
+      <label class="field-collaborator">
+        Colaborador
+        <input name="colaborador_nome" type="text" value="${escapeHtml(initialValues.colaborador_nome || '')}">
+      </label>
 
-    <label class="field-collaborator">
-      Colaborador
-      <input name="colaborador_nome" type="text" value="${escapeHtml(initialValues.colaborador_nome || '')}">
-    </label>
-
-    <label class="field-reviewer">
-      Revisor
-      <input name="revisado_por_nome" type="text" value="${escapeHtml(initialValues.revisado_por_nome || '')}">
-    </label>
+      <label class="field-reviewer">
+        Revisor
+        <input name="revisado_por_nome" type="text" value="${escapeHtml(initialValues.revisado_por_nome || '')}">
+      </label>
+    </div>
 
     <div class="music-form-actions">
       <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
