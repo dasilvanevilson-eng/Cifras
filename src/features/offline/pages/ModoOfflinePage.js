@@ -18,7 +18,10 @@ export async function ModoOfflinePage({ session } = {}) {
       <div class="offline-actions"><button class="button" type="button" data-action="sync" ${isOfflineMode() ? 'disabled' : ''}>${snapshot ? 'Atualizar conteudo offline' : 'Disponibilizar offline'}</button><span data-role="message" aria-live="polite"></span></div>
     </section>
     <section class="offline-library" data-role="library" hidden>
-      <div class="offline-search"><label>Buscar no acervo salvo<input type="search" data-role="search" placeholder="Musica, artista, repertorio ou tema"></label></div>
+      <div class="offline-searches">
+        <label class="offline-search">Buscar musicas<input type="search" data-role="music-search" placeholder="Titulo, artista ou tags"></label>
+        <label class="offline-search">Buscar repertorios<input type="search" data-role="repertory-search" placeholder="Nome, data ou tema"></label>
+      </div>
       <div class="offline-results" data-role="results"></div>
     </section>
     <section class="offline-execution" data-role="execution"></section>
@@ -47,12 +50,13 @@ export async function ModoOfflinePage({ session } = {}) {
     const time = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(snapshot.syncedAt));
     summary.innerHTML = `<strong>${snapshot.musicas.length} musicas e ${snapshot.repertorios.length} repertorios prontos para uso.</strong><span>Ultima sincronizacao: ${time}</span>`;
     library.hidden = false;
-    renderResults(page.querySelector('[data-role="search"]').value);
+    renderResults();
   };
-  const renderResults = (query = '') => {
-    const term = normalize(query);
-    const musicas = snapshot.musicas.filter((item) => normalize(`${item.titulo || item.nome || ''} ${item.artista || ''} ${item.tags || ''}`).includes(term));
-    const repertorios = snapshot.repertorios.filter((item) => normalize(`${item.nome || item.titulo || ''} ${item.data || ''}`).includes(term));
+  const renderResults = () => {
+    const musicTerm = normalize(page.querySelector('[data-role="music-search"]').value);
+    const repertoryTerm = normalize(page.querySelector('[data-role="repertory-search"]').value);
+    const musicas = sortByTitle(snapshot.musicas.filter((item) => normalize(`${item.titulo || item.nome || ''} ${item.artista || ''} ${item.tags || ''}`).includes(musicTerm)));
+    const repertorios = sortByTitle(snapshot.repertorios.filter((item) => normalize(`${item.nome || item.titulo || ''} ${item.data || ''}`).includes(repertoryTerm)));
     results.innerHTML = `${createResultGroup('Musicas', musicas, 'musica')}${createResultGroup('Repertorios', repertorios, 'repertorio')}`;
     results.querySelectorAll('[data-offline-item]').forEach((button) => button.addEventListener('click', () => {
       const type = button.dataset.offlineItem;
@@ -63,7 +67,8 @@ export async function ModoOfflinePage({ session } = {}) {
       execution.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }));
   };
-  page.querySelector('[data-role="search"]').addEventListener('input', (event) => renderResults(event.target.value));
+  page.querySelector('[data-role="music-search"]').addEventListener('input', renderResults);
+  page.querySelector('[data-role="repertory-search"]').addEventListener('input', renderResults);
   syncButton.addEventListener('click', async () => {
     syncButton.disabled = true;
     message.textContent = 'Sincronizando biblioteca local...';
@@ -80,4 +85,5 @@ function createResultGroup(title, items, type) {
   return `<section><h2>${title}</h2>${items.length ? `<div class="offline-result-list">${items.map((item) => `<button type="button" data-offline-item="${type}" data-id="${escapeHtml(item.id)}"><strong>${escapeHtml(item.titulo || item.nome || '')}</strong><span>${escapeHtml(type === 'musica' ? (item.artista || 'Sem artista') : (item.data || 'Sem data'))}</span></button>`).join('')}</div>` : '<p>Nenhum resultado.</p>'}</section>`;
 }
 function normalize(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function sortByTitle(items) { return [...items].sort((a, b) => String(a.titulo || a.nome || '').localeCompare(String(b.titulo || b.nome || ''), 'pt-BR', { sensitivity: 'base' })); }
 function escapeHtml(value) { return String(value || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;'); }
