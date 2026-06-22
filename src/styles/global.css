@@ -11582,12 +11582,28 @@ html[data-interface-density="compact"] .account-password-panel {
   }
 }
 
-/* Mantem apenas o texto de saida em destaque, sem quebrar os temas. */
-.toolbar-exit-split > *,
-.toolbar-utility-split > * {
+/* Padrao unico para quaisquer botoes adjacentes na barra de execucao. */
+.performance-split-control > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   border: 1px solid var(--color-border-strong) !important;
   background: var(--color-surface);
   box-shadow: none;
+  outline: 1px solid var(--color-border-strong);
+  outline-offset: -1px;
+}
+
+.performance-split-control > :first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.performance-split-control > :last-child {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .toolbar-exit-split .song-toolbar-back {

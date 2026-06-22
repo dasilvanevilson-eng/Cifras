@@ -41,7 +41,7 @@ export function createPerformanceToolbar({
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
         <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
       </div>
-      <div class="toolbar-utility-split" role="group" aria-label="Layout e link">
+      <div class="toolbar-utility-split performance-split-control" role="group" aria-label="Layout e link">
         <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
         ${useDynamicSongLink ? createSongLinkAction() : createSongLinkAction(linkHref, escapedLinkHref)}
       </div>

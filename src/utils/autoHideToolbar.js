@@ -33,7 +33,7 @@ export function setupAutoHideToolbar(wrapper, {
   const exitButton = toolbar.querySelector('.song-toolbar-back');
   if (exitButton) {
     const exitControl = document.createElement('div');
-    exitControl.className = 'toolbar-exit-split';
+    exitControl.className = 'toolbar-exit-split performance-split-control';
 
     const collapseButton = document.createElement('button');
     collapseButton.type = 'button';
