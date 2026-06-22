@@ -199,9 +199,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
     slot.hidden = false;
   }
 
-  input.addEventListener('input', () => {
-    if (isFocused) update();
-  });
+  input.addEventListener('input', update);
   input.addEventListener('focus', () => {
     isFocused = true;
     setActiveDashboardColumn(input, renderContext.wrapper);
