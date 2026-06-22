@@ -38,7 +38,7 @@ export function createPerformanceToolbar({
       ` : ''}
       <div class="toolbar-display-split performance-split-control" role="group" aria-label="Exibicao da tela">
         <button class="nav-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">Tela cheia</button>
-        <button class="nav-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
+        <button class="nav-button theme-toggle-button" type="button" data-action="theme" aria-label="Tela escura" title="Tela escura">Tela escura</button>
       </div>
       <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>

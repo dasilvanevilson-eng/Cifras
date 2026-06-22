@@ -11639,3 +11639,24 @@ html[data-interface-density="compact"] .account-password-panel {
   width: 50%;
   min-width: 0;
 }
+
+/* O grupo de exibicao permanece visivel antes e depois da inicializacao. */
+.repertorio-performance-view .performance-toolbar .toolbar-display-split {
+  display: flex;
+  flex: 0 0 220px;
+  width: 220px;
+  min-height: 36px;
+}
+
+.repertorio-performance-view .performance-toolbar .toolbar-display-split > [data-action] {
+  display: inline-flex;
+  flex: 1 1 0;
+  width: 50%;
+  min-width: 0;
+}
+
+.repertorio-performance-view.has-auto-toolbar > .performance-toolbar .toolbar-display-split {
+  display: flex;
+  flex: 0 0 auto;
+  width: 100%;
+}
