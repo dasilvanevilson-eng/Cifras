@@ -1154,6 +1154,33 @@ a {
   max-height: none;
 }
 
+/* Resultados de cifras no Painel: leitura rapida sem transformar cada titulo em um cartao alto. */
+.dashboard-page .dashboard-cascade-results[data-slot="musicas"] {
+  padding: 5px;
+}
+
+.dashboard-page .dashboard-cascade-results[data-slot="musicas"] .dashboard-list {
+  gap: 4px;
+}
+
+.dashboard-page .dashboard-cascade-results[data-slot="musicas"] .dashboard-list-item {
+  min-height: 34px;
+  padding: 3px 6px;
+  gap: 7px;
+}
+
+.dashboard-page .dashboard-cascade-results[data-slot="musicas"] .dashboard-list-item h3 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.dashboard-page .dashboard-cascade-results[data-slot="musicas"] .dashboard-item-actions .button-link {
+  min-height: 28px;
+  padding: 4px 7px;
+  font-size: 12px;
+}
+
 .dashboard-selected-slot {
   grid-column: 1 / -1;
   margin-top: 12px;
