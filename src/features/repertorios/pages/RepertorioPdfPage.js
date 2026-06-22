@@ -269,11 +269,7 @@ function renderPdfSummary(doc, layout, { musicasAssociadas, songPageByNumber, su
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(12);
       doc.setTextColor(20, 72, 62);
-      doc.textWithLink(text, layout.marginX, y, {
-        pageNumber: targetPage,
-        top: 0,
-        zoom: 'FitH',
-      });
+      writeInternalPdfLink(doc, text, layout.marginX, y, targetPage);
       doc.setTextColor(0, 0, 0);
       y += 24;
     });
@@ -348,12 +344,7 @@ function renderPdfSongHeader(doc, layout, {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(20, 72, 62);
-  doc.textWithLink('Voltar ao indice', layout.pageWidth - layout.marginX, y, {
-    align: 'right',
-    pageNumber: summaryPage,
-    top: 0,
-    zoom: 'FitH',
-  });
+  writeInternalPdfLink(doc, 'Voltar ao indice', layout.pageWidth - layout.marginX, y, summaryPage, { align: 'right' });
   doc.setTextColor(0, 0, 0);
   y += (titleLines.length * 18) + 4;
 
@@ -382,6 +373,19 @@ function renderPdfSongHeader(doc, layout, {
   }
 
   return y + 10;
+}
+
+function writeInternalPdfLink(doc, text, x, y, targetPage, { align = 'left' } = {}) {
+  const width = doc.getTextWidth(text);
+  const linkX = align === 'right' ? x - width : x;
+  doc.text(text, x, y, { align });
+  // A anotacao GoTo fica gravada no proprio PDF; por isso o link continua
+  // navegavel mesmo quando o arquivo e aberto sem internet em outro leitor.
+  doc.link(linkX, y - 12, width, 16, {
+    pageNumber: targetPage,
+    top: 0,
+    zoom: 'FitH',
+  });
 }
 
 function renderPdfPageTitle(doc, layout, title) {
