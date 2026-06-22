@@ -214,14 +214,13 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
   input.addEventListener('search', () => {
     if (!input.value) openResults();
   });
-  input.addEventListener('blur', () => {
-    window.setTimeout(() => {
-      if (slot.contains(document.activeElement)) return;
-      closeResults();
-    }, 140);
-  });
-  document.addEventListener('pointerdown', (event) => {
-    if (slot.hidden || input.contains(event.target) || slot.contains(event.target)) return;
+
+  // Do not close on blur or pointerdown: clearing a native search input and
+  // touch-scrolling can trigger either event. A real click outside this search
+  // block is the intentional dismissal gesture.
+  document.addEventListener('click', (event) => {
+    const column = input.closest('.dashboard-search-column');
+    if (slot.hidden || column?.contains(event.target)) return;
 
     closeResults();
   });
