@@ -1,5 +1,6 @@
 import { listMusicas } from '../../../services/musicasService.js';
 import { listMusicasDoRepertorio, listRepertorios } from '../../../services/repertoriosService.js';
+import { getRecentItems } from '../../../utils/recentItems.js';
 
 export async function DashboardPage() {
   const page = document.createElement('section');
@@ -20,6 +21,7 @@ export async function DashboardPage() {
     page.replaceChildren(createDashboardView({
       musicas: musicas || [],
       repertorios: repertorios || [],
+      recentItems: getRecentItems(),
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -34,6 +36,7 @@ export function createDashboardView({
   repertorios,
   publicMode = false,
   publicToken = '',
+  recentItems = null,
   inviteTitle = '',
   listMusicasDoRepertorioFn = listMusicasDoRepertorio,
 } = {}) {
@@ -89,6 +92,7 @@ export function createDashboardView({
         ${createDashboardHighlights({
           repertorios: repertoriosOrdenados,
           musicas: musicasOrdenadas,
+          recentItems,
           publicMode,
           publicToken,
         })}
@@ -205,9 +209,33 @@ function createDashboardQuickActions(publicMode = false) {
 function createDashboardHighlights({
   repertorios = [],
   musicas = [],
+  recentItems = null,
   publicMode = false,
   publicToken = '',
 } = {}) {
+  if (recentItems !== null) {
+    const items = (Array.isArray(recentItems) ? recentItems : [])
+      .filter((item) => item?.label && item?.url)
+      .sort((a, b) => String(b.accessedAt || '').localeCompare(String(a.accessedAt || '')))
+      .slice(0, 5);
+
+    if (!items.length) {
+      return '<p class="page-status">Nenhum item acessado recentemente.</p>';
+    }
+
+    return `
+      <div class="dashboard-home-list">
+        ${items.map((item) => `
+          <a class="dashboard-home-item" href="${escapeHtml(item.url)}">
+            <span>${escapeHtml(getRecentItemTypeLabel(item.type))}</span>
+            <strong>${escapeHtml(item.label)}</strong>
+            <small>${escapeHtml(item.detail || '')}</small>
+          </a>
+        `).join('')}
+      </div>
+    `;
+  }
+
   const items = [
     ...repertorios.slice(0, 2).map((repertorio) => ({
       type: 'Repertorio',
@@ -238,6 +266,17 @@ function createDashboardHighlights({
       `).join('')}
     </div>
   `;
+}
+
+function getRecentItemTypeLabel(type) {
+  const labels = {
+    musica: 'Musica',
+    repertorio: 'Repertorio',
+    execucao: 'Execucao',
+    letra: 'Letra',
+  };
+
+  return labels[type] || 'Item';
 }
 
 function createDashboardStatus({ repertorios = [], musicas = [], publicMode = false } = {}) {
