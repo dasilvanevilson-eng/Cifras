@@ -199,11 +199,16 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
     slot.hidden = false;
   }
 
-  input.addEventListener('input', update);
-  input.addEventListener('focus', () => {
+  function openResults() {
     isFocused = true;
     setActiveDashboardColumn(input, renderContext.wrapper);
     update();
+  }
+
+  input.addEventListener('input', update);
+  input.addEventListener('focus', openResults);
+  input.addEventListener('search', () => {
+    if (!input.value) openResults();
   });
   input.addEventListener('blur', () => {
     window.setTimeout(() => {
