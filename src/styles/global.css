@@ -5343,6 +5343,22 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   padding-top: 14px;
 }
 
+.musica-form .music-form-actions .inline-transpose-controls {
+  order: 10;
+  flex: 0 0 auto;
+}
+
+.musica-form .music-form-actions > .voice-marker-toolbar {
+  order: 10;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.musica-form .music-form-actions > .button[type="submit"] {
+  order: 11;
+  flex: 1 1 100%;
+}
+
 .voice-marker-toolbar {
   display: flex;
   flex-wrap: wrap;
