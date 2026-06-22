@@ -30,7 +30,7 @@ export function MusicaForm(options = {}) {
   form.innerHTML = `
     ${hideTitleField ? `
       <input name="titulo" type="hidden" required value="${escapeHtml(titleValue)}">
-      <p class="musica-current-title">${escapeHtml(titleValue ? `Titulo: ${titleValue}` : 'Digite um titulo no campo acima para iniciar.')}</p>
+      ${titleValue ? `<p class="musica-current-title">${escapeHtml(`Titulo: ${titleValue}`)}</p>` : ''}
     ` : `
       <label>
         Titulo

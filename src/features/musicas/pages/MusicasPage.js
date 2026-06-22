@@ -28,7 +28,7 @@ export async function MusicasPage({ session } = {}) {
           <h2>Buscar ou criar cifra</h2>
           <p data-section-info>${canEdit ? 'Pesquise pelo titulo para encontrar uma cifra existente e edita-la. Quando nao houver resultado, o mesmo fluxo permite iniciar um novo cadastro no acervo.' : 'Pesquise por titulo, artista, tag ou trecho da letra para localizar e executar as cifras liberadas para o seu acesso.'}</p>
         </div>
-        <span class="music-library-mode">${canEdit ? 'Modo edicao' : 'Modo execucao'}</span>
+        <span class="music-library-mode">${canEdit ? 'Modo edicao consulta alteracao exclusao' : 'Modo execucao'}</span>
       </div>
       <div class="list-slot">
         <div class="page-status">Carregando musicas...</div>
