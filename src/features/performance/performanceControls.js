@@ -24,11 +24,6 @@ export function createPerformanceToolbar({
   return `
     <div class="performance-toolbar">
       ${showBack ? `<a class="button-link secondary icon-action back-icon-action song-toolbar-back" href="${escapeHtml(backHref)}" aria-label="Sair" title="Sair">Sair</a>` : ''}
-      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
-        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
-        <span class="transpose-status" data-role="transpose-status">Tom</span>
-        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
-      </div>
       ${showSequence ? `
         <div class="sequence-stepper" role="group" aria-label="Sequencia de exibicao">
           <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior"${previousDisabled ? ' disabled' : ''}>&lsaquo;</button>
@@ -47,6 +42,11 @@ export function createPerformanceToolbar({
       <div class="toolbar-utility-split performance-split-control" role="group" aria-label="Layout e link">
         <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
         ${useDynamicSongLink ? createSongLinkAction() : createSongLinkAction(linkHref, escapedLinkHref)}
+      </div>
+      <div class="key-stepper" role="group" aria-label="Ajuste de tom">
+        <button class="nav-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
+        <span class="transpose-status" data-role="transpose-status">Tom</span>
+        <button class="nav-button" type="button" data-action="transpose-up" aria-label="Subir meio tom" title="Subir meio tom">+1/2</button>
       </div>
       <div class="scroll-stepper" role="group" aria-label="Rolagem automatica">
         <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
