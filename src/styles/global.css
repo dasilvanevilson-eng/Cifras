@@ -4163,7 +4163,8 @@ a {
 }
 
 .toolbar-exit-split,
-.toolbar-utility-split {
+.toolbar-utility-split,
+.toolbar-display-split {
   display: inline-flex;
   align-items: stretch;
   flex: 0 0 auto;
@@ -4178,21 +4179,28 @@ a {
   width: 140px;
 }
 
+.toolbar-display-split {
+  width: 220px;
+}
+
 .toolbar-exit-split > *,
-.toolbar-utility-split > * {
+.toolbar-utility-split > *,
+.toolbar-display-split > * {
   flex: 1 1 0;
   width: 50%;
   min-width: 0;
 }
 
 .toolbar-exit-split > :first-child,
-.toolbar-utility-split > :first-child {
+.toolbar-utility-split > :first-child,
+.toolbar-display-split > :first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
 .toolbar-exit-split > :last-child,
-.toolbar-utility-split > :last-child {
+.toolbar-utility-split > :last-child,
+.toolbar-display-split > :last-child {
   margin-left: -1px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -4270,7 +4278,8 @@ a {
 
 .has-auto-toolbar > .performance-toolbar .toolbar-exit-split,
 .has-auto-toolbar > .transpose-toolbar .toolbar-exit-split,
-.has-auto-toolbar > .performance-toolbar .toolbar-utility-split {
+.has-auto-toolbar > .performance-toolbar .toolbar-utility-split,
+.has-auto-toolbar > .performance-toolbar .toolbar-display-split {
   display: flex;
   width: 100%;
 }
@@ -4288,6 +4297,11 @@ a {
 }
 
 .has-auto-toolbar > .performance-toolbar .toolbar-utility-split > * {
+  flex: 1 1 50%;
+  width: 50%;
+}
+
+.has-auto-toolbar > .performance-toolbar .toolbar-display-split > * {
   flex: 1 1 50%;
   width: 50%;
 }

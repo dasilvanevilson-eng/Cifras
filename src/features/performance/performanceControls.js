@@ -36,7 +36,10 @@ export function createPerformanceToolbar({
           <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${nextDisabled ? ' disabled' : ''}>&rsaquo;</button>
         </div>
       ` : ''}
-      <button class="nav-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">Tela cheia</button>
+      <div class="toolbar-display-split performance-split-control" role="group" aria-label="Exibicao da tela">
+        <button class="nav-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">Tela cheia</button>
+        <button class="nav-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
+      </div>
       <div class="font-stepper" role="group" aria-label="Tamanho da fonte">
         <button class="nav-button" type="button" data-action="font-down" aria-label="Diminuir fonte">A-</button>
         <button class="nav-button" type="button" data-action="font-up" aria-label="Aumentar fonte">A+</button>
@@ -45,7 +48,6 @@ export function createPerformanceToolbar({
         <button class="nav-button" type="button" data-action="two-columns" aria-label="Visualizacao em duas colunas" title="Visualizacao em duas colunas">2 col</button>
         ${useDynamicSongLink ? createSongLinkAction() : createSongLinkAction(linkHref, escapedLinkHref)}
       </div>
-      <button class="nav-button icon-button theme-toggle-button" type="button" data-action="theme" aria-label="Alternar tela clara e escura" title="Alternar tela clara e escura"></button>
       <div class="scroll-stepper" role="group" aria-label="Rolagem automatica">
         <button class="nav-button icon-button" type="button" data-action="autoscroll" aria-label="Iniciar ou pausar rolagem" title="Rolagem automatica">&#9654;</button>
         <input type="range" min="1" max="8" value="3" data-action="speed" aria-label="Velocidade da rolagem">
