@@ -657,14 +657,15 @@ a {
 }
 
 .offline-page { display: grid; gap: 18px; max-width: 1080px; }
-.offline-hero, .offline-panel, .offline-library { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-xs); }
+.offline-hero, .offline-panel, .offline-library { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-raised); box-shadow: var(--shadow-xs); }
+.offline-hero { background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary-soft) 62%, var(--color-surface-raised)), var(--color-surface-raised) 62%); }
 .offline-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px; }
 .offline-hero h1 { margin: 2px 0 6px; color: var(--color-text); }
 .offline-hero p, .offline-summary span { margin: 0; color: var(--color-text-muted); }
 .offline-kicker { color: var(--color-primary); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .offline-status { flex: 0 0 auto; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; }
-.offline-status.is-online { background: rgba(22,117,101,.12); color: var(--color-primary); }
-.offline-status.is-offline { background: rgba(190,112,34,.15); color: #96581a; }
+.offline-status.is-online { background: var(--color-primary-soft); color: var(--color-primary-strong); }
+.offline-status.is-offline { background: var(--color-accent-soft); color: var(--color-accent); }
 .offline-panel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; }
 .offline-summary { display: grid; gap: 5px; }
 .offline-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -676,7 +677,7 @@ a {
 .offline-results p { color: var(--color-text-muted); font-size: 13px; }
 .offline-result-list { display: grid; gap: 8px; max-height: 380px; overflow: auto; padding-right: 3px; }
 .offline-result-list button { display: grid; gap: 3px; width: 100%; padding: 11px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; color: var(--color-text); text-align: left; cursor: pointer; }
-.offline-result-list button:hover, .offline-result-list button:focus-visible { border-color: var(--color-primary); background: rgba(22,117,101,.06); outline: 0; }
+.offline-result-list button:hover, .offline-result-list button:focus-visible { border-color: var(--color-primary); background: var(--color-primary-soft); outline: 0; }
 .offline-result-list span { color: var(--color-text-muted); font-size: 13px; }
 .offline-execution { min-width: 0; }
 
