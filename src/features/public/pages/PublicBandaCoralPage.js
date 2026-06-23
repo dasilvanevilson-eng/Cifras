@@ -939,7 +939,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
     const query = normalizeText(repertorioMusicSearch.value);
     const musicasDoRepertorioSelecionado = repertorioMusicas
-      .filter((item) => item.repertorio_id === selectedRepertorio.id && item?.musicas);
+      .filter((item) => item.repertorio_id === selectedRepertorio.id && item?.musicas)
+      .sort((a, b) => compareText(
+        getField(a.musicas, ['titulo', 'nome', 'title']),
+        getField(b.musicas, ['titulo', 'nome', 'title']),
+      ));
     const filteredResults = query
       ? musicasDoRepertorioSelecionado.filter((item) => matchesMusicaSearch(item.musicas, query))
       : musicasDoRepertorioSelecionado;
@@ -1054,9 +1058,13 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function orderSelectedItemsFirst(items, selectedItems) {
-    const selectedIds = new Set(selectedItems.map((item) => item.id));
+    const itemsById = new Map(items.map((item) => [item.id, item]));
+    const selected = selectedItems
+      .map((item) => itemsById.get(item.id))
+      .filter(Boolean);
+    const selectedIds = new Set(selected.map((item) => item.id));
     return [
-      ...items.filter((item) => selectedIds.has(item.id)),
+      ...selected,
       ...items.filter((item) => !selectedIds.has(item.id)),
     ];
   }
@@ -1454,6 +1462,10 @@ function normalizeText(value) {
 function getField(record, names) {
   const fieldName = names.find((name) => record?.[name]);
   return fieldName ? String(record[fieldName]) : '';
+}
+
+function compareText(a, b) {
+  return String(a || '').localeCompare(String(b || ''), 'pt-BR', { sensitivity: 'base' });
 }
 
 function escapeHtml(value) {
