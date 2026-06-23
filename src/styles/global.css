@@ -11336,7 +11336,7 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .agenda-datetime-fields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(104px, 0.7fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
   gap: 8px;
 }
 
