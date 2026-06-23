@@ -55,6 +55,7 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
     ${createPerformanceToolbar({
       backHref: returnTo,
       linkHref: link && link !== '-' ? link : '',
+      showPrint: false,
     })}
     <section class="performance-song">
       <header class="repertorio-song-title-bar">
@@ -154,7 +155,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
 
   fullscreenButton.addEventListener('click', toggleFullscreen);
 
-  printButton.addEventListener('click', () => {
+  printButton?.addEventListener('click', () => {
     window.print();
   });
 

@@ -18,6 +18,7 @@ export function createPerformanceToolbar({
   nextDisabled = false,
   linkHref = '',
   useDynamicSongLink = false,
+  showPrint = true,
 } = {}) {
   const escapedLinkHref = escapeHtml(linkHref);
 
@@ -57,7 +58,7 @@ export function createPerformanceToolbar({
           ${createCapoOptions()}
         </select>
       </label>
-      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>
+      ${showPrint ? '<button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">&#128424;</button>' : ''}
     </div>
   `;
 }

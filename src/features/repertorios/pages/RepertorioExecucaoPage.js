@@ -97,7 +97,6 @@ function createPerformanceViewLegacy({ repertorio, musicasAssociadas, returnTo }
         <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica">›</button>
       </div>
       <button class="nav-button" type="button" data-action="fullscreen" aria-label="Tela cheia" title="Tela cheia">Tela cheia</button>
-      <button class="nav-button icon-button" type="button" data-action="print" aria-label="Imprimir ou salvar em PDF" title="Imprimir ou salvar em PDF">🖨</button>
       <div class="key-stepper" role="group" aria-label="Ajuste de tom">
         <button class="nav-button icon-button" type="button" data-action="transpose-down" aria-label="Descer meio tom" title="Descer meio tom">-1/2</button>
         <span class="transpose-status" data-role="transpose-status">Tom</span>
@@ -241,7 +240,7 @@ function setupPerformanceControlsLegacy(wrapper) {
     toggleInternalFullscreen(wrapper, fullscreenButton, renderCurrentSong);
   });
 
-  printButton.addEventListener('click', () => {
+  printButton?.addEventListener('click', () => {
     window.print();
   });
 
@@ -403,6 +402,7 @@ export function createPerformanceViewV2({
       backHref: getBackUrl(returnTo, repertorio.id),
       showSequence: true,
       useDynamicSongLink: true,
+      showPrint: false,
     })}
     <div class="performance-list"></div>
   `;
@@ -568,7 +568,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
   fullscreenButton.addEventListener('click', togglePerformanceFullscreen);
 
-  printButton.addEventListener('click', () => {
+  printButton?.addEventListener('click', () => {
     window.print();
   });
 

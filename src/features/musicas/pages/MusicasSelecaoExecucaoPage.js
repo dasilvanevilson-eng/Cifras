@@ -71,6 +71,7 @@ function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) 
       showSequence: true,
       sequencePosition: `1/${musicas.length}`,
       useDynamicSongLink: true,
+      showPrint: false,
     })}
     <div class="performance-list"></div>
   `;
@@ -190,7 +191,7 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
 
   fullscreenButton.addEventListener('click', togglePerformanceFullscreen);
 
-  printButton.addEventListener('click', () => {
+  printButton?.addEventListener('click', () => {
     window.print();
   });
 
