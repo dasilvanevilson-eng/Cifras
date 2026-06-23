@@ -11275,6 +11275,34 @@ html[data-interface-density="compact"] .account-password-panel {
   padding: 0;
 }
 
+.public-invite-repertorios {
+  position: relative;
+}
+
+.public-invite-repertorio-search {
+  display: grid;
+  gap: 6px;
+}
+
+.public-invite-repertorio-cascade {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 4px);
+  right: 0;
+  left: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.public-invite-repertorio-cascade[hidden] {
+  display: none;
+}
+
 .public-image-link-page {
   display: grid;
   min-height: 100dvh;

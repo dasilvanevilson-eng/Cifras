@@ -54,7 +54,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
           </label>
           <div class="public-invite-repertorios" data-role="banda-repertorios">
             <h3>Repertorios liberados</h3>
-            <div data-role="banda-repertorios-list">
+            <label class="public-invite-repertorio-search">
+              Buscar repertório
+              <input data-action="search-banda-repertorios" type="search" placeholder="Nome ou data">
+            </label>
+            <div class="public-invite-repertorio-cascade" data-role="banda-repertorios-list" hidden>
               <p class="page-status">Carregando repertorios...</p>
             </div>
           </div>
@@ -103,6 +107,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const bandaPermissions = page.querySelector('[data-role="banda-permissions"]');
   const letrasPermissions = page.querySelector('[data-role="letras-permissions"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
+  const repertoriosSearch = page.querySelector('[data-action="search-banda-repertorios"]');
   const letrasRepertoriosSlot = page.querySelector('[data-role="letras-repertorios-list"]');
   const bandaLeaderInput = form.elements.allow_banda_leader;
   const bandaMemberInput = form.elements.allow_banda_member;
@@ -118,6 +123,13 @@ export async function ConvitesPublicosPage({ session } = {}) {
   [bandaLeaderInput, bandaMemberInput].forEach((input) => {
     input.addEventListener('change', () => {
       if (!bandaLeaderInput.checked && !bandaMemberInput.checked) input.checked = true;
+    });
+  });
+  repertoriosSearch.addEventListener('input', filterBandaRepertorios);
+  repertoriosSearch.addEventListener('focus', filterBandaRepertorios);
+  page.querySelector('[data-role="banda-repertorios"]').addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!page.querySelector('[data-role="banda-repertorios"]').contains(document.activeElement)) repertoriosSlot.hidden = true;
     });
   });
 
@@ -202,6 +214,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
 
     repertorios = data || [];
     repertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios, { name: 'banda_repertorio_ids', multiple: true }));
+    repertoriosSlot.hidden = true;
     letrasRepertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios, { name: 'letras_repertorio_id', multiple: false }));
   }
 
@@ -237,7 +250,17 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.allow_acervo.checked = true;
     setBandaAccessMode(form, 'ambos');
     form.elements.letras_share_full_cifra.checked = false;
+    repertoriosSearch.value = '';
+    repertoriosSlot.hidden = true;
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
+  }
+
+  function filterBandaRepertorios() {
+    const query = normalizeText(repertoriosSearch.value);
+    repertoriosSlot.querySelectorAll('.public-invite-repertorio-option').forEach((option) => {
+      option.hidden = query && !normalizeText(option.textContent).includes(query);
+    });
+    repertoriosSlot.hidden = false;
   }
 }
 
@@ -491,4 +514,8 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function normalizeText(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
