@@ -83,6 +83,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
   const contentOptions = [...wrapper.querySelectorAll('[data-content-option]')];
   const fileOptions = [...wrapper.querySelectorAll('[data-file-option]')];
   let contentType = 'cifras';
+  let fileType = 'pdf';
 
   contentOptions.forEach((option) => option.addEventListener('change', () => {
     if (!option.checked) {
@@ -102,6 +103,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
       option.checked = true;
       return;
     }
+    fileType = option.dataset.fileOption;
     fileOptions.forEach((otherOption) => {
       if (otherOption !== option) otherOption.checked = false;
     });
@@ -112,13 +114,13 @@ function createRepertoriosBrowser(repertorios, musicas) {
     const filtered = repertorios
       .filter((repertorio) => matchesSearch(repertorio, query))
       .sort((a, b) => compareRepertorios(a, b, 'nome'));
-    renderPdfSearchResults(repertorioResults, filtered, 'Nenhum repertorio encontrado.', contentType);
+    renderPdfSearchResults(repertorioResults, filtered, 'Nenhum repertorio encontrado.', contentType, fileType);
   }
 
   function renderMusicResults() {
     const query = normalizeText(musicSearchInput.value);
     const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
-    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</span>${createPdfActions(getField(musica, ['id']), contentType, 'musica')}</article>`).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
+    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => createPdfSearchResult(getField(musica, ['id']), getField(musica, ['titulo', 'nome', 'title']), contentType, fileType, 'musica')).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
     musicaResults.hidden = document.activeElement !== musicSearchInput;
     bindPdfActions(musicaResults);
   }
@@ -132,13 +134,13 @@ function createRepertoriosBrowser(repertorios, musicas) {
   return wrapper;
 }
 
-function renderPdfSearchResults(slot, repertorios, emptyText, contentType) {
-  slot.innerHTML = repertorios.length ? repertorios.slice(0, 12).map((repertorio) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</strong><span>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</span>${createPdfActions(getField(repertorio, ['id']), contentType)}</article>`).join('') : `<p class="page-status">${emptyText}</p>`;
+function renderPdfSearchResults(slot, repertorios, emptyText, contentType, fileType) {
+  slot.innerHTML = repertorios.length ? repertorios.slice(0, 12).map((repertorio) => createPdfSearchResult(getField(repertorio, ['id']), getField(repertorio, ['nome', 'titulo', 'name']), contentType, fileType)).join('') : `<p class="page-status">${emptyText}</p>`;
   slot.hidden = false;
   bindPdfActions(slot);
 }
 
-function createPdfActions(id, contentType, target = 'repertorio') { return `<div><button class="button-link secondary" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-target="${target}">Abrir para imprimir ou gerar PDF</button></div>`; }
+function createPdfSearchResult(id, title, contentType, fileType, target = 'repertorio') { return `<article class="pdf-search-result-card"><button class="pdf-search-result-title" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}" aria-label="Abrir ${escapeHtml(title)}">${escapeHtml(title)}</button></article>`; }
 function bindPdfActions(container) { container.querySelectorAll('[data-action="open-pdf"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, button.dataset.contentType, button.dataset.target))); }
 
 function createRepertoriosTable(repertorios) {
