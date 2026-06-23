@@ -24,6 +24,7 @@ export async function RepertorioPdfPage() {
   const shouldAutoPrint = params.get('autoPrint') === '1';
   const order = params.get('order') === 'alfabetica' ? 'alfabetica' : 'repertorio';
   const contentType = params.get('tipo') === 'letras' ? 'letras' : 'cifras';
+  const fileType = params.get('formato') === 'texto' ? 'texto' : 'pdf';
 
   if (!id) {
     status.className = 'page-status error';
@@ -42,6 +43,7 @@ export async function RepertorioPdfPage() {
         shouldAutoPrint,
         order,
         contentType,
+        fileType,
         isSingleSong: true,
         hideIndex,
       }));
@@ -62,6 +64,7 @@ export async function RepertorioPdfPage() {
       shouldAutoPrint,
       order,
       contentType,
+      fileType,
       hideIndex,
     }));
   } catch (error) {
@@ -78,6 +81,7 @@ function createPdfView({
   shouldAutoPrint = false,
   order = 'repertorio',
   contentType = 'cifras',
+  fileType = 'pdf',
   isSingleSong = false,
   hideIndex = false,
 }) {
@@ -98,7 +102,7 @@ function createPdfView({
     <div class="pdf-toolbar">
       <a class="button-link secondary" href="/repertorios-pdf">Voltar</a>
       <button class="button-link secondary" type="button" data-action="print">Imprimir</button>
-      <button class="button" type="button" data-action="generate-pdf">Gerar PDF</button>
+      <button class="button" type="button" data-action="generate-file">Gerar arquivo</button>
     </div>
 
     ${isSingleSong ? '' : `<section class="pdf-cover">
@@ -140,7 +144,11 @@ function createPdfView({
     window.print();
   });
 
-  wrapper.querySelector('[data-action="generate-pdf"]').addEventListener('click', () => {
+  wrapper.querySelector('[data-action="generate-file"]').addEventListener('click', () => {
+    if (fileType === 'texto') {
+      generateTextFile({ filename: suggestedFilename, musicasAssociadas, contentType, isSingleSong });
+      return;
+    }
     generateCompatiblePdf({
       filename: suggestedFilename,
       repertorio,
@@ -171,6 +179,26 @@ function createPdfView({
   }
 
   return wrapper;
+}
+
+function generateTextFile({ filename, musicasAssociadas, contentType, isSingleSong }) {
+  const sections = musicasAssociadas.map((item, index) => {
+    const number = isSingleSong ? '' : `${index + 1}. `;
+    const title = getSongTitle(item);
+    const artist = getSongArtist(item);
+    const key = getSongKey(item);
+    const content = isMusicaExcluida(item)
+      ? 'Esta musica foi excluida do acervo e permanece apenas como referencia.'
+      : getSongPrintableContent(item, contentType);
+
+    return `${number}${title}\n${artist} - Tom: ${key}\n\n${content}`;
+  });
+  const blob = new Blob([sections.join('\n\n\n')], { type: 'text/plain;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}.txt`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function generateCompatiblePdf({

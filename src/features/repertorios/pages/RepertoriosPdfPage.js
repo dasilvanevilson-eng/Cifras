@@ -139,9 +139,18 @@ function createRepertoriosBrowser(repertorios, musicas) {
   searchInput.addEventListener('input', renderRepertorioResults);
   musicSearchInput.addEventListener('focus', renderMusicResults);
   musicSearchInput.addEventListener('input', renderMusicResults);
-  document.addEventListener('pointerdown', (event) => { if (!searchInput.closest('.pdf-repertorio-search-field').contains(event.target)) repertorioResults.hidden = true; if (!musicSearchInput.closest('.pdf-repertorio-search-field').contains(event.target)) musicaResults.hidden = true; });
+  closeResultsWhenFocusLeaves(searchInput.closest('.pdf-repertorio-search-field'), repertorioResults);
+  closeResultsWhenFocusLeaves(musicSearchInput.closest('.pdf-repertorio-search-field'), musicaResults);
 
   return wrapper;
+}
+
+function closeResultsWhenFocusLeaves(field, results) {
+  field.addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!field.matches(':focus-within')) results.hidden = true;
+    });
+  });
 }
 
 function getSavedPdfOptions() {
@@ -167,7 +176,7 @@ function renderPdfSearchResults(slot, repertorios, emptyText, contentType, fileT
 }
 
 function createPdfSearchResult(id, title, contentType, fileType, target = 'repertorio') { return `<article class="pdf-search-result-card"><button class="pdf-search-result-title" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}" aria-label="Abrir ${escapeHtml(title)}">${escapeHtml(title)}</button></article>`; }
-function bindPdfActions(container) { container.querySelectorAll('[data-action="open-pdf"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, button.dataset.contentType, button.dataset.target))); }
+function bindPdfActions(container) { container.querySelectorAll('[data-action="open-pdf"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, button.dataset.contentType, button.dataset.target, button.dataset.fileType))); }
 
 function createRepertoriosTable(repertorios) {
   const table = document.createElement('table');
@@ -212,7 +221,7 @@ function createRepertoriosTable(repertorios) {
   return table;
 }
 
-async function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = 'repertorio') {
+async function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = 'repertorio', fileType = 'pdf') {
   const order = target === 'musica' ? 'repertorio' : await chooseRepertorioOrder();
   if (!order) return;
 
@@ -220,6 +229,7 @@ async function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', targ
     id: repertorioId,
     order,
     tipo: contentType === 'letras' ? 'letras' : 'cifras',
+    formato: fileType === 'texto' ? 'texto' : 'pdf',
   });
 
   if (target === 'musica') {
