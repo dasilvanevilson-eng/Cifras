@@ -11226,6 +11226,24 @@ html[data-interface-density="compact"] .account-password-panel {
   white-space: nowrap;
 }
 
+.public-invite-form [data-role="banda-acervo-access"] {
+  display: inline-flex;
+  width: fit-content;
+  gap: 0.5em;
+  align-items: center;
+  font-size: 14px;
+}
+
+.public-invite-form [data-role="banda-acervo-access"] input[type="checkbox"] {
+  flex: 0 0 1em;
+  width: 1em;
+  min-width: 1em;
+  min-height: 1em;
+  height: 1em;
+  margin: 0;
+  padding: 0;
+}
+
 .public-image-link-page {
   display: grid;
   min-height: 100dvh;
