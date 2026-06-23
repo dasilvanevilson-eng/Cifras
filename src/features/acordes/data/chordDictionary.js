@@ -224,6 +224,16 @@ export function findChordVoicings(name) {
   return createChord(parsed.root, parsed.suffix);
 }
 
+export function getChordDefinition(name) {
+  const parsed = parseChordName(name);
+  if (!parsed) return null;
+
+  return {
+    ...parsed,
+    quality: QUALITY_MAP.get(parsed.suffix)?.label || '',
+  };
+}
+
 export function filterChordsByName(chords, name) {
   const normalized = normalizeChordName(name);
   if (!normalized) return chords;

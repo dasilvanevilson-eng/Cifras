@@ -1,4 +1,10 @@
-import { findChordVoicings, getChordDictionarySize } from '../data/chordDictionary.js';
+import {
+  CHORD_QUALITIES,
+  CHORD_ROOTS,
+  findChordVoicings,
+  getChordDictionarySize,
+} from '../data/chordDictionary.js';
+import { generatePlayableChordVoicings } from '../data/playableChordVoicings.js';
 
 const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
 
@@ -21,14 +27,40 @@ export function DicionarioAcordesPage() {
     </header>
 
     <section class="chord-dictionary-tools">
+      <div class="chord-search-field">
+        <label>
+          Buscar acorde
+          <input data-field="search" type="search" inputmode="text" autocomplete="off" placeholder="Ex: C, Am, F#7, Bbmaj7" aria-describedby="chord-search-help">
+        </label>
+        <button class="nav-button chord-clear-search" type="button" data-action="clear-search" hidden aria-label="Limpar busca" title="Limpar busca">&times;</button>
+      </div>
       <label>
-        Buscar acorde
-        <input data-field="search" type="search" placeholder="Ex: C, Am, F#7, Bbmaj7">
+        Região do braço
+        <select data-field="region">
+          <option value="all">Todas as posições</option>
+          <option value="open">Formas abertas (casas 1 a 4)</option>
+          <option value="middle">Meio do braço (casas 5 a 9)</option>
+          <option value="high">Região alta (casa 10 ou mais)</option>
+        </select>
+      </label>
+      <label>
+        Exibição
+        <select data-field="mode">
+          <option value="recommended">Formas recomendadas</option>
+          <option value="playable">Explorar posições tocáveis</option>
+        </select>
       </label>
       <label class="chord-barre-toggle">
         <input data-field="barre" type="checkbox" checked>
-        <span>Incluir formatos com pestana</span>
+        <span>Incluir pestanas</span>
       </label>
+      <p id="chord-search-help" class="chord-search-help">Toque em uma nota para preencher a busca; use m, 7, maj7, sus4 e outros sufixos.</p>
+      <div class="chord-root-shortcuts" aria-label="Atalhos de notas">
+        ${CHORD_ROOTS.map((root) => `<button class="chord-root-button" type="button" data-root="${escapeHtml(root)}">${escapeHtml(root)}</button>`).join('')}
+      </div>
+      <div class="chord-quality-shortcuts" aria-label="Atalhos de tipos de acorde">
+        ${CHORD_QUALITIES.slice(0, 8).map((quality) => `<button class="chord-quality-button" type="button" data-quality="${escapeHtml(quality.suffix)}">${escapeHtml(quality.suffix || 'Maior')}</button>`).join('')}
+      </div>
     </section>
 
     <section class="chord-dictionary-results" aria-live="polite"></section>
@@ -36,18 +68,33 @@ export function DicionarioAcordesPage() {
 
   const searchInput = page.querySelector('[data-field="search"]');
   const barreInput = page.querySelector('[data-field="barre"]');
+  const regionInput = page.querySelector('[data-field="region"]');
+  const modeInput = page.querySelector('[data-field="mode"]');
+  const clearButton = page.querySelector('[data-action="clear-search"]');
   const results = page.querySelector('.chord-dictionary-results');
+  let explorerObserver = null;
 
   function render() {
     const query = normalizeText(searchInput.value);
+    clearButton.hidden = !query;
+    page.querySelectorAll('[data-root]').forEach((button) => {
+      button.classList.toggle('is-active', getChordRoot(query) === button.dataset.root);
+    });
     if (!query) {
-      results.replaceChildren(createEmptyState('Digite um acorde para visualizar as posicoes no braco.'));
+      results.replaceChildren(createChordDiscoveryState());
       return;
     }
 
     const shouldIncludeBarre = barreInput.checked;
+    const region = regionInput.value;
+    if (modeInput.value === 'playable') {
+      renderPlayableExplorer(query, { shouldIncludeBarre, region });
+      return;
+    }
+    explorerObserver?.disconnect();
     const filtered = findChordVoicings(query)
       .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
+      .filter((chord) => isChordInRegion(chord, region))
       .sort(compareChordPosition);
 
     if (!filtered.length) {
@@ -55,17 +102,99 @@ export function DicionarioAcordesPage() {
       return;
     }
 
+    const fragment = document.createDocumentFragment();
+    fragment.append(createChordResultSummary(query, filtered, region));
     const list = document.createElement('div');
     list.className = 'chord-card-grid';
     filtered.forEach((chord) => list.append(createChordCard(chord)));
-    results.replaceChildren(list);
+    fragment.append(list);
+    results.replaceChildren(fragment);
   }
 
   searchInput.addEventListener('input', render);
   barreInput.addEventListener('change', render);
+  regionInput.addEventListener('change', render);
+  modeInput.addEventListener('change', render);
+  clearButton.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.focus();
+    render();
+  });
+  page.querySelectorAll('[data-root]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const currentSuffix = getChordSuffix(searchInput.value);
+      searchInput.value = `${button.dataset.root}${currentSuffix}`;
+      searchInput.focus();
+      render();
+    });
+  });
+  page.querySelectorAll('[data-quality]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const root = getChordRoot(searchInput.value) || 'C';
+      searchInput.value = `${root}${button.dataset.quality}`;
+      searchInput.focus();
+      render();
+    });
+  });
 
   render();
   return page;
+
+  function renderPlayableExplorer(query, { shouldIncludeBarre, region }) {
+    explorerObserver?.disconnect();
+    const shell = document.createElement('section');
+    shell.className = 'chord-explorer';
+    shell.innerHTML = `
+      <div class="chord-result-summary">
+        <div>
+          <span class="dashboard-kicker">Explorador de posições tocáveis</span>
+          <h2>${escapeHtml(formatChordQuery(query))}</h2>
+        </div>
+        <p>As posições são calculadas por região do braço. Apenas combinações tocáveis são exibidas.</p>
+      </div>
+      <div class="chord-explorer-regions"></div>
+      <div class="chord-explorer-loader" aria-live="polite">Carregando próximas posições...</div>
+    `;
+    const regions = shell.querySelector('.chord-explorer-regions');
+    const loader = shell.querySelector('.chord-explorer-loader');
+    let nextFret = 0;
+
+    function loadNextRegion() {
+      if (nextFret > 20) {
+        loader.textContent = 'Você chegou ao fim do braço mapeado.';
+        explorerObserver?.disconnect();
+        return;
+      }
+
+      const startFret = nextFret;
+      const endFret = Math.min(startFret + 4, 20);
+      const voicings = generatePlayableChordVoicings(query, { startFret, endFret })
+        .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
+        .filter((chord) => isChordInRegion(chord, region));
+      nextFret = endFret + 1;
+
+      if (voicings.length) regions.append(createExplorerRegion(startFret, endFret, voicings));
+      if (nextFret > 20) {
+        loader.textContent = 'Você chegou ao fim do braço mapeado.';
+        explorerObserver?.disconnect();
+      } else {
+        loader.textContent = 'Role para carregar as próximas posições tocáveis.';
+      }
+    }
+
+    results.replaceChildren(shell);
+    loadNextRegion();
+
+    if ('IntersectionObserver' in window) {
+      explorerObserver = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) loadNextRegion();
+      }, { rootMargin: '420px 0px' });
+      explorerObserver.observe(loader);
+    } else {
+      loader.addEventListener('click', loadNextRegion);
+      loader.title = 'Toque para carregar mais posições';
+    }
+  }
 }
 
 function createChordCard(chord) {
@@ -75,18 +204,96 @@ function createChordCard(chord) {
     <header>
       <div>
         <h2>${escapeHtml(chord.name)}</h2>
-        <p>${escapeHtml(chord.quality)} - ${getBarreLabel(chord)}</p>
+        <p>${escapeHtml(chord.quality)} · ${getBarreLabel(chord)}</p>
       </div>
-      <span>${chord.baseFret > 1 ? `${chord.baseFret}a casa` : 'Casa 1'}</span>
+      <span>${getPositionLabel(chord)}</span>
     </header>
     ${createChordDiagram(chord)}
+    <footer class="chord-card-meta">
+      <span>${getDifficultyLabel(chord)}</span>
+      <span>${chord.playedStringCount}/6 cordas</span>
+    </footer>
   `;
 
   return article;
 }
 
+function createExplorerRegion(startFret, endFret, chords) {
+  const region = document.createElement('section');
+  region.className = 'chord-explorer-region';
+  region.innerHTML = `
+    <header><h3>${startFret === 0 ? 'Região aberta · casas 0 a 4' : `Casas ${startFret} a ${endFret}`}</h3><span>${chords.length} formas tocáveis</span></header>
+    <div class="chord-card-grid"></div>
+  `;
+  const grid = region.querySelector('.chord-card-grid');
+  chords.forEach((chord) => grid.append(createChordCard(chord)));
+  return region;
+}
+
 function getBarreLabel(chord) {
   return hasBarre(chord) ? 'com pestana' : 'sem pestana';
+}
+
+function getPositionLabel(chord) {
+  return chord.baseFret > 1 ? `${chord.baseFret}a casa` : 'Forma aberta';
+}
+
+function getDifficultyLabel(chord) {
+  if (hasBarre(chord)) return 'Pestana';
+  if ((chord.lastFret || 0) - (chord.firstFret || 0) >= 4) return 'Alongamento';
+  return 'Confortável';
+}
+
+function isChordInRegion(chord, region) {
+  if (region === 'open') return chord.baseFret <= 4;
+  if (region === 'middle') return chord.baseFret >= 5 && chord.baseFret <= 9;
+  if (region === 'high') return chord.baseFret >= 10;
+  return true;
+}
+
+function createChordResultSummary(query, chords, region) {
+  const summary = document.createElement('section');
+  summary.className = 'chord-result-summary';
+  const regionLabel = {
+    all: 'em todo o braço',
+    open: 'em formas abertas',
+    middle: 'no meio do braço',
+    high: 'na região alta',
+  }[region] || 'em todo o braço';
+  summary.innerHTML = `
+    <div>
+      <span class="dashboard-kicker">Acorde pesquisado</span>
+      <h2>${escapeHtml(formatChordQuery(query))}</h2>
+    </div>
+    <p><strong>${chords.length}</strong> ${chords.length === 1 ? 'posição encontrada' : 'posições encontradas'} ${regionLabel}.</p>
+  `;
+  return summary;
+}
+
+function createChordDiscoveryState() {
+  const state = document.createElement('section');
+  state.className = 'chord-discovery-state';
+  state.innerHTML = `
+    <span class="dashboard-kicker">Comece por aqui</span>
+    <h2>Encontre uma forma que caiba na sua mão e na música.</h2>
+    <p>Pesquise um acorde ou escolha uma nota acima. Depois, compare as formas abertas, as pestanas e as posições altas no braço.</p>
+  `;
+  return state;
+}
+
+function getChordRoot(value) {
+  const match = String(value || '').trim().match(/^[A-Ga-g](?:#|b)?/);
+  return match ? match[0].replace(/^./, (letter) => letter.toUpperCase()) : '';
+}
+
+function getChordSuffix(value) {
+  const root = getChordRoot(value);
+  return root ? String(value).trim().slice(root.length) : '';
+}
+
+function formatChordQuery(query) {
+  const root = getChordRoot(query);
+  return root ? `${root}${getChordSuffix(query)}` : query;
 }
 
 function hasBarre(chord) {
