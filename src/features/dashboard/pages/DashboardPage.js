@@ -278,7 +278,7 @@ function createRepertoriosList(repertorios, {
     `;
 
     item.addEventListener('click', (event) => {
-      if (event.target.closest('a, button')) return;
+      if (event.target.closest('a, button, input')) return;
       window.location.href = publicMode ? getPublicRepertorioUrl(repertorio, publicToken) : getRepertorioUrl(repertorio);
     });
     item.addEventListener('keydown', (event) => {
@@ -384,7 +384,7 @@ function createMusicasList(musicas, context = {}) {
       <div>
         <h3 class="dashboard-song-title">
           <span>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</span>
-          ${context.publicMode ? '' : `<button class="dashboard-select-song" type="button" data-action="toggle-song-selection" aria-label="${isSelected ? 'Remover musica da selecao' : 'Adicionar musica a selecao'}" title="${isSelected ? 'Remover da selecao' : 'Adicionar a selecao'}">${isSelected ? '&#10003;' : '+'}</button>`}
+          ${context.publicMode ? '' : `<input class="dashboard-select-song" type="checkbox" data-action="toggle-song-selection" ${isSelected ? 'checked' : ''} aria-label="${isSelected ? 'Remover musica da selecao' : 'Adicionar musica a selecao'}" title="${isSelected ? 'Remover da selecao' : 'Adicionar a selecao'}">`}
         </h3>
       </div>
       <div class="dashboard-item-actions">
@@ -392,7 +392,7 @@ function createMusicasList(musicas, context = {}) {
       </div>
     `;
     item.addEventListener('click', (event) => {
-      if (event.target.closest('a, button')) return;
+      if (event.target.closest('a, button, input')) return;
       window.location.href = context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica);
     });
     item.addEventListener('keydown', (event) => {
@@ -400,15 +400,13 @@ function createMusicasList(musicas, context = {}) {
       if (event.target.closest('a, button')) return;
       window.location.href = context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica);
     });
-    item.querySelector('[data-action="toggle-song-selection"]')?.addEventListener('click', () => {
+    item.querySelector('[data-action="toggle-song-selection"]')?.addEventListener('change', () => {
       toggleMusicaSelection(context.selectedMusicas, musica);
       if (context.onSelectionChange) {
         context.onSelectionChange();
         context.onKeepSearchOpen?.();
         return;
       }
-
-      updateSelectionButtonState(item, context.selectedMusicas, musica.id);
     });
     item.querySelector('[data-action="execute-song"]')?.addEventListener('click', (event) => {
       if ((context.selectedMusicas || []).length < 2 || !isMusicaSelected(context.selectedMusicas, musica.id)) {
@@ -431,37 +429,20 @@ function createMusicasList(musicas, context = {}) {
   return list;
 }
 
-function updateSelectionButtonState(item, selectedMusicas, musicaId) {
-  item.classList.toggle('is-selected', isMusicaSelected(selectedMusicas, musicaId));
-  const button = item.querySelector('[data-action="toggle-song-selection"]');
-  const selected = isMusicaSelected(selectedMusicas, musicaId);
-  button.innerHTML = selected ? '&#10003;' : '+';
-  button.title = selected ? 'Remover da selecao' : 'Adicionar a selecao';
-  button.setAttribute('aria-label', selected ? 'Remover musica da selecao' : 'Adicionar musica a selecao');
-}
-
 function orderMusicasForDashboardSearch(musicas = [], selectedMusicas = []) {
-  const musicasById = new Map();
-
-  [...selectedMusicas, ...musicas].forEach((musica) => {
-    if (musica?.id) {
-      musicasById.set(musica.id, musica);
-    }
-  });
-
-  return [...musicasById.values()].sort((a, b) => {
-    const aSelected = isMusicaSelected(selectedMusicas, a.id);
-    const bSelected = isMusicaSelected(selectedMusicas, b.id);
-
-    if (aSelected !== bSelected) {
-      return aSelected ? -1 : 1;
-    }
-
-    return compareText(
+  const musicasById = new Map(musicas.filter((musica) => musica?.id).map((musica) => [musica.id, musica]));
+  const selected = selectedMusicas
+    .map((musica) => musicasById.get(musica.id) || musica)
+    .filter((musica) => musica?.id);
+  const selectedIds = new Set(selected.map((musica) => musica.id));
+  const remaining = [...musicasById.values()]
+    .filter((musica) => !selectedIds.has(musica.id))
+    .sort((a, b) => compareText(
       getField(a, ['titulo', 'nome', 'title']),
       getField(b, ['titulo', 'nome', 'title']),
-    );
-  });
+    ));
+
+  return [...selected, ...remaining];
 }
 
 function toggleMusicaSelection(selectedMusicas = [], musica) {
