@@ -11943,6 +11943,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .dashboard-page .dashboard-grid:has(.dashboard-search-column.is-active-search),
 .dashboard-page .dashboard-grid:has([data-dashboard-column="musicas"].is-active-search) {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px;
 }
 
 .dashboard-page .dashboard-search-column.is-active-search,
@@ -11953,21 +11954,20 @@ html[data-interface-density="compact"] .account-password-panel {
 .dashboard-page .dashboard-cascade-results {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
   left: 0;
   z-index: 25;
+  width: calc(200% + 14px);
   max-height: min(54vh, 520px);
   overscroll-behavior: contain;
 }
 
+.dashboard-page .dashboard-search-column:nth-child(2) .dashboard-cascade-results {
+  right: auto;
+  left: calc(-100% - 14px);
+}
+
 @media (max-width: 720px) {
   .dashboard-page .dashboard-cascade-results {
-    width: calc(200% + 16px);
     max-height: min(68dvh, 620px);
-  }
-
-  .dashboard-page .dashboard-search-column:nth-child(2) .dashboard-cascade-results {
-    right: 0;
-    left: auto;
   }
 }

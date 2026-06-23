@@ -100,9 +100,11 @@ export function createDashboardView({
 
   const musicasSearchContext = {
     wrapper,
+    searchInput: wrapper.querySelector('[data-search="musicas"]'),
     selectionSlot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
     selectedMusicas: musicasSelecionadas,
     onSelectionChange: null,
+    onCloseSearch: null,
     publicMode,
     publicToken,
   };
@@ -115,12 +117,14 @@ export function createDashboardView({
     renderContext: musicasSearchContext,
   });
   musicasSearchContext.onSelectionChange = musicasSearch.update;
+  musicasSearchContext.onCloseSearch = musicasSearch.closeResults;
 
   if (!publicMode) {
     renderSelectedMusicasActions({
       slot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
       selectedMusicas: musicasSelecionadas,
       onSelectionChange: musicasSearchContext.onSelectionChange,
+      onCloseSearch: musicasSearchContext.onCloseSearch,
     });
   }
 
@@ -391,10 +395,12 @@ function createMusicasList(musicas, context = {}) {
         slot: context.selectionSlot,
         selectedMusicas: context.selectedMusicas,
         onSelectionChange: context.onSelectionChange,
+        onCloseSearch: context.onCloseSearch,
       });
 
       if (context.onSelectionChange) {
         context.onSelectionChange();
+        context.searchInput?.focus();
         return;
       }
 
@@ -462,7 +468,12 @@ function isMusicaSelected(selectedMusicas = [], musicaId) {
   return selectedMusicas.some((item) => item.id === musicaId);
 }
 
-function renderSelectedMusicasActions({ slot, selectedMusicas = [], onSelectionChange = null } = {}) {
+function renderSelectedMusicasActions({
+  slot,
+  selectedMusicas = [],
+  onSelectionChange = null,
+  onCloseSearch = null,
+} = {}) {
   if (!slot) return;
 
   if (!selectedMusicas.length) {
@@ -494,15 +505,17 @@ function renderSelectedMusicasActions({ slot, selectedMusicas = [], onSelectionC
   const executeLink = panel.querySelector('[data-action="execute-selection"]');
   if (executeLink) {
     executeLink.href = getSelecaoExecucaoUrl(selectedMusicas);
+    executeLink.addEventListener('click', () => onCloseSearch?.());
   }
 
   panel.querySelector('[data-action="clear-selection"]').addEventListener('click', () => {
     selectedMusicas.splice(0, selectedMusicas.length);
-    renderSelectedMusicasActions({ slot, selectedMusicas, onSelectionChange });
+    renderSelectedMusicasActions({ slot, selectedMusicas, onSelectionChange, onCloseSearch });
 
     if (onSelectionChange) {
       onSelectionChange();
     }
+    onCloseSearch?.();
   });
 
   slot.replaceChildren(panel);
