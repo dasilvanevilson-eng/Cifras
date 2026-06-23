@@ -71,9 +71,9 @@ export function createDashboardView({
             Buscar musicas acervo
             <input type="search" data-search="musicas" placeholder="Titulo, artista ou tags">
           </label>
-          <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
           <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
         </section>
+        <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
         <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </div>
     </section>

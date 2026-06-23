@@ -11992,6 +11992,11 @@ html[data-interface-density="compact"] .account-password-panel {
   overflow-wrap: anywhere;
 }
 
+.dashboard-page .dashboard-selection-slot {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 @media (max-width: 720px) {
   .dashboard-page .dashboard-cascade-results {
     max-height: min(68dvh, 620px);
