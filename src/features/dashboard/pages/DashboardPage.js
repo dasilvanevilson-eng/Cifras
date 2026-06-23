@@ -72,7 +72,6 @@ export function createDashboardView({
             <input type="search" data-search="musicas" placeholder="Titulo, artista ou tags">
           </label>
         </section>
-        <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
         <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
         <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </div>
@@ -101,10 +100,8 @@ export function createDashboardView({
   const musicasSearchContext = {
     wrapper,
     searchInput: wrapper.querySelector('[data-search="musicas"]'),
-    selectionSlot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
     selectedMusicas: musicasSelecionadas,
     onSelectionChange: null,
-    onCloseSearch: null,
     onKeepSearchOpen: null,
     publicMode,
     publicToken,
@@ -118,18 +115,7 @@ export function createDashboardView({
     renderContext: musicasSearchContext,
   });
   musicasSearchContext.onSelectionChange = musicasSearch.update;
-  musicasSearchContext.onCloseSearch = musicasSearch.closeResults;
   musicasSearchContext.onKeepSearchOpen = musicasSearch.keepResultsOpen;
-
-  if (!publicMode) {
-    renderSelectedMusicasActions({
-      slot: wrapper.querySelector('[data-slot="musicas-selecionadas"]'),
-      selectedMusicas: musicasSelecionadas,
-      onSelectionChange: musicasSearchContext.onSelectionChange,
-      onCloseSearch: musicasSearchContext.onCloseSearch,
-      onKeepSearchOpen: musicasSearchContext.onKeepSearchOpen,
-    });
-  }
 
   return wrapper;
 }
@@ -230,8 +216,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
   document.addEventListener('focusin', (event) => {
     if (slot.hidden) return;
     const searchColumn = input.closest('.dashboard-search-column');
-    const selectionSlot = renderContext.selectionSlot;
-    if (!searchColumn.contains(event.target) && !slot.contains(event.target) && !selectionSlot?.contains(event.target)) closeResults();
+    if (!searchColumn.contains(event.target) && !slot.contains(event.target)) closeResults();
   });
   input.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' || !currentItems.length) return;
@@ -409,14 +394,6 @@ function createMusicasList(musicas, context = {}) {
     });
     item.querySelector('[data-action="toggle-song-selection"]')?.addEventListener('click', () => {
       toggleMusicaSelection(context.selectedMusicas, musica);
-      renderSelectedMusicasActions({
-        slot: context.selectionSlot,
-        selectedMusicas: context.selectedMusicas,
-        onSelectionChange: context.onSelectionChange,
-        onCloseSearch: context.onCloseSearch,
-        onKeepSearchOpen: context.onKeepSearchOpen,
-      });
-
       if (context.onSelectionChange) {
         context.onSelectionChange();
         context.onKeepSearchOpen?.();
@@ -487,59 +464,6 @@ function isMusicaSelected(selectedMusicas = [], musicaId) {
   return selectedMusicas.some((item) => item.id === musicaId);
 }
 
-function renderSelectedMusicasActions({
-  slot,
-  selectedMusicas = [],
-  onSelectionChange = null,
-  onCloseSearch = null,
-  onKeepSearchOpen = null,
-} = {}) {
-  if (!slot) return;
-
-  if (!selectedMusicas.length) {
-    slot.replaceChildren();
-    return;
-  }
-
-  const panel = document.createElement('section');
-  panel.className = 'dashboard-selection-panel';
-  panel.innerHTML = `
-    <div class="dashboard-selection-header">
-      <div class="dashboard-selection-actions">
-        ${selectedMusicas.length >= 2 ? '<a class="button-link" data-action="execute-selection" href="#">Executar</a>' : ''}
-        <button class="nav-button" type="button" data-action="clear-selection">Limpar selecao</button>
-      </div>
-    </div>
-    <div class="dashboard-selected-songs"></div>
-  `;
-
-  const list = panel.querySelector('.dashboard-selected-songs');
-  selectedMusicas.forEach((musica) => {
-    const chip = document.createElement('span');
-    chip.className = 'dashboard-selected-song';
-    chip.textContent = getField(musica, ['titulo', 'nome', 'title']);
-    list.append(chip);
-  });
-
-  const executeLink = panel.querySelector('[data-action="execute-selection"]');
-  if (executeLink) {
-    executeLink.href = getSelecaoExecucaoUrl(selectedMusicas);
-    executeLink.addEventListener('click', () => onCloseSearch?.());
-  }
-
-  panel.querySelector('[data-action="clear-selection"]').addEventListener('click', () => {
-    selectedMusicas.splice(0, selectedMusicas.length);
-    renderSelectedMusicasActions({ slot, selectedMusicas, onSelectionChange, onCloseSearch, onKeepSearchOpen });
-
-    if (onSelectionChange) {
-      onSelectionChange();
-    }
-    onCloseSearch?.();
-  });
-
-  slot.replaceChildren(panel);
-}
-
 function createEmptyState(text) {
   const empty = document.createElement('p');
   empty.className = 'page-status';
@@ -557,7 +481,7 @@ function getMusicaUrl(musica) {
 }
 
 function getSelecaoExecucaoUrl(musicas) {
-  const ids = getMusicasOrdenadas(musicas).map((musica) => musica.id).filter(Boolean).join(',');
+  const ids = musicas.map((musica) => musica.id).filter(Boolean).join(',');
   return `/musicas/selecao-execucao?ids=${encodeURIComponent(ids)}&returnTo=/dashboard`;
 }
 
