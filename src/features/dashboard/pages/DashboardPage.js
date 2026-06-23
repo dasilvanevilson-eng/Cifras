@@ -365,8 +365,16 @@ function createMusicasList(musicas, context = {}) {
 
   const list = document.createElement('div');
   list.className = 'dashboard-list';
+  const selectedCount = (context.selectedMusicas || []).length;
 
-  orderedMusicas.forEach((musica) => {
+  orderedMusicas.forEach((musica, index) => {
+    if (!context.publicMode && selectedCount >= 2 && index === selectedCount) {
+      const action = document.createElement('div');
+      action.className = 'dashboard-selection-execution';
+      action.innerHTML = `<a class="button" href="${escapeHtml(getSelecaoExecucaoUrl(context.selectedMusicas))}">Executar selecionadas (${selectedCount})</a>`;
+      list.append(action);
+    }
+
     const item = document.createElement('article');
     item.className = 'dashboard-list-item';
     item.tabIndex = 0;
@@ -412,6 +420,13 @@ function createMusicasList(musicas, context = {}) {
     });
     list.append(item);
   });
+
+  if (!context.publicMode && selectedCount >= 2 && selectedCount === orderedMusicas.length) {
+    const action = document.createElement('div');
+    action.className = 'dashboard-selection-execution';
+    action.innerHTML = `<a class="button" href="${escapeHtml(getSelecaoExecucaoUrl(context.selectedMusicas))}">Executar selecionadas (${selectedCount})</a>`;
+    list.append(action);
+  }
 
   return list;
 }
