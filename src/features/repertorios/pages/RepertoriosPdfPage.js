@@ -1,4 +1,5 @@
 import { listRepertoriosComMusicas } from '../../../services/repertoriosService.js';
+import { listMusicas } from '../../../services/musicasService.js';
 
 export async function RepertoriosPdfPage() {
   const page = document.createElement('section');
@@ -21,11 +22,15 @@ export async function RepertoriosPdfPage() {
   const status = page.querySelector('.page-status');
 
   try {
-    const { data, error } = await listRepertoriosComMusicas();
+    const [{ data, error }, { data: musicas, error: musicasError }] = await Promise.all([
+      listRepertoriosComMusicas(),
+      listMusicas(),
+    ]);
 
     if (error) {
       throw error;
     }
+    if (musicasError) throw musicasError;
 
     const repertorios = data || [];
 
@@ -34,7 +39,7 @@ export async function RepertoriosPdfPage() {
       return page;
     }
 
-    listSlot.replaceChildren(createRepertoriosBrowser(repertorios));
+    listSlot.replaceChildren(createRepertoriosBrowser(repertorios, musicas || []));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar os repertorios.';
@@ -43,7 +48,7 @@ export async function RepertoriosPdfPage() {
   return page;
 }
 
-function createRepertoriosBrowser(repertorios) {
+function createRepertoriosBrowser(repertorios, musicas) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser pdf-repertorios-browser';
   wrapper.innerHTML = `
@@ -76,11 +81,8 @@ function createRepertoriosBrowser(repertorios) {
 
   function renderMusicResults() {
     const query = normalizeText(musicSearchInput.value);
-    const matches = repertorios.flatMap((repertorio) => (repertorio.repertorio_musicas || [])
-      .filter((item) => matchesMusicSearch({ repertorio_musicas: [item] }, query))
-      .map((item) => ({ repertorio, musica: item.musicas || {} })));
-    const unique = matches.filter((item, index, items) => items.findIndex((candidate) => candidate.repertorio.id === item.repertorio.id && candidate.musica.id === item.musica.id) === index);
-    musicaResults.innerHTML = unique.length ? unique.slice(0, 12).map(({ repertorio, musica }) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))} · ${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</span>${createPdfActions(getField(repertorio, ['id']))}</article>`).join('') : '<p class="page-status">Nenhuma musica encontrada.</p>';
+    const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
+    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => { const linkedRepertorios = repertorios.filter((repertorio) => (repertorio.repertorio_musicas || []).some((item) => item.musica_id === musica.id)); return `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</span>${linkedRepertorios.length ? linkedRepertorios.map((repertorio) => `<div class="pdf-music-repertorio"><em>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</em>${createPdfActions(getField(repertorio, ['id']))}</div>`).join('') : '<small>Esta musica ainda nao esta em um repertorio.</small>'}</article>`; }).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
     musicaResults.hidden = document.activeElement !== musicSearchInput;
     bindPdfActions(musicaResults);
   }
@@ -184,6 +186,15 @@ function matchesMusicSearch(repertorio, query) {
     getField(item.musicas || {}, ['artista', 'autor', 'artist']),
     getField(item.musicas || {}, ['tags']),
   ].join(' ')).includes(query));
+}
+
+function matchesCatalogMusicSearch(musica, query) {
+  if (!query) return true;
+  return normalizeText([
+    getField(musica, ['titulo', 'nome', 'title']),
+    getField(musica, ['artista', 'autor', 'artist']),
+    getField(musica, ['tags']),
+  ].join(' ')).includes(query);
 }
 
 function compareRepertorios(a, b, sortBy) {
