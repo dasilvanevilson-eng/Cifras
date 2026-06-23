@@ -120,7 +120,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
   function renderMusicResults() {
     const query = normalizeText(musicSearchInput.value);
     const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
-    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => createPdfSearchResult(getField(musica, ['id']), getField(musica, ['titulo', 'nome', 'title']), contentType, fileType, 'musica')).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
+    musicaResults.innerHTML = matches.length ? matches.map((musica) => createPdfSearchResult(getField(musica, ['id']), getField(musica, ['titulo', 'nome', 'title']), contentType, fileType, 'musica')).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
     musicaResults.hidden = document.activeElement !== musicSearchInput;
     bindPdfActions(musicaResults);
   }
@@ -135,7 +135,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
 }
 
 function renderPdfSearchResults(slot, repertorios, emptyText, contentType, fileType) {
-  slot.innerHTML = repertorios.length ? repertorios.slice(0, 12).map((repertorio) => createPdfSearchResult(getField(repertorio, ['id']), getField(repertorio, ['nome', 'titulo', 'name']), contentType, fileType)).join('') : `<p class="page-status">${emptyText}</p>`;
+  slot.innerHTML = repertorios.length ? repertorios.map((repertorio) => createPdfSearchResult(getField(repertorio, ['id']), getField(repertorio, ['nome', 'titulo', 'name']), contentType, fileType)).join('') : `<p class="page-status">${emptyText}</p>`;
   slot.hidden = false;
   bindPdfActions(slot);
 }
