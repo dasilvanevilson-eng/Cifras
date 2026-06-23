@@ -82,7 +82,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
   function renderMusicResults() {
     const query = normalizeText(musicSearchInput.value);
     const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
-    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => { const linkedRepertorios = repertorios.filter((repertorio) => (repertorio.repertorio_musicas || []).some((item) => item.musica_id === musica.id)); return `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</span>${linkedRepertorios.length ? linkedRepertorios.map((repertorio) => `<div class="pdf-music-repertorio"><em>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</em>${createPdfActions(getField(repertorio, ['id']))}</div>`).join('') : '<small>Esta musica ainda nao esta em um repertorio.</small>'}</article>`; }).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
+    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</span></article>`).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
     musicaResults.hidden = document.activeElement !== musicSearchInput;
     bindPdfActions(musicaResults);
   }
