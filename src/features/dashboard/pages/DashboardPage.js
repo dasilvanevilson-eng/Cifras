@@ -105,6 +105,9 @@ export function createDashboardView({
     onKeepSearchOpen: null,
     publicMode,
     publicToken,
+    getSelectionExecutionUrl: publicMode
+      ? (musicas) => getPublicSelecaoExecucaoUrl(musicas, publicToken)
+      : getSelecaoExecucaoUrl,
   };
   const musicasSearch = setupDashboardSearch({
     input: wrapper.querySelector('[data-search="musicas"]'),
@@ -368,10 +371,10 @@ function createMusicasList(musicas, context = {}) {
   const selectedCount = (context.selectedMusicas || []).length;
 
   orderedMusicas.forEach((musica, index) => {
-    if (!context.publicMode && selectedCount >= 2 && index === selectedCount) {
+    if (selectedCount >= 2 && index === selectedCount) {
       const action = document.createElement('div');
       action.className = 'dashboard-selection-execution';
-      action.innerHTML = `<a class="button" href="${escapeHtml(getSelecaoExecucaoUrl(context.selectedMusicas))}">Executar selecionadas (${selectedCount})</a>`;
+      action.innerHTML = `<a class="button" href="${escapeHtml(getSelectionExecutionUrl(context))}">Executar selecionadas (${selectedCount})</a>`;
       list.append(action);
     }
 
@@ -384,7 +387,7 @@ function createMusicasList(musicas, context = {}) {
       <div>
         <h3 class="dashboard-song-title">
           <span>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</span>
-          ${context.publicMode ? '' : `<input class="dashboard-select-song" type="checkbox" data-action="toggle-song-selection" ${isSelected ? 'checked' : ''} aria-label="${isSelected ? 'Remover musica da selecao' : 'Adicionar musica a selecao'}" title="${isSelected ? 'Remover da selecao' : 'Adicionar a selecao'}">`}
+          <input class="dashboard-select-song" type="checkbox" data-action="toggle-song-selection" ${isSelected ? 'checked' : ''} aria-label="${isSelected ? 'Remover musica da selecao' : 'Adicionar musica a selecao'}" title="${isSelected ? 'Remover da selecao' : 'Adicionar a selecao'}">
         </h3>
       </div>
       <div class="dashboard-item-actions">
@@ -414,15 +417,15 @@ function createMusicasList(musicas, context = {}) {
       }
 
       event.preventDefault();
-      window.location.href = getSelecaoExecucaoUrl(context.selectedMusicas);
+      window.location.href = getSelectionExecutionUrl(context);
     });
     list.append(item);
   });
 
-  if (!context.publicMode && selectedCount >= 2 && selectedCount === orderedMusicas.length) {
+  if (selectedCount >= 2 && selectedCount === orderedMusicas.length) {
     const action = document.createElement('div');
     action.className = 'dashboard-selection-execution';
-    action.innerHTML = `<a class="button" href="${escapeHtml(getSelecaoExecucaoUrl(context.selectedMusicas))}">Executar selecionadas (${selectedCount})</a>`;
+    action.innerHTML = `<a class="button" href="${escapeHtml(getSelectionExecutionUrl(context))}">Executar selecionadas (${selectedCount})</a>`;
     list.append(action);
   }
 
@@ -479,6 +482,15 @@ function getMusicaUrl(musica) {
 function getSelecaoExecucaoUrl(musicas) {
   const ids = musicas.map((musica) => musica.id).filter(Boolean).join(',');
   return `/musicas/selecao-execucao?ids=${encodeURIComponent(ids)}&returnTo=/dashboard`;
+}
+
+function getSelectionExecutionUrl(context) {
+  return (context.getSelectionExecutionUrl || getSelecaoExecucaoUrl)(context.selectedMusicas || []);
+}
+
+function getPublicSelecaoExecucaoUrl(musicas, token) {
+  const ids = musicas.map((musica) => musica.id).filter(Boolean).join(',');
+  return `/publico/musicas/selecao-execucao?ids=${encodeURIComponent(ids)}&token=${encodeURIComponent(token)}&returnTo=${encodeURIComponent(`/publico?token=${token}`)}`;
 }
 
 function getRepertorioMusicaUrl(repertorio, item) {
