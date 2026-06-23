@@ -71,9 +71,9 @@ export function createDashboardView({
             Buscar musicas acervo
             <input type="search" data-search="musicas" placeholder="Titulo, artista ou tags">
           </label>
-          <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
         </section>
         <div class="dashboard-selection-slot" data-slot="musicas-selecionadas"></div>
+        <div class="dashboard-list-slot dashboard-cascade-results" data-slot="musicas" hidden></div>
         <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </div>
     </section>
@@ -105,6 +105,7 @@ export function createDashboardView({
     selectedMusicas: musicasSelecionadas,
     onSelectionChange: null,
     onCloseSearch: null,
+    onKeepSearchOpen: null,
     publicMode,
     publicToken,
   };
@@ -118,6 +119,7 @@ export function createDashboardView({
   });
   musicasSearchContext.onSelectionChange = musicasSearch.update;
   musicasSearchContext.onCloseSearch = musicasSearch.closeResults;
+  musicasSearchContext.onKeepSearchOpen = musicasSearch.keepResultsOpen;
 
   if (!publicMode) {
     renderSelectedMusicasActions({
@@ -125,6 +127,7 @@ export function createDashboardView({
       selectedMusicas: musicasSelecionadas,
       onSelectionChange: musicasSearchContext.onSelectionChange,
       onCloseSearch: musicasSearchContext.onCloseSearch,
+      onKeepSearchOpen: musicasSearchContext.onKeepSearchOpen,
     });
   }
 
@@ -179,9 +182,11 @@ function createDashboardQuickActions(publicMode = false) {
 
 function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {
   let currentItems = items;
+  let keepResultsOpenWithoutFocus = false;
 
   function closeResults() {
     slot.hidden = true;
+    keepResultsOpenWithoutFocus = false;
   }
 
   function update() {
@@ -201,7 +206,13 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
   }
 
   function openResults() {
+    keepResultsOpenWithoutFocus = false;
     setActiveDashboardColumn(input, renderContext.wrapper);
+    update();
+  }
+
+  function keepResultsOpen() {
+    keepResultsOpenWithoutFocus = true;
     update();
   }
 
@@ -213,8 +224,14 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
 
   input.closest('.dashboard-search-column').addEventListener('focusout', () => {
     window.setTimeout(() => {
-      if (!input.closest('.dashboard-search-column').matches(':focus-within')) closeResults();
+      if (!input.closest('.dashboard-search-column').matches(':focus-within') && !keepResultsOpenWithoutFocus) closeResults();
     });
+  });
+  document.addEventListener('focusin', (event) => {
+    if (slot.hidden) return;
+    const searchColumn = input.closest('.dashboard-search-column');
+    const selectionSlot = renderContext.selectionSlot;
+    if (!searchColumn.contains(event.target) && !slot.contains(event.target) && !selectionSlot?.contains(event.target)) closeResults();
   });
   input.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' || !currentItems.length) return;
@@ -225,7 +242,7 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
     }
   });
 
-  return { update, closeResults };
+  return { update, closeResults, keepResultsOpen };
 }
 
 function setActiveDashboardColumn(input, wrapper) {
@@ -234,7 +251,8 @@ function setActiveDashboardColumn(input, wrapper) {
   const activeColumn = input.closest('.dashboard-search-column');
   wrapper.querySelectorAll('.dashboard-search-column').forEach((column) => {
     if (column !== activeColumn) {
-      const results = column.querySelector('.dashboard-cascade-results');
+      const results = column.querySelector('.dashboard-cascade-results')
+        || wrapper.querySelector(`.dashboard-cascade-results[data-slot="${column.dataset.dashboardColumn}"]`);
       if (results) results.hidden = true;
     }
   });
@@ -396,11 +414,12 @@ function createMusicasList(musicas, context = {}) {
         selectedMusicas: context.selectedMusicas,
         onSelectionChange: context.onSelectionChange,
         onCloseSearch: context.onCloseSearch,
+        onKeepSearchOpen: context.onKeepSearchOpen,
       });
 
       if (context.onSelectionChange) {
         context.onSelectionChange();
-        context.searchInput?.focus();
+        context.onKeepSearchOpen?.();
         return;
       }
 
@@ -473,6 +492,7 @@ function renderSelectedMusicasActions({
   selectedMusicas = [],
   onSelectionChange = null,
   onCloseSearch = null,
+  onKeepSearchOpen = null,
 } = {}) {
   if (!slot) return;
 
@@ -510,7 +530,7 @@ function renderSelectedMusicasActions({
 
   panel.querySelector('[data-action="clear-selection"]').addEventListener('click', () => {
     selectedMusicas.splice(0, selectedMusicas.length);
-    renderSelectedMusicasActions({ slot, selectedMusicas, onSelectionChange, onCloseSearch });
+    renderSelectedMusicasActions({ slot, selectedMusicas, onSelectionChange, onCloseSearch, onKeepSearchOpen });
 
     if (onSelectionChange) {
       onSelectionChange();
