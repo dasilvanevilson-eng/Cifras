@@ -43,14 +43,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
         </label>
         <fieldset class="public-invite-permissions field-full" data-role="banda-permissions" hidden>
           <legend>Permissoes e restricoes</legend>
-          <label data-role="banda-access-mode">
-            Entrar como
-            <select name="access_mode">
-              <option value="ambos">Lider ou integrante</option>
-              <option value="lider">Apenas lider</option>
-              <option value="integrante">Apenas integrante</option>
-            </select>
-          </label>
+          <div class="banda-access-options" data-role="banda-access-mode">
+            <span>Permitir entrar como</span>
+            <label class="checkbox-label"><input name="allow_banda_leader" type="checkbox" checked><span>Líder</span></label>
+            <label class="checkbox-label"><input name="allow_banda_member" type="checkbox" checked><span>Integrante</span></label>
+          </div>
           <label class="checkbox-label" data-role="banda-acervo-access">
             <input name="allow_acervo" type="checkbox" checked>
             <span>Permitir acesso ao acervo</span>
@@ -107,6 +104,8 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const letrasPermissions = page.querySelector('[data-role="letras-permissions"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
   const letrasRepertoriosSlot = page.querySelector('[data-role="letras-repertorios-list"]');
+  const bandaLeaderInput = form.elements.allow_banda_leader;
+  const bandaMemberInput = form.elements.allow_banda_member;
   let repertorios = [];
   let editingInvite = null;
 
@@ -115,6 +114,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
 
   form.elements.module_key.addEventListener('change', () => {
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
+  });
+  [bandaLeaderInput, bandaMemberInput].forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!bandaLeaderInput.checked && !bandaMemberInput.checked) input.checked = true;
+    });
   });
 
   async function loadInvites() {
@@ -213,7 +217,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
 
     form.elements.title.value = invite.title || '';
     form.elements.module_key.value = invite.module_key || 'dashboard';
-    form.elements.access_mode.value = metadata.access_mode || 'ambos';
+    setBandaAccessMode(form, metadata.access_mode || 'ambos');
     form.elements.allow_acervo.checked = metadata.allow_acervo !== false;
     form.elements.letras_share_full_cifra.checked = metadata.letras_content_mode === 'full_cifra';
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
@@ -231,6 +235,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     cancelEditButton.hidden = true;
     form.elements.expires_at.value = getDefaultExpiresAt();
     form.elements.allow_acervo.checked = true;
+    setBandaAccessMode(form, 'ambos');
     form.elements.letras_share_full_cifra.checked = false;
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
   }
@@ -323,11 +328,23 @@ function readInviteForm(form, session) {
     expiresAt: new Date(form.elements.expires_at.value).toISOString(),
     maxUses: Number(form.elements.max_uses.value || 0) || null,
     createdBy: session?.user?.id,
-    accessMode: form.elements.access_mode?.value || 'ambos',
+    accessMode: getBandaAccessMode(form),
     allowAcervo: Boolean(form.elements.allow_acervo?.checked),
     letrasContentMode: form.elements.letras_share_full_cifra?.checked ? 'full_cifra' : 'lyrics_only',
     repertorioIds: getSelectedRepertorioIds(form, moduleKey),
   };
+}
+
+function getBandaAccessMode(form) {
+  const leader = form.elements.allow_banda_leader?.checked;
+  const member = form.elements.allow_banda_member?.checked;
+  if (leader && member) return 'ambos';
+  return leader ? 'lider' : 'integrante';
+}
+
+function setBandaAccessMode(form, accessMode) {
+  form.elements.allow_banda_leader.checked = accessMode !== 'integrante';
+  form.elements.allow_banda_member.checked = accessMode !== 'lider';
 }
 
 function getSelectedRepertorioIds(form, moduleKey) {

@@ -11244,6 +11244,37 @@ html[data-interface-density="compact"] .account-password-panel {
   padding: 0;
 }
 
+.banda-access-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.banda-access-options > span {
+  color: var(--color-text-muted);
+}
+
+.public-invite-form .banda-access-options .checkbox-label {
+  display: inline-flex;
+  width: fit-content;
+  gap: 0.45em;
+  align-items: center;
+  font-size: inherit;
+}
+
+.public-invite-form .banda-access-options input[type="checkbox"] {
+  flex: 0 0 1em;
+  width: 1em;
+  min-width: 1em;
+  min-height: 1em;
+  height: 1em;
+  margin: 0;
+  padding: 0;
+}
+
 .public-image-link-page {
   display: grid;
   min-height: 100dvh;
