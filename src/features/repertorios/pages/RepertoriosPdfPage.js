@@ -57,6 +57,11 @@ function createRepertoriosBrowser(repertorios, musicas) {
       <label><input type="checkbox" data-content-option="cifras" checked> Texto cifrado</label>
       <label><input type="checkbox" data-content-option="letras"> Somente texto</label>
     </fieldset>
+    <fieldset class="pdf-content-options pdf-file-options">
+      <legend>Formato do arquivo</legend>
+      <label><input type="checkbox" data-file-option="texto"> Gerar arquivo texto</label>
+      <label><input type="checkbox" data-file-option="pdf" checked> Gerar arquivo PDF</label>
+    </fieldset>
     <div class="pdf-repertorios-searches">
       <label class="pdf-repertorio-search-field">
         Buscar repertorio
@@ -76,6 +81,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
   const repertorioResults = wrapper.querySelector('[data-role="repertorio-results"]');
   const musicaResults = wrapper.querySelector('[data-role="musica-results"]');
   const contentOptions = [...wrapper.querySelectorAll('[data-content-option]')];
+  const fileOptions = [...wrapper.querySelectorAll('[data-file-option]')];
   let contentType = 'cifras';
 
   contentOptions.forEach((option) => option.addEventListener('change', () => {
@@ -89,6 +95,16 @@ function createRepertoriosBrowser(repertorios, musicas) {
     });
     if (!repertorioResults.hidden) renderRepertorioResults();
     if (!musicaResults.hidden) renderMusicResults();
+  }));
+
+  fileOptions.forEach((option) => option.addEventListener('change', () => {
+    if (!option.checked) {
+      option.checked = true;
+      return;
+    }
+    fileOptions.forEach((otherOption) => {
+      if (otherOption !== option) otherOption.checked = false;
+    });
   }));
 
   function renderRepertorioResults() {
