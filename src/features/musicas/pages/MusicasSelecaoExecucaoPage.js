@@ -58,7 +58,7 @@ export async function MusicasSelecaoExecucaoPage() {
   return page;
 }
 
-export function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) {
+function createSelectionPerformanceView({ musicas, returnTo, initialMusicaId }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view selection-performance-view';
 

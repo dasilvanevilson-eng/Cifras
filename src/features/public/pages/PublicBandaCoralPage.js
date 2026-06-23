@@ -104,7 +104,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
             Buscar musica repertorio
             <input data-action="search-musica-repertorio" type="search" placeholder="Titulo ou artista">
           </label>
-          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-repertorio" aria-label="Executar lista provisoria" title="Executar lista provisoria" disabled>&#9654;</button>
+          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-repertorio" aria-label="Executar selecionadas" title="Executar selecionadas" hidden disabled>Executar selecionadas</button>
         </div>
         <div class="public-banda-cascade-results" data-role="musicas-repertorio-results" hidden></div>
         <div class="public-banda-selected-list" data-role="selected-repertorio-musicas" hidden></div>
@@ -115,7 +115,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
             Buscar musica acervo
             <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
           </label>
-          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-acervo" aria-label="Executar lista provisoria do acervo" title="Executar lista provisoria do acervo" disabled>&#9654;</button>
+          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-acervo" aria-label="Executar selecionadas" title="Executar selecionadas" hidden disabled>Executar selecionadas</button>
         </div>
         <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
         <div class="public-banda-selected-list" data-role="selected-acervo-musicas" hidden></div>
@@ -328,7 +328,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function executeTempRepertorio() {
     if (currentMode === 'integrante' && memberFollowingLeader) return;
-    if (!selectedRepertorio || !tempRepertorioMusicas.length) return;
+    if (!selectedRepertorio || tempRepertorioMusicas.length < 2) return;
     executeTempMusicList({
       type: 'repertorio',
       repertorio: {
@@ -342,7 +342,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function executeTempAcervo() {
     if (currentMode === 'integrante' && memberFollowingLeader) return;
-    if (!tempAcervoMusicas.length) return;
+    if (tempAcervoMusicas.length < 2) return;
     executeTempMusicList({
       type: 'acervo',
       repertorio: {
@@ -1056,18 +1056,22 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function updateTempRepertorioButton() {
-    executeTempRepertorioButton.disabled = !selectedRepertorio || !tempRepertorioMusicas.length;
-    executeTempRepertorioButton.title = tempRepertorioMusicas.length
-      ? `Executar lista provisoria (${tempRepertorioMusicas.length})`
-      : 'Executar lista provisoria';
+    const selectedCount = tempRepertorioMusicas.length;
+    const canExecute = Boolean(selectedRepertorio) && selectedCount >= 2;
+    executeTempRepertorioButton.hidden = !canExecute;
+    executeTempRepertorioButton.disabled = !canExecute;
+    executeTempRepertorioButton.textContent = `Executar selecionadas (${selectedCount})`;
+    executeTempRepertorioButton.title = `Executar selecionadas (${selectedCount})`;
     executeTempRepertorioButton.setAttribute('aria-label', executeTempRepertorioButton.title);
   }
 
   function updateTempAcervoButton() {
-    executeTempAcervoButton.disabled = !tempAcervoMusicas.length;
-    executeTempAcervoButton.title = tempAcervoMusicas.length
-      ? `Executar lista provisoria do acervo (${tempAcervoMusicas.length})`
-      : 'Executar lista provisoria do acervo';
+    const selectedCount = tempAcervoMusicas.length;
+    const canExecute = selectedCount >= 2;
+    executeTempAcervoButton.hidden = !canExecute;
+    executeTempAcervoButton.disabled = !canExecute;
+    executeTempAcervoButton.textContent = `Executar selecionadas (${selectedCount})`;
+    executeTempAcervoButton.title = `Executar selecionadas (${selectedCount})`;
     executeTempAcervoButton.setAttribute('aria-label', executeTempAcervoButton.title);
   }
 
@@ -1355,19 +1359,15 @@ function createRepertorioMusicResultList(items, options) {
     `;
     titleButton.addEventListener('click', () => options.onExecute(item));
 
-    const addButton = document.createElement('button');
-    addButton.className = 'nav-button public-banda-add-temp-button';
-    addButton.type = 'button';
+    const addButton = document.createElement('input');
+    addButton.className = 'dashboard-select-song';
+    addButton.type = 'checkbox';
     const added = Boolean(options.isAdded?.(item));
-    addButton.classList.toggle('is-selected', added);
+    addButton.checked = added;
     addButton.textContent = added ? '✓' : '+';
     addButton.title = added ? 'Remover da lista provisoria' : 'Adicionar a lista provisoria';
     addButton.setAttribute('aria-label', addButton.title);
-    addButton.addEventListener('pointerdown', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    addButton.addEventListener('click', (event) => {
+    addButton.addEventListener('change', (event) => {
       event.preventDefault();
       event.stopPropagation();
       options.onToggle(item);

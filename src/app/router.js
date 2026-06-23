@@ -24,7 +24,6 @@ import { PublicDashboardPage } from '../features/public/pages/PublicDashboardPag
 import { PublicBandaCoralPage } from '../features/public/pages/PublicBandaCoralPage.js';
 import { PublicLetrasRepertorioPage } from '../features/public/pages/PublicLetrasRepertorioPage.js';
 import { PublicMusicaExecucaoPage } from '../features/public/pages/PublicMusicaExecucaoPage.js';
-import { PublicMusicasSelecaoExecucaoPage } from '../features/public/pages/PublicMusicasSelecaoExecucaoPage.js';
 import { PublicRepertorioExecucaoPage } from '../features/public/pages/PublicRepertorioExecucaoPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { ModoOfflinePage } from '../features/offline/pages/ModoOfflinePage.js';
@@ -72,7 +71,6 @@ const routes = {
   '/publico/banda-coral': PublicBandaCoralPage,
   '/publico/letras': PublicLetrasRepertorioPage,
   '/publico/musicas/execucao': PublicMusicaExecucaoPage,
-  '/publico/musicas/selecao-execucao': PublicMusicasSelecaoExecucaoPage,
   '/publico/repertorios/execucao': PublicRepertorioExecucaoPage,
 };
 
@@ -83,7 +81,6 @@ const publicRoutes = new Set([
   '/publico/banda-coral',
   '/publico/letras',
   '/publico/musicas/execucao',
-  '/publico/musicas/selecao-execucao',
   '/publico/repertorios/execucao',
 ]);
 
