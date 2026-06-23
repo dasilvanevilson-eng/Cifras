@@ -7,6 +7,7 @@ import { getMusicaById } from '../../../services/musicasService.js';
 import {
   extractLyricsFromCifraOriginal,
   getCifraExibicao,
+  renderChordProForDisplay,
   renderCifraOriginalForDisplayHtml,
 } from '../../../utils/chordpro.js';
 
@@ -473,7 +474,7 @@ function getSongPrintableContent(item, contentType) {
   const musica = item.musicas || {};
 
   if (contentType !== 'letras') {
-    return getCifraExibicao(musica);
+    return renderChordProForDisplay(getCifraExibicao(musica));
   }
 
   const source = musica.cifra_chordpro || getCifraExibicao(musica);
