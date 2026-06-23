@@ -1122,7 +1122,9 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         return;
       }
 
-      if (activeCascade && !document.activeElement?.closest('.public-banda-shell')) {
+      if (activeCascade
+        && document.activeElement !== document.body
+        && !document.activeElement?.closest('.public-banda-shell')) {
         hideCascade(activeCascade);
       }
     }, 120);
