@@ -261,10 +261,9 @@ function createInvitesList(invites, { onChange, onEdit }) {
         </p>
         <small>Valido ate ${escapeHtml(formatDateTime(invite.expires_at))}</small>
         <small>${escapeHtml(formatUses(invite))}</small>
-        <input type="text" readonly value="${escapeHtml(url)}" aria-label="Link publico">
       </div>
       <div class="public-invite-actions">
-        <button class="button-link secondary" type="button" data-action="copy">Copiar</button>
+        <button class="button-link secondary" type="button" data-action="copy">Copiar link</button>
         <button class="button-link secondary" type="button" data-action="edit">Editar</button>
         ${status.key === 'is-active' ? '<button class="button-link danger" type="button" data-action="revoke">Revogar</button>' : ''}
         <button class="button-link danger" type="button" data-action="delete">Excluir</button>
