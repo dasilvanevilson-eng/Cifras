@@ -65,12 +65,17 @@ export async function ConvitesPublicosPage({ session } = {}) {
         </fieldset>
         <fieldset class="public-invite-permissions field-full" data-role="letras-permissions" hidden>
           <legend>Repertorio liberado</legend>
-          <label class="checkbox-label">
-            <input name="letras_share_full_cifra" type="checkbox">
-            <span>Compartilhar cifra completa conforme execução</span>
-          </label>
+          <div class="letras-content-options">
+            <span>Compartilhar</span>
+            <label class="checkbox-label"><input name="share_cifras" type="checkbox"><span>Cifras</span></label>
+            <label class="checkbox-label"><input name="share_letras" type="checkbox" checked><span>Letras</span></label>
+          </div>
           <div class="public-invite-repertorios" data-role="letras-repertorios">
-            <div data-role="letras-repertorios-list">
+            <label class="public-invite-repertorio-search">
+              Buscar repertório liberado
+              <input data-action="search-letras-repertorios" type="search" placeholder="Nome ou data">
+            </label>
+            <div class="public-invite-repertorio-cascade" data-role="letras-repertorios-list" hidden>
               <p class="page-status">Carregando repertorios...</p>
             </div>
           </div>
@@ -108,9 +113,12 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const letrasPermissions = page.querySelector('[data-role="letras-permissions"]');
   const repertoriosSlot = page.querySelector('[data-role="banda-repertorios-list"]');
   const repertoriosSearch = page.querySelector('[data-action="search-banda-repertorios"]');
+  const letrasRepertoriosSearch = page.querySelector('[data-action="search-letras-repertorios"]');
   const letrasRepertoriosSlot = page.querySelector('[data-role="letras-repertorios-list"]');
   const bandaLeaderInput = form.elements.allow_banda_leader;
   const bandaMemberInput = form.elements.allow_banda_member;
+  const shareCifrasInput = form.elements.share_cifras;
+  const shareLetrasInput = form.elements.share_letras;
   let repertorios = [];
   let editingInvite = null;
 
@@ -125,11 +133,23 @@ export async function ConvitesPublicosPage({ session } = {}) {
       if (!bandaLeaderInput.checked && !bandaMemberInput.checked) input.checked = true;
     });
   });
+  [shareCifrasInput, shareLetrasInput].forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!shareCifrasInput.checked && !shareLetrasInput.checked) input.checked = true;
+    });
+  });
   repertoriosSearch.addEventListener('input', filterBandaRepertorios);
   repertoriosSearch.addEventListener('focus', filterBandaRepertorios);
   page.querySelector('[data-role="banda-repertorios"]').addEventListener('focusout', () => {
     window.setTimeout(() => {
       if (!page.querySelector('[data-role="banda-repertorios"]').contains(document.activeElement)) repertoriosSlot.hidden = true;
+    });
+  });
+  letrasRepertoriosSearch.addEventListener('input', filterLetrasRepertorios);
+  letrasRepertoriosSearch.addEventListener('focus', filterLetrasRepertorios);
+  page.querySelector('[data-role="letras-repertorios"]').addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!page.querySelector('[data-role="letras-repertorios"]').contains(document.activeElement)) letrasRepertoriosSlot.hidden = true;
     });
   });
 
@@ -216,6 +236,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     repertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios, { name: 'banda_repertorio_ids', multiple: true }));
     repertoriosSlot.hidden = true;
     letrasRepertoriosSlot.replaceChildren(createRepertoriosChecklist(repertorios, { name: 'letras_repertorio_id', multiple: false }));
+    letrasRepertoriosSlot.hidden = true;
   }
 
   function startEditInvite(invite) {
@@ -232,7 +253,8 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.module_key.value = invite.module_key || 'dashboard';
     setBandaAccessMode(form, metadata.access_mode || 'ambos');
     form.elements.allow_acervo.checked = metadata.allow_acervo !== false;
-    form.elements.letras_share_full_cifra.checked = metadata.letras_content_mode === 'full_cifra';
+    form.elements.share_cifras.checked = metadata.letras_content_mode === 'full_cifra';
+    form.elements.share_letras.checked = true;
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
     form.elements.max_uses.value = invite.max_uses || '';
     setCheckedRepertorios(form, getInviteRepertorioIds(invite, metadata));
@@ -249,9 +271,12 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.expires_at.value = getDefaultExpiresAt();
     form.elements.allow_acervo.checked = true;
     setBandaAccessMode(form, 'ambos');
-    form.elements.letras_share_full_cifra.checked = false;
+    form.elements.share_cifras.checked = false;
+    form.elements.share_letras.checked = true;
     repertoriosSearch.value = '';
     repertoriosSlot.hidden = true;
+    letrasRepertoriosSearch.value = '';
+    letrasRepertoriosSlot.hidden = true;
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
   }
 
@@ -261,6 +286,14 @@ export async function ConvitesPublicosPage({ session } = {}) {
       option.hidden = query && !normalizeText(option.textContent).includes(query);
     });
     repertoriosSlot.hidden = false;
+  }
+
+  function filterLetrasRepertorios() {
+    const query = normalizeText(letrasRepertoriosSearch.value);
+    letrasRepertoriosSlot.querySelectorAll('.public-invite-repertorio-option').forEach((option) => {
+      option.hidden = query && !normalizeText(option.textContent).includes(query);
+    });
+    letrasRepertoriosSlot.hidden = false;
   }
 }
 
@@ -353,7 +386,7 @@ function readInviteForm(form, session) {
     createdBy: session?.user?.id,
     accessMode: getBandaAccessMode(form),
     allowAcervo: Boolean(form.elements.allow_acervo?.checked),
-    letrasContentMode: form.elements.letras_share_full_cifra?.checked ? 'full_cifra' : 'lyrics_only',
+    letrasContentMode: form.elements.share_cifras?.checked ? 'full_cifra' : 'lyrics_only',
     repertorioIds: getSelectedRepertorioIds(form, moduleKey),
   };
 }
