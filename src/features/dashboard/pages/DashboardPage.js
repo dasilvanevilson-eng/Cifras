@@ -505,9 +505,8 @@ function renderSelectedMusicasActions({
   panel.className = 'dashboard-selection-panel';
   panel.innerHTML = `
     <div class="dashboard-selection-header">
-      <strong>${selectedMusicas.length} musica${selectedMusicas.length === 1 ? '' : 's'} selecionada${selectedMusicas.length === 1 ? '' : 's'}</strong>
       <div class="dashboard-selection-actions">
-        ${selectedMusicas.length >= 2 ? '<a class="button-link" data-action="execute-selection" href="#">Execucao da selecao</a>' : ''}
+        ${selectedMusicas.length >= 2 ? '<a class="button-link" data-action="execute-selection" href="#">Executar</a>' : ''}
         <button class="nav-button" type="button" data-action="clear-selection">Limpar selecao</button>
       </div>
     </div>

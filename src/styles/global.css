@@ -11997,6 +11997,27 @@ html[data-interface-density="compact"] .account-password-panel {
   width: 100%;
 }
 
+.dashboard-page .dashboard-selection-panel {
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.dashboard-page .dashboard-selection-header {
+  justify-content: flex-end;
+}
+
+.dashboard-page .dashboard-selection-actions {
+  gap: 6px;
+}
+
+.dashboard-page .dashboard-selection-actions .button-link,
+.dashboard-page .dashboard-selection-actions .nav-button {
+  min-height: 32px;
+  padding: 5px 9px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
 .dashboard-page .dashboard-cascade-results[data-slot="musicas"] {
   position: relative;
   top: auto;
