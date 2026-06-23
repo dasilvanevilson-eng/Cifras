@@ -11966,6 +11966,32 @@ html[data-interface-density="compact"] .account-password-panel {
   left: calc(-100% - 14px);
 }
 
+.dashboard-page,
+.dashboard-page .dashboard-home-panel,
+.dashboard-page .dashboard-grid,
+.dashboard-page .dashboard-search-column,
+.dashboard-page .dashboard-selection-slot,
+.dashboard-page .dashboard-selection-panel,
+.dashboard-page .dashboard-selection-header,
+.dashboard-page .dashboard-selection-actions,
+.dashboard-page .dashboard-selected-songs {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.dashboard-page {
+  overflow-x: clip;
+}
+
+.dashboard-page .dashboard-selection-header > strong,
+.dashboard-page .dashboard-selection-actions > * {
+  min-width: 0;
+}
+
+.dashboard-page .dashboard-selection-header > strong {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 720px) {
   .dashboard-page .dashboard-cascade-results {
     max-height: min(68dvh, 620px);
