@@ -1,6 +1,8 @@
 import { listRepertoriosComMusicas } from '../../../services/repertoriosService.js';
 import { listMusicas } from '../../../services/musicasService.js';
 
+const PDF_OPTIONS_STORAGE_KEY = 'pdf-repertorio-options';
+
 export async function RepertoriosPdfPage() {
   const page = document.createElement('section');
   page.className = 'page repertorios-pdf-page';
@@ -82,8 +84,12 @@ function createRepertoriosBrowser(repertorios, musicas) {
   const musicaResults = wrapper.querySelector('[data-role="musica-results"]');
   const contentOptions = [...wrapper.querySelectorAll('[data-content-option]')];
   const fileOptions = [...wrapper.querySelectorAll('[data-file-option]')];
-  let contentType = 'cifras';
-  let fileType = 'pdf';
+  const savedOptions = getSavedPdfOptions();
+  let contentType = savedOptions.contentType;
+  let fileType = savedOptions.fileType;
+
+  contentOptions.forEach((option) => { option.checked = option.dataset.contentOption === contentType; });
+  fileOptions.forEach((option) => { option.checked = option.dataset.fileOption === fileType; });
 
   contentOptions.forEach((option) => option.addEventListener('change', () => {
     if (!option.checked) {
@@ -94,6 +100,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
     contentOptions.forEach((otherOption) => {
       if (otherOption !== option) otherOption.checked = false;
     });
+    savePdfOptions(contentType, fileType);
     if (!repertorioResults.hidden) renderRepertorioResults();
     if (!musicaResults.hidden) renderMusicResults();
   }));
@@ -107,6 +114,9 @@ function createRepertoriosBrowser(repertorios, musicas) {
     fileOptions.forEach((otherOption) => {
       if (otherOption !== option) otherOption.checked = false;
     });
+    savePdfOptions(contentType, fileType);
+    if (!repertorioResults.hidden) renderRepertorioResults();
+    if (!musicaResults.hidden) renderMusicResults();
   }));
 
   function renderRepertorioResults() {
@@ -132,6 +142,22 @@ function createRepertoriosBrowser(repertorios, musicas) {
   document.addEventListener('pointerdown', (event) => { if (!searchInput.closest('.pdf-repertorio-search-field').contains(event.target)) repertorioResults.hidden = true; if (!musicSearchInput.closest('.pdf-repertorio-search-field').contains(event.target)) musicaResults.hidden = true; });
 
   return wrapper;
+}
+
+function getSavedPdfOptions() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(PDF_OPTIONS_STORAGE_KEY) || '{}');
+    return {
+      contentType: saved.contentType === 'letras' ? 'letras' : 'cifras',
+      fileType: saved.fileType === 'texto' ? 'texto' : 'pdf',
+    };
+  } catch {
+    return { contentType: 'cifras', fileType: 'pdf' };
+  }
+}
+
+function savePdfOptions(contentType, fileType) {
+  window.localStorage.setItem(PDF_OPTIONS_STORAGE_KEY, JSON.stringify({ contentType, fileType }));
 }
 
 function renderPdfSearchResults(slot, repertorios, emptyText, contentType, fileType) {
