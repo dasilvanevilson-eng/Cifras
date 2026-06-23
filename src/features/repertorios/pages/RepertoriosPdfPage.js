@@ -53,7 +53,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
   wrapper.className = 'list-browser pdf-repertorios-browser';
   wrapper.innerHTML = `
     <fieldset class="pdf-content-options">
-      <legend>Conteudo do PDF</legend>
+      <legend>Conteudo do arquivo</legend>
       <label><input type="checkbox" data-content-option="cifras" checked> Texto cifrado</label>
       <label><input type="checkbox" data-content-option="letras"> Somente texto</label>
     </fieldset>
