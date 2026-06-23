@@ -6934,6 +6934,39 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
     break-after: auto;
     page-break-before: auto;
     page-break-after: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .pdf-repertorio.is-single-song .pdf-song header {
+    break-after: avoid;
+    page-break-after: avoid;
+    color: #000000;
+  }
+
+  .pdf-repertorio.is-single-song .pdf-song header span,
+  .pdf-repertorio.is-single-song .pdf-song .chord-line {
+    color: #000000 !important;
+  }
+
+  .pdf-repertorio.is-single-song .pdf-song .chordpro-view,
+  .pdf-repertorio.is-single-song .pdf-song .lyrics-view {
+    margin: 0;
+    color: #000000 !important;
+  }
+
+  .pdf-repertorio.is-single-song .pdf-song .chordpro-view {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10pt;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .pdf-repertorio.is-single-song .pdf-song .lyrics-view {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12pt;
+    font-weight: 400;
+    line-height: 1.34;
   }
 
   .pdf-song header > p {
