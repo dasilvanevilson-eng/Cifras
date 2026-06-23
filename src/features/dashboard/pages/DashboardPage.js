@@ -400,7 +400,8 @@ function createMusicasList(musicas, context = {}) {
       if (event.target.closest('a, button')) return;
       window.location.href = context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica);
     });
-    item.querySelector('[data-action="toggle-song-selection"]')?.addEventListener('change', () => {
+    item.querySelector('[data-action="toggle-song-selection"]')?.addEventListener('change', (event) => {
+      event.stopPropagation();
       toggleMusicaSelection(context.selectedMusicas, musica);
       if (context.onSelectionChange) {
         context.onSelectionChange();
@@ -409,12 +410,12 @@ function createMusicasList(musicas, context = {}) {
       }
     });
     item.querySelector('[data-action="execute-song"]')?.addEventListener('click', (event) => {
-      if ((context.selectedMusicas || []).length < 2 || !isMusicaSelected(context.selectedMusicas, musica.id)) {
-        return;
-      }
-
       event.preventDefault();
-      window.location.href = getSelecaoExecucaoUrl(context.selectedMusicas);
+      const shouldExecuteSelection = (context.selectedMusicas || []).length >= 2
+        && isMusicaSelected(context.selectedMusicas, musica.id);
+      window.location.href = shouldExecuteSelection
+        ? getSelecaoExecucaoUrl(context.selectedMusicas)
+        : (context.publicMode ? getPublicMusicaUrl(musica, context.publicToken) : getMusicaUrl(musica));
     });
     list.append(item);
   });
