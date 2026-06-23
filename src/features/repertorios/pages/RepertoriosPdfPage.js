@@ -45,64 +45,63 @@ export async function RepertoriosPdfPage() {
 
 function createRepertoriosBrowser(repertorios) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'list-browser';
+  wrapper.className = 'list-browser pdf-repertorios-browser';
   wrapper.innerHTML = `
-    <div class="list-toolbar">
-      <label>
+    <div class="pdf-repertorios-searches">
+      <label class="pdf-repertorio-search-field">
         Buscar repertorio
-        <input class="search-input" type="search" placeholder="Nome ou data">
+        <input class="search-input" type="search" placeholder="Nome ou data" autocomplete="off">
+        <div class="pdf-search-results" data-role="repertorio-results" hidden></div>
       </label>
-      <label>
+      <label class="pdf-repertorio-search-field">
         Buscar musica
-        <input class="music-search-input" type="search" placeholder="Titulo, artista ou tags">
-      </label>
-      <label>
-        Ordenar
-        <select class="sort-select">
-          <option value="recentes">Mais recentes</option>
-          <option value="nome">Nome</option>
-          <option value="data">Data</option>
-        </select>
+        <input class="music-search-input" type="search" placeholder="Titulo, artista ou tags" autocomplete="off">
+        <div class="pdf-search-results" data-role="musica-results" hidden></div>
       </label>
     </div>
-    <p class="list-summary"></p>
-    <div class="table-slot"></div>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
   const musicSearchInput = wrapper.querySelector('.music-search-input');
-  const sortSelect = wrapper.querySelector('.sort-select');
-  const summary = wrapper.querySelector('.list-summary');
-  const tableSlot = wrapper.querySelector('.table-slot');
+  const repertorioResults = wrapper.querySelector('[data-role="repertorio-results"]');
+  const musicaResults = wrapper.querySelector('[data-role="musica-results"]');
 
-  function render() {
+  function renderRepertorioResults() {
     const query = normalizeText(searchInput.value);
-    const musicQuery = normalizeText(musicSearchInput.value);
     const filtered = repertorios
       .filter((repertorio) => matchesSearch(repertorio, query))
-      .filter((repertorio) => matchesMusicSearch(repertorio, musicQuery))
-      .sort((a, b) => compareRepertorios(a, b, sortSelect.value));
-
-    summary.textContent = formatSummary(filtered.length, repertorios.length);
-
-    if (!filtered.length) {
-      const empty = document.createElement('p');
-      empty.className = 'page-status';
-      empty.textContent = 'Nenhum repertorio encontrado.';
-      tableSlot.replaceChildren(empty);
-      return;
-    }
-
-    tableSlot.replaceChildren(createRepertoriosTable(filtered));
+      .sort((a, b) => compareRepertorios(a, b, 'nome'));
+    renderPdfSearchResults(repertorioResults, filtered, 'Nenhum repertorio encontrado.');
   }
 
-  searchInput.addEventListener('input', render);
-  musicSearchInput.addEventListener('input', render);
-  sortSelect.addEventListener('change', render);
-  render();
+  function renderMusicResults() {
+    const query = normalizeText(musicSearchInput.value);
+    const matches = repertorios.flatMap((repertorio) => (repertorio.repertorio_musicas || [])
+      .filter((item) => matchesMusicSearch({ repertorio_musicas: [item] }, query))
+      .map((item) => ({ repertorio, musica: item.musicas || {} })));
+    const unique = matches.filter((item, index, items) => items.findIndex((candidate) => candidate.repertorio.id === item.repertorio.id && candidate.musica.id === item.musica.id) === index);
+    musicaResults.innerHTML = unique.length ? unique.slice(0, 12).map(({ repertorio, musica }) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))} · ${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</span>${createPdfActions(getField(repertorio, ['id']))}</article>`).join('') : '<p class="page-status">Nenhuma musica encontrada.</p>';
+    musicaResults.hidden = document.activeElement !== musicSearchInput;
+    bindPdfActions(musicaResults);
+  }
+
+  searchInput.addEventListener('focus', renderRepertorioResults);
+  searchInput.addEventListener('input', renderRepertorioResults);
+  musicSearchInput.addEventListener('focus', renderMusicResults);
+  musicSearchInput.addEventListener('input', renderMusicResults);
+  document.addEventListener('pointerdown', (event) => { if (!searchInput.closest('.pdf-repertorio-search-field').contains(event.target)) repertorioResults.hidden = true; if (!musicSearchInput.closest('.pdf-repertorio-search-field').contains(event.target)) musicaResults.hidden = true; });
 
   return wrapper;
 }
+
+function renderPdfSearchResults(slot, repertorios, emptyText) {
+  slot.innerHTML = repertorios.length ? repertorios.slice(0, 12).map((repertorio) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</strong><span>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</span>${createPdfActions(getField(repertorio, ['id']))}</article>`).join('') : `<p class="page-status">${emptyText}</p>`;
+  slot.hidden = false;
+  bindPdfActions(slot);
+}
+
+function createPdfActions(id) { return `<div><button class="button-link secondary" type="button" data-action="print-cifras" data-id="${escapeHtml(id)}">Cifradas</button><button class="button-link secondary" type="button" data-action="print-letras" data-id="${escapeHtml(id)}">Letras</button></div>`; }
+function bindPdfActions(container) { container.querySelectorAll('[data-action="print-cifras"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, 'cifras'))); container.querySelectorAll('[data-action="print-letras"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, 'letras'))); }
 
 function createRepertoriosTable(repertorios) {
   const table = document.createElement('table');
