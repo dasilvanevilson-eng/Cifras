@@ -82,7 +82,7 @@ function createPdfView({
   hideIndex = false,
 }) {
   const wrapper = document.createElement('article');
-  wrapper.className = `pdf-repertorio ${contentType === 'letras' ? 'is-lyrics-only' : ''}`;
+  wrapper.className = `pdf-repertorio ${contentType === 'letras' ? 'is-lyrics-only' : ''} ${isSingleSong ? 'is-single-song' : ''}`;
 
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
@@ -101,7 +101,7 @@ function createPdfView({
       <button class="button" type="button" data-action="generate-pdf">Gerar PDF</button>
     </div>
 
-    <section class="pdf-cover">
+    ${isSingleSong ? '' : `<section class="pdf-cover">
       <p>${isSingleSong ? 'Musica' : 'Repertorio'}</p>
       <h1>${escapeHtml(nome)}</h1>
       <dl>
@@ -120,7 +120,7 @@ function createPdfView({
         </div>
         ${isSingleSong ? '' : `<div><dt>Ordem</dt><dd>${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}</dd></div>`}
       </dl>
-    </section>
+    </section>`}
 
     ${hideIndex ? '' : `<nav class="pdf-summary" id="indice" aria-label="Sumario">
       <h2><a class="pdf-index-target" href="#indice" name="indice">Sumario</a></h2>
@@ -192,15 +192,17 @@ function generateCompatiblePdf({
   const summaryStartPage = 2;
   const songPageByNumber = new Map();
 
-  renderPdfCover(doc, layout, {
-    nome,
-    data,
-    totalMusicas: musicasAssociadas.length,
-    contentLabel,
-    generatedAt,
-    order,
-    isSingleSong,
-  });
+  if (!isSingleSong) {
+    renderPdfCover(doc, layout, {
+      nome,
+      data,
+      totalMusicas: musicasAssociadas.length,
+      contentLabel,
+      generatedAt,
+      order,
+      isSingleSong,
+    });
+  }
 
   for (let index = 0; index < summaryPages; index += 1) {
     doc.addPage();
@@ -208,7 +210,7 @@ function generateCompatiblePdf({
 
   musicasAssociadas.forEach((item, index) => {
     const number = index + 1;
-    doc.addPage();
+    if (!isSingleSong || index > 0) doc.addPage();
     songPageByNumber.set(number, doc.getNumberOfPages());
     renderPdfSongPage(doc, layout, {
       item,
@@ -216,6 +218,7 @@ function generateCompatiblePdf({
       contentType,
       summaryPage: summaryStartPage,
       hasSummary: !hideIndex,
+      isSingleSong,
     });
   });
 
@@ -302,7 +305,7 @@ function renderPdfSummary(doc, layout, { musicasAssociadas, songPageByNumber, su
   }
 }
 
-function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage, hasSummary }) {
+function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage, hasSummary, isSingleSong = false }) {
   const deleted = isMusicaExcluida(item);
   const title = getSongTitle(item);
   const artist = getSongArtist(item);
@@ -315,7 +318,7 @@ function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage
   const bodyFont = contentType === 'letras' ? 'helvetica' : 'courier';
   const bodyFontSize = contentType === 'letras' ? 12 : 10;
   const bodyLineHeight = contentType === 'letras' ? 16 : 13;
-  const songTitle = `${number}. ${title}${deleted ? ' (excluida)' : ''}`;
+  const songTitle = `${isSingleSong ? '' : `${number}. `}${title}${deleted ? ' (excluida)' : ''}`;
   let y = renderPdfSongHeader(doc, layout, {
     songTitle,
     artist,
@@ -457,7 +460,7 @@ function createSongSection(item, number, contentType = 'cifras', isSingleSong = 
     <section class="pdf-song ${deleted ? 'deleted-repertorio-song' : ''}" id="${targetId}">
       <a class="pdf-anchor" name="${targetId}" aria-hidden="true"></a>
       <header>
-        <p>${number}</p>
+        ${isSingleSong ? '' : `<p>${number}</p>`}
         <div>
           <h2>${escapeHtml(deleted ? `${title} (excluida)` : title)}</h2>
           <span>${escapeHtml(artist)} - Tom: ${escapeHtml(key)}</span>

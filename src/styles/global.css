@@ -5234,6 +5234,10 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   border-bottom: 1px solid #ddd6c8;
 }
 
+.pdf-repertorio.is-single-song .pdf-song {
+  border-bottom: 0;
+}
+
 .pdf-song header {
   display: flex;
   gap: 14px;
@@ -6923,6 +6927,13 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   .pdf-song:first-child {
     break-before: auto;
     page-break-before: auto;
+  }
+
+  .pdf-repertorio.is-single-song .pdf-song {
+    break-before: auto;
+    break-after: auto;
+    page-break-before: auto;
+    page-break-after: auto;
   }
 
   .pdf-song header > p {
