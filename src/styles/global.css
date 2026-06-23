@@ -11213,6 +11213,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .image-link-status { color: var(--color-text-muted); font-size: 12px; font-weight: 800; }
 
 .public-invite-actions {
+  flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
@@ -11221,6 +11222,7 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .public-invite-actions .button-link {
   flex: 0 0 auto;
+  width: auto;
   white-space: nowrap;
 }
 
