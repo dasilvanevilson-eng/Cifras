@@ -2,9 +2,10 @@ import { assertSupabaseConfig, supabase } from '../lib/supabase/client.js';
 
 const BUCKET = 'image-link-assets';
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const MAX_FILE_SIZE = 8 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_TOTAL_SIZE = 20 * 1024 * 1024;
 
-export async function uploadImageLinkFiles(files = []) {
+export async function uploadImageLinkFiles(files = [], { onProgress } = {}) {
   assertSupabaseConfig();
   const selectedFiles = [...files];
   if (!selectedFiles.length) return { data: null, error: new Error('Selecione ao menos uma imagem.') };
@@ -12,26 +13,31 @@ export async function uploadImageLinkFiles(files = []) {
 
   for (const file of selectedFiles) {
     if (!ALLOWED_TYPES.has(file.type)) return { data: null, error: new Error('Use imagens WebP, PNG ou JPG.') };
-    if (file.size > MAX_FILE_SIZE) return { data: null, error: new Error('Cada imagem pode ter no máximo 8 MB.') };
+    if (file.size > MAX_FILE_SIZE) return { data: null, error: new Error('Cada imagem pode ter no máximo 5 MB.') };
+  }
+  if (selectedFiles.reduce((total, file) => total + file.size, 0) > MAX_TOTAL_SIZE) {
+    return { data: null, error: new Error('O conjunto de imagens pode ter no máximo 20 MB.') };
   }
 
-  const uploads = await Promise.all(selectedFiles.map(async (file, index) => {
+  const imageUrls = [];
+  for (const [index, file] of selectedFiles.entries()) {
+    onProgress?.(index + 1, selectedFiles.length, file.name);
     const extension = getExtension(file);
     const path = `${crypto.randomUUID()}/${String(index + 1).padStart(2, '0')}-${Date.now()}.${extension}`;
-    const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-      cacheControl: '31536000',
-      upsert: false,
-      contentType: file.type,
-    });
-    if (error) throw error;
-    return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-  }));
-
-  try {
-    return { data: await Promise.all(uploads), error: null };
-  } catch (error) {
-    return { data: null, error };
+    try {
+      const { error } = await withTimeout(supabase.storage.from(BUCKET).upload(path, file, {
+        cacheControl: '31536000',
+        upsert: false,
+        contentType: file.type,
+      }), 60000);
+      if (error) throw error;
+      imageUrls.push(supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl);
+    } catch (error) {
+      return { data: null, error: new Error(error.message || `Não foi possível enviar ${file.name}.`) };
+    }
   }
+
+  return { data: imageUrls, error: null };
 }
 
 export async function createImageLink({ title, expiresAt, maxUses, createdBy, imageUrls }) {
@@ -73,4 +79,14 @@ function createToken() {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
   return btoa(String.fromCharCode(...bytes)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
+
+function withTimeout(promise, milliseconds) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = window.setTimeout(() => reject(new Error('O envio demorou mais de um minuto. Verifique a conexão e tente novamente.')), milliseconds);
+    }),
+  ]).finally(() => window.clearTimeout(timer));
 }

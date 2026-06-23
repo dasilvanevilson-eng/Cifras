@@ -28,7 +28,7 @@ export async function LinksImagemPage({ session } = {}) {
         <label class="image-link-file-field">
           Imagens
           <input name="images" type="file" accept="image/webp,image/png,image/jpeg" multiple required>
-          <small>Recomendado: WebP para imagens leves. Use PNG para textos nítidos ou transparência. JPG também é aceito.</small>
+          <small>Recomendado: WebP para imagens leves. Use PNG para textos nítidos ou transparência. JPG também é aceito. Máximo: 5 MB por imagem e 20 MB no total.</small>
         </label>
         <div class="image-link-preview" data-role="preview" hidden></div>
         <label>Válido até<input name="expires_at" type="datetime-local" required></label>
@@ -64,8 +64,12 @@ export async function LinksImagemPage({ session } = {}) {
     const files = [...filesInput.files];
     submit.disabled = true;
     message.className = 'form-message';
-    message.textContent = 'Enviando imagens...';
-    const upload = await uploadImageLinkFiles(files);
+    message.textContent = 'Preparando envio...';
+    const upload = await uploadImageLinkFiles(files, {
+      onProgress: (current, total, fileName) => {
+        message.textContent = `Enviando imagem ${current} de ${total}: ${fileName}`;
+      },
+    });
     if (upload.error) {
       submit.disabled = false;
       message.className = 'form-message error';
