@@ -10942,7 +10942,7 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .chord-dictionary-tools {
   display: grid;
-  grid-template-columns: minmax(260px, 1.4fr) minmax(210px, 0.8fr) auto;
+  grid-template-columns: minmax(260px, 1.4fr) minmax(190px, 0.8fr) auto auto;
   gap: 12px;
   align-items: end;
   border: 1px solid var(--color-border);

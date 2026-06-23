@@ -42,8 +42,12 @@ export function DicionarioAcordesPage() {
         </select>
       </label>
       <label class="chord-barre-toggle">
-        <input data-field="barre" type="checkbox" checked>
-        <span>Incluir pestanas</span>
+        <input data-field="with-barre" type="checkbox" checked>
+        <span>Com pestanas</span>
+      </label>
+      <label class="chord-barre-toggle">
+        <input data-field="without-barre" type="checkbox" checked>
+        <span>Sem pestanas</span>
       </label>
       <p id="chord-search-help" class="chord-search-help">Toque em uma nota para preencher a busca; use m, 7, maj7, sus4 e outros sufixos.</p>
       <div class="chord-root-shortcuts" aria-label="Atalhos de notas">
@@ -58,7 +62,8 @@ export function DicionarioAcordesPage() {
   `;
 
   const searchInput = page.querySelector('[data-field="search"]');
-  const barreInput = page.querySelector('[data-field="barre"]');
+  const withBarreInput = page.querySelector('[data-field="with-barre"]');
+  const withoutBarreInput = page.querySelector('[data-field="without-barre"]');
   const modeInput = page.querySelector('[data-field="mode"]');
   const clearButton = page.querySelector('[data-action="clear-search"]');
   const results = page.querySelector('.chord-dictionary-results');
@@ -75,14 +80,15 @@ export function DicionarioAcordesPage() {
       return;
     }
 
-    const shouldIncludeBarre = barreInput.checked;
+    const shouldIncludeBarre = withBarreInput.checked;
+    const shouldIncludeNoBarre = withoutBarreInput.checked;
     if (modeInput.value === 'playable') {
-      renderPlayableExplorer(query, { shouldIncludeBarre });
+      renderPlayableExplorer(query, { shouldIncludeBarre, shouldIncludeNoBarre });
       return;
     }
     explorerObserver?.disconnect();
     const filtered = findChordVoicings(query)
-      .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
+      .filter((chord) => (hasBarre(chord) ? shouldIncludeBarre : shouldIncludeNoBarre))
       .sort(compareChordPosition);
 
     if (!filtered.length) {
@@ -100,7 +106,12 @@ export function DicionarioAcordesPage() {
   }
 
   searchInput.addEventListener('input', render);
-  barreInput.addEventListener('change', render);
+  [withBarreInput, withoutBarreInput].forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!withBarreInput.checked && !withoutBarreInput.checked) input.checked = true;
+      render();
+    });
+  });
   modeInput.addEventListener('change', render);
   clearButton.addEventListener('click', () => {
     searchInput.value = '';
@@ -127,7 +138,7 @@ export function DicionarioAcordesPage() {
   render();
   return page;
 
-  function renderPlayableExplorer(query, { shouldIncludeBarre }) {
+  function renderPlayableExplorer(query, { shouldIncludeBarre, shouldIncludeNoBarre }) {
     explorerObserver?.disconnect();
     const shell = document.createElement('section');
     shell.className = 'chord-explorer';
@@ -156,7 +167,7 @@ export function DicionarioAcordesPage() {
       const startFret = nextFret;
       const endFret = Math.min(startFret + 4, 20);
       const voicings = generatePlayableChordVoicings(query, { startFret, endFret })
-        .filter((chord) => shouldIncludeBarre || !hasBarre(chord));
+        .filter((chord) => (hasBarre(chord) ? shouldIncludeBarre : shouldIncludeNoBarre));
       nextFret = endFret + 1;
 
       if (voicings.length) regions.append(createExplorerRegion(startFret, endFret, voicings));
