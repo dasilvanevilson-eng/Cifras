@@ -8048,8 +8048,8 @@ html {
   background: var(--color-surface-raised);
   box-shadow: var(--shadow-md);
   z-index: 230;
-  width: max-content;
-  min-width: 260px;
+  width: fit-content;
+  min-width: 0;
   max-width: calc(100vw - 20px);
 }
 
@@ -8453,8 +8453,8 @@ body.has-touch-nav .app-layout {
     right: max(8px, env(safe-area-inset-right));
     bottom: auto;
     left: auto;
-    width: max-content;
-    min-width: min(260px, calc(100vw - 16px));
+    width: fit-content;
+    min-width: 0;
     max-width: calc(100vw - 16px);
     height: auto;
     max-height: calc(100svh - 16px);
