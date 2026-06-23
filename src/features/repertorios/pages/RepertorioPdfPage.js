@@ -117,16 +117,16 @@ function createPdfView({
       </dl>
     </section>
 
-    <nav class="pdf-summary" id="indice" aria-label="Sumario">
+    ${isSingleSong ? '' : `<nav class="pdf-summary" id="indice" aria-label="Sumario">
       <h2><a class="pdf-index-target" href="#indice" name="indice">Sumario</a></h2>
       <ol>
         ${musicasAssociadas.map((item, index) => createSummaryItem(item, index + 1)).join('')}
       </ol>
-    </nav>
+    </nav>`}
 
     <div class="pdf-song-list">
       ${musicasAssociadas.length
-        ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1, contentType)).join('')
+        ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1, contentType, isSingleSong)).join('')
         : '<p class="page-status">Nenhuma musica adicionada a este repertorio.</p>'}
     </div>
   `;
@@ -180,7 +180,7 @@ function generateCompatiblePdf({
   const layout = createPdfLayout(doc);
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
-  const summaryPages = Math.max(1, Math.ceil(Math.max(musicasAssociadas.length, 1) / 28));
+  const summaryPages = isSingleSong ? 0 : Math.max(1, Math.ceil(Math.max(musicasAssociadas.length, 1) / 28));
   const summaryStartPage = 2;
   const songPageByNumber = new Map();
 
@@ -207,15 +207,18 @@ function generateCompatiblePdf({
       number,
       contentType,
       summaryPage: summaryStartPage,
+      hasSummary: !isSingleSong,
     });
   });
 
-  renderPdfSummary(doc, layout, {
-    musicasAssociadas,
-    songPageByNumber,
-    summaryStartPage,
-    summaryPages,
-  });
+  if (!isSingleSong) {
+    renderPdfSummary(doc, layout, {
+      musicasAssociadas,
+      songPageByNumber,
+      summaryStartPage,
+      summaryPages,
+    });
+  }
 
   doc.setProperties({
     title: filename,
@@ -291,7 +294,7 @@ function renderPdfSummary(doc, layout, { musicasAssociadas, songPageByNumber, su
   }
 }
 
-function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage }) {
+function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage, hasSummary }) {
   const deleted = isMusicaExcluida(item);
   const title = getSongTitle(item);
   const artist = getSongArtist(item);
@@ -312,6 +315,7 @@ function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage
     momento,
     link,
     summaryPage,
+    hasSummary,
   });
 
   doc.setFont(bodyFont, contentType === 'letras' ? 'normal' : 'bold');
@@ -328,6 +332,7 @@ function renderPdfSongPage(doc, layout, { item, number, contentType, summaryPage
       y = renderPdfSongHeader(doc, layout, {
         songTitle,
         summaryPage,
+        hasSummary,
         isContinuation: true,
       });
       doc.setFont(bodyFont, contentType === 'letras' ? 'normal' : 'bold');
@@ -346,6 +351,7 @@ function renderPdfSongHeader(doc, layout, {
   momento = '',
   link = '',
   summaryPage,
+  hasSummary = true,
   isContinuation = false,
 }) {
   let y = layout.marginTop;
@@ -356,11 +362,13 @@ function renderPdfSongHeader(doc, layout, {
   const titleLines = doc.splitTextToSize(songTitle, layout.pageWidth - (layout.marginX * 2) - 128);
   doc.text(titleLines, layout.marginX, y);
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(20, 72, 62);
-  writeInternalPdfLink(doc, 'Voltar ao indice', layout.pageWidth - layout.marginX, y, summaryPage, { align: 'right' });
-  doc.setTextColor(0, 0, 0);
+  if (hasSummary) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(20, 72, 62);
+    writeInternalPdfLink(doc, 'Voltar ao indice', layout.pageWidth - layout.marginX, y, summaryPage, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+  }
   y += (titleLines.length * 18) + 4;
 
   if (isContinuation) {
@@ -426,7 +434,7 @@ function createSummaryItem(item, number) {
   `;
 }
 
-function createSongSection(item, number, contentType = 'cifras') {
+function createSongSection(item, number, contentType = 'cifras', isSingleSong = false) {
   const deleted = isMusicaExcluida(item);
   const title = getSongTitle(item);
   const artist = getSongArtist(item);
@@ -447,7 +455,7 @@ function createSongSection(item, number, contentType = 'cifras') {
           <span>${escapeHtml(artist)} - Tom: ${escapeHtml(key)}</span>
           ${momento ? `<small class="repertorio-song-moment">Momento: ${escapeHtml(momento)}</small>` : ''}
           ${link ? `<a class="pdf-index-link pdf-song-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Link</a>` : ''}
-          <a class="pdf-index-link" href="#indice">Voltar ao indice</a>
+          ${isSingleSong ? '' : '<a class="pdf-index-link" href="#indice">Voltar ao indice</a>'}
         </div>
       </header>
       ${deleted
