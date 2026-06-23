@@ -258,8 +258,8 @@ function createInvitesList(invites, { onChange, onEdit }) {
         <p class="public-invite-meta">
           <span>${escapeHtml(formatModule(invite.module_key))}</span>
           <strong>${escapeHtml(status.label)}</strong>
+          <span class="public-invite-expiry">Válido até ${escapeHtml(formatDateTime(invite.expires_at))}</span>
         </p>
-        <small>Valido ate ${escapeHtml(formatDateTime(invite.expires_at))}</small>
         <small>${escapeHtml(formatUses(invite))}</small>
       </div>
       <div class="public-invite-actions">
