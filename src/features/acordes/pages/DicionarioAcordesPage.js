@@ -35,15 +35,6 @@ export function DicionarioAcordesPage() {
         <button class="nav-button chord-clear-search" type="button" data-action="clear-search" hidden aria-label="Limpar busca" title="Limpar busca">&times;</button>
       </div>
       <label>
-        Região do braço
-        <select data-field="region">
-          <option value="all">Todas as posições</option>
-          <option value="open">Formas abertas (casas 1 a 4)</option>
-          <option value="middle">Meio do braço (casas 5 a 9)</option>
-          <option value="high">Região alta (casa 10 ou mais)</option>
-        </select>
-      </label>
-      <label>
         Exibição
         <select data-field="mode">
           <option value="recommended">Formas recomendadas</option>
@@ -68,7 +59,6 @@ export function DicionarioAcordesPage() {
 
   const searchInput = page.querySelector('[data-field="search"]');
   const barreInput = page.querySelector('[data-field="barre"]');
-  const regionInput = page.querySelector('[data-field="region"]');
   const modeInput = page.querySelector('[data-field="mode"]');
   const clearButton = page.querySelector('[data-action="clear-search"]');
   const results = page.querySelector('.chord-dictionary-results');
@@ -86,15 +76,13 @@ export function DicionarioAcordesPage() {
     }
 
     const shouldIncludeBarre = barreInput.checked;
-    const region = regionInput.value;
     if (modeInput.value === 'playable') {
-      renderPlayableExplorer(query, { shouldIncludeBarre, region });
+      renderPlayableExplorer(query, { shouldIncludeBarre });
       return;
     }
     explorerObserver?.disconnect();
     const filtered = findChordVoicings(query)
       .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
-      .filter((chord) => isChordInRegion(chord, region))
       .sort(compareChordPosition);
 
     if (!filtered.length) {
@@ -103,7 +91,7 @@ export function DicionarioAcordesPage() {
     }
 
     const fragment = document.createDocumentFragment();
-    fragment.append(createChordResultSummary(query, filtered, region));
+    fragment.append(createChordResultSummary(query, filtered));
     const list = document.createElement('div');
     list.className = 'chord-card-grid';
     filtered.forEach((chord) => list.append(createChordCard(chord)));
@@ -113,7 +101,6 @@ export function DicionarioAcordesPage() {
 
   searchInput.addEventListener('input', render);
   barreInput.addEventListener('change', render);
-  regionInput.addEventListener('change', render);
   modeInput.addEventListener('change', render);
   clearButton.addEventListener('click', () => {
     searchInput.value = '';
@@ -140,7 +127,7 @@ export function DicionarioAcordesPage() {
   render();
   return page;
 
-  function renderPlayableExplorer(query, { shouldIncludeBarre, region }) {
+  function renderPlayableExplorer(query, { shouldIncludeBarre }) {
     explorerObserver?.disconnect();
     const shell = document.createElement('section');
     shell.className = 'chord-explorer';
@@ -169,8 +156,7 @@ export function DicionarioAcordesPage() {
       const startFret = nextFret;
       const endFret = Math.min(startFret + 4, 20);
       const voicings = generatePlayableChordVoicings(query, { startFret, endFret })
-        .filter((chord) => shouldIncludeBarre || !hasBarre(chord))
-        .filter((chord) => isChordInRegion(chord, region));
+        .filter((chord) => shouldIncludeBarre || !hasBarre(chord));
       nextFret = endFret + 1;
 
       if (voicings.length) regions.append(createExplorerRegion(startFret, endFret, voicings));
@@ -244,28 +230,15 @@ function getDifficultyLabel(chord) {
   return 'Confortável';
 }
 
-function isChordInRegion(chord, region) {
-  if (region === 'open') return chord.baseFret <= 4;
-  if (region === 'middle') return chord.baseFret >= 5 && chord.baseFret <= 9;
-  if (region === 'high') return chord.baseFret >= 10;
-  return true;
-}
-
-function createChordResultSummary(query, chords, region) {
+function createChordResultSummary(query, chords) {
   const summary = document.createElement('section');
   summary.className = 'chord-result-summary';
-  const regionLabel = {
-    all: 'em todo o braço',
-    open: 'em formas abertas',
-    middle: 'no meio do braço',
-    high: 'na região alta',
-  }[region] || 'em todo o braço';
   summary.innerHTML = `
     <div>
       <span class="dashboard-kicker">Acorde pesquisado</span>
       <h2>${escapeHtml(formatChordQuery(query))}</h2>
     </div>
-    <p><strong>${chords.length}</strong> ${chords.length === 1 ? 'posição encontrada' : 'posições encontradas'} ${regionLabel}.</p>
+    <p><strong>${chords.length}</strong> ${chords.length === 1 ? 'posição encontrada' : 'posições encontradas'} em todo o braço.</p>
   `;
   return summary;
 }
