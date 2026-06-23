@@ -2332,6 +2332,12 @@ a {
   margin-top: 8px;
 }
 
+.public-banda-temp-execution {
+  width: 100%;
+  min-height: 40px;
+  margin: 6px 0;
+}
+
 .public-banda-selected-list[hidden] {
   display: none;
 }

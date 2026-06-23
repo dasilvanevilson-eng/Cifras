@@ -104,7 +104,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
             Buscar musica repertorio
             <input data-action="search-musica-repertorio" type="search" placeholder="Titulo ou artista">
           </label>
-          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-repertorio" aria-label="Executar selecionadas" title="Executar selecionadas" hidden disabled>Executar selecionadas</button>
         </div>
         <div class="public-banda-cascade-results" data-role="musicas-repertorio-results" hidden></div>
         <div class="public-banda-selected-list" data-role="selected-repertorio-musicas" hidden></div>
@@ -115,7 +114,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
             Buscar musica acervo
             <input data-action="search-musica-acervo" type="search" placeholder="Titulo ou artista">
           </label>
-          <button class="nav-button public-banda-play-button" type="button" data-action="execute-temp-acervo" aria-label="Executar selecionadas" title="Executar selecionadas" hidden disabled>Executar selecionadas</button>
         </div>
         <div class="public-banda-cascade-results" data-role="musicas-acervo-results" hidden></div>
         <div class="public-banda-selected-list" data-role="selected-acervo-musicas" hidden></div>
@@ -169,8 +167,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const leaderLoginTitle = wrapper.querySelector('#public-banda-login-title');
   const resetLeaderButton = wrapper.querySelector('[data-action="reset-leader"]');
   const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
-  const executeTempRepertorioButton = wrapper.querySelector('[data-action="execute-temp-repertorio"]');
-  const executeTempAcervoButton = wrapper.querySelector('[data-action="execute-temp-acervo"]');
   let activeCascade = null;
   let currentExecutionState = null;
   let publicAutoscrollTimer = null;
@@ -954,6 +950,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       onExecute: (item) => executeMusica(item.musicas),
       onToggle: toggleTempRepertorioMusica,
       isAdded: (item) => tempRepertorioMusicas.some((selected) => selected.id === item.id),
+      selectedItems: tempRepertorioMusicas,
+      onExecuteSelection: executeTempRepertorio,
     }));
     showCascade(musicasRepertorioSlot);
   }
@@ -977,6 +975,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       onExecute: executeMusica,
       onToggle: toggleTempAcervoMusica,
       isAdded: (musica) => tempAcervoMusicas.some((selected) => selected.id === musica.id),
+      selectedItems: tempAcervoMusicas,
+      onExecuteSelection: executeTempAcervo,
     }));
     showCascade(musicasAcervoSlot);
   }
@@ -1069,23 +1069,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   function updateTempRepertorioButton() {
-    const selectedCount = tempRepertorioMusicas.length;
-    const canExecute = Boolean(selectedRepertorio) && selectedCount >= 2;
-    executeTempRepertorioButton.hidden = !canExecute;
-    executeTempRepertorioButton.disabled = !canExecute;
-    executeTempRepertorioButton.textContent = `Executar selecionadas (${selectedCount})`;
-    executeTempRepertorioButton.title = `Executar selecionadas (${selectedCount})`;
-    executeTempRepertorioButton.setAttribute('aria-label', executeTempRepertorioButton.title);
+    // A acao e renderizada logo apos as musicas selecionadas na propria lista.
   }
 
   function updateTempAcervoButton() {
-    const selectedCount = tempAcervoMusicas.length;
-    const canExecute = selectedCount >= 2;
-    executeTempAcervoButton.hidden = !canExecute;
-    executeTempAcervoButton.disabled = !canExecute;
-    executeTempAcervoButton.textContent = `Executar selecionadas (${selectedCount})`;
-    executeTempAcervoButton.title = `Executar selecionadas (${selectedCount})`;
-    executeTempAcervoButton.setAttribute('aria-label', executeTempAcervoButton.title);
+    // A acao e renderizada logo apos as musicas selecionadas na propria lista.
   }
 
   repertorioMusicSearch.addEventListener('input', renderMusicasRepertorio);
@@ -1107,8 +1095,6 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (!selectedRepertorio) return;
     executeRepertorio(selectedRepertorio);
   });
-  executeTempRepertorioButton.addEventListener('click', executeTempRepertorio);
-  executeTempAcervoButton.addEventListener('click', executeTempAcervo);
 
   wrapper.addEventListener('focusout', () => {
     window.setTimeout(() => {
@@ -1357,8 +1343,14 @@ function createRepertorioMusicResultList(items, options) {
 
   const list = document.createElement('div');
   list.className = 'dashboard-list public-banda-results';
+  const selectedIds = new Set((options.selectedItems || []).map((item) => item.id));
+  const selectedCount = items.filter((item) => selectedIds.has(item.id)).length;
 
-  items.forEach((item) => {
+  items.forEach((item, index) => {
+    if (selectedCount >= 2 && index === selectedCount) {
+      list.append(createTempSelectionExecutionButton(selectedCount, options.onExecuteSelection));
+    }
+
     const musica = options.getMusica ? options.getMusica(item) : (item.musicas || {});
     const row = document.createElement('div');
     row.className = 'public-banda-result-row';
@@ -1392,7 +1384,20 @@ function createRepertorioMusicResultList(items, options) {
     list.append(row);
   });
 
+  if (selectedCount >= 2 && selectedCount === items.length) {
+    list.append(createTempSelectionExecutionButton(selectedCount, options.onExecuteSelection));
+  }
+
   return list;
+}
+
+function createTempSelectionExecutionButton(selectedCount, onExecuteSelection) {
+  const button = document.createElement('button');
+  button.className = 'button public-banda-temp-execution';
+  button.type = 'button';
+  button.textContent = `Executar selecionadas (${selectedCount})`;
+  button.addEventListener('click', onExecuteSelection);
+  return button;
 }
 
 function renderSelectedMusicasList(slot, items) {
