@@ -178,14 +178,6 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
 
   function closeResults() {
     slot.hidden = true;
-
-    // The blur event from the previous field can run just after another
-    // dashboard search receives focus. Only clear the visual state when this
-    // field is still the active one, so the newly focused cascade stays open.
-    const column = input.closest('.dashboard-search-column');
-    if (column?.classList.contains('is-active-search')) {
-      clearActiveDashboardColumn(renderContext.wrapper);
-    }
   }
 
   function update() {
@@ -215,14 +207,10 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
     if (!input.value) openResults();
   });
 
-  // Do not close on blur or pointerdown: clearing a native search input and
-  // touch-scrolling can trigger either event. A real click outside this search
-  // block is the intentional dismissal gesture.
-  document.addEventListener('click', (event) => {
-    const column = input.closest('.dashboard-search-column');
-    if (slot.hidden || column?.contains(event.target)) return;
-
-    closeResults();
+  input.closest('.dashboard-search-column').addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!input.closest('.dashboard-search-column').matches(':focus-within')) closeResults();
+    });
   });
   input.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' || !currentItems.length) return;
@@ -241,9 +229,6 @@ function setActiveDashboardColumn(input, wrapper) {
 
   const activeColumn = input.closest('.dashboard-search-column');
   wrapper.querySelectorAll('.dashboard-search-column').forEach((column) => {
-    column.classList.toggle('is-active-search', column === activeColumn);
-    column.classList.toggle('is-inactive-search', column !== activeColumn);
-
     if (column !== activeColumn) {
       const results = column.querySelector('.dashboard-cascade-results');
       if (results) results.hidden = true;
@@ -252,11 +237,8 @@ function setActiveDashboardColumn(input, wrapper) {
 }
 
 function clearActiveDashboardColumn(wrapper) {
-  if (!wrapper) return;
-
-  wrapper.querySelectorAll('.dashboard-search-column').forEach((column) => {
-    column.classList.remove('is-active-search', 'is-inactive-search');
-  });
+  // The cascades now keep both search fields at a stable width. This function
+  // remains as a no-op for existing selection flows that call it.
 }
 
 function createRepertoriosList(repertorios, {
