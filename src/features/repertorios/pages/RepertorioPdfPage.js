@@ -3,6 +3,7 @@ import {
   getRepertorioById,
   listMusicasDoRepertorio,
 } from '../../../services/repertoriosService.js';
+import { getMusicaById } from '../../../services/musicasService.js';
 import {
   extractLyricsFromCifraOriginal,
   getCifraExibicao,
@@ -12,22 +13,38 @@ import {
 export async function RepertorioPdfPage() {
   const page = document.createElement('section');
   page.className = 'page pdf-repertorio-page';
-  page.innerHTML = '<div class="page-status">Carregando repertorio...</div>';
+  page.innerHTML = '<div class="page-status">Carregando conteudo...</div>';
 
   const status = page.querySelector('.page-status');
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+  const isSingleSong = params.get('alvo') === 'musica';
   const shouldAutoPrint = params.get('autoPrint') === '1';
   const order = params.get('order') === 'alfabetica' ? 'alfabetica' : 'repertorio';
   const contentType = params.get('tipo') === 'letras' ? 'letras' : 'cifras';
 
   if (!id) {
     status.className = 'page-status error';
-    status.textContent = 'Repertorio nao informado.';
+    status.textContent = isSingleSong ? 'Musica nao informada.' : 'Repertorio nao informado.';
     return page;
   }
 
   try {
+    if (isSingleSong) {
+      const { data: musica, error } = await getMusicaById(id);
+      if (error) throw error;
+
+      page.replaceChildren(createPdfView({
+        repertorio: { nome: getField(musica, ['titulo', 'nome', 'title']), data: null },
+        musicasAssociadas: [{ musica_id: musica.id, musicas: musica }],
+        shouldAutoPrint,
+        order,
+        contentType,
+        isSingleSong: true,
+      }));
+      return page;
+    }
+
     const [{ data: repertorio, error: repertorioError }, { data: musicasAssociadas, error: musicasError }] = await Promise.all([
       getRepertorioById(id),
       listMusicasDoRepertorio(id),
@@ -45,7 +62,7 @@ export async function RepertorioPdfPage() {
     }));
   } catch (error) {
     status.className = 'page-status error';
-    status.textContent = error.message || 'Nao foi possivel carregar o repertorio.';
+    status.textContent = error.message || (isSingleSong ? 'Nao foi possivel carregar a musica.' : 'Nao foi possivel carregar o repertorio.');
   }
 
   return page;
@@ -57,6 +74,7 @@ function createPdfView({
   shouldAutoPrint = false,
   order = 'repertorio',
   contentType = 'cifras',
+  isSingleSong = false,
 }) {
   const wrapper = document.createElement('article');
   wrapper.className = `pdf-repertorio ${contentType === 'letras' ? 'is-lyrics-only' : ''}`;
@@ -65,7 +83,7 @@ function createPdfView({
   const data = formatDate(getField(repertorio, ['data', 'date']));
   const isLyricsOnly = contentType === 'letras';
   const contentLabel = isLyricsOnly ? 'Letras' : 'Musicas cifradas';
-  const suggestedFilename = `repertorio-${isLyricsOnly ? 'letras-' : ''}${slugifyFilename(nome)}`;
+  const suggestedFilename = `${isSingleSong ? 'musica' : 'repertorio'}-${isLyricsOnly ? 'letras-' : ''}${slugifyFilename(nome)}`;
   const generatedAt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
     timeStyle: 'short',
@@ -79,16 +97,13 @@ function createPdfView({
     </div>
 
     <section class="pdf-cover">
-      <p>Repertorio</p>
+      <p>${isSingleSong ? 'Musica' : 'Repertorio'}</p>
       <h1>${escapeHtml(nome)}</h1>
       <dl>
+        ${isSingleSong ? '' : `<div><dt>Data</dt><dd>${escapeHtml(data)}</dd></div>`}
         <div>
-          <dt>Data</dt>
-          <dd>${escapeHtml(data)}</dd>
-        </div>
-        <div>
-          <dt>Musicas</dt>
-          <dd>${musicasAssociadas.length}</dd>
+          <dt>${isSingleSong ? 'Musica' : 'Musicas'}</dt>
+          <dd>${isSingleSong ? '1' : musicasAssociadas.length}</dd>
         </div>
         <div>
           <dt>Conteudo</dt>
@@ -98,10 +113,7 @@ function createPdfView({
           <dt>Gerado em</dt>
           <dd>${escapeHtml(generatedAt)}</dd>
         </div>
-        <div>
-          <dt>Ordem</dt>
-          <dd>${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}</dd>
-        </div>
+        ${isSingleSong ? '' : `<div><dt>Ordem</dt><dd>${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}</dd></div>`}
       </dl>
     </section>
 
@@ -132,6 +144,7 @@ function createPdfView({
       contentType,
       contentLabel,
       generatedAt,
+      isSingleSong,
     });
   });
 
@@ -145,6 +158,7 @@ function createPdfView({
         contentType,
         contentLabel,
         generatedAt,
+        isSingleSong,
       });
     }, 250);
   }
@@ -160,6 +174,7 @@ function generateCompatiblePdf({
   contentType,
   contentLabel,
   generatedAt,
+  isSingleSong = false,
 }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const layout = createPdfLayout(doc);
@@ -176,6 +191,7 @@ function generateCompatiblePdf({
     contentLabel,
     generatedAt,
     order,
+    isSingleSong,
   });
 
   for (let index = 0; index < summaryPages; index += 1) {
@@ -219,10 +235,10 @@ function createPdfLayout(doc) {
   };
 }
 
-function renderPdfCover(doc, layout, { nome, data, totalMusicas, contentLabel, generatedAt, order }) {
+function renderPdfCover(doc, layout, { nome, data, totalMusicas, contentLabel, generatedAt, order, isSingleSong }) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
-  doc.text('Repertorio', layout.marginX, 96);
+  doc.text(isSingleSong ? 'Musica' : 'Repertorio', layout.marginX, 96);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(28);
@@ -231,11 +247,10 @@ function renderPdfCover(doc, layout, { nome, data, totalMusicas, contentLabel, g
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
   const details = [
-    `Data: ${data}`,
-    `Musicas: ${totalMusicas}`,
+    ...(isSingleSong ? [] : [`Data: ${data}`, `Musicas: ${totalMusicas}`]),
     `Conteudo: ${contentLabel}`,
     `Gerado em: ${generatedAt}`,
-    `Ordem: ${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}`,
+    ...(isSingleSong ? [] : [`Ordem: ${order === 'alfabetica' ? 'Alfabetica' : 'Repertorio'}`]),
   ];
   doc.text(details, layout.marginX, 250);
 }

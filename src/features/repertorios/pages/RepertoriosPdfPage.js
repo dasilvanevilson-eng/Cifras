@@ -52,6 +52,11 @@ function createRepertoriosBrowser(repertorios, musicas) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser pdf-repertorios-browser';
   wrapper.innerHTML = `
+    <fieldset class="pdf-content-options">
+      <legend>Conteudo do PDF</legend>
+      <label><input type="checkbox" data-content-option="cifras" checked> Texto cifrado</label>
+      <label><input type="checkbox" data-content-option="letras"> Somente texto</label>
+    </fieldset>
     <div class="pdf-repertorios-searches">
       <label class="pdf-repertorio-search-field">
         Buscar repertorio
@@ -70,19 +75,34 @@ function createRepertoriosBrowser(repertorios, musicas) {
   const musicSearchInput = wrapper.querySelector('.music-search-input');
   const repertorioResults = wrapper.querySelector('[data-role="repertorio-results"]');
   const musicaResults = wrapper.querySelector('[data-role="musica-results"]');
+  const contentOptions = [...wrapper.querySelectorAll('[data-content-option]')];
+  let contentType = 'cifras';
+
+  contentOptions.forEach((option) => option.addEventListener('change', () => {
+    if (!option.checked) {
+      option.checked = true;
+      return;
+    }
+    contentType = option.dataset.contentOption;
+    contentOptions.forEach((otherOption) => {
+      if (otherOption !== option) otherOption.checked = false;
+    });
+    if (!repertorioResults.hidden) renderRepertorioResults();
+    if (!musicaResults.hidden) renderMusicResults();
+  }));
 
   function renderRepertorioResults() {
     const query = normalizeText(searchInput.value);
     const filtered = repertorios
       .filter((repertorio) => matchesSearch(repertorio, query))
       .sort((a, b) => compareRepertorios(a, b, 'nome'));
-    renderPdfSearchResults(repertorioResults, filtered, 'Nenhum repertorio encontrado.');
+    renderPdfSearchResults(repertorioResults, filtered, 'Nenhum repertorio encontrado.', contentType);
   }
 
   function renderMusicResults() {
     const query = normalizeText(musicSearchInput.value);
     const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
-    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</span></article>`).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
+    musicaResults.innerHTML = matches.length ? matches.slice(0, 12).map((musica) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</strong><span>${escapeHtml(getField(musica, ['artista', 'autor', 'artist']))}</span>${createPdfActions(getField(musica, ['id']), contentType, 'musica')}</article>`).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
     musicaResults.hidden = document.activeElement !== musicSearchInput;
     bindPdfActions(musicaResults);
   }
@@ -96,14 +116,14 @@ function createRepertoriosBrowser(repertorios, musicas) {
   return wrapper;
 }
 
-function renderPdfSearchResults(slot, repertorios, emptyText) {
-  slot.innerHTML = repertorios.length ? repertorios.slice(0, 12).map((repertorio) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</strong><span>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</span>${createPdfActions(getField(repertorio, ['id']))}</article>`).join('') : `<p class="page-status">${emptyText}</p>`;
+function renderPdfSearchResults(slot, repertorios, emptyText, contentType) {
+  slot.innerHTML = repertorios.length ? repertorios.slice(0, 12).map((repertorio) => `<article class="pdf-search-result-card"><strong>${escapeHtml(getField(repertorio, ['nome', 'titulo', 'name']))}</strong><span>${escapeHtml(formatDate(getField(repertorio, ['data', 'date'])))}</span>${createPdfActions(getField(repertorio, ['id']), contentType)}</article>`).join('') : `<p class="page-status">${emptyText}</p>`;
   slot.hidden = false;
   bindPdfActions(slot);
 }
 
-function createPdfActions(id) { return `<div><button class="button-link secondary" type="button" data-action="print-cifras" data-id="${escapeHtml(id)}">Cifradas</button><button class="button-link secondary" type="button" data-action="print-letras" data-id="${escapeHtml(id)}">Letras</button></div>`; }
-function bindPdfActions(container) { container.querySelectorAll('[data-action="print-cifras"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, 'cifras'))); container.querySelectorAll('[data-action="print-letras"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, 'letras'))); }
+function createPdfActions(id, contentType, target = 'repertorio') { return `<div><button class="button-link secondary" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-target="${target}">Abrir para imprimir ou gerar PDF</button></div>`; }
+function bindPdfActions(container) { container.querySelectorAll('[data-action="open-pdf"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, button.dataset.contentType, button.dataset.target))); }
 
 function createRepertoriosTable(repertorios) {
   const table = document.createElement('table');
@@ -148,7 +168,7 @@ function createRepertoriosTable(repertorios) {
   return table;
 }
 
-function openPdfPage(repertorioId, autoPrint, contentType = 'cifras') {
+function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = 'repertorio') {
   const order = window.confirm([
     'Deseja gerar em ordem alfabetica pelo titulo da musica?',
     '',
@@ -161,6 +181,8 @@ function openPdfPage(repertorioId, autoPrint, contentType = 'cifras') {
     order,
     tipo: contentType === 'letras' ? 'letras' : 'cifras',
   });
+
+  if (target === 'musica') params.set('alvo', 'musica');
 
   if (autoPrint) {
     params.set('autoPrint', '1');
