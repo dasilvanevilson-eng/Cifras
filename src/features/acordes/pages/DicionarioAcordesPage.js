@@ -89,6 +89,7 @@ export function DicionarioAcordesPage() {
     explorerObserver?.disconnect();
     const filtered = findChordVoicings(query)
       .filter((chord) => (hasBarre(chord) ? shouldIncludeBarre : shouldIncludeNoBarre))
+      .filter((chord) => !hasRepeatedFourthFinger(chord))
       .sort(compareChordPosition);
 
     if (!filtered.length) {
@@ -167,7 +168,8 @@ export function DicionarioAcordesPage() {
       const startFret = nextFret;
       const endFret = Math.min(startFret + 4, 20);
       const voicings = generatePlayableChordVoicings(query, { startFret, endFret })
-        .filter((chord) => (hasBarre(chord) ? shouldIncludeBarre : shouldIncludeNoBarre));
+        .filter((chord) => (hasBarre(chord) ? shouldIncludeBarre : shouldIncludeNoBarre))
+        .filter((chord) => !hasRepeatedFourthFinger(chord));
       nextFret = endFret + 1;
 
       if (voicings.length) regions.append(createExplorerRegion(startFret, endFret, voicings));
@@ -282,6 +284,10 @@ function formatChordQuery(query) {
 
 function hasBarre(chord) {
   return getVisibleBarres(chord, chord.baseFret, 5).length > 0;
+}
+
+function hasRepeatedFourthFinger(chord) {
+  return chord.fingers.filter((finger) => Number(finger) === 4).length > 1;
 }
 
 function compareChordPosition(a, b) {

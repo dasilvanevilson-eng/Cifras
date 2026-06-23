@@ -20,11 +20,13 @@ import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage.js';
 import { PermissoesPage } from '../features/usuarios/pages/PermissoesPage.js';
 import { PersonalizacaoPage } from '../features/system/pages/PersonalizacaoPage.js';
 import { ConvitesPublicosPage } from '../features/public/pages/ConvitesPublicosPage.js';
+import { LinksImagemPage } from '../features/public/pages/LinksImagemPage.js';
 import { PublicDashboardPage } from '../features/public/pages/PublicDashboardPage.js';
 import { PublicBandaCoralPage } from '../features/public/pages/PublicBandaCoralPage.js';
 import { PublicLetrasRepertorioPage } from '../features/public/pages/PublicLetrasRepertorioPage.js';
 import { PublicMusicaExecucaoPage } from '../features/public/pages/PublicMusicaExecucaoPage.js';
 import { PublicRepertorioExecucaoPage } from '../features/public/pages/PublicRepertorioExecucaoPage.js';
+import { PublicImageLinkPage } from '../features/public/pages/PublicImageLinkPage.js';
 import { AccessDeniedPage } from '../features/system/pages/AccessDeniedPage.js';
 import { ModoOfflinePage } from '../features/offline/pages/ModoOfflinePage.js';
 import { AgendaPage } from '../features/agenda/pages/AgendaPage.js';
@@ -67,11 +69,13 @@ const routes = {
   '/permissoes': PermissoesPage,
   '/personalizacao': PersonalizacaoPage,
   '/convites-publicos': ConvitesPublicosPage,
+  '/links-imagem': LinksImagemPage,
   '/publico': PublicDashboardPage,
   '/publico/banda-coral': PublicBandaCoralPage,
   '/publico/letras': PublicLetrasRepertorioPage,
   '/publico/musicas/execucao': PublicMusicaExecucaoPage,
   '/publico/repertorios/execucao': PublicRepertorioExecucaoPage,
+  '/imagem': PublicImageLinkPage,
 };
 
 const publicRoutes = new Set([
@@ -82,6 +86,7 @@ const publicRoutes = new Set([
   '/publico/letras',
   '/publico/musicas/execucao',
   '/publico/repertorios/execucao',
+  '/imagem',
 ]);
 
 const protectedRoutes = {
@@ -89,6 +94,7 @@ const protectedRoutes = {
   '/permissoes': canManageUsers,
   '/personalizacao': canManageUsers,
   '/convites-publicos': canManageUsers,
+  '/links-imagem': canManageUsers,
 };
 
 export function createRouter() {
