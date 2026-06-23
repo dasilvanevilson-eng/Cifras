@@ -210,7 +210,10 @@ function setupDashboardSearch({ input, slot, items, render, getUrl, renderContex
 
   input.closest('.dashboard-search-column').addEventListener('focusout', () => {
     window.setTimeout(() => {
-      if (!input.closest('.dashboard-search-column').matches(':focus-within') && !keepResultsOpenWithoutFocus) closeResults();
+      const searchColumn = input.closest('.dashboard-search-column');
+      if (!searchColumn.matches(':focus-within')
+        && !slot.matches(':focus-within')
+        && !keepResultsOpenWithoutFocus) closeResults();
     });
   });
   document.addEventListener('focusin', (event) => {
