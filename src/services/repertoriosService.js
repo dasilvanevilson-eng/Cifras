@@ -5,6 +5,14 @@ export async function listRepertorios() {
   return supabase.from('repertorios').select('*').order('created_at', { ascending: false });
 }
 
+export async function listRepertoriosComMusicas() {
+  assertSupabaseConfig();
+  return supabase
+    .from('repertorios')
+    .select('*, repertorio_musicas(musica_id, musicas(id,titulo,nome,artista,tags))')
+    .order('created_at', { ascending: false });
+}
+
 export async function getRepertorioById(id) {
   assertSupabaseConfig();
   return supabase.from('repertorios').select('*').eq('id', id).single();

@@ -1,4 +1,4 @@
-import { listRepertorios } from '../../../services/repertoriosService.js';
+import { listRepertoriosComMusicas } from '../../../services/repertoriosService.js';
 
 export async function RepertoriosPdfPage() {
   const page = document.createElement('section');
@@ -21,7 +21,7 @@ export async function RepertoriosPdfPage() {
   const status = page.querySelector('.page-status');
 
   try {
-    const { data, error } = await listRepertorios();
+    const { data, error } = await listRepertoriosComMusicas();
 
     if (error) {
       throw error;
@@ -53,6 +53,10 @@ function createRepertoriosBrowser(repertorios) {
         <input class="search-input" type="search" placeholder="Nome ou data">
       </label>
       <label>
+        Buscar musica
+        <input class="music-search-input" type="search" placeholder="Titulo, artista ou tags">
+      </label>
+      <label>
         Ordenar
         <select class="sort-select">
           <option value="recentes">Mais recentes</option>
@@ -66,14 +70,17 @@ function createRepertoriosBrowser(repertorios) {
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
+  const musicSearchInput = wrapper.querySelector('.music-search-input');
   const sortSelect = wrapper.querySelector('.sort-select');
   const summary = wrapper.querySelector('.list-summary');
   const tableSlot = wrapper.querySelector('.table-slot');
 
   function render() {
     const query = normalizeText(searchInput.value);
+    const musicQuery = normalizeText(musicSearchInput.value);
     const filtered = repertorios
       .filter((repertorio) => matchesSearch(repertorio, query))
+      .filter((repertorio) => matchesMusicSearch(repertorio, musicQuery))
       .sort((a, b) => compareRepertorios(a, b, sortSelect.value));
 
     summary.textContent = formatSummary(filtered.length, repertorios.length);
@@ -90,6 +97,7 @@ function createRepertoriosBrowser(repertorios) {
   }
 
   searchInput.addEventListener('input', render);
+  musicSearchInput.addEventListener('input', render);
   sortSelect.addEventListener('change', render);
   render();
 
@@ -167,6 +175,16 @@ function matchesSearch(repertorio, query) {
     getField(repertorio, ['nome', 'titulo', 'name']),
     formatDate(getField(repertorio, ['data', 'date'])),
   ].join(' ')).includes(query);
+}
+
+function matchesMusicSearch(repertorio, query) {
+  if (!query) return true;
+
+  return (repertorio.repertorio_musicas || []).some((item) => normalizeText([
+    getField(item.musicas || {}, ['titulo', 'nome', 'title']),
+    getField(item.musicas || {}, ['artista', 'autor', 'artist']),
+    getField(item.musicas || {}, ['tags']),
+  ].join(' ')).includes(query));
 }
 
 function compareRepertorios(a, b, sortBy) {
