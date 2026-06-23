@@ -697,14 +697,14 @@ a {
 .agenda-day:nth-child(7n) { border-right: 1px solid var(--color-border); }.agenda-day:nth-last-child(-n+7) { border-bottom: 1px solid var(--color-border); }.agenda-day.is-empty { background: color-mix(in srgb, var(--color-bg-soft) 65%, var(--color-surface)); }.agenda-day > strong { display: block; margin-bottom: 5px; color: var(--color-text-muted); font-size: 12px; }
 .agenda-event { display: block; width: 100%; margin-top: 4px; border: 0; border-left: 3px solid var(--color-primary); border-radius: 4px; padding: 4px 5px; background: var(--color-primary-soft); color: var(--color-primary-strong); font: 700 11px/1.25 inherit; text-align: left; cursor: pointer; }.agenda-event.is-pendente { border-left-color: var(--color-accent); background: var(--color-accent-soft); color: var(--color-text); }.agenda-event.is-cancelado { opacity: .55; text-decoration: line-through; }
 .agenda-side { display: grid; gap: 18px; }.agenda-upcoming h2, .agenda-form h2 { margin: 0 0 12px; font-size: 17px; }.agenda-upcoming > div { display: grid; gap: 10px; }.agenda-upcoming article { display: grid; gap: 4px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }.agenda-upcoming article:last-child { border-bottom: 0; padding-bottom: 0; }.agenda-upcoming span, .agenda-upcoming small { color: var(--color-text-muted); font-size: 13px; }
-.agenda-form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }.agenda-form select[multiple] { min-height: 110px; }
+.agenda-form-row { display: grid; grid-template-columns: 1fr; gap: 10px; }.agenda-form select[multiple] { min-height: 110px; }
 .agenda-datetime-group { min-width: 0; margin: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 6px 8px 8px; }
 .agenda-datetime-group legend { padding: 0 4px; color: var(--color-text-muted); font-size: 12px; font-weight: 800; }
 .agenda-datetime-group > span { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .85fr); width: 100%; gap: 6px; min-width: 0; }
 .agenda-datetime-group input { box-sizing: border-box; width: 100%; min-width: 0; }
 
 @media (max-width: 520px) {
-  .agenda-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .agenda-form-row { grid-template-columns: 1fr; gap: 8px; }
   .agenda-datetime-group { padding: 3px 3px 5px; }
   .agenda-datetime-group legend { padding: 0 2px; font-size: 9px; }
   .agenda-datetime-group > span { gap: 3px; }
