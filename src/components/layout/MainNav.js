@@ -125,7 +125,6 @@ function getVisibleLinks(options = {}) {
         { href: '/permissoes', label: 'Permissoes', group: 'Administracao', moduleKey: 'permissoes', match: ['/permissoes'] },
         { href: '/personalizacao', label: 'Personalizacao', group: 'Administracao', moduleKey: 'personalizacao', match: ['/personalizacao'] },
         { href: '/convites-publicos', label: 'Convites publicos', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
-        { href: '/links-imagem', label: 'Link Imagem', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/links-imagem'] },
       ]
       : []),
   ];

@@ -25,8 +25,8 @@ drop policy if exists "Admins gerenciam links de imagem" on public.image_links;
 create policy "Admins gerenciam links de imagem"
 on public.image_links for all
 to authenticated
-using (public.is_admin())
-with check (public.is_admin());
+using (public.current_user_role() = 'admin')
+with check (public.current_user_role() = 'admin');
 
 insert into storage.buckets (id, name, public)
 values ('image-link-assets', 'image-link-assets', true)
@@ -36,8 +36,8 @@ drop policy if exists "Admins gerenciam imagens dos links" on storage.objects;
 create policy "Admins gerenciam imagens dos links"
 on storage.objects for all
 to authenticated
-using (bucket_id = 'image-link-assets' and public.is_admin())
-with check (bucket_id = 'image-link-assets' and public.is_admin());
+using (bucket_id = 'image-link-assets' and public.current_user_role() = 'admin')
+with check (bucket_id = 'image-link-assets' and public.current_user_role() = 'admin');
 
 create or replace function public.get_public_image_link_data(p_token text)
 returns jsonb

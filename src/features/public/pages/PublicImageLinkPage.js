@@ -22,10 +22,11 @@ function createImageGallery({ title, images }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'public-image-gallery';
   let index = 0;
+  const hasNavigation = images.length > 1;
   wrapper.innerHTML = `
-    <header><div><span>Galeria compartilhada</span><h1>${escapeHtml(title)}</h1></div><p data-role="position"></p></header>
+    <header><div><h1>${escapeHtml(title)}</h1></div>${hasNavigation ? '<p data-role="position"></p>' : ''}</header>
     <div class="public-image-stage"><img data-role="image" alt="Imagem compartilhada"></div>
-    <footer><button class="nav-button" type="button" data-action="previous">Anterior</button><button class="nav-button" type="button" data-action="next">Próxima</button></footer>
+    ${hasNavigation ? '<footer><button class="nav-button" type="button" data-action="previous">Anterior</button><button class="nav-button" type="button" data-action="next">Próxima</button></footer>' : ''}
   `;
   const image = wrapper.querySelector('[data-role="image"]');
   const position = wrapper.querySelector('[data-role="position"]');
@@ -34,13 +35,13 @@ function createImageGallery({ title, images }) {
   function render() {
     image.src = images[index];
     image.alt = `${title} · imagem ${index + 1}`;
-    position.textContent = `${index + 1} de ${images.length}`;
-    previous.disabled = index === 0;
-    next.disabled = index === images.length - 1;
+    if (position) position.textContent = `${index + 1} de ${images.length}`;
+    if (previous) previous.disabled = index === 0;
+    if (next) next.disabled = index === images.length - 1;
   }
-  previous.addEventListener('click', () => { index = Math.max(0, index - 1); render(); });
-  next.addEventListener('click', () => { index = Math.min(images.length - 1, index + 1); render(); });
-  wrapper.addEventListener('keydown', (event) => { if (event.key === 'ArrowLeft') previous.click(); if (event.key === 'ArrowRight') next.click(); });
+  previous?.addEventListener('click', () => { index = Math.max(0, index - 1); render(); });
+  next?.addEventListener('click', () => { index = Math.min(images.length - 1, index + 1); render(); });
+  wrapper.addEventListener('keydown', (event) => { if (event.key === 'ArrowLeft') previous?.click(); if (event.key === 'ArrowRight') next?.click(); });
   wrapper.tabIndex = 0;
   render();
   return wrapper;
