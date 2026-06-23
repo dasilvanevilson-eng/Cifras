@@ -152,6 +152,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
       if (!page.querySelector('[data-role="letras-repertorios"]').contains(document.activeElement)) letrasRepertoriosSlot.hidden = true;
     });
   });
+  letrasRepertoriosSlot.addEventListener('change', (event) => {
+    if (!event.target.matches('[name="letras_repertorio_id"]')) return;
+    setLetrasRepertorioSearchValue();
+    letrasRepertoriosSlot.hidden = true;
+  });
 
   async function loadInvites() {
     listSlot.innerHTML = '<p class="page-status">Carregando convites...</p>';
@@ -258,6 +263,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     form.elements.expires_at.value = toDateTimeLocalValue(invite.expires_at);
     form.elements.max_uses.value = invite.max_uses || '';
     setCheckedRepertorios(form, getInviteRepertorioIds(invite, metadata));
+    setLetrasRepertorioSearchValue();
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -294,6 +300,12 @@ export async function ConvitesPublicosPage({ session } = {}) {
       option.hidden = query && !normalizeText(option.textContent).includes(query);
     });
     letrasRepertoriosSlot.hidden = false;
+  }
+
+  function setLetrasRepertorioSearchValue() {
+    const selected = form.querySelector('[name="letras_repertorio_id"]:checked');
+    if (!selected) return;
+    letrasRepertoriosSearch.value = selected.closest('.public-invite-repertorio-option')?.textContent.trim() || '';
   }
 }
 
