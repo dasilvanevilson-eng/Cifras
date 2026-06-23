@@ -20,6 +20,7 @@ export async function RepertorioPdfPage() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   const isSingleSong = params.get('alvo') === 'musica';
+  const hideIndex = isSingleSong || params.get('semIndice') === '1';
   const shouldAutoPrint = params.get('autoPrint') === '1';
   const order = params.get('order') === 'alfabetica' ? 'alfabetica' : 'repertorio';
   const contentType = params.get('tipo') === 'letras' ? 'letras' : 'cifras';
@@ -42,6 +43,7 @@ export async function RepertorioPdfPage() {
         order,
         contentType,
         isSingleSong: true,
+        hideIndex,
       }));
       return page;
     }
@@ -60,6 +62,7 @@ export async function RepertorioPdfPage() {
       shouldAutoPrint,
       order,
       contentType,
+      hideIndex,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -76,6 +79,7 @@ function createPdfView({
   order = 'repertorio',
   contentType = 'cifras',
   isSingleSong = false,
+  hideIndex = false,
 }) {
   const wrapper = document.createElement('article');
   wrapper.className = `pdf-repertorio ${contentType === 'letras' ? 'is-lyrics-only' : ''}`;
@@ -118,7 +122,7 @@ function createPdfView({
       </dl>
     </section>
 
-    ${isSingleSong ? '' : `<nav class="pdf-summary" id="indice" aria-label="Sumario">
+    ${hideIndex ? '' : `<nav class="pdf-summary" id="indice" aria-label="Sumario">
       <h2><a class="pdf-index-target" href="#indice" name="indice">Sumario</a></h2>
       <ol>
         ${musicasAssociadas.map((item, index) => createSummaryItem(item, index + 1)).join('')}
@@ -127,7 +131,7 @@ function createPdfView({
 
     <div class="pdf-song-list">
       ${musicasAssociadas.length
-        ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1, contentType, isSingleSong)).join('')
+        ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1, contentType, hideIndex)).join('')
         : '<p class="page-status">Nenhuma musica adicionada a este repertorio.</p>'}
     </div>
   `;
@@ -146,6 +150,7 @@ function createPdfView({
       contentLabel,
       generatedAt,
       isSingleSong,
+      hideIndex,
     });
   });
 
@@ -160,6 +165,7 @@ function createPdfView({
         contentLabel,
         generatedAt,
         isSingleSong,
+        hideIndex,
       });
     }, 250);
   }
@@ -176,12 +182,13 @@ function generateCompatiblePdf({
   contentLabel,
   generatedAt,
   isSingleSong = false,
+  hideIndex = false,
 }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const layout = createPdfLayout(doc);
   const nome = getField(repertorio, ['nome', 'titulo', 'name']);
   const data = formatDate(getField(repertorio, ['data', 'date']));
-  const summaryPages = isSingleSong ? 0 : Math.max(1, Math.ceil(Math.max(musicasAssociadas.length, 1) / 28));
+  const summaryPages = hideIndex ? 0 : Math.max(1, Math.ceil(Math.max(musicasAssociadas.length, 1) / 28));
   const summaryStartPage = 2;
   const songPageByNumber = new Map();
 
@@ -208,11 +215,11 @@ function generateCompatiblePdf({
       number,
       contentType,
       summaryPage: summaryStartPage,
-      hasSummary: !isSingleSong,
+      hasSummary: !hideIndex,
     });
   });
 
-  if (!isSingleSong) {
+  if (!hideIndex) {
     renderPdfSummary(doc, layout, {
       musicasAssociadas,
       songPageByNumber,

@@ -182,7 +182,10 @@ function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = '
     tipo: contentType === 'letras' ? 'letras' : 'cifras',
   });
 
-  if (target === 'musica') params.set('alvo', 'musica');
+  if (target === 'musica') {
+    params.set('alvo', 'musica');
+    params.set('semIndice', '1');
+  }
 
   if (autoPrint) {
     params.set('autoPrint', '1');
