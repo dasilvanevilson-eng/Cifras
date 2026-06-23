@@ -9,7 +9,7 @@ export async function listRepertoriosComMusicas() {
   assertSupabaseConfig();
   return supabase
     .from('repertorios')
-    .select('*, repertorio_musicas(musica_id, musicas(id,titulo,nome,artista,tags))')
+    .select('*, repertorio_musicas(musica_id, musicas(id,titulo,artista,tags))')
     .order('created_at', { ascending: false });
 }
 
