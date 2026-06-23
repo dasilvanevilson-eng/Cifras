@@ -944,9 +944,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const query = normalizeText(repertorioMusicSearch.value);
     const musicasDoRepertorioSelecionado = repertorioMusicas
       .filter((item) => item.repertorio_id === selectedRepertorio.id && item?.musicas);
-    const results = query
+    const filteredResults = query
       ? musicasDoRepertorioSelecionado.filter((item) => matchesMusicaSearch(item.musicas, query))
       : musicasDoRepertorioSelecionado;
+    const results = orderSelectedItemsFirst(filteredResults, tempRepertorioMusicas);
 
     musicasRepertorioSlot.replaceChildren(createRepertorioMusicResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
@@ -965,9 +966,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
 
     const query = normalizeText(acervoMusicSearch.value);
-    const results = query
+    const filteredResults = query
       ? musicas.filter((musica) => matchesMusicaSearch(musica, query))
       : musicas;
+    const results = orderSelectedItemsFirst(filteredResults, tempAcervoMusicas);
 
     musicasAcervoSlot.replaceChildren(createRepertorioMusicResultList(results, {
       emptyText: 'Nenhuma musica encontrada.',
@@ -1030,10 +1032,8 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     renderSelectedMusicasList(selectedRepertorioMusicasSlot, tempRepertorioMusicas);
     updateSelectedListsVisibility();
     renderMusicasRepertorio();
-    window.requestAnimationFrame(() => {
-      repertorioMusicSearch.focus({ preventScroll: true });
-      showCascade(musicasRepertorioSlot);
-    });
+    repertorioMusicSearch.blur();
+    scrollSelectedMusicToTop(musicasRepertorioSlot);
   }
 
   function toggleTempAcervoMusica(musica) {
@@ -1043,16 +1043,29 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     renderSelectedMusicasList(selectedAcervoMusicasSlot, tempAcervoMusicas);
     updateSelectedListsVisibility();
     renderMusicasAcervo();
-    window.requestAnimationFrame(() => {
-      acervoMusicSearch.focus({ preventScroll: true });
-      showCascade(musicasAcervoSlot);
-    });
+    acervoMusicSearch.blur();
+    scrollSelectedMusicToTop(musicasAcervoSlot);
   }
 
   function toggleListItem(items, item) {
     return items.some((selected) => selected.id === item.id)
       ? items.filter((selected) => selected.id !== item.id)
       : [...items, item];
+  }
+
+  function orderSelectedItemsFirst(items, selectedItems) {
+    const selectedIds = new Set(selectedItems.map((item) => item.id));
+    return [
+      ...items.filter((item) => selectedIds.has(item.id)),
+      ...items.filter((item) => !selectedIds.has(item.id)),
+    ];
+  }
+
+  function scrollSelectedMusicToTop(slot) {
+    window.requestAnimationFrame(() => {
+      slot.scrollTop = 0;
+      slot.querySelector('.public-banda-result-row')?.scrollIntoView({ block: 'nearest' });
+    });
   }
 
   function updateTempRepertorioButton() {
