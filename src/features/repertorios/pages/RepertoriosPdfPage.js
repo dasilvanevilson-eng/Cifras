@@ -186,13 +186,9 @@ function createRepertoriosTable(repertorios) {
   return table;
 }
 
-function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = 'repertorio') {
-  const order = window.confirm([
-    'Deseja gerar em ordem alfabetica pelo titulo da musica?',
-    '',
-    'OK = ordem alfabetica',
-    'Cancelar = ordem em que esta no repertorio',
-  ].join('\n')) ? 'alfabetica' : 'repertorio';
+async function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = 'repertorio') {
+  const order = target === 'musica' ? 'repertorio' : await chooseRepertorioOrder();
+  if (!order) return;
 
   const params = new URLSearchParams({
     id: repertorioId,
@@ -210,6 +206,41 @@ function openPdfPage(repertorioId, autoPrint, contentType = 'cifras', target = '
   }
 
   window.location.href = `/repertorios-pdf/gerar?${params.toString()}`;
+}
+
+function chooseRepertorioOrder() {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'pdf-order-modal';
+    modal.innerHTML = `
+      <div class="pdf-order-modal-backdrop" data-action="close"></div>
+      <section class="pdf-order-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pdf-order-title">
+        <button class="pdf-order-modal-close" type="button" data-action="close" aria-label="Fechar">×</button>
+        <p>Organizacao do arquivo</p>
+        <h2 id="pdf-order-title">Como deseja ordenar as musicas?</h2>
+        <div class="pdf-order-modal-actions">
+          <button class="button-link secondary" type="button" data-order="repertorio">Manter ordem do repertorio</button>
+          <button class="button" type="button" data-order="alfabetica">Ordenar por titulo (A–Z)</button>
+        </div>
+      </section>
+    `;
+
+    const close = (order = null) => {
+      document.removeEventListener('keydown', onKeydown);
+      modal.remove();
+      resolve(order);
+    };
+    const onKeydown = (event) => { if (event.key === 'Escape') close(); };
+
+    modal.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-order]');
+      if (button) close(button.dataset.order);
+      if (event.target.closest('[data-action="close"]')) close();
+    });
+    document.addEventListener('keydown', onKeydown);
+    document.body.append(modal);
+    modal.querySelector('[data-order="repertorio"]').focus();
+  });
 }
 
 function matchesSearch(repertorio, query) {
