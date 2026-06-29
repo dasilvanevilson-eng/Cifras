@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   applyVoiceLabelsToChordPro,
   createChordProFromCifraEditorState,
+  createMarkedChordProFromCifraEditorState,
   convertCifraOriginalToNumbers,
   convertToChordPro,
   createCifraEditorStateFromChordPro,
@@ -392,6 +393,33 @@ assert.equal(
       '    ',
       '<span class="chord-token">[Bm]</span>',
     ].join(''),
+  );
+
+  assert.equal(
+    createMarkedChordProFromCifraEditorState(finalChordState).includes('{voice: voz_principal}'),
+    true,
+  );
+
+  const markedPreviewCifra = getCifraParaTransposicao({ cifra_editor_state: labeledFinalChordState });
+
+  assert.equal(
+    markedPreviewCifra.includes('{voice-label: voz_principal=Voz 1}'),
+    true,
+  );
+
+  assert.equal(
+    markedPreviewCifra.includes('{voice: voz_principal}'),
+    true,
+  );
+
+  const markedPreviewHtml = renderMusicaCifraForDisplayHtml(
+    { cifra_editor_state: labeledFinalChordState },
+    { cifra: markedPreviewCifra, includeVoiceLegend: false },
+  );
+
+  assert.equal(
+    markedPreviewHtml.includes(`class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}`),
+    true,
   );
 }
 

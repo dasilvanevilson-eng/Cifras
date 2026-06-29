@@ -180,7 +180,7 @@ export function getCifraParaTransposicao(record = {}) {
   const editorState = normalizeCifraEditorState(record.cifra_editor_state);
 
   if (hasCifraEditorStateContent(editorState)) {
-    return createChordProFromCifraEditorState(editorState);
+    return createMarkedChordProFromCifraEditorState(editorState);
   }
 
   if (record.cifra_chordpro) {
@@ -266,6 +266,21 @@ export function createChordProFromCifraEditorState(state = {}) {
   );
 }
 
+export function createMarkedChordProFromCifraEditorState(state = {}) {
+  const normalizedState = normalizeCifraEditorState(state);
+  const chordPro = createChordProFromCifraEditorState(normalizedState);
+  const labelLines = getVoiceLabelDirectiveLines(chordPro);
+  const chordProBody = removeVoiceLabelDirectiveLines(chordPro);
+  const chordProVoiceMarks = mapVoiceRangesToChordProText(
+    normalizedState.text,
+    chordProBody,
+    normalizedState.voiceMarks,
+  );
+  const markedChordProBody = applyVoiceRangesToText(chordProBody, chordProVoiceMarks);
+
+  return [...labelLines, markedChordProBody].filter(Boolean).join('\n');
+}
+
 export function createCifraExibicaoFromCifraEditorState(state = {}) {
   const normalizedState = normalizeCifraEditorState(state);
 
@@ -279,6 +294,20 @@ export function renderCifraEditorStateForDisplayHtml(state = {}, options = {}) {
   const chordProText = getChordProTextForEditorStateRender(options.cifra);
 
   if (chordProText) {
+    if (hasInlineVoiceDirective(chordProText)) {
+      const markedDisplayText = renderChordProForDisplay(chordProText, {
+        keepVoiceDirectives: true,
+      });
+
+      return renderCifraOriginalForDisplayHtml(markedDisplayText, {
+        ...options,
+        voiceLabels: {
+          ...normalizedState.voiceLabels,
+          ...(options.voiceLabels || {}),
+        },
+      });
+    }
+
     const chordProVoiceMarks = mapVoiceRangesToChordProText(
       normalizedState.text,
       chordProText,
@@ -346,6 +375,12 @@ function removeVoiceLabelDirectiveLines(value) {
     .split('\n')
     .filter((line) => !parseVoiceLabelDirective(line))
     .join('\n');
+}
+
+function getVoiceLabelDirectiveLines(value) {
+  return String(value || '')
+    .split('\n')
+    .filter((line) => parseVoiceLabelDirective(line));
 }
 
 export function renderChordProEditorHtmlFromCifraEditorState(state = {}) {
