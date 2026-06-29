@@ -514,8 +514,7 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
   });
 
   if (trailingChords.length) {
-    const separator = result && !/\s$/.test(result) ? ' ' : '';
-    result = `${result}${separator}${trailingChords.map((chord) => `[${chord}]`).join(' ')}`;
+    result = `${result.trimEnd()}\n${trailingChords.map((chord) => `[${chord}]`).join(' ')}`;
   }
 
   return result;
