@@ -182,6 +182,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   }
 
   async function setMode(mode, options = {}) {
+    if (mode === 'lider' && isCurrentLeader()) {
+      options.skipCredentialPrompt = true;
+      options.skipClaim = true;
+    }
+
     if (mode === 'lider' && !options.skipCredentialPrompt) {
       const hasAnotherLeader = await warnIfAnotherLeaderIsConnected();
       if (hasAnotherLeader) return;
@@ -1165,7 +1170,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   startLeaderPresencePolling();
   refreshLeaderPresence().then(async () => {
     leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
-    const initialMode = isCurrentLeader() && leaderAuthenticatedForRoom
+    const initialMode = isCurrentLeader()
       ? 'lider'
       : 'integrante';
     const shouldAutoFollowLeader = initialMode === 'integrante'
