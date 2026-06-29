@@ -325,7 +325,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeTempRepertorio() {
     if (currentMode === 'integrante' && memberFollowingLeader) return;
     if (!selectedRepertorio || tempRepertorioMusicas.length < 2) return;
-    executeTempMusicList({
+    await executeTempMusicList({
       type: 'repertorio',
       repertorio: {
         ...selectedRepertorio,
@@ -339,7 +339,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   async function executeTempAcervo() {
     if (currentMode === 'integrante' && memberFollowingLeader) return;
     if (tempAcervoMusicas.length < 2) return;
-    executeTempMusicList({
+    await executeTempMusicList({
       type: 'acervo',
       repertorio: {
         id: 'temp-acervo',
@@ -355,38 +355,68 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     });
   }
 
-  function executeTempMusicList({ type, repertorio, musicasAssociadas }) {
+  async function executeTempMusicList({ type, repertorio, musicasAssociadas }) {
     if (currentMode === 'integrante' && memberFollowingLeader) return;
 
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
     currentTempExecutionType = type;
+    const orderedMusicasAssociadas = musicasAssociadas.map((item, index) => ({
+      ...item,
+      ordem: index + 1,
+    }));
 
     executionContent.replaceChildren(createRepertorioPerformanceView({
       repertorio,
-      musicasAssociadas: musicasAssociadas.map((item, index) => ({
-        ...item,
-        ordem: index + 1,
-      })),
+      musicasAssociadas: orderedMusicasAssociadas,
       returnTo,
+      onSongChange: handleRepertorioSongChange,
     }));
     refreshExecutionControlsForMode();
     openExecutionLayer();
-    currentExecutionState = null;
+    currentExecutionState = createTempMusicState(orderedMusicasAssociadas[0]);
+
+    if (currentExecutionState && currentMode === 'lider') {
+      await publishLeaderState(currentExecutionState);
+    }
+  }
+
+  function createTempMusicState(item, transposeSemitones = 0) {
+    const musicaId = item?.musica_id || item?.musicas?.id || item?.id || null;
+    if (!musicaId) return null;
+
+    return normalizeState({
+      itemType: 'musica',
+      musicaId,
+      transposeSemitones,
+    });
   }
 
   async function handleRepertorioSongChange(songState) {
-    if (currentMode !== 'lider' || !currentExecutionState || currentExecutionState.itemType !== 'repertorio') {
+    if (currentMode !== 'lider' || !currentExecutionState) {
       return;
     }
 
-    currentExecutionState = normalizeState({
-      ...currentExecutionState,
-      musicaId: songState.musicaId,
-      repertorioMusicaId: songState.repertorioMusicaId,
-      currentSongIndex: songState.currentSongIndex,
-      transposeSemitones: songState.transposeSemitones,
-    });
+    if (currentExecutionState.itemType === 'repertorio') {
+      currentExecutionState = normalizeState({
+        ...currentExecutionState,
+        musicaId: songState.musicaId,
+        repertorioMusicaId: songState.repertorioMusicaId,
+        currentSongIndex: songState.currentSongIndex,
+        transposeSemitones: songState.transposeSemitones,
+      });
+    } else if (currentTempExecutionType && currentExecutionState.itemType === 'musica') {
+      if (!songState.musicaId) return;
+
+      currentExecutionState = normalizeState({
+        itemType: 'musica',
+        musicaId: songState.musicaId,
+        transposeSemitones: songState.transposeSemitones,
+      });
+    } else {
+      return;
+    }
+
     await publishLeaderState(currentExecutionState);
   }
 
