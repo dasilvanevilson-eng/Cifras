@@ -342,6 +342,22 @@ assert.equal(
     true,
   );
 
+  const labeledFinalChordState = {
+    ...finalChordState,
+    voiceLabels: { voz_principal: 'Voz 1' },
+  };
+
+  assert.equal(
+    renderMusicaCifraForDisplayHtml(
+      { cifra_editor_state: labeledFinalChordState },
+      {
+        cifra: createChordProFromCifraEditorState(labeledFinalChordState),
+        includeVoiceLegend: false,
+      },
+    ).includes('voice-highlight-voz_principal'),
+    true,
+  );
+
   assert.equal(
     renderChordProEditorHtmlFromCifraEditorState(finalChordState),
     [
