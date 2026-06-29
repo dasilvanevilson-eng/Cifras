@@ -276,6 +276,28 @@ export function createCifraExibicaoFromCifraEditorState(state = {}) {
 
 export function renderCifraEditorStateForDisplayHtml(state = {}, options = {}) {
   const normalizedState = normalizeCifraEditorState(state);
+  const chordProText = getChordProTextForEditorStateRender(options.cifra);
+
+  if (chordProText) {
+    const chordProVoiceMarks = mapVoiceRangesToChordProText(
+      normalizedState.text,
+      chordProText,
+      normalizedState.voiceMarks,
+    );
+    const markedChordProText = applyVoiceRangesToText(chordProText, chordProVoiceMarks);
+    const markedDisplayText = renderChordProForDisplay(markedChordProText, {
+      keepVoiceDirectives: true,
+    });
+
+    return renderCifraOriginalForDisplayHtml(markedDisplayText, {
+      ...options,
+      voiceLabels: {
+        ...normalizedState.voiceLabels,
+        ...(options.voiceLabels || {}),
+      },
+    });
+  }
+
   const displayText = getDisplayTextForEditorStateRender(normalizedState, options.cifra);
   const displayVoiceMarks = mapVoiceRangesToDisplayText(
     normalizedState.text,
@@ -291,6 +313,19 @@ export function renderCifraEditorStateForDisplayHtml(state = {}, options = {}) {
       ...(options.voiceLabels || {}),
     },
   });
+}
+
+function getChordProTextForEditorStateRender(cifra) {
+  if (cifra === undefined || cifra === null) {
+    return '';
+  }
+
+  const value = String(cifra);
+  if (!hasChordProChords(value)) {
+    return '';
+  }
+
+  return removeVoiceLabelDirectiveLines(value);
 }
 
 function getDisplayTextForEditorStateRender(state, cifra) {

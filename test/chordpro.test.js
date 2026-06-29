@@ -372,6 +372,17 @@ assert.equal(
   );
 
   assert.equal(
+    renderMusicaCifraForDisplayHtml(
+      { cifra_editor_state: finalChordState },
+      {
+        cifra: transposeChordPro(createChordProFromCifraEditorState(finalChordState), 1),
+        includeVoiceLegend: false,
+      },
+    ).includes(`<span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>${finalChordText.split('\n')[1]}</span>`),
+    true,
+  );
+
+  assert.equal(
     renderChordProEditorHtmlFromCifraEditorState(finalChordState),
     [
       '<span class="chord-token">[C]</span>',
