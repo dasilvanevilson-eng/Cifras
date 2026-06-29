@@ -5629,6 +5629,21 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 
 .performance-voice-legend:empty { display: none; }
 .performance-voice-legend .voice-legend { margin: 0 0 10px; border-top: 0; padding: 0; }
+.performance-title-voice-legend:empty { display: none; }
+.performance-title-voice-legend .voice-legend {
+  display: inline-flex;
+  margin: 0;
+  border-top: 0;
+  padding: 0;
+  gap: 5px;
+  vertical-align: middle;
+}
+.performance-title-voice-legend .voice-legend-item {
+  min-height: 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.15;
+}
 
 .voice-editor-legend {
   min-height: 30px;

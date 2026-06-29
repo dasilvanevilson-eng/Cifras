@@ -28,6 +28,7 @@ export function createPerformanceSongBlock({
   const baseSemitonesAttribute = Number.isFinite(baseSemitones)
     ? ` data-base-semitones="${baseSemitones}"`
     : '';
+  const voiceLegendHtml = renderVoiceLegendHtml(cifra);
 
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
@@ -35,11 +36,12 @@ export function createPerformanceSongBlock({
       ${subtitleParts.filter(Boolean).map((part) => (
         `<span class="title-separator" aria-hidden="true">/</span><span class="${escapeHtml(getSubtitleClassName(part))}">${escapeHtml(getSubtitleText(part))}</span>`
       )).join('')}
+      <span class="performance-title-voice-legend" data-role="performance-title-voice-legend">${voiceLegendHtml}</span>
       <data class="current-key" data-original-key="${escapeHtml(originalKey)}"${baseSemitonesAttribute} hidden>${escapeHtml(currentKey || '-')}</data>
     </header>
     ${deletedNotice
       ? `<p class="deleted-song-notice">${escapeHtml(deletedNotice)}</p>`
-      : `<div class="performance-voice-legend" data-role="performance-voice-legend">${renderVoiceLegendHtml(cifra)}</div>
+      : `<div class="performance-voice-legend" data-role="performance-voice-legend">${voiceLegendHtml}</div>
       <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderMusicaCifraForDisplayHtml(musica || {}, { cifra, includeVoiceLegend: false })}</pre>`}
   `;
 

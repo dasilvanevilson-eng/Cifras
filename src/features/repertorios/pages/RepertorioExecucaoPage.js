@@ -312,8 +312,11 @@ function renderPagedPerformance({
       cifra: displayedCifra,
       includeVoiceLegend: false,
     });
-    const voiceLegend = song.querySelector('[data-role="performance-voice-legend"]');
-    if (voiceLegend) voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
+    song
+      .querySelectorAll('[data-role="performance-title-voice-legend"], [data-role="performance-voice-legend"]')
+      .forEach((voiceLegend) => {
+        voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
+      });
     keyElement.textContent = displayedKey;
     status.textContent = formatTransposeStatus(semitones, capo);
   });
@@ -725,8 +728,11 @@ function renderPagedPerformanceV2({
         cifra: displayedCifra,
         includeVoiceLegend: false,
       });
-      const voiceLegend = song.querySelector('[data-role="performance-voice-legend"]');
-      if (voiceLegend) voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
+      song
+        .querySelectorAll('[data-role="performance-title-voice-legend"], [data-role="performance-voice-legend"]')
+        .forEach((voiceLegend) => {
+          voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
+        });
       fitPerformanceCifraToWidth(wrapper, view, displayedCifra, desiredFontSize, fitFontToMobileWidth);
     }
 

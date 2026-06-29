@@ -50,6 +50,7 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view music-performance-stage';
   const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
+  const voiceLegendHtml = renderPerformanceVoiceLegendHtml(cifraOriginal, musica);
 
   wrapper.innerHTML = `
     ${createPerformanceToolbar({
@@ -62,11 +63,12 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
         <div class="performance-title-copy">
           <span class="performance-kicker">Execucao</span>
           <h2>${escapeHtml(title)}</h2>
+          <div class="performance-title-voice-legend" data-role="performance-title-voice-legend">${voiceLegendHtml}</div>
         </div>
         <span class="performance-key-chip">${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
         <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
       </header>
-      <div class="performance-voice-legend">${renderPerformanceVoiceLegendHtml(cifraOriginal, musica)}</div>
+      <div class="performance-voice-legend" data-role="performance-voice-legend">${voiceLegendHtml}</div>
       <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderMusicaCifraForDisplayHtml(musica, { cifra: cifraOriginal, includeVoiceLegend: false })}</pre>
     </section>
   `;
@@ -206,7 +208,12 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
 
   function renderPerformance() {
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
-    wrapper.querySelector('.performance-voice-legend').innerHTML = renderPerformanceVoiceLegendHtml(displayedCifra, currentMusica);
+    const voiceLegendHtml = renderPerformanceVoiceLegendHtml(displayedCifra, currentMusica);
+    wrapper
+      .querySelectorAll('[data-role="performance-title-voice-legend"], [data-role="performance-voice-legend"]')
+      .forEach((legend) => {
+        legend.innerHTML = voiceLegendHtml;
+      });
     view.innerHTML = renderMusicaCifraForDisplayHtml(currentMusica, { cifra: displayedCifra, includeVoiceLegend: false });
     fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
     transposeStatus.textContent = formatTransposeStatus(semitones, capo);
