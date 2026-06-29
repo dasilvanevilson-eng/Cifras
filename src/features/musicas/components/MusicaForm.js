@@ -455,7 +455,7 @@ export function MusicaForm(options = {}) {
   });
 
   previewToggle.addEventListener('click', () => {
-    openPreview(form, previewPanel, previewToggle);
+    openPreview(form, previewPanel, previewToggle, editorState);
   });
 
   previewPanel.addEventListener('click', (event) => {
@@ -1236,11 +1236,11 @@ function renderFormTransposeStatus(status, semitones) {
     : formatTransposeStatus(semitones);
 }
 
-function openPreview(form, previewPanel, previewToggle) {
+function openPreview(form, previewPanel, previewToggle, editorState = null) {
   previewPanel.hidden = false;
   form.classList.add('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
-  updatePreview(form, previewPanel);
+  updatePreview(form, previewPanel, editorState);
   previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
