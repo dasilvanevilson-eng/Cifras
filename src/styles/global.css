@@ -5549,29 +5549,44 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   outline: 0;
 }
 
-.voice-marker-primary,
-.voice-highlight-voz_principal {
+.voice-marker-primary {
   background: #ffe08a;
 }
 
-.voice-marker-secondary,
-.voice-highlight-segunda_voz {
+.voice-marker-secondary {
   background: #a7d8ff;
 }
 
-.voice-marker-tertiary,
-.voice-highlight-terca_voz {
+.voice-marker-tertiary {
   background: #b8f2c8;
 }
 
-.voice-marker-all,
-.voice-highlight-todos {
+.voice-marker-all {
   background: #e9d5ff;
 }
 
-.voice-marker-solo,
-.voice-highlight-solo {
+.voice-marker-solo {
   background: #ffc4c4;
+}
+
+.voice-highlight-voz_principal {
+  color: #0f5fbd;
+}
+
+.voice-highlight-segunda_voz {
+  color: #087a3f;
+}
+
+.voice-highlight-terca_voz {
+  color: #8a5a00;
+}
+
+.voice-highlight-todos {
+  color: #7c3aed;
+}
+
+.voice-highlight-solo {
+  color: #c2410c;
 }
 
 .voice-highlight {
@@ -5579,7 +5594,8 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   margin: 0;
   border-radius: 4px;
   padding: 0;
-  color: #1d1b17;
+  background: transparent;
+  font-weight: 700;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -5815,11 +5831,12 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
 .cifra-original-codemirror .cm-focused { outline: 0; box-shadow: 0 0 0 3px rgba(29, 79, 69, .14); }
 
 /* Decorações do CodeMirror: aplicadas no próprio texto editável. */
-.cifra-original-codemirror .cm-content .voice-highlight-voz_principal { background-color: #ffe08a !important; color: #1d1b17 !important; }
-.cifra-original-codemirror .cm-content .voice-highlight-segunda_voz { background-color: #a7d8ff !important; color: #1d1b17 !important; }
-.cifra-original-codemirror .cm-content .voice-highlight-terca_voz { background-color: #b8f2c8 !important; color: #1d1b17 !important; }
-.cifra-original-codemirror .cm-content .voice-highlight-todos { background-color: #e9d5ff !important; color: #1d1b17 !important; }
-.cifra-original-codemirror .cm-content .voice-highlight-solo { background-color: #ffc4c4 !important; color: #1d1b17 !important; }
+.cifra-original-codemirror .cm-content .voice-highlight { background-color: transparent !important; font-weight: 700; }
+.cifra-original-codemirror .cm-content .voice-highlight-voz_principal { color: #0f5fbd !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-segunda_voz { color: #087a3f !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-terca_voz { color: #8a5a00 !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-todos { color: #7c3aed !important; }
+.cifra-original-codemirror .cm-content .voice-highlight-solo { color: #c2410c !important; }
 
 /* O textarea permanece apenas como fonte de dados para a conversão/salvamento.
    A interação é exclusivamente do CodeMirror, evitando duas camadas desalinhadas. */
