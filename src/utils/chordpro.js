@@ -420,15 +420,45 @@ export function applyVoiceLabelsToChordPro(chordPro, voiceLabels = {}) {
 function mergeChordLineWithLyrics(chordLine, lyricLine) {
   const parsed = parseChordLine(chordLine);
   const chords = findChords(parsed.chordText);
+
+  if (parsed.label) {
+    let labeledResult = lyricLine;
+    chords.forEach(({ chord, index }) => {
+      const position = getSourceIndexForVisiblePosition(labeledResult, index);
+      const tag = `[${chord}]`;
+      labeledResult = `${labeledResult.slice(0, position)}${tag}${labeledResult.slice(position)}`;
+    });
+    return `[*${parsed.label}]\n${labeledResult}`;
+  }
+
+  const lyricEnd = String(lyricLine || '').trimEnd().length;
+  const lastWordMatch = String(lyricLine || '').slice(0, lyricEnd).match(/\S+$/);
+  const finalZoneStart = lastWordMatch ? lyricEnd - lastWordMatch[0].length : lyricEnd;
   let result = lyricLine;
+  let finalZoneInlineUsed = false;
+  const trailingChords = [];
 
   chords.forEach(({ chord, index }) => {
+    const isFinalZone = index >= finalZoneStart;
+    const canStayInline = index < lyricEnd && (!isFinalZone || !finalZoneInlineUsed);
+
+    if (!canStayInline) {
+      trailingChords.push(chord);
+      return;
+    }
+
     const position = getSourceIndexForVisiblePosition(result, index);
     const tag = `[${chord}]`;
     result = `${result.slice(0, position)}${tag}${result.slice(position)}`;
+    if (isFinalZone) finalZoneInlineUsed = true;
   });
 
-  return parsed.label ? `[*${parsed.label}]\n${result}` : result;
+  if (trailingChords.length) {
+    const separator = result && !/\s$/.test(result) ? ' ' : '';
+    result = `${result}${separator}${trailingChords.map((chord) => `[${chord}]`).join(' ')}`;
+  }
+
+  return result;
 }
 
 function getSourceIndexForVisiblePosition(value, visiblePosition) {
