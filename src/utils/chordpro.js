@@ -328,6 +328,17 @@ export function renderCifraEditorStateForDisplayHtml(state = {}, options = {}) {
   }
 
   const displayText = getDisplayTextForEditorStateRender(normalizedState, options.cifra);
+
+  if (hasInlineVoiceDirective(displayText)) {
+    return renderCifraOriginalForDisplayHtml(displayText, {
+      ...options,
+      voiceLabels: {
+        ...normalizedState.voiceLabels,
+        ...(options.voiceLabels || {}),
+      },
+    });
+  }
+
   const displayVoiceMarks = mapVoiceRangesToDisplayText(
     normalizedState.text,
     displayText,

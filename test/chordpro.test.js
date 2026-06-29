@@ -421,6 +421,17 @@ assert.equal(
     markedPreviewHtml.includes(`class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}`),
     true,
   );
+
+  const displayedMarkedPreviewCifra = transposeCifraOriginal(markedPreviewCifra, 0);
+  const displayedMarkedPreviewHtml = renderMusicaCifraForDisplayHtml(
+    { cifra_editor_state: labeledFinalChordState },
+    { cifra: displayedMarkedPreviewCifra, includeVoiceLegend: false },
+  );
+
+  assert.equal(
+    displayedMarkedPreviewHtml.includes(`class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}`),
+    true,
+  );
 }
 
 assert.equal(
