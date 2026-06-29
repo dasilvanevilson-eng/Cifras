@@ -401,6 +401,30 @@ assert.equal(
     finalChordText,
   );
 
+  const lowercaseMarkedPreviewText = ['G    D/F#', 'grande es Tu senhor'].join('\n');
+  const lowercaseMarkedPreviewState = {
+    text: lowercaseMarkedPreviewText,
+    voiceMarks: [{
+      start: lowercaseMarkedPreviewText.indexOf('grande'),
+      end: lowercaseMarkedPreviewText.length,
+      markerId: 'segunda_voz',
+    }],
+  };
+  const uppercaseMarkedPreviewCifra = getCifraParaTransposicao({ cifra_editor_state: lowercaseMarkedPreviewState });
+
+  assert.equal(
+    uppercaseMarkedPreviewCifra,
+    ['G    D/F#', 'GRANDE ES TU SENHOR'].join('\n'),
+  );
+
+  assert.equal(
+    renderMusicaCifraForDisplayHtml(
+      { cifra_editor_state: lowercaseMarkedPreviewState },
+      { cifra: uppercaseMarkedPreviewCifra, includeVoiceLegend: false },
+    ).includes(`class="voice-highlight voice-highlight-segunda_voz" ${VOICE_SECONDARY_STYLE}`),
+    true,
+  );
+
   const markedPreviewHtml = renderMusicaCifraForDisplayHtml(
     { cifra_editor_state: labeledFinalChordState },
     { cifra: markedPreviewCifra, includeVoiceLegend: false },

@@ -180,7 +180,7 @@ export function getCifraParaTransposicao(record = {}) {
   const editorState = normalizeCifraEditorState(record.cifra_editor_state);
 
   if (hasCifraEditorStateContent(editorState)) {
-    return editorState.text;
+    return uppercaseCifraOriginalLyrics(editorState.text);
   }
 
   if (record.cifra_chordpro) {
@@ -192,6 +192,20 @@ export function getCifraParaTransposicao(record = {}) {
 
 function hasCifraEditorStateContent(state) {
   return Boolean(state?.text || state?.voiceMarks?.length);
+}
+
+function uppercaseCifraOriginalLyrics(input) {
+  return normalizeTabs(input)
+    .split('\n')
+    .map((line) => {
+      const plainLine = stripVoiceDirectives(line);
+      if (isVoiceDirectiveLine(line) || parseVoiceLabelDirective(line) || isDisplayChordLine(plainLine)) {
+        return line;
+      }
+
+      return String(line).toLocaleUpperCase('pt-BR');
+    })
+    .join('\n');
 }
 
 export function createCifraEditorStateFromRecord(record = {}) {
