@@ -12498,3 +12498,59 @@ html[data-interface-density="compact"] .account-password-panel {
     max-height: min(68dvh, 620px);
   }
 }
+
+/* Voice marks are visual text color only. Keep this at the end so preview,
+   performance, dark mode and PDF rules cannot reset marked lyric colors. */
+.chordpro-view .voice-highlight,
+.song-preview .voice-highlight,
+.repertorio-performance-view .voice-highlight,
+.music-performance-stage .voice-highlight,
+.pdf-song .voice-highlight {
+  background: transparent !important;
+  font-weight: 700;
+}
+
+.chordpro-view .voice-highlight-voz_principal,
+.song-preview .voice-highlight-voz_principal,
+.repertorio-performance-view .voice-highlight-voz_principal,
+.music-performance-stage .voice-highlight-voz_principal,
+.pdf-song .voice-highlight-voz_principal {
+  color: #0f5fbd !important;
+  -webkit-text-fill-color: #0f5fbd !important;
+}
+
+.chordpro-view .voice-highlight-segunda_voz,
+.song-preview .voice-highlight-segunda_voz,
+.repertorio-performance-view .voice-highlight-segunda_voz,
+.music-performance-stage .voice-highlight-segunda_voz,
+.pdf-song .voice-highlight-segunda_voz {
+  color: #087a3f !important;
+  -webkit-text-fill-color: #087a3f !important;
+}
+
+.chordpro-view .voice-highlight-terca_voz,
+.song-preview .voice-highlight-terca_voz,
+.repertorio-performance-view .voice-highlight-terca_voz,
+.music-performance-stage .voice-highlight-terca_voz,
+.pdf-song .voice-highlight-terca_voz {
+  color: #8a5a00 !important;
+  -webkit-text-fill-color: #8a5a00 !important;
+}
+
+.chordpro-view .voice-highlight-todos,
+.song-preview .voice-highlight-todos,
+.repertorio-performance-view .voice-highlight-todos,
+.music-performance-stage .voice-highlight-todos,
+.pdf-song .voice-highlight-todos {
+  color: #7c3aed !important;
+  -webkit-text-fill-color: #7c3aed !important;
+}
+
+.chordpro-view .voice-highlight-solo,
+.song-preview .voice-highlight-solo,
+.repertorio-performance-view .voice-highlight-solo,
+.music-performance-stage .voice-highlight-solo,
+.pdf-song .voice-highlight-solo {
+  color: #c2410c !important;
+  -webkit-text-fill-color: #c2410c !important;
+}
