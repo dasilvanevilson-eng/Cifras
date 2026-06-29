@@ -16,6 +16,7 @@ import {
   normalizeChordProLyrics,
   renderChordProForDisplay,
   renderCifraOriginalForDisplayHtml,
+  renderCifraEditorStateForDisplayHtml,
   renderCifraOriginalPreviewHtml,
   renderMusicaCifraForDisplayHtml,
   renderVoiceLegendHtml,
@@ -187,7 +188,7 @@ assert.equal(
   createChordProFromCifraEditorState(editorState),
   [
     '{voice-label: voz_principal=Joao}',
-    '[G]A ALEGRIA {voice: voz_principal}[D/F#]ESTA{/voice} NO CORACAO',
+    '[G]A ALEGRIA [D/F#]ESTA NO CORACAO',
   ].join('\n'),
 );
 
@@ -199,14 +200,24 @@ assert.equal(
   }),
   [
     '{voice-label: voz_principal=Joao}',
-    '{voice: voz_principal}A ALEGRIA ESTA{/voice}',
-    '{voice: voz_principal}NO CORACAO{/voice}',
+    'A ALEGRIA ESTA',
+    'NO CORACAO',
   ].join('\n'),
 );
 
 assert.equal(
   createCifraExibicaoFromCifraEditorState(editorState),
-  ['{voice-label: voz_principal=Joao}', 'G         D/F#', 'A ALEGRIA {voice: voz_principal}ESTA{/voice} NO CORACAO'].join('\n'),
+  ['G         D/F#', 'A ALEGRIA ESTA NO CORACAO'].join('\n'),
+);
+
+assert.equal(
+  renderCifraEditorStateForDisplayHtml(editorState),
+  [
+    '<span class="chord-line">G         D/F#</span>',
+    'A ALEGRIA <span class="voice-highlight voice-highlight-voz_principal">ESTA</span> NO CORACAO',
+    '',
+    '<span class="voice-legend"><span class="voice-legend-item voice-highlight-voz_principal">Joao</span></span>',
+  ].join('\n'),
 );
 
 assert.equal(
@@ -252,7 +263,7 @@ assert.equal(
       voiceMarks: [{ start: 0, end: 9, markerId: 'voz_principal' }],
     },
   }),
-  '{voice-label: voz_principal=Maria}\n{voice: voz_principal}A ALEGRIA{/voice}',
+  'A ALEGRIA',
 );
 
 assert.equal(
@@ -288,6 +299,48 @@ assert.equal(
   }).includes('>Maria</span>'),
   true,
 );
+
+{
+  const finalChordText = ['C                            Am7 Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n');
+  const finalChordState = {
+    text: finalChordText,
+    voiceMarks: [{
+      start: finalChordText.indexOf('SEM'),
+      end: finalChordText.length,
+      markerId: 'voz_principal',
+    }],
+  };
+
+  assert.equal(
+    createChordProFromCifraEditorState(finalChordState),
+    '[C]SEM VOCÊ, NÃO SEI PRA ONDE IR [Am7] [Bm]',
+  );
+
+  assert.equal(
+    createCifraExibicaoFromCifraEditorState(finalChordState),
+    ['C                             Am7  Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n'),
+  );
+
+  assert.equal(
+    renderCifraEditorStateForDisplayHtml(finalChordState).includes('Am7Bm'),
+    false,
+  );
+
+  assert.equal(
+    renderMusicaCifraForDisplayHtml({ cifra_editor_state: finalChordState }).includes(
+      '<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>',
+    ),
+    true,
+  );
+
+  assert.equal(
+    renderMusicaCifraForDisplayHtml(
+      { cifra_editor_state: finalChordState },
+      { cifra: createCifraExibicaoFromCifraEditorState(finalChordState) },
+    ).includes('<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>'),
+    true,
+  );
+}
 
 assert.equal(
   normalizeChordProLyrics('[G]Grande [D/F#]es Tu'),

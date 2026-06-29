@@ -190,7 +190,7 @@ export function MusicaForm(options = {}) {
   syncVoiceMarkerButtonLabels(form);
   renderChordProEditor(chordProEditor, chordProTextarea.value);
   renderOriginalEditor(originalEditor, chordProTextarea.value);
-  updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
+  updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
   setupResponsiveCifraEditor(cifraEditorGrid);
 
   voiceMarkerToggle.addEventListener('click', () => {
@@ -364,7 +364,7 @@ export function MusicaForm(options = {}) {
     voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
     renderOriginalEditor(originalEditor, chordProTextarea.value);
     syncVoiceLabelInputs(form, chordProTextarea.value);
-    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
+    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
 
     if (!previewPanel.hidden) {
       updatePreview(form, previewPanel, editorState);
@@ -381,7 +381,7 @@ export function MusicaForm(options = {}) {
     voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
     renderOriginalEditor(originalEditor, nextChordPro);
     syncVoiceLabelInputs(form, nextChordPro);
-    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value);
+    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
   });
 
   linkInput.addEventListener('input', () => {
@@ -534,7 +534,11 @@ function syncChordProFromOriginal({
   renderOriginalEditor(originalEditor, nextAutoChordPro, {
     restoreSelection,
   });
-  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextAutoChordPro);
+  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextAutoChordPro, normalizeCifraEditorState({
+    text: originalTextarea.value,
+    voiceLabels: getVoiceLabelValues(form),
+    voiceMarks: nextRanges,
+  }));
 
   if (!previewPanel.hidden) {
     updatePreview(form, previewPanel);
@@ -644,16 +648,21 @@ function syncEditorStateOutputs({
   if (restoreSelection) {
     restoreEditorSelection(originalTextarea, restoreSelection);
   }
-  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextChordPro);
+  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextChordPro, normalizedState);
 
   if (!previewPanel.hidden) {
     updatePreview(form, previewPanel, normalizedState);
   }
 }
 
-function updateVoiceLegends(form, slots, chordProValue) {
+function updateVoiceLegends(form, slots, chordProValue, editorState = null) {
+  const normalizedState = normalizeCifraEditorState(editorState || {});
+  const usedVoiceIds = normalizedState.voiceMarks?.length
+    ? [...new Set(normalizedState.voiceMarks.map((mark) => mark.markerId).filter(Boolean))]
+    : null;
   const legendHtml = renderVoiceLegendHtml(chordProValue, {
     voiceLabels: getVoiceLabelValues(form),
+    usedVoiceIds,
   });
 
   slots.forEach((slot) => {

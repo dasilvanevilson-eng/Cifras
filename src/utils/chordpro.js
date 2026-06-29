@@ -124,13 +124,29 @@ export function renderCifraOriginalForDisplayHtml(input, options = {}) {
 }
 
 export function renderMusicaCifraForDisplayHtml(musica = {}, options = {}) {
-  const cifra = options.cifra ?? getCifraExibicao(musica);
+  const editorState = normalizeCifraEditorState(musica.cifra_editor_state);
+  const editorDisplayText = hasCifraEditorStateContent(editorState)
+    ? createCifraExibicaoFromCifraEditorState(editorState)
+    : '';
+  const voiceLabels = {
+    ...getVoiceLabelsFromMusica(musica),
+    ...(options.voiceLabels || {}),
+  };
+
+  if (
+    hasCifraEditorStateContent(editorState)
+    && (options.cifra === undefined || String(options.cifra) === editorDisplayText)
+  ) {
+    return renderCifraEditorStateForDisplayHtml(editorState, {
+      ...options,
+      voiceLabels,
+    });
+  }
+
+  const cifra = options.cifra ?? (editorDisplayText || getCifraExibicao(musica));
   return renderCifraOriginalForDisplayHtml(cifra, {
     ...options,
-    voiceLabels: {
-      ...getVoiceLabelsFromMusica(musica),
-      ...(options.voiceLabels || {}),
-    },
+    voiceLabels,
   });
 }
 
@@ -249,20 +265,37 @@ export function normalizeCifraEditorState(state = {}) {
 
 export function createChordProFromCifraEditorState(state = {}) {
   const normalizedState = normalizeCifraEditorState(state);
-  const markedOriginal = applyVoiceRangesToText(
-    normalizedState.text,
-    normalizedState.voiceMarks,
-  );
 
   return applyVoiceLabelsToChordPro(
-    convertToChordPro(markedOriginal),
+    convertToChordPro(normalizedState.text),
     normalizedState.voiceLabels,
   );
 }
 
 export function createCifraExibicaoFromCifraEditorState(state = {}) {
-  return renderChordProForDisplay(createChordProFromCifraEditorState(state), {
+  const normalizedState = normalizeCifraEditorState(state);
+
+  return renderChordProForDisplay(convertToChordPro(normalizedState.text), {
     keepVoiceDirectives: true,
+  });
+}
+
+export function renderCifraEditorStateForDisplayHtml(state = {}, options = {}) {
+  const normalizedState = normalizeCifraEditorState(state);
+  const displayText = createCifraExibicaoFromCifraEditorState(normalizedState);
+  const displayVoiceMarks = mapVoiceRangesToDisplayText(
+    normalizedState.text,
+    displayText,
+    normalizedState.voiceMarks,
+  );
+  const markedDisplayText = applyVoiceRangesToText(displayText, displayVoiceMarks);
+
+  return renderCifraOriginalForDisplayHtml(markedDisplayText, {
+    ...options,
+    voiceLabels: {
+      ...normalizedState.voiceLabels,
+      ...(options.voiceLabels || {}),
+    },
   });
 }
 
@@ -881,6 +914,76 @@ function getVoiceRangeLineFragments(value, start, end, markerId) {
   }
 
   return fragments;
+}
+
+function mapVoiceRangesToDisplayText(sourceText, displayText, ranges) {
+  const source = String(sourceText || '');
+  const display = String(displayText || '');
+  const sourceLines = source.split('\n');
+  const displayLines = display.split('\n');
+  const sourceLineStarts = getLineStartOffsets(source);
+  const displayLineStarts = getLineStartOffsets(display);
+
+  return ranges
+    .map((range) => {
+      const markerId = String(range.markerId || range.marker_id || range.voice || '').trim().toLowerCase();
+      if (!markerId) return null;
+
+      const sourceStart = clampInteger(range.start, 0, source.length);
+      const sourceEnd = clampInteger(range.end, 0, source.length);
+      if (sourceStart >= sourceEnd) return null;
+
+      const start = mapSourceOffsetToDisplayOffset(sourceStart);
+      const end = mapSourceOffsetToDisplayOffset(sourceEnd);
+      return start < end ? { start, end, markerId } : null;
+    })
+    .filter(Boolean);
+
+  function mapSourceOffsetToDisplayOffset(offset) {
+    const position = getLineColumnForOffset(sourceLineStarts, source, offset);
+    const sourceLine = sourceLines[position.line] || '';
+    const displayLine = displayLines[position.line] || '';
+    const displayLineStart = displayLineStarts[position.line] ?? display.length;
+    const column = position.column >= sourceLine.length
+      ? displayLine.length
+      : Math.min(position.column, displayLine.length);
+
+    return Math.min(display.length, displayLineStart + column);
+  }
+}
+
+function getLineStartOffsets(value) {
+  const starts = [0];
+
+  String(value || '').replace(/\n/g, (match, index) => {
+    starts.push(index + 1);
+    return match;
+  });
+
+  return starts;
+}
+
+function getLineColumnForOffset(lineStarts, value, offset) {
+  let low = 0;
+  let high = lineStarts.length - 1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    if (lineStarts[middle] <= offset) {
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  const line = Math.max(0, high);
+  const lineEnd = String(value || '').indexOf('\n', lineStarts[line]);
+  const maxColumn = (lineEnd === -1 ? String(value || '').length : lineEnd) - lineStarts[line];
+
+  return {
+    line,
+    column: Math.min(Math.max(0, offset - lineStarts[line]), maxColumn),
+  };
 }
 
 function parseJsonSafely(value) {
