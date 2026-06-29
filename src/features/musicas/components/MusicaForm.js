@@ -1324,9 +1324,7 @@ function updatePreview(form, previewPanel, editorState = null) {
 
 function getPreviewMusica(form, editorState = null) {
   const values = getFormValues(form, editorState);
-  const renderedCifra = renderChordProForDisplay(values.cifra_chordpro, {
-    keepVoiceDirectives: true,
-  })
+  const renderedCifra = createCifraExibicaoFromCifraEditorState(values.cifra_editor_state)
     || 'A conversao ChordPro aparecera aqui.';
 
   return {
