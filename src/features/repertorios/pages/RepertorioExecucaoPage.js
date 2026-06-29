@@ -313,7 +313,7 @@ function renderPagedPerformance({
       includeVoiceLegend: false,
     });
     song
-      .querySelectorAll('[data-role="performance-title-voice-legend"], [data-role="performance-voice-legend"]')
+      .querySelectorAll('[data-role="performance-title-voice-legend"]')
       .forEach((voiceLegend) => {
         voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
       });
@@ -729,7 +729,7 @@ function renderPagedPerformanceV2({
         includeVoiceLegend: false,
       });
       song
-        .querySelectorAll('[data-role="performance-title-voice-legend"], [data-role="performance-voice-legend"]')
+        .querySelectorAll('[data-role="performance-title-voice-legend"]')
         .forEach((voiceLegend) => {
           voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
         });

@@ -41,8 +41,7 @@ export function createPerformanceSongBlock({
     </header>
     ${deletedNotice
       ? `<p class="deleted-song-notice">${escapeHtml(deletedNotice)}</p>`
-      : `<div class="performance-voice-legend" data-role="performance-voice-legend">${voiceLegendHtml}</div>
-      <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderMusicaCifraForDisplayHtml(musica || {}, { cifra, includeVoiceLegend: false })}</pre>`}
+      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderMusicaCifraForDisplayHtml(musica || {}, { cifra, includeVoiceLegend: false })}</pre>`}
   `;
 
   return block;
