@@ -1,6 +1,7 @@
 import { EditorState, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import { EditorView, Decoration, keymap } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { isCifraOriginalChordLine } from '../../utils/chordpro.js';
 
 const setVoiceMarks = StateEffect.define();
 const voiceMarks = StateField.define({
@@ -16,10 +17,43 @@ const voiceMarks = StateField.define({
 
 function createDecorations(doc, marks) {
   const builder = new RangeSetBuilder();
-  (marks || []).filter((mark) => mark.start < mark.end).sort((a, b) => a.start - b.start).forEach((mark) => {
-    builder.add(mark.start, mark.end, Decoration.mark({ class: `voice-highlight voice-highlight-${mark.markerId}` }));
+  const docText = doc.toString();
+  getMarkableVoiceDecorations(docText, marks).forEach((mark) => {
+    builder.add(mark.start, mark.end, Decoration.mark({
+      class: `voice-highlight voice-highlight-${mark.markerId}`,
+    }));
   });
   return builder.finish();
+}
+
+function getMarkableVoiceDecorations(text, marks) {
+  const value = String(text || '');
+  const decorations = [];
+
+  (marks || [])
+    .filter((mark) => mark.start < mark.end)
+    .sort((a, b) => a.start - b.start || a.end - b.end)
+    .forEach((mark) => {
+      let lineStart = 0;
+
+      value.split('\n').forEach((line) => {
+        const lineEnd = lineStart + line.length;
+        const start = Math.max(mark.start, lineStart);
+        const end = Math.min(mark.end, lineEnd);
+
+        if (start < end && isVoiceMarkableLine(line)) {
+          decorations.push({ ...mark, start, end });
+        }
+
+        lineStart = lineEnd + 1;
+      });
+    });
+
+  return decorations;
+}
+
+function isVoiceMarkableLine(line) {
+  return Boolean(String(line || '').trim()) && !isCifraOriginalChordLine(line);
 }
 
 export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelection, onScroll }) {
