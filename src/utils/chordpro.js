@@ -503,7 +503,7 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
     const canStayInline = index < lyricEnd && (!isFinalZone || !finalZoneInlineUsed);
 
     if (!canStayInline) {
-      trailingChords.push(chord);
+      trailingChords.push({ chord, index });
       return;
     }
 
@@ -514,10 +514,89 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
   });
 
   if (trailingChords.length) {
-    result = `${result.trimEnd()}\n${trailingChords.map((chord) => `[${chord}]`).join(' ')}`;
+    result = appendTrailingChordsAtOriginalPositions(result, trailingChords);
   }
 
   return result;
+}
+
+function appendTrailingChordsAtOriginalPositions(line, trailingChords) {
+  let result = String(line || '').trimEnd();
+  let visibleLength = getVisibleTextLength(result);
+  let chordLineEnd = getChordLineEndPosition(result);
+
+  trailingChords.forEach(({ chord, index }) => {
+    const position = Math.max(index, chordLineEnd + 1);
+    const spaces = Math.max(0, position - visibleLength);
+    result = `${result}${' '.repeat(spaces)}[${chord}]`;
+    visibleLength = position;
+    chordLineEnd = Math.max(chordLineEnd, position + chord.length);
+  });
+
+  return result;
+}
+
+function getChordLineEndPosition(value) {
+  const source = String(value || '');
+  let chordLineEnd = 0;
+  let visiblePosition = 0;
+  let index = 0;
+
+  while (index < source.length) {
+    if (source[index] === '[') {
+      const endIndex = source.indexOf(']', index);
+      if (endIndex > index) {
+        const chord = source.slice(index + 1, endIndex);
+        chordLineEnd = Math.max(chordLineEnd, visiblePosition + chord.length);
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    if (source[index] === '{') {
+      const endIndex = source.indexOf('}', index);
+      const token = endIndex > index ? source.slice(index, endIndex + 1) : '';
+      if (/^\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}$/i.test(token)) {
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    visiblePosition += 1;
+    index += 1;
+  }
+
+  return chordLineEnd;
+}
+
+function getVisibleTextLength(value) {
+  const source = String(value || '');
+  let length = 0;
+  let index = 0;
+
+  while (index < source.length) {
+    if (source[index] === '[') {
+      const endIndex = source.indexOf(']', index);
+      if (endIndex > index) {
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    if (source[index] === '{') {
+      const endIndex = source.indexOf('}', index);
+      const token = endIndex > index ? source.slice(index, endIndex + 1) : '';
+      if (/^\{\/?voice(?:\s*:\s*[a-z0-9_-]+)?\}$/i.test(token)) {
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    length += 1;
+    index += 1;
+  }
+
+  return length;
 }
 
 function getSourceIndexForVisiblePosition(value, visiblePosition) {

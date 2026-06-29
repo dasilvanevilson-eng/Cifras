@@ -69,17 +69,17 @@ assert.equal(
 
 assert.equal(
   convertToChordPro(['    Am Bm', 'Senhor'].join('\n')),
-  ['SENH[Am]OR', '[Bm]'].join('\n'),
+  'SENH[Am]OR [Bm]',
 );
 
 assert.equal(
   convertToChordPro(['      Bm', 'Senhor'].join('\n')),
-  ['SENHOR', '[Bm]'].join('\n'),
+  'SENHOR[Bm]',
 );
 
 assert.equal(
   convertToChordPro(['    Am Bm', '{voice: voz_principal}Senhor{/voice}'].join('\n')),
-  ['{voice: voz_principal}SENH[Am]OR{/voice}', '[Bm]'].join('\n'),
+  '{voice: voz_principal}SENH[Am]OR{/voice} [Bm]',
 );
 
 assert.equal(
@@ -133,7 +133,12 @@ assert.equal(
 
 assert.equal(
   renderChordProForDisplay(convertToChordPro(['    Am Bm', 'Senhor'].join('\n'))),
-  ['    Am', 'SENHOR', 'Bm'].join('\n'),
+  ['    Am Bm', 'SENHOR'].join('\n'),
+);
+
+assert.equal(
+  renderChordProForDisplay(convertToChordPro(['C                            Am7     Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n'))),
+  ['C                            Am7     Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n'),
 );
 
 assert.equal(
@@ -322,12 +327,12 @@ assert.equal(
 
   assert.equal(
     createChordProFromCifraEditorState(finalChordState),
-    ['[C]SEM VOCÊ, NÃO SEI PRA ONDE IR', '[Am7] [Bm]'].join('\n'),
+    '[C]SEM VOCÊ, NÃO SEI PRA ONDE IR[Am7]    [Bm]',
   );
 
   assert.equal(
     createCifraExibicaoFromCifraEditorState(finalChordState),
-    ['C', 'SEM VOCÊ, NÃO SEI PRA ONDE IR', 'Am7  Bm'].join('\n'),
+    ['C                            Am7 Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n'),
   );
 
   assert.equal(
@@ -371,9 +376,9 @@ assert.equal(
     [
       '<span class="chord-token">[C]</span>',
       `<span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>SEM VOCÊ, NÃO SEI PRA ONDE IR</span>`,
-      '\n',
+      '',
       '<span class="chord-token">[Am7]</span>',
-      ' ',
+      '    ',
       '<span class="chord-token">[Bm]</span>',
     ].join(''),
   );
