@@ -1,4 +1,4 @@
-import { renderCifraOriginalForDisplayHtml, renderVoiceLegendHtml } from '../../utils/chordpro.js';
+import { renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml } from '../../utils/chordpro.js';
 
 export function createPerformanceSongBlock({
   title,
@@ -7,6 +7,7 @@ export function createPerformanceSongBlock({
   currentKey = originalKey,
   baseSemitones,
   cifra = '',
+  musica = null,
   link = '',
   musicaId = '',
   repertorioMusicaId = '',
@@ -22,6 +23,7 @@ export function createPerformanceSongBlock({
   if (link && link !== '-') block.dataset.link = link;
   if (musicaId) block.dataset.musicaId = musicaId;
   if (repertorioMusicaId) block.dataset.repertorioMusicaId = repertorioMusicaId;
+  block.cifraMusica = musica || null;
 
   const baseSemitonesAttribute = Number.isFinite(baseSemitones)
     ? ` data-base-semitones="${baseSemitones}"`
@@ -38,7 +40,7 @@ export function createPerformanceSongBlock({
     ${deletedNotice
       ? `<p class="deleted-song-notice">${escapeHtml(deletedNotice)}</p>`
       : `<div class="performance-voice-legend" data-role="performance-voice-legend">${renderVoiceLegendHtml(cifra)}</div>
-      <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderCifraOriginalForDisplayHtml(cifra)}</pre>`}
+      <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifra)}">${renderMusicaCifraForDisplayHtml(musica || {}, { cifra, includeVoiceLegend: false })}</pre>`}
   `;
 
   return block;

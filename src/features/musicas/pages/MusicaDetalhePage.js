@@ -114,6 +114,7 @@ function createMusicaView(musica, options = {}) {
   `;
 
   setupTransposeControls(wrapper, {
+    musica,
     cifraOriginal: cifraExibicao,
     voiceLabels: getVoiceLabelsFromMusica(musica),
     originalKey,
@@ -143,7 +144,7 @@ function normalizeTags(value) {
     .filter(Boolean);
 }
 
-function setupTransposeControls(wrapper, { cifraOriginal, voiceLabels = {}, originalKey, key, associationId, useFractionStep, defaultStatusLabel, returnTo }) {
+function setupTransposeControls(wrapper, { musica = null, cifraOriginal, voiceLabels = {}, originalKey, key, associationId, useFractionStep, defaultStatusLabel, returnTo }) {
   if (associationId) {
     setupAutoHideToolbar(wrapper, { toolbarSelector: '.transpose-toolbar' });
   }
@@ -224,7 +225,10 @@ function setupTransposeControls(wrapper, { cifraOriginal, voiceLabels = {}, orig
     const displayedKey = transposeKey(originalKey, semitones);
     const displayHtml = showNumbers
       ? renderCifraOriginalForDisplayHtml(convertCifraOriginalToNumbers(displayedCifra, displayedKey), { voiceLabels })
-      : renderCifraOriginalForDisplayHtml(displayedCifra, { voiceLabels });
+      : renderMusicaCifraForDisplayHtml(musica || {}, {
+        cifra: displayedCifra,
+        voiceLabels,
+      });
     chordproView.innerHTML = displayHtml;
     if (currentKey) {
       currentKey.textContent = displayedKey;

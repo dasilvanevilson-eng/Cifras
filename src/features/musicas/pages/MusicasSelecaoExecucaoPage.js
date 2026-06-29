@@ -1,6 +1,6 @@
 import { listMusicas } from '../../../services/musicasService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { getCifraExibicao, renderCifraOriginalForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraExibicao, renderMusicaCifraForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import {
   createPerformanceToolbar,
   fitCifraToWidth,
@@ -97,6 +97,7 @@ function createSelectionSongBlock(musica, number, total) {
     originalKey: key,
     currentKey: key,
     cifra: cifraOriginal,
+    musica,
     link,
     musicaId: musica.id || '',
   });
@@ -246,7 +247,10 @@ function setupSelectionPerformanceControls(wrapper, options = {}) {
 
       if (view) {
         const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
-        view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+        view.innerHTML = renderMusicaCifraForDisplayHtml(song.cifraMusica || {}, {
+          cifra: displayedCifra,
+          includeVoiceLegend: false,
+        });
         fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
       }
 

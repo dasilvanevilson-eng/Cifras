@@ -4,7 +4,7 @@ import {
   updateTomMusicaRepertorio,
 } from '../../../services/repertoriosService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { getCifraParaTransposicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
+import { getCifraParaTransposicao, getTransposeSemitones, renderCifraOriginalForDisplayHtml, renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
 import {
   createCapoOptions as createPerformanceCapoOptions,
@@ -144,6 +144,7 @@ function createSongBlockLegacy(item, number) {
   block.className = musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song';
   block.id = `musica-${number}`;
   block.tabIndex = -1;
+  block.cifraMusica = musicaExcluida ? null : musica;
   block.innerHTML = `
     <header>
       <span>${number}</span>
@@ -155,7 +156,7 @@ function createSongBlockLegacy(item, number) {
     </header>
     ${musicaExcluida
       ? '<p class="deleted-song-notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
-      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>`}
+      : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderMusicaCifraForDisplayHtml(musica, { cifra: cifraOriginal, includeVoiceLegend: false })}</pre>`}
   `;
 
   return block;
@@ -307,7 +308,10 @@ function renderPagedPerformance({
     const displayedKey = transposeKey(keyElement?.dataset.originalKey || '-', semitones);
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
 
-    view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+    view.innerHTML = renderMusicaCifraForDisplayHtml(song.cifraMusica || {}, {
+      cifra: displayedCifra,
+      includeVoiceLegend: false,
+    });
     const voiceLegend = song.querySelector('[data-role="performance-voice-legend"]');
     if (voiceLegend) voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
     keyElement.textContent = displayedKey;
@@ -458,6 +462,7 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
     currentKey: repertorioKey,
     baseSemitones,
     cifra: cifraOriginal,
+    musica,
     link,
     musicaId: item.musica_id || '',
     repertorioMusicaId: item.id || '',
@@ -716,7 +721,10 @@ function renderPagedPerformanceV2({
 
     if (view) {
       const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', totalSemitones - capo);
-      view.innerHTML = renderCifraOriginalForDisplayHtml(displayedCifra);
+      view.innerHTML = renderMusicaCifraForDisplayHtml(song.cifraMusica || {}, {
+        cifra: displayedCifra,
+        includeVoiceLegend: false,
+      });
       const voiceLegend = song.querySelector('[data-role="performance-voice-legend"]');
       if (voiceLegend) voiceLegend.innerHTML = renderVoiceLegendHtml(displayedCifra);
       fitPerformanceCifraToWidth(wrapper, view, displayedCifra, desiredFontSize, fitFontToMobileWidth);
