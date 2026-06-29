@@ -1,6 +1,6 @@
 import { getMusicaById } from '../../../services/musicasService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
-import { getCifraParaTransposicao, renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
+import { getCifraParaTransposicao, normalizeCifraEditorState, renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
 import {
   createPerformanceToolbar,
   fitCifraToWidth,
@@ -66,7 +66,7 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
         <span class="performance-key-chip">${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
         <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
       </header>
-      <div class="performance-voice-legend">${renderVoiceLegendHtml(cifraOriginal)}</div>
+      <div class="performance-voice-legend">${renderPerformanceVoiceLegendHtml(cifraOriginal, musica)}</div>
       <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderMusicaCifraForDisplayHtml(musica, { cifra: cifraOriginal, includeVoiceLegend: false })}</pre>
     </section>
   `;
@@ -206,7 +206,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
 
   function renderPerformance() {
     const displayedCifra = transposeCifraOriginal(view.dataset.originalCifra || '', semitones - capo);
-    wrapper.querySelector('.performance-voice-legend').innerHTML = renderVoiceLegendHtml(displayedCifra);
+    wrapper.querySelector('.performance-voice-legend').innerHTML = renderPerformanceVoiceLegendHtml(displayedCifra, currentMusica);
     view.innerHTML = renderMusicaCifraForDisplayHtml(currentMusica, { cifra: displayedCifra, includeVoiceLegend: false });
     fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
     transposeStatus.textContent = formatTransposeStatus(semitones, capo);
@@ -220,6 +220,18 @@ function getPerformanceSongData(musica) {
     link: getField(musica, ['musica_link']),
     cifraOriginal: getCifraParaTransposicao(musica),
   };
+}
+
+function renderPerformanceVoiceLegendHtml(cifra, musica = {}) {
+  const editorState = normalizeCifraEditorState(musica?.cifra_editor_state);
+  const usedVoiceIds = editorState.voiceMarks?.length
+    ? [...new Set(editorState.voiceMarks.map((mark) => mark.markerId).filter(Boolean))]
+    : null;
+
+  return renderVoiceLegendHtml(cifra, {
+    voiceLabels: editorState.voiceLabels,
+    usedVoiceIds,
+  });
 }
 
 function getField(record, names) {
