@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import {
   applyVoiceLabelsToChordPro,
   createChordProFromCifraEditorState,
-  createMarkedChordProFromCifraEditorState,
   convertCifraOriginalToNumbers,
   convertToChordPro,
   createCifraEditorStateFromChordPro,
@@ -395,21 +394,11 @@ assert.equal(
     ].join(''),
   );
 
-  assert.equal(
-    createMarkedChordProFromCifraEditorState(finalChordState).includes('{voice: voz_principal}'),
-    true,
-  );
-
   const markedPreviewCifra = getCifraParaTransposicao({ cifra_editor_state: labeledFinalChordState });
 
   assert.equal(
-    markedPreviewCifra.includes('{voice-label: voz_principal=Voz 1}'),
-    true,
-  );
-
-  assert.equal(
-    markedPreviewCifra.includes('{voice: voz_principal}'),
-    true,
+    markedPreviewCifra,
+    finalChordText,
   );
 
   const markedPreviewHtml = renderMusicaCifraForDisplayHtml(
@@ -422,7 +411,7 @@ assert.equal(
     true,
   );
 
-  const displayedMarkedPreviewCifra = transposeCifraOriginal(markedPreviewCifra, 0);
+  const displayedMarkedPreviewCifra = transposeCifraOriginal(markedPreviewCifra, 1);
   const displayedMarkedPreviewHtml = renderMusicaCifraForDisplayHtml(
     { cifra_editor_state: labeledFinalChordState },
     { cifra: displayedMarkedPreviewCifra, includeVoiceLegend: false },

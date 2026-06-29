@@ -180,7 +180,7 @@ export function getCifraParaTransposicao(record = {}) {
   const editorState = normalizeCifraEditorState(record.cifra_editor_state);
 
   if (hasCifraEditorStateContent(editorState)) {
-    return createMarkedChordProFromCifraEditorState(editorState);
+    return editorState.text;
   }
 
   if (record.cifra_chordpro) {
@@ -264,21 +264,6 @@ export function createChordProFromCifraEditorState(state = {}) {
     convertToChordPro(normalizedState.text),
     normalizedState.voiceLabels,
   );
-}
-
-export function createMarkedChordProFromCifraEditorState(state = {}) {
-  const normalizedState = normalizeCifraEditorState(state);
-  const chordPro = createChordProFromCifraEditorState(normalizedState);
-  const labelLines = getVoiceLabelDirectiveLines(chordPro);
-  const chordProBody = removeVoiceLabelDirectiveLines(chordPro);
-  const chordProVoiceMarks = mapVoiceRangesToChordProText(
-    normalizedState.text,
-    chordProBody,
-    normalizedState.voiceMarks,
-  );
-  const markedChordProBody = applyVoiceRangesToText(chordProBody, chordProVoiceMarks);
-
-  return [...labelLines, markedChordProBody].filter(Boolean).join('\n');
 }
 
 export function createCifraExibicaoFromCifraEditorState(state = {}) {
@@ -386,12 +371,6 @@ function removeVoiceLabelDirectiveLines(value) {
     .split('\n')
     .filter((line) => !parseVoiceLabelDirective(line))
     .join('\n');
-}
-
-function getVoiceLabelDirectiveLines(value) {
-  return String(value || '')
-    .split('\n')
-    .filter((line) => parseVoiceLabelDirective(line));
 }
 
 export function renderChordProEditorHtmlFromCifraEditorState(state = {}) {
