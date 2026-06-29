@@ -12,6 +12,7 @@ import {
   normalizeChordProLyrics,
   renderCifraOriginalForDisplayHtml,
   renderChordProForDisplay,
+  renderChordProEditorHtmlFromCifraEditorState,
   renderVoiceLegendHtml,
   transposeChordPro,
   transposeKey,
@@ -188,7 +189,7 @@ export function MusicaForm(options = {}) {
 
   updateLinkAction(linkInput, linkAction);
   syncVoiceMarkerButtonLabels(form);
-  renderChordProEditor(chordProEditor, chordProTextarea.value);
+  renderChordProEditor(chordProEditor, chordProTextarea.value, editorState);
   renderOriginalEditor(originalEditor, chordProTextarea.value);
   updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
   setupResponsiveCifraEditor(cifraEditorGrid);
@@ -375,7 +376,7 @@ export function MusicaForm(options = {}) {
     const normalizedChordPro = normalizeChordProLyrics(chordProTextarea.value);
     editorState = normalizeCifraEditorState(createCifraEditorStateFromChordPro(normalizedChordPro));
     const nextChordPro = createChordProFromCifraEditorState(editorState);
-    setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
+    setChordProValue(chordProTextarea, chordProEditor, nextChordPro, editorState);
     originalTextarea.value = editorState.text;
     editorStateTextarea.value = JSON.stringify(editorState);
     voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
@@ -530,7 +531,11 @@ function syncChordProFromOriginal({
     convertToChordPro(markedOriginal),
     getVoiceLabelValues(form),
   );
-  setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro);
+  setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro, normalizeCifraEditorState({
+    text: originalTextarea.value,
+    voiceLabels: getVoiceLabelValues(form),
+    voiceMarks: nextRanges,
+  }));
   renderOriginalEditor(originalEditor, nextAutoChordPro, {
     restoreSelection,
   });
@@ -638,7 +643,7 @@ function syncEditorStateOutputs({
   if (editorStateTextarea) {
     editorStateTextarea.value = JSON.stringify(normalizedState);
   }
-  setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
+  setChordProValue(chordProTextarea, chordProEditor, nextChordPro, normalizedState);
   const codeMirror = originalEditor?.closest('.musica-form')?.querySelector('.cifra-original-codemirror')?.voiceCodeMirror;
   codeMirror?.sync(normalizedState.text, normalizedState.voiceMarks, restoreSelection ? { anchor: restoreSelection.start, head: restoreSelection.end } : null);
   renderOriginalEditor(originalEditor, nextChordPro, {
@@ -1337,12 +1342,19 @@ function formatTransposeStatus(semitones) {
   return `${semitones > 0 ? '+' : ''}${semitones}`;
 }
 
-function setChordProValue(source, editor, value) {
+function setChordProValue(source, editor, value, editorState = null) {
   source.value = value;
-  renderChordProEditor(editor, value);
+  renderChordProEditor(editor, value, editorState);
 }
 
-function renderChordProEditor(editor, value) {
+function renderChordProEditor(editor, value, editorState = null) {
+  const normalizedState = normalizeCifraEditorState(editorState || {});
+
+  if (normalizedState.text && normalizedState.voiceMarks.length) {
+    editor.innerHTML = renderChordProEditorHtmlFromCifraEditorState(normalizedState);
+    return;
+  }
+
   editor.innerHTML = escapeHtml(value || '')
     .replace(/\[([^\]]+)\]/g, (match, chord) => (
       isChordToken(chord) ? `<span class="chord-token">${match}</span>` : match

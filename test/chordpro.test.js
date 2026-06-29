@@ -15,6 +15,7 @@ import {
   getVoiceLabelsFromMusica,
   normalizeChordProLyrics,
   renderChordProForDisplay,
+  renderChordProEditorHtmlFromCifraEditorState,
   renderCifraOriginalForDisplayHtml,
   renderCifraEditorStateForDisplayHtml,
   renderCifraOriginalPreviewHtml,
@@ -339,6 +340,18 @@ assert.equal(
       { cifra: createCifraExibicaoFromCifraEditorState(finalChordState) },
     ).includes('<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>'),
     true,
+  );
+
+  assert.equal(
+    renderChordProEditorHtmlFromCifraEditorState(finalChordState),
+    [
+      '<span class="chord-token">[C]</span>',
+      '<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>',
+      ' ',
+      '<span class="chord-token">[Am7]</span>',
+      ' ',
+      '<span class="chord-token">[Bm]</span>',
+    ].join(''),
   );
 }
 

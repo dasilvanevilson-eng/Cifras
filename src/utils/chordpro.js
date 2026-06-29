@@ -299,6 +299,18 @@ export function renderCifraEditorStateForDisplayHtml(state = {}, options = {}) {
   });
 }
 
+export function renderChordProEditorHtmlFromCifraEditorState(state = {}) {
+  const normalizedState = normalizeCifraEditorState(state);
+  const chordPro = createChordProFromCifraEditorState(normalizedState);
+  const chordProVoiceMarks = mapVoiceRangesToChordProText(
+    normalizedState.text,
+    chordPro,
+    normalizedState.voiceMarks,
+  );
+
+  return renderChordProSourceHtml(chordPro, chordProVoiceMarks);
+}
+
 export function transposeCifraOriginal(input, semitones) {
   if (!input) return '';
 
@@ -950,6 +962,160 @@ function mapVoiceRangesToDisplayText(sourceText, displayText, ranges) {
 
     return Math.min(display.length, displayLineStart + column);
   }
+}
+
+function mapVoiceRangesToChordProText(sourceText, chordProText, ranges) {
+  const source = normalizeTabs(String(sourceText || ''));
+  const chordPro = String(chordProText || '');
+  const sourceLines = source.split('\n');
+  const chordProLines = chordPro.split('\n');
+  const sourceLineStarts = getLineStartOffsets(source);
+  const chordProLineStarts = getLineStartOffsets(chordPro);
+  const sourceToChordProLine = getSourceToChordProLineMap(sourceLines);
+
+  return ranges
+    .flatMap((range) => {
+      const markerId = String(range.markerId || range.marker_id || range.voice || '').trim().toLowerCase();
+      if (!markerId) return [];
+
+      const sourceStart = clampInteger(range.start, 0, source.length);
+      const sourceEnd = clampInteger(range.end, 0, source.length);
+      if (sourceStart >= sourceEnd) return [];
+
+      return getVoiceRangeLineFragments(source, sourceStart, sourceEnd, markerId)
+        .map((fragment) => mapSourceFragmentToChordProRange(fragment))
+        .filter(Boolean);
+    });
+
+  function mapSourceFragmentToChordProRange(fragment) {
+    const startPosition = getLineColumnForOffset(sourceLineStarts, source, fragment.start);
+    const endPosition = getLineColumnForOffset(sourceLineStarts, source, fragment.end);
+    const sourceLine = sourceLines[startPosition.line] || '';
+
+    if (isChordLine(sourceLine)) return null;
+
+    const chordProLineIndex = sourceToChordProLine[startPosition.line];
+    if (chordProLineIndex === undefined) return null;
+
+    const chordProLine = chordProLines[chordProLineIndex] || '';
+    const chordProLineStart = chordProLineStarts[chordProLineIndex] ?? chordPro.length;
+    const lineStart = getChordProLineOffsetForVisibleColumn(chordProLine, startPosition.column);
+    const lineEnd = getChordProLineOffsetForVisibleColumn(chordProLine, endPosition.column);
+    const start = chordProLineStart + lineStart;
+    const end = chordProLineStart + lineEnd;
+
+    return start < end ? { start, end, markerId: fragment.markerId } : null;
+  }
+}
+
+function getSourceToChordProLineMap(sourceLines) {
+  const map = [];
+  let outputLine = 0;
+
+  for (let index = 0; index < sourceLines.length; index += 1) {
+    const line = sourceLines[index];
+    const nextLine = sourceLines[index + 1];
+    const label = getChordSectionLabel(line);
+
+    if (isVoiceDirectiveLine(line)) {
+      map[index] = outputLine;
+      outputLine += 1;
+      continue;
+    }
+
+    if (label && nextLine !== undefined && isChordLine(nextLine)) {
+      map[index] = outputLine;
+      map[index + 1] = outputLine + 1;
+      outputLine += 2;
+      index += 1;
+      continue;
+    }
+
+    if (isChordLine(line) && nextLine !== undefined && !isChordLine(nextLine)) {
+      map[index] = outputLine;
+      map[index + 1] = outputLine;
+      outputLine += 1;
+      index += 1;
+      continue;
+    }
+
+    map[index] = outputLine;
+    outputLine += 1;
+  }
+
+  return map;
+}
+
+function getChordProLineOffsetForVisibleColumn(line, column) {
+  const value = String(line || '');
+  let visibleColumn = 0;
+  let index = 0;
+
+  while (index < value.length) {
+    if (value[index] === '[') {
+      const endIndex = value.indexOf(']', index);
+      if (endIndex > index) {
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    if (visibleColumn >= column) {
+      return index;
+    }
+
+    visibleColumn += 1;
+    index += 1;
+  }
+
+  return value.length;
+}
+
+function renderChordProSourceHtml(value, ranges = []) {
+  const source = String(value || '');
+  const normalizedRanges = ranges
+    .map((range) => ({
+      start: clampInteger(range.start, 0, source.length),
+      end: clampInteger(range.end, 0, source.length),
+      markerId: String(range.markerId || range.marker_id || range.voice || '').trim().toLowerCase(),
+    }))
+    .filter((range) => range.markerId && range.start < range.end);
+  const output = [];
+  let index = 0;
+
+  while (index < source.length) {
+    if (source[index] === '[') {
+      const endIndex = source.indexOf(']', index);
+      if (endIndex > index) {
+        output.push(`<span class="chord-token">${escapeHtml(source.slice(index, endIndex + 1))}</span>`);
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    const voiceId = getVoiceIdAtOffset(normalizedRanges, index);
+    let endIndex = index + 1;
+
+    while (
+      endIndex < source.length
+      && source[endIndex] !== '['
+      && getVoiceIdAtOffset(normalizedRanges, endIndex) === voiceId
+    ) {
+      endIndex += 1;
+    }
+
+    const text = escapeHtml(source.slice(index, endIndex));
+    output.push(voiceId
+      ? `<span class="voice-highlight voice-highlight-${escapeHtml(voiceId)}">${text}</span>`
+      : text);
+    index = endIndex;
+  }
+
+  return output.join('');
+}
+
+function getVoiceIdAtOffset(ranges, offset) {
+  return ranges.find((range) => range.start <= offset && offset < range.end)?.markerId || '';
 }
 
 function getLineStartOffsets(value) {
