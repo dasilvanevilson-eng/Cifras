@@ -26,6 +26,9 @@ import {
   transposeKey,
 } from '../src/utils/chordpro.js';
 
+const VOICE_PRIMARY_STYLE = 'style="color: #0f5fbd; -webkit-text-fill-color: #0f5fbd; background: transparent; font-weight: 700;"';
+const VOICE_SECONDARY_STYLE = 'style="color: #087a3f; -webkit-text-fill-color: #087a3f; background: transparent; font-weight: 700;"';
+
 const cifraOriginal = [
   'G  D/F#  Em7  C9',
   'Bb  F#m7  A7(9)  C7M',
@@ -142,7 +145,7 @@ assert.equal(
   renderCifraOriginalForDisplayHtml(['{voice: segunda_voz}', 'G  D/F#  Em', 'Grande es Tu', '{/voice}'].join('\n')),
   [
     '<span class="chord-line">G  D/F#  Em</span>',
-    '<span class="voice-highlight voice-highlight-segunda_voz">Grande es Tu</span>',
+    `<span class="voice-highlight voice-highlight-segunda_voz" ${VOICE_SECONDARY_STYLE}>Grande es Tu</span>`,
     '',
     '<span class="voice-legend"><span class="voice-legend-item voice-highlight-segunda_voz">Segunda voz</span></span>',
   ].join('\n'),
@@ -151,7 +154,7 @@ assert.equal(
 assert.equal(
   renderCifraOriginalForDisplayHtml('A ALEGRIA ESTA {voice: voz_principal}NO CORACAO{/voice}, DE QUEM CANTA'),
   [
-    'A ALEGRIA ESTA <span class="voice-highlight voice-highlight-voz_principal">NO CORACAO</span>, DE QUEM CANTA',
+    `A ALEGRIA ESTA <span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>NO CORACAO</span>, DE QUEM CANTA`,
     '',
     '<span class="voice-legend"><span class="voice-legend-item voice-highlight-voz_principal">Voz principal</span></span>',
   ].join('\n'),
@@ -215,7 +218,7 @@ assert.equal(
   renderCifraEditorStateForDisplayHtml(editorState),
   [
     '<span class="chord-line">G         D/F#</span>',
-    'A ALEGRIA <span class="voice-highlight voice-highlight-voz_principal">ESTA</span> NO CORACAO',
+    `A ALEGRIA <span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>ESTA</span> NO CORACAO`,
     '',
     '<span class="voice-legend"><span class="voice-legend-item voice-highlight-voz_principal">Joao</span></span>',
   ].join('\n'),
@@ -329,7 +332,7 @@ assert.equal(
 
   assert.equal(
     renderMusicaCifraForDisplayHtml({ cifra_editor_state: finalChordState }).includes(
-      '<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>',
+      `<span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>SEM VOCÊ, NÃO SEI PRA ONDE IR</span>`,
     ),
     true,
   );
@@ -338,7 +341,7 @@ assert.equal(
     renderMusicaCifraForDisplayHtml(
       { cifra_editor_state: finalChordState },
       { cifra: createCifraExibicaoFromCifraEditorState(finalChordState) },
-    ).includes('<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>'),
+    ).includes(`<span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>SEM VOCÊ, NÃO SEI PRA ONDE IR</span>`),
     true,
   );
 
@@ -362,7 +365,7 @@ assert.equal(
     renderChordProEditorHtmlFromCifraEditorState(finalChordState),
     [
       '<span class="chord-token">[C]</span>',
-      '<span class="voice-highlight voice-highlight-voz_principal">SEM VOCÊ, NÃO SEI PRA ONDE IR</span>',
+      `<span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>SEM VOCÊ, NÃO SEI PRA ONDE IR</span>`,
       ' ',
       '<span class="chord-token">[Am7]</span>',
       ' ',

@@ -1120,7 +1120,7 @@ function renderChordProSourceHtml(value, ranges = []) {
 
     const text = escapeHtml(source.slice(index, endIndex));
     output.push(voiceId
-      ? `<span class="voice-highlight voice-highlight-${escapeHtml(voiceId)}">${text}</span>`
+      ? `<span class="voice-highlight voice-highlight-${escapeHtml(voiceId)}" style="${getVoiceHighlightInlineStyle(voiceId)}">${text}</span>`
       : text);
     index = endIndex;
   }
@@ -1215,8 +1215,13 @@ function renderVoiceTextSegment(text, voiceId) {
 
   const escapedText = escapeHtml(text);
   return voiceId
-    ? `<span class="voice-highlight voice-highlight-${escapeHtml(voiceId)}">${escapedText}</span>`
+    ? `<span class="voice-highlight voice-highlight-${escapeHtml(voiceId)}" style="${getVoiceHighlightInlineStyle(voiceId)}">${escapedText}</span>`
     : escapedText;
+}
+
+function getVoiceHighlightInlineStyle(voiceId) {
+  const color = VOICE_COLORS[voiceId] || VOICE_COLORS.voz_principal;
+  return `color: ${color}; -webkit-text-fill-color: ${color}; background: transparent; font-weight: 700;`;
 }
 
 function parseVoiceDirective(line) {
@@ -1323,6 +1328,13 @@ const VOICE_LABELS = {
   terca_voz: 'Terceira voz',
   todos: 'Todos',
   solo: 'Solo',
+};
+const VOICE_COLORS = {
+  voz_principal: '#0f5fbd',
+  segunda_voz: '#087a3f',
+  terca_voz: '#8a5a00',
+  todos: '#7c3aed',
+  solo: '#c2410c',
 };
 
 function mod(value, size) {
