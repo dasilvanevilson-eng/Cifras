@@ -431,8 +431,9 @@ function mergeChordLineWithLyrics(chordLine, lyricLine) {
     return `[*${parsed.label}]\n${labeledResult}`;
   }
 
-  const lyricEnd = String(lyricLine || '').trimEnd().length;
-  const lastWordMatch = String(lyricLine || '').slice(0, lyricEnd).match(/\S+$/);
+  const visibleLyric = stripVoiceDirectives(lyricLine);
+  const lyricEnd = visibleLyric.trimEnd().length;
+  const lastWordMatch = visibleLyric.slice(0, lyricEnd).match(/\S+$/);
   const finalZoneStart = lastWordMatch ? lyricEnd - lastWordMatch[0].length : lyricEnd;
   let result = lyricLine;
   let finalZoneInlineUsed = false;

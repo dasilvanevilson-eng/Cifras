@@ -73,6 +73,11 @@ assert.equal(
 );
 
 assert.equal(
+  convertToChordPro(['    Am Bm', '{voice: voz_principal}Senhor{/voice}'].join('\n')),
+  '{voice: voz_principal}SENH[Am]OR{/voice} [Bm]',
+);
+
+assert.equal(
   convertToChordPro(['{voice: segunda_voz}', 'G      D/F#', 'Grande es Tu', '{/voice}'].join('\n')),
   ['{voice: segunda_voz}', '[G]GRANDE [D/F#]ES TU', '{/voice}'].join('\n'),
 );
