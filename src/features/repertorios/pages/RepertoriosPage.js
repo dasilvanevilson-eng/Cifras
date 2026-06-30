@@ -330,6 +330,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         <div>
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
         </div>
+        <a class="nav-button icon-button selected-repertorio-play" href="${escapeHtml(getMusicaExecucaoUrl(musica))}" target="_blank" rel="noopener noreferrer" aria-label="Executar ${escapeHtml(formatMusicaName(musica))}" title="Executar musica">&#9654;</a>
         <label class="selected-repertorio-song-moment">
           <input type="text" maxlength="80" value="${escapeHtml(musica.observacao || '')}" placeholder="Entrada, louvor...">
         </label>
@@ -377,6 +378,12 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         renderSelected();
         renderResults();
         updateSubmitState();
+      });
+      row.querySelector('.selected-repertorio-play').addEventListener('click', (event) => {
+        event.stopPropagation();
+      });
+      row.querySelector('.selected-repertorio-play').addEventListener('pointerdown', (event) => {
+        event.stopPropagation();
       });
       row.querySelector('.selected-repertorio-song-moment input').addEventListener('input', (event) => {
         selectedMusicas[index].observacao = event.target.value.trim();
@@ -976,6 +983,11 @@ function getRepertorioUrl(repertorio) {
 
 function getRepertorioExecucaoUrl(repertorio) {
   return `/repertorios/execucao?id=${encodeURIComponent(getField(repertorio, ['id']))}`;
+}
+
+function getMusicaExecucaoUrl(musica) {
+  const returnTo = `${window.location.pathname}${window.location.search}`;
+  return `/musicas/execucao?id=${encodeURIComponent(getField(musica, ['id']))}&returnTo=${encodeURIComponent(returnTo)}`;
 }
 
 function compareText(a, b) {

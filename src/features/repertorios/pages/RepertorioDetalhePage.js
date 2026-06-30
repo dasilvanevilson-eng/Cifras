@@ -592,6 +592,9 @@ function createMusicasList(items, options = {}) {
           ${musicaUrl
             ? `<a href="${escapeHtml(musicaUrl)}">${escapeHtml(musicaNome)}</a>`
             : `<span>${escapeHtml(musicaNome)}</span>`}
+          ${musicaUrl
+            ? `<a class="nav-button icon-button repertorio-song-play" href="${escapeHtml(getMusicaExecucaoUrl(item))}" aria-label="Executar ${escapeHtml(musicaNome)}" title="Executar musica">&#9654;</a>`
+            : ''}
           ${options.canEdit
             ? `<input class="repertorio-song-observation" type="text" size="1" maxlength="80" value="${escapeHtml(item.observacao || '')}" placeholder="Momento" aria-label="Momento de ${escapeHtml(musicaNome)}" data-association-id="${escapeHtml(item.id)}">`
             : `${item.observacao ? `<small class="repertorio-song-moment">Momento: ${escapeHtml(item.observacao)}</small>` : ''}`}
@@ -811,6 +814,20 @@ function formatMusicaName(musica) {
   const titulo = getField(musica, ['titulo', 'nome', 'title']);
   const artista = getField(musica, ['artista', 'autor', 'artist']);
   return artista && artista !== '-' ? `${titulo} - ${artista}` : titulo;
+}
+
+function getMusicaExecucaoUrl(item) {
+  const tom = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : getField(item.musicas || {}, ['tom', 'key']);
+  const params = new URLSearchParams({
+    id: item.musica_id,
+    returnTo: `${window.location.pathname}${window.location.search}`,
+  });
+
+  if (tom && tom !== '-') {
+    params.set('repertorioTom', tom);
+  }
+
+  return `/musicas/execucao?${params.toString()}`;
 }
 
 function sortMusicasByName(musicas) {

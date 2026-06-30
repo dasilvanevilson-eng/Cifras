@@ -3355,7 +3355,7 @@ a {
 
 .selected-repertorio-song {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(120px, 170px);
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(120px, 170px);
   gap: 0.4rem;
   align-items: center;
   border: 1px solid #ddd6c8;
@@ -3393,6 +3393,24 @@ a {
 
 .selected-repertorio-song .selected-repertorio-remove {
   min-height: 1.25em !important;
+}
+
+.selected-repertorio-play,
+.repertorio-song-play {
+  display: inline-grid;
+  place-items: center;
+  width: 1.8rem;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  min-height: 1.8rem;
+  border-radius: 999px;
+  padding: 0;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.selected-repertorio-play {
+  justify-self: center;
 }
 
 .selected-repertorio-song.is-dragging {
@@ -7926,7 +7944,7 @@ input.dashboard-select-song {
   }
 
   .selected-repertorio-song {
-    grid-template-columns: auto minmax(0, 1fr) minmax(88px, 34%);
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(88px, 34%);
     gap: 6px;
   }
 
