@@ -1,4 +1,4 @@
-import { getMusicaById } from '../../../services/musicasService.js';
+import { getMusicaById, listMusicas } from '../../../services/musicasService.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { getCifraParaTransposicao, normalizeCifraEditorState, renderMusicaCifraForDisplayHtml, renderVoiceLegendHtml, transposeCifraOriginal } from '../../../utils/chordpro.js';
 import {
@@ -33,11 +33,20 @@ export async function MusicaExecucaoPage() {
   }
 
   try {
-    const { data: musica, error } = await getMusicaById(id);
+    const [{ data: musica, error }, { data: musicasAcervo, error: musicasAcervoError }] = await Promise.all([
+      getMusicaById(id),
+      listMusicas(),
+    ]);
 
     if (error) throw error;
+    if (musicasAcervoError) throw musicasAcervoError;
 
-    page.replaceChildren(createPerformanceView({ musica, returnTo, initiallyExpandedToolbar: true }));
+    page.replaceChildren(createPerformanceView({
+      musica,
+      musicasAcervo: musicasAcervo || [],
+      returnTo,
+      initiallyExpandedToolbar: true,
+    }));
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar a musica.';
@@ -46,7 +55,7 @@ export async function MusicaExecucaoPage() {
   return page;
 }
 
-export function createPerformanceView({ musica, returnTo, initiallyExpandedToolbar = false }) {
+export function createPerformanceView({ musica, musicasAcervo = [], returnTo, initiallyExpandedToolbar = false }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view music-performance-stage';
   const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
@@ -56,6 +65,7 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
     ${createPerformanceToolbar({
       backHref: returnTo,
       linkHref: link && link !== '-' ? link : '',
+      showSongSearch: Boolean(musicasAcervo.length),
       showPrint: false,
     })}
     <section class="performance-song">
@@ -72,11 +82,16 @@ export function createPerformanceView({ musica, returnTo, initiallyExpandedToolb
     </section>
   `;
 
-  setupPerformanceControls(wrapper, { musica, initiallyExpandedToolbar });
+  setupPerformanceControls(wrapper, { musica, musicasAcervo, returnTo, initiallyExpandedToolbar });
   return wrapper;
 }
 
-function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolbar = false } = {}) {
+function setupPerformanceControls(wrapper, {
+  musica = {},
+  musicasAcervo = [],
+  returnTo = '/musicas',
+  initiallyExpandedToolbar = false,
+} = {}) {
   setupAutoHideToolbar(wrapper, { initiallyExpanded: initiallyExpandedToolbar });
 
   const themeButton = wrapper.querySelector('[data-action="theme"]');
@@ -85,6 +100,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
   const twoColumnsButton = wrapper.querySelector('[data-action="two-columns"]');
   const autoscrollButton = wrapper.querySelector('[data-action="autoscroll"]');
   const speedInput = wrapper.querySelector('[data-action="speed"]');
+  const songSearchButton = wrapper.querySelector('[data-action="song-search"]');
   const fullscreenButton = wrapper.querySelector('[data-action="fullscreen"]');
   const printButton = wrapper.querySelector('[data-action="print"]');
   const transposeDownButton = wrapper.querySelector('[data-action="transpose-down"]');
@@ -92,6 +108,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
   const transposeStatus = wrapper.querySelector('[data-role="transpose-status"]');
   const capoSelect = wrapper.querySelector('[data-action="capo"]');
   const view = wrapper.querySelector('.chordpro-view');
+  const songPickerMenu = createAcervoSongPickerMenu(musicasAcervo);
   let scrollTimer = null;
   let semitones = 0;
   let capo = Number(window.localStorage.getItem('masterCifras.performanceCapo') || 0);
@@ -101,6 +118,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   const savedSpeed = window.localStorage.getItem('masterCifras.performanceScrollSpeed') || '3';
   let currentMusica = musica;
+  let songPickerAnchor = null;
 
   speedInput.value = savedSpeed;
   capoSelect.value = String(capo);
@@ -109,6 +127,7 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
   setTwoColumnView(wrapper, twoColumnsButton, twoColumns);
   renderPerformance();
   window.requestAnimationFrame(renderPerformance);
+  setupSongPicker();
 
   themeButton.addEventListener('click', () => {
     theme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -183,15 +202,21 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
     const nextData = getPerformanceSongData(nextMusica);
     const title = wrapper.querySelector('.performance-song h2');
     const key = wrapper.querySelector('.current-key');
+    const keyChip = wrapper.querySelector('.performance-key-chip');
     const link = wrapper.querySelector('.toolbar-link');
+    const voiceLegend = wrapper.querySelector('[data-role="performance-title-voice-legend"]');
 
     if (title) title.textContent = nextData.title;
+    if (keyChip) keyChip.textContent = nextData.key !== '-' ? nextData.key : 'Sem tom';
     if (key) {
       key.dataset.originalKey = nextData.key;
       key.textContent = nextData.key;
     }
     if (link) {
       setPerformanceSongLinkState(link, nextData.link);
+    }
+    if (voiceLegend) {
+      voiceLegend.innerHTML = renderPerformanceVoiceLegendHtml(nextData.cifraOriginal, nextMusica);
     }
 
     view.dataset.originalCifra = nextData.cifraOriginal;
@@ -200,6 +225,92 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
     fitFontToMobileWidth = true;
     renderPerformance();
   };
+
+  function setupSongPicker() {
+    if (!songSearchButton || !songPickerMenu) return;
+
+    wrapper.append(songPickerMenu);
+
+    songSearchButton.setAttribute('aria-haspopup', 'menu');
+    songSearchButton.setAttribute('aria-expanded', 'false');
+
+    songSearchButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleSongPicker(songSearchButton);
+    });
+
+    songPickerMenu.addEventListener('click', (event) => {
+      const option = event.target.closest('[data-musica-id]');
+      if (!option) return;
+
+      const nextMusica = musicasAcervo.find((item) => item.id === option.dataset.musicaId);
+      if (!nextMusica) return;
+
+      wrapper.updatePerformanceMusica(nextMusica);
+      const nextUrl = `/musicas/execucao?id=${encodeURIComponent(nextMusica.id)}&returnTo=${encodeURIComponent(returnTo)}`;
+      window.history.replaceState({}, '', nextUrl);
+      closeSongPicker();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (songPickerMenu.hidden) return;
+      if (event.target.closest('.repertorio-song-picker-menu, [data-action="song-search"]')) return;
+
+      closeSongPicker();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || songPickerMenu.hidden) return;
+
+      closeSongPicker();
+      songPickerAnchor?.focus?.();
+    });
+  }
+
+  function toggleSongPicker(anchor) {
+    if (songPickerAnchor === anchor && !songPickerMenu.hidden) {
+      closeSongPicker();
+      return;
+    }
+
+    openSongPicker(anchor);
+  }
+
+  function openSongPicker(anchor) {
+    songPickerAnchor = anchor;
+    songPickerMenu.hidden = false;
+    updateSongPickerActive();
+    positionSongPicker(anchor);
+    songSearchButton?.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSongPicker() {
+    songPickerMenu.hidden = true;
+    songPickerAnchor = null;
+    songSearchButton?.setAttribute('aria-expanded', 'false');
+  }
+
+  function positionSongPicker(anchor) {
+    const rect = anchor.getBoundingClientRect();
+    const menuWidth = Math.min(340, Math.max(240, window.innerWidth - 24));
+    const left = Math.min(window.innerWidth - menuWidth - 12, Math.max(12, rect.left + (rect.width / 2) - (menuWidth / 2)));
+    const top = Math.min(window.innerHeight - 80, rect.bottom + 8);
+
+    songPickerMenu.style.width = `${menuWidth}px`;
+    songPickerMenu.style.left = `${left}px`;
+    songPickerMenu.style.top = `${top}px`;
+  }
+
+  function updateSongPickerActive() {
+    if (!songPickerMenu) return;
+
+    songPickerMenu.querySelectorAll('[data-musica-id]').forEach((option) => {
+      const isCurrent = option.dataset.musicaId === currentMusica?.id;
+      option.classList.toggle('is-current', isCurrent);
+      option.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+    });
+  }
 
   function toggleFullscreen() {
     toggleInternalFullscreen(wrapper, fullscreenButton, renderPerformance);
@@ -216,7 +327,52 @@ function setupPerformanceControls(wrapper, { musica = {}, initiallyExpandedToolb
     view.innerHTML = renderMusicaCifraForDisplayHtml(currentMusica, { cifra: displayedCifra, includeVoiceLegend: false });
     fitCifraToWidth(wrapper, view, displayedCifra, fontSize, fitFontToMobileWidth);
     transposeStatus.textContent = formatTransposeStatus(semitones, capo);
+    updateSongPickerActive();
   }
+}
+
+function createAcervoSongPickerMenu(musicas = []) {
+  const sortedMusicas = getMusicasSortedByTitle(musicas);
+
+  if (!sortedMusicas.length) return null;
+
+  const menu = document.createElement('div');
+  menu.className = 'repertorio-song-picker-menu';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Musicas do acervo');
+  menu.hidden = true;
+
+  sortedMusicas.forEach((musica, index) => {
+    const title = getField(musica, ['titulo', 'nome', 'title']);
+    const artist = getField(musica, ['artista', 'autor', 'artist']);
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'repertorio-song-picker-option';
+    option.dataset.musicaId = musica.id || '';
+    option.setAttribute('role', 'menuitem');
+    option.innerHTML = `
+      <span>${index + 1}</span>
+      <strong>${escapeHtml(artist !== '-' ? `${title} - ${artist}` : title)}</strong>
+    `;
+    menu.append(option);
+  });
+
+  return menu;
+}
+
+function getMusicasSortedByTitle(musicas = []) {
+  return [...musicas].sort((a, b) => (
+    getField(a, ['titulo', 'nome', 'title']).localeCompare(
+      getField(b, ['titulo', 'nome', 'title']),
+      'pt-BR',
+      { sensitivity: 'base' },
+    )
+    || getField(a, ['artista', 'autor', 'artist']).localeCompare(
+      getField(b, ['artista', 'autor', 'artist']),
+      'pt-BR',
+      { sensitivity: 'base' },
+    )
+  ));
 }
 
 function getPerformanceSongData(musica) {
