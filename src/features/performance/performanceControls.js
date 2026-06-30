@@ -13,7 +13,6 @@ export function createPerformanceToolbar({
   backHref = '',
   showBack = Boolean(backHref),
   showSequence = false,
-  showSongSearch = false,
   sequencePosition = '1/1',
   previousDisabled = false,
   nextDisabled = false,
@@ -31,13 +30,6 @@ export function createPerformanceToolbar({
           <button class="nav-button icon-button" type="button" data-action="previous-song" aria-label="Musica anterior" title="Musica anterior"${previousDisabled ? ' disabled' : ''}>&lsaquo;</button>
           <span class="performance-position" data-role="song-position">${escapeHtml(sequencePosition)}</span>
           <button class="nav-button icon-button" type="button" data-action="next-song" aria-label="Proxima musica" title="Proxima musica"${nextDisabled ? ' disabled' : ''}>&rsaquo;</button>
-        </div>
-      ` : ''}
-      ${showSongSearch ? `
-        <div class="sequence-stepper performance-song-search-stepper" role="group" aria-label="Buscar musica no acervo">
-          <button class="nav-button icon-button performance-song-search-button" type="button" data-action="song-search" aria-label="Buscar musica" title="Buscar musica">
-            <span class="search-icon" aria-hidden="true"></span>
-          </button>
         </div>
       ` : ''}
       <div class="toolbar-display-split performance-split-control" role="group" aria-label="Exibicao da tela">

@@ -65,7 +65,6 @@ export function createPerformanceView({ musica, musicasAcervo = [], returnTo, in
     ${createPerformanceToolbar({
       backHref: returnTo,
       linkHref: link && link !== '-' ? link : '',
-      showSongSearch: Boolean(musicasAcervo.length),
       showPrint: false,
     })}
     <section class="performance-song">
@@ -75,7 +74,14 @@ export function createPerformanceView({ musica, musicasAcervo = [], returnTo, in
           <h2>${escapeHtml(title)}</h2>
           <div class="performance-title-voice-legend" data-role="performance-title-voice-legend">${voiceLegendHtml}</div>
         </div>
-        <span class="performance-key-chip">${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
+        <div class="performance-title-actions">
+          ${musicasAcervo.length ? `
+            <button class="nav-button icon-button performance-song-search-button music-title-search-button" type="button" data-action="song-search" aria-label="Buscar musica" title="Buscar musica">
+              <span class="search-icon" aria-hidden="true"></span>
+            </button>
+          ` : ''}
+          <span class="performance-key-chip">${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
+        </div>
         <data class="current-key" data-original-key="${escapeHtml(key)}" hidden>${escapeHtml(key)}</data>
       </header>
       <pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderMusicaCifraForDisplayHtml(musica, { cifra: cifraOriginal, includeVoiceLegend: false })}</pre>

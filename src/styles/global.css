@@ -4696,11 +4696,6 @@ a {
   min-width: 104px;
 }
 
-.performance-toolbar .performance-song-search-stepper {
-  width: 42px;
-  min-width: 42px;
-}
-
 .performance-toolbar .scroll-stepper {
   align-items: center;
   width: 104px;
@@ -4774,13 +4769,6 @@ a {
   min-height: 36px;
 }
 
-.performance-toolbar .performance-song-search-stepper .performance-song-search-button {
-  width: 42px;
-  min-width: 42px;
-  max-width: 42px;
-  border-radius: var(--border-radius-default);
-}
-
 .performance-song-search-button .search-icon {
   position: relative;
   display: inline-block;
@@ -4818,7 +4806,7 @@ a {
 .transpose-toolbar .font-stepper .nav-button:first-child,
 .performance-toolbar .key-stepper .nav-button:first-child,
 .transpose-toolbar .key-stepper .nav-button:first-child,
-.performance-toolbar .sequence-stepper:not(.performance-song-search-stepper) .nav-button:first-child {
+.performance-toolbar .sequence-stepper .nav-button:first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -4827,7 +4815,7 @@ a {
 .transpose-toolbar .font-stepper .nav-button:last-child,
 .performance-toolbar .key-stepper .nav-button:last-child,
 .transpose-toolbar .key-stepper .nav-button:last-child,
-.performance-toolbar .sequence-stepper:not(.performance-song-search-stepper) .nav-button:last-child {
+.performance-toolbar .sequence-stepper .nav-button:last-child {
   margin-left: -1px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -6775,23 +6763,12 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
     min-width: 102px;
   }
 
-  .repertorio-performance-view .performance-toolbar .performance-song-search-stepper {
-    width: 40px;
-    min-width: 40px;
-  }
-
   .repertorio-performance-view .performance-toolbar .sequence-stepper .nav-button,
   .repertorio-performance-view .performance-toolbar .sequence-stepper .performance-position {
     width: 34px;
     min-width: 0;
     max-width: none;
     min-height: 34px;
-  }
-
-  .repertorio-performance-view .performance-toolbar .performance-song-search-stepper .performance-song-search-button {
-    width: 40px;
-    min-width: 40px;
-    max-width: 40px;
   }
 
   .repertorio-performance-view .performance-toolbar .scroll-stepper {
@@ -6896,12 +6873,6 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .nav-button,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .performance-position {
     width: 33.333%;
-    min-width: 0;
-    max-width: none;
-  }
-
-  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .performance-song-search-stepper .performance-song-search-button {
-    width: 100%;
     min-width: 0;
     max-width: none;
   }
@@ -9601,6 +9572,32 @@ body.has-touch-nav .app-layout {
   min-width: 0;
 }
 
+.performance-title-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.music-title-search-button {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  min-width: 38px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid rgba(22, 117, 101, 0.24);
+  border-radius: var(--radius-md);
+  background: rgba(22, 117, 101, 0.1);
+  color: var(--color-primary-strong);
+}
+
+.music-title-search-button:hover,
+.music-title-search-button:focus {
+  background: rgba(22, 117, 101, 0.16);
+}
+
 .performance-kicker {
   width: fit-content;
   border: 1px solid rgba(22, 117, 101, 0.18);
@@ -9668,6 +9665,12 @@ body.has-touch-nav .app-layout {
   color: #9bd8c9;
 }
 
+.music-performance-stage.is-dark .music-title-search-button {
+  border-color: rgba(155, 216, 201, 0.28);
+  background: rgba(155, 216, 201, 0.12);
+  color: #9bd8c9;
+}
+
 .music-performance-stage.is-dark .performance-key-chip {
   border-color: rgba(255, 180, 95, 0.34);
   background: rgba(255, 180, 95, 0.14);
@@ -9714,6 +9717,17 @@ body.has-touch-nav .app-layout {
   .performance-key-chip {
     padding: 6px 8px;
     font-size: 12px;
+  }
+
+  .performance-title-actions {
+    gap: 6px;
+  }
+
+  .music-title-search-button {
+    width: 34px;
+    min-width: 34px;
+    height: 32px;
+    min-height: 32px;
   }
 
   .music-performance-stage .chordpro-view {
