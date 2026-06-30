@@ -34,8 +34,10 @@ export function createPerformanceToolbar({
         </div>
       ` : ''}
       ${showSongSearch ? `
-        <div class="sequence-stepper" role="group" aria-label="Buscar musica no acervo">
-          <button class="nav-button icon-button performance-song-search-button" type="button" data-action="song-search" aria-label="Buscar musica" title="Buscar musica">&#128269;</button>
+        <div class="sequence-stepper performance-song-search-stepper" role="group" aria-label="Buscar musica no acervo">
+          <button class="nav-button icon-button performance-song-search-button" type="button" data-action="song-search" aria-label="Buscar musica" title="Buscar musica">
+            <span class="search-icon" aria-hidden="true"></span>
+          </button>
         </div>
       ` : ''}
       <div class="toolbar-display-split performance-split-control" role="group" aria-label="Exibicao da tela">

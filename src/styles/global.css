@@ -4696,6 +4696,11 @@ a {
   min-width: 104px;
 }
 
+.performance-toolbar .performance-song-search-stepper {
+  width: 42px;
+  min-width: 42px;
+}
+
 .performance-toolbar .scroll-stepper {
   align-items: center;
   width: 104px;
@@ -4769,11 +4774,51 @@ a {
   min-height: 36px;
 }
 
+.performance-toolbar .performance-song-search-stepper .performance-song-search-button {
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  border-radius: var(--border-radius-default);
+}
+
+.performance-song-search-button .search-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+}
+
+.performance-song-search-button .search-icon::before,
+.performance-song-search-button .search-icon::after {
+  position: absolute;
+  content: '';
+}
+
+.performance-song-search-button .search-icon::before {
+  top: 1px;
+  left: 1px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+}
+
+.performance-song-search-button .search-icon::after {
+  right: 1px;
+  bottom: 2px;
+  width: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+
 .performance-toolbar .font-stepper .nav-button:first-child,
 .transpose-toolbar .font-stepper .nav-button:first-child,
 .performance-toolbar .key-stepper .nav-button:first-child,
 .transpose-toolbar .key-stepper .nav-button:first-child,
-.performance-toolbar .sequence-stepper .nav-button:first-child {
+.performance-toolbar .sequence-stepper:not(.performance-song-search-stepper) .nav-button:first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -4782,7 +4827,7 @@ a {
 .transpose-toolbar .font-stepper .nav-button:last-child,
 .performance-toolbar .key-stepper .nav-button:last-child,
 .transpose-toolbar .key-stepper .nav-button:last-child,
-.performance-toolbar .sequence-stepper .nav-button:last-child {
+.performance-toolbar .sequence-stepper:not(.performance-song-search-stepper) .nav-button:last-child {
   margin-left: -1px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -6730,12 +6775,23 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
     min-width: 102px;
   }
 
+  .repertorio-performance-view .performance-toolbar .performance-song-search-stepper {
+    width: 40px;
+    min-width: 40px;
+  }
+
   .repertorio-performance-view .performance-toolbar .sequence-stepper .nav-button,
   .repertorio-performance-view .performance-toolbar .sequence-stepper .performance-position {
     width: 34px;
     min-width: 0;
     max-width: none;
     min-height: 34px;
+  }
+
+  .repertorio-performance-view .performance-toolbar .performance-song-search-stepper .performance-song-search-button {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
   }
 
   .repertorio-performance-view .performance-toolbar .scroll-stepper {
@@ -6840,6 +6896,12 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .nav-button,
   .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .sequence-stepper .performance-position {
     width: 33.333%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .repertorio-performance-view.has-auto-toolbar > .performance-toolbar .performance-song-search-stepper .performance-song-search-button {
+    width: 100%;
     min-width: 0;
     max-width: none;
   }
