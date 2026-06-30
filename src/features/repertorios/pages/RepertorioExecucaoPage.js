@@ -675,6 +675,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
       toggleSongPicker(anchor);
     });
 
+    anchor.addEventListener('pointerdown', (event) => {
+      event.stopPropagation();
+    });
+
+    anchor.addEventListener('pointerup', (event) => {
+      event.stopPropagation();
+    });
+
     anchor.addEventListener('keydown', (event) => {
       if (!['Enter', ' ', 'ArrowDown'].includes(event.key)) return;
 
