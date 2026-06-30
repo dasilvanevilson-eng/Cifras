@@ -803,7 +803,7 @@ function createSongPickerMenu(songs = []) {
   menu.setAttribute('aria-label', 'Musicas do repertorio');
   menu.hidden = true;
 
-  songs.forEach((song, index) => {
+  getSongsSortedByTitle(songs).forEach(({ song, index, title }) => {
     const option = document.createElement('button');
     option.type = 'button';
     option.className = 'repertorio-song-picker-option';
@@ -811,12 +811,25 @@ function createSongPickerMenu(songs = []) {
     option.setAttribute('role', 'menuitem');
     option.innerHTML = `
       <span>${index + 1}</span>
-      <strong>${escapeHtml(getSongTitle(song))}</strong>
+      <strong>${escapeHtml(title)}</strong>
     `;
     menu.append(option);
   });
 
   return menu;
+}
+
+function getSongsSortedByTitle(songs = []) {
+  return songs
+    .map((song, index) => ({
+      song,
+      index,
+      title: getSongTitle(song),
+    }))
+    .sort((a, b) => (
+      a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })
+      || a.index - b.index
+    ));
 }
 
 function getSongTitle(song) {
