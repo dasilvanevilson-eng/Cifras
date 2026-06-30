@@ -184,7 +184,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         <div class="repertorio-inline-actions"></div>
       </div>
       <div class="repertorio-title-date-grid">
-        <input name="nome" type="hidden" required value="${escapeHtml(initialName)}">
+        <label>
+          Nome
+          <input name="nome" type="text" required value="${escapeHtml(initialName)}" placeholder="Nome do repertorio">
+        </label>
 
         <label>
           Data
@@ -218,6 +221,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
+  const currentName = form.querySelector('.repertorio-current-name');
   form.querySelector('.repertorio-title-date-grid').append(RepertorioPrivacyFields({
     users,
     initialValues: {
@@ -441,7 +445,11 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     dragAutoScrollFrame = null;
   }
 
-  nomeInput.addEventListener('input', updateSubmitState);
+  nomeInput.addEventListener('input', () => {
+    const value = nomeInput.value.trim();
+    currentName.textContent = value ? `Nome: ${value}` : 'Informe o nome do repertorio.';
+    updateSubmitState();
+  });
 
   searchInput.addEventListener('input', () => {
     renderResults();
