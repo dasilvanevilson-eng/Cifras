@@ -273,8 +273,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     currentTempExecutionType = null;
     executionContent.replaceChildren(createMusicaPerformanceView({
       musica,
+      musicasAcervo: allowAcervo ? musicas : [],
       returnTo,
-      disableSongSearch: isMemberConnectedToLeader(),
+      disableSongSearch: !canUseExecutionAcervoSearch(),
+      updateUrlOnSongSelect: false,
+      onSongSelect: handleExecutionAcervoSongSelect,
     }));
     refreshExecutionControlsForMode();
     resetMemberLeaderLockedControls();
@@ -431,6 +434,21 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     await publishLeaderState(currentExecutionState);
   }
 
+  async function handleExecutionAcervoSongSelect(musica) {
+    if (!musica?.id) return;
+
+    currentTempExecutionType = null;
+    currentExecutionState = normalizeState({
+      itemType: 'musica',
+      musicaId: musica.id,
+      transposeSemitones: 0,
+    });
+
+    if (currentMode === 'lider') {
+      await publishLeaderState(currentExecutionState);
+    }
+  }
+
   function openExecutionLayer() {
     executionSlot.hidden = false;
     document.body.classList.add('has-banda-stage-open');
@@ -533,6 +551,12 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   function isMemberConnectedToLeader() {
     return currentMode === 'integrante' && memberFollowingLeader;
+  }
+
+  function canUseExecutionAcervoSearch() {
+    if (!allowAcervo) return false;
+    if (currentMode === 'lider') return true;
+    return !isMemberConnectedToLeader();
   }
 
   async function toggleMemberLeaderConnection() {

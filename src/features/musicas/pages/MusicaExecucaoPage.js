@@ -61,6 +61,8 @@ export function createPerformanceView({
   returnTo,
   initiallyExpandedToolbar = false,
   disableSongSearch = false,
+  updateUrlOnSongSelect = true,
+  onSongSelect = null,
 }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view music-performance-stage';
@@ -94,7 +96,14 @@ export function createPerformanceView({
     </section>
   `;
 
-  setupPerformanceControls(wrapper, { musica, musicasAcervo, returnTo, initiallyExpandedToolbar });
+  setupPerformanceControls(wrapper, {
+    musica,
+    musicasAcervo,
+    returnTo,
+    initiallyExpandedToolbar,
+    updateUrlOnSongSelect,
+    onSongSelect,
+  });
   return wrapper;
 }
 
@@ -103,6 +112,8 @@ function setupPerformanceControls(wrapper, {
   musicasAcervo = [],
   returnTo = '/musicas',
   initiallyExpandedToolbar = false,
+  updateUrlOnSongSelect = true,
+  onSongSelect = null,
 } = {}) {
   setupAutoHideToolbar(wrapper, { initiallyExpanded: initiallyExpandedToolbar });
 
@@ -260,8 +271,15 @@ function setupPerformanceControls(wrapper, {
       if (!nextMusica) return;
 
       wrapper.updatePerformanceMusica(nextMusica);
-      const nextUrl = `/musicas/execucao?id=${encodeURIComponent(nextMusica.id)}&returnTo=${encodeURIComponent(returnTo)}`;
-      window.history.replaceState({}, '', nextUrl);
+      if (typeof onSongSelect === 'function') {
+        Promise.resolve(onSongSelect(nextMusica)).catch((error) => {
+          console.warn('Nao foi possivel aplicar a musica selecionada.', error);
+        });
+      }
+      if (updateUrlOnSongSelect) {
+        const nextUrl = `/musicas/execucao?id=${encodeURIComponent(nextMusica.id)}&returnTo=${encodeURIComponent(returnTo)}`;
+        window.history.replaceState({}, '', nextUrl);
+      }
       closeSongPicker();
     });
 
