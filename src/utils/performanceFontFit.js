@@ -38,6 +38,7 @@ export function fitPreformattedTextToWidth({
     setFontSize(refinedFontSize);
   };
 
+  applyFit();
   window.requestAnimationFrame(applyFit);
   document.fonts?.ready?.then(applyFit).catch(() => {});
 }
@@ -121,9 +122,10 @@ function getHorizontalPadding(style) {
 
 function getAvailableTextWidth(view, horizontalPadding) {
   const parentWidth = view.parentElement?.getBoundingClientRect().width || 0;
-  const viewWidth = view.getBoundingClientRect().width || 0;
+  const wrapperWidth = view.closest('.repertorio-song-view, .performance-page, article')?.getBoundingClientRect().width || 0;
   const viewportWidth = window.visualViewport?.width || window.innerWidth || 0;
-  const widths = [parentWidth, viewWidth, viewportWidth].filter((value) => value > 0);
+  const bodyWidth = document.documentElement?.clientWidth || 0;
+  const widths = [parentWidth, wrapperWidth, viewportWidth, bodyWidth].filter((value) => value > 0);
   const outerWidth = widths.length ? Math.min(...widths) : 1;
 
   return Math.max(1, outerWidth - horizontalPadding - 2);

@@ -1,5 +1,5 @@
 import { createPerformanceView } from '../../musicas/pages/MusicaExecucaoPage.js';
-import { getPublicMusicaData } from '../../../services/publicInvitesService.js';
+import { getPublicDashboardData, getPublicMusicaData } from '../../../services/publicInvitesService.js';
 
 export async function PublicMusicaExecucaoPage() {
   const page = document.createElement('section');
@@ -18,12 +18,17 @@ export async function PublicMusicaExecucaoPage() {
   }
 
   try {
-    const { data: musica, error } = await getPublicMusicaData(token, id);
+    const [{ data: musica, error }, { data: dashboardData, error: dashboardError }] = await Promise.all([
+      getPublicMusicaData(token, id),
+      getPublicDashboardData(token),
+    ]);
 
     if (error) throw error;
+    if (dashboardError) throw dashboardError;
 
     page.replaceChildren(createPerformanceView({
       musica,
+      musicasAcervo: dashboardData?.musicas || [],
       returnTo: `/publico?token=${encodeURIComponent(token)}`,
     }));
   } catch (error) {

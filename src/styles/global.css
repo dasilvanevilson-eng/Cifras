@@ -4505,6 +4505,11 @@ a {
 }
 
 .performance-page .chordpro-view {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
   font-weight: 700;
@@ -5110,7 +5115,11 @@ a {
 }
 
 .repertorio-performance-view .chordpro-view {
-  overflow: visible;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
   font-family: var(--lyrics-execution-font);
   font-size: var(--performance-font-size, 32px);
   font-weight: 700;

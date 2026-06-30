@@ -2,6 +2,7 @@ import { fitPreformattedTextToWidth } from '../../utils/performanceFontFit.js';
 
 export const MAX_PERFORMANCE_FONT_SIZE = 128;
 export const MAX_AUTO_FIT_FONT_SIZE = 16;
+export const MIN_AUTO_FIT_FONT_SIZE = 2;
 
 export function createCapoOptions({ label = 'Capo' } = {}) {
   return Array.from({ length: 12 }, (_, index) => (
@@ -156,6 +157,7 @@ export function fitCifraToWidth(wrapper, view, cifra, desiredFontSize, fitFontTo
     view,
     desiredFontSize,
     fitToWidth: true,
+    minFontSize: MIN_AUTO_FIT_FONT_SIZE,
     maxFontSize: MAX_AUTO_FIT_FONT_SIZE,
     setFontSize: (value) => setPerformanceFontSize(wrapper, value),
   });

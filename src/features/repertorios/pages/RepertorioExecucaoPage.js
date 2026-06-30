@@ -325,8 +325,8 @@ function renderPagedPerformance({
     songPosition.textContent = songs.length ? `${currentSongIndex + 1}/${songs.length}` : '0/0';
   }
 
-  previousSongButton.disabled = currentSongIndex <= 0;
-  nextSongButton.disabled = currentSongIndex >= songs.length - 1;
+  if (previousSongButton) previousSongButton.disabled = currentSongIndex <= 0;
+  if (nextSongButton) nextSongButton.disabled = currentSongIndex >= songs.length - 1;
 }
 
 function isMusicaExcluida(item) {
@@ -412,7 +412,6 @@ export function createPerformanceViewV2({
     </header>
     ${createPerformanceToolbar({
       backHref: getBackUrl(returnTo, repertorio.id),
-      showSequence: true,
       useDynamicSongLink: true,
       showPrint: false,
     })}
@@ -575,14 +574,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     }, 80);
   });
 
-  previousSongButton.disabled = songs.length <= 1;
-  nextSongButton.disabled = songs.length <= 1;
+  if (previousSongButton) previousSongButton.disabled = songs.length <= 1;
+  if (nextSongButton) nextSongButton.disabled = songs.length <= 1;
 
-  previousSongButton.addEventListener('click', () => {
+  previousSongButton?.addEventListener('click', () => {
     goToSong(-1);
   });
 
-  nextSongButton.addEventListener('click', () => {
+  nextSongButton?.addEventListener('click', () => {
     goToSong(1);
   });
 
@@ -929,6 +928,6 @@ function renderPagedPerformanceV2({
     songs.length ? `${((currentSongIndex + 1) / songs.length) * 100}%` : '0%',
   );
 
-  previousSongButton.disabled = currentSongIndex <= 0;
-  nextSongButton.disabled = currentSongIndex >= songs.length - 1;
+  if (previousSongButton) previousSongButton.disabled = currentSongIndex <= 0;
+  if (nextSongButton) nextSongButton.disabled = currentSongIndex >= songs.length - 1;
 }
