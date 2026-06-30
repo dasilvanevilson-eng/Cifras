@@ -15,6 +15,8 @@ import {
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 
+const REPERTORIO_DRAFT_PREFIX = 'masterCifras.repertorioDraft.';
+
 export async function RepertoriosPage({ session } = {}) {
   const canEdit = canEditContent(session?.profile?.papel);
   const page = document.createElement('section');
@@ -53,6 +55,7 @@ export async function RepertoriosPage({ session } = {}) {
   const repertoriosCount = page.querySelector('[data-count="repertorios"]');
   let loadedRepertorios = [];
   let pendingNewRepertorioName = '';
+  const restoredDraft = readRepertorioDraftFromUrl();
 
   async function renderForm(selectedRepertorio = null, options = {}) {
     if (!canEdit) return;
@@ -62,8 +65,13 @@ export async function RepertoriosPage({ session } = {}) {
       existingRepertorios: loadedRepertorios,
       selectedRepertorio,
       initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
+      draft: options.draft || null,
       onNew: () => {
         pendingNewRepertorioName = '';
+        clearCurrentRepertorioDraft();
+        if (new URLSearchParams(window.location.search).has('draft')) {
+          window.history.replaceState(null, '', '/repertorios');
+        }
         return renderForm();
       },
     }));
@@ -95,7 +103,13 @@ export async function RepertoriosPage({ session } = {}) {
   }
 
   if (canEdit) {
-    await renderForm();
+    const draftRepertorio = restoredDraft?.selectedRepertorioId
+      ? loadedRepertorios.find((repertorio) => repertorio.id === restoredDraft.selectedRepertorioId) || null
+      : null;
+    await renderForm(draftRepertorio, { draft: restoredDraft });
+    if (restoredDraft?.scrollY) {
+      window.requestAnimationFrame(() => window.scrollTo({ top: restoredDraft.scrollY, left: 0, behavior: 'auto' }));
+    }
   } else {
     formSlot.append(createReadOnlyNotice(
       'No momento seu acesso e restrito nesta opcao.',
@@ -113,7 +127,7 @@ export async function RepertoriosPage({ session } = {}) {
   return page;
 }
 
-async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedRepertorio = null, initialName = '', onNew } = {}) {
+async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedRepertorio = null, initialName = '', draft = null, onNew } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'new-repertorio-panel';
   wrapper.innerHTML = '<p class="page-status">Carregando musicas...</p>';
@@ -165,6 +179,7 @@ async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedR
     compartilhamentos: compartilhamentos || [],
     historico: historico || [],
     initialName,
+    draft,
     onNew,
   }));
   return wrapper;
@@ -173,7 +188,8 @@ async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedR
 function createNewRepertorioComposer(musicas, users, existingRepertorios = [], options = {}) {
   const selectedRepertorio = options.selectedRepertorio || null;
   const isEditing = Boolean(selectedRepertorio?.id);
-  const initialName = selectedRepertorio?.nome || options.initialName || '';
+  const draft = options.draft || null;
+  const initialName = draft?.nome || selectedRepertorio?.nome || options.initialName || '';
   const form = document.createElement('form');
   form.className = 'form new-repertorio-form';
   form.innerHTML = `
@@ -225,9 +241,11 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   form.querySelector('.repertorio-title-date-grid').append(RepertorioPrivacyFields({
     users,
     initialValues: {
-      visibilidade: selectedRepertorio?.visibilidade || 'publico',
-      permite_edicao_compartilhada: Boolean(selectedRepertorio?.permite_edicao_compartilhada),
-      compartilhado_com: (options.compartilhamentos || []).map((item) => item.user_id),
+      visibilidade: draft?.privacy?.visibilidade || selectedRepertorio?.visibilidade || 'publico',
+      permite_edicao_compartilhada: draft?.privacy
+        ? Boolean(draft.privacy.permite_edicao_compartilhada)
+        : Boolean(selectedRepertorio?.permite_edicao_compartilhada),
+      compartilhado_com: draft?.compartilhadoCom || (options.compartilhamentos || []).map((item) => item.user_id),
     },
   }));
   const searchInput = form.querySelector('.song-search-input');
@@ -235,14 +253,16 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   const selectedSlot = form.querySelector('.selected-repertorio-songs');
   const submitButton = form.querySelector('button[type="submit"]');
   const message = form.querySelector('.form-message');
-  const selectedMusicas = (options.musicasAssociadas || [])
-    .filter((item) => item.musica_id && item.musicas)
-    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
-    .map((item) => ({
-      ...item.musicas,
-      tom: item.tom || item.musicas?.tom || '',
-      observacao: item.observacao || '',
-    }));
+  const selectedMusicas = draft?.musicas?.length
+    ? draft.musicas.map((musica) => ({ ...musica }))
+    : (options.musicasAssociadas || [])
+      .filter((item) => item.musica_id && item.musicas)
+      .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
+      .map((item) => ({
+        ...item.musicas,
+        tom: item.tom || item.musicas?.tom || '',
+        observacao: item.observacao || '',
+      }));
   const sortedMusicas = sortMusicasByName(musicas);
   const existingNames = new Set(existingRepertorios
     .filter((repertorio) => !isEditing || repertorio.id !== selectedRepertorio.id)
@@ -330,7 +350,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         <div>
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
         </div>
-        <a class="nav-button icon-button selected-repertorio-play" href="${escapeHtml(getMusicaExecucaoUrl(musica))}" target="_blank" rel="noopener noreferrer" aria-label="Executar ${escapeHtml(formatMusicaName(musica))}" title="Executar musica">&#9654;</a>
+        <a class="nav-button icon-button selected-repertorio-play" href="${escapeHtml(getMusicaExecucaoUrl(musica))}" aria-label="Executar ${escapeHtml(formatMusicaName(musica))}" title="Executar musica">&#9654;</a>
         <label class="selected-repertorio-song-moment">
           <input type="text" maxlength="80" value="${escapeHtml(musica.observacao || '')}" placeholder="Entrada, louvor...">
         </label>
@@ -380,7 +400,9 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         updateSubmitState();
       });
       row.querySelector('.selected-repertorio-play').addEventListener('click', (event) => {
+        event.preventDefault();
         event.stopPropagation();
+        window.location.href = getMusicaExecucaoUrl(musica, saveRepertorioDraft());
       });
       row.querySelector('.selected-repertorio-play').addEventListener('pointerdown', (event) => {
         event.stopPropagation();
@@ -450,6 +472,28 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
     window.cancelAnimationFrame(dragAutoScrollFrame);
     dragAutoScrollFrame = null;
+  }
+
+  function saveRepertorioDraft() {
+    const draftKey = crypto.randomUUID();
+    const formData = new FormData(form);
+    const privacyValues = getRepertorioPrivacyValues(form);
+
+    try {
+      window.sessionStorage.setItem(`${REPERTORIO_DRAFT_PREFIX}${draftKey}`, JSON.stringify({
+        selectedRepertorioId: selectedRepertorio?.id || null,
+        nome: String(formData.get('nome') || '').trim(),
+        data: String(formData.get('data') || '') || null,
+        privacy: privacyValues.repertorio,
+        compartilhadoCom: privacyValues.compartilhadoCom,
+        musicas: selectedMusicas.map((musica) => ({ ...musica })),
+        scrollY: window.scrollY || 0,
+      }));
+    } catch (_error) {
+      return '';
+    }
+
+    return draftKey;
   }
 
   nomeInput.addEventListener('input', () => {
@@ -561,6 +605,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
       message.className = 'form-message success';
       message.textContent = 'Repertorio atualizado com sucesso.';
+      clearCurrentRepertorioDraft();
       window.location.href = '/repertorios';
       return;
     }
@@ -580,7 +625,8 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
     message.className = 'form-message success';
     message.textContent = 'Repertorio salvo com sucesso.';
-    window.location.reload();
+    clearCurrentRepertorioDraft();
+    window.location.href = '/repertorios';
   });
 
   renderSelected();
@@ -985,9 +1031,36 @@ function getRepertorioExecucaoUrl(repertorio) {
   return `/repertorios/execucao?id=${encodeURIComponent(getField(repertorio, ['id']))}`;
 }
 
-function getMusicaExecucaoUrl(musica) {
-  const returnTo = `${window.location.pathname}${window.location.search}`;
+function getMusicaExecucaoUrl(musica, draftKey = '') {
+  const returnParams = new URLSearchParams(window.location.search);
+  if (draftKey) {
+    returnParams.set('draft', draftKey);
+  }
+  const returnTo = `${window.location.pathname}${returnParams.toString() ? `?${returnParams.toString()}` : ''}`;
   return `/musicas/execucao?id=${encodeURIComponent(getField(musica, ['id']))}&returnTo=${encodeURIComponent(returnTo)}`;
+}
+
+function readRepertorioDraftFromUrl() {
+  const draftKey = new URLSearchParams(window.location.search).get('draft');
+  if (!draftKey) return null;
+
+  try {
+    const stored = window.sessionStorage.getItem(`${REPERTORIO_DRAFT_PREFIX}${draftKey}`);
+    return stored ? JSON.parse(stored) : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function clearCurrentRepertorioDraft() {
+  const draftKey = new URLSearchParams(window.location.search).get('draft');
+  if (!draftKey) return;
+
+  try {
+    window.sessionStorage.removeItem(`${REPERTORIO_DRAFT_PREFIX}${draftKey}`);
+  } catch (_error) {
+    // O rascunho temporario expira com a sessao mesmo quando nao puder ser removido.
+  }
 }
 
 function compareText(a, b) {
