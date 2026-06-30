@@ -4349,6 +4349,17 @@ a {
   background: #1d4f45;
 }
 
+.has-auto-toolbar.is-toolbar-collapsed > .toolbar-hamburger-toggle {
+  width: 45.6px;
+  height: 45.6px;
+  gap: 4.8px;
+}
+
+.has-auto-toolbar.is-toolbar-collapsed > .toolbar-hamburger-toggle span {
+  width: 19.2px;
+  height: 2.4px;
+}
+
 .has-auto-toolbar > .performance-toolbar,
 .has-auto-toolbar > .transpose-toolbar {
   position: fixed;
