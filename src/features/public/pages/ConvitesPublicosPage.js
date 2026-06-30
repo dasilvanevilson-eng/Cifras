@@ -336,6 +336,7 @@ function createInvitesList(invites, { onChange, onEdit }) {
         <small>${escapeHtml(formatUses(invite))}</small>
       </div>
       <div class="public-invite-actions">
+        <a class="button-link secondary" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" data-action="execute">Executar</a>
         <button class="button-link secondary" type="button" data-action="copy">Copiar link</button>
         <button class="button-link secondary" type="button" data-action="edit">Editar</button>
         ${status.key === 'is-active' ? '<button class="button-link danger" type="button" data-action="revoke">Revogar</button>' : ''}
