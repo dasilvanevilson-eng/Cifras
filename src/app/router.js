@@ -90,11 +90,11 @@ const publicRoutes = new Set([
 ]);
 
 const protectedRoutes = {
-  '/usuarios': canManageUsers,
-  '/permissoes': canManageUsers,
-  '/personalizacao': canManageUsers,
-  '/convites-publicos': canManageUsers,
-  '/links-imagem': canManageUsers,
+  '/usuarios': (session) => canManageUsers(session.profile?.papel),
+  '/permissoes': (session) => canManageUsers(session.profile?.papel),
+  '/personalizacao': (session) => canManageUsers(session.profile?.papel),
+  '/convites-publicos': (session) => canViewModule(session, 'convites_publicos'),
+  '/links-imagem': (session) => canManageUsers(session.profile?.papel),
 };
 
 export function createRouter() {
@@ -125,7 +125,7 @@ export function createRouter() {
 
       const canAccessRoute = protectedRoutes[window.location.pathname];
 
-      if (canAccessRoute && !canAccessRoute(session.profile?.papel)) {
+      if (canAccessRoute && !canAccessRoute(session)) {
         return AccessDeniedPage({ session });
       }
 

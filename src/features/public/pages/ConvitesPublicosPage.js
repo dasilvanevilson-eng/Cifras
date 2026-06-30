@@ -1,4 +1,4 @@
-import { canManageUsers } from '../../auth/roles.js';
+import { hasPermission } from '../../auth/permissions.js';
 import {
   createBandaCoralPublicInvite,
   createDashboardPublicInvite,
@@ -13,9 +13,13 @@ import { listRepertorios } from '../../../services/repertoriosService.js';
 export async function ConvitesPublicosPage({ session } = {}) {
   const page = document.createElement('section');
   page.className = 'page public-invites-page';
+  const canViewInvites = hasPermission(session, 'convites_publicos', 'can_view');
+  const canCreateInvites = hasPermission(session, 'convites_publicos', 'can_create');
+  const canEditInvites = hasPermission(session, 'convites_publicos', 'can_edit');
+  const canDeleteInvites = hasPermission(session, 'convites_publicos', 'can_delete');
 
-  if (!canManageUsers(session?.profile?.papel)) {
-    page.innerHTML = '<div class="page-status error">Apenas administradores podem criar convites publicos.</div>';
+  if (!canViewInvites) {
+    page.innerHTML = '<div class="page-status error">Voce nao tem permissao para acessar convites publicos.</div>';
     return page;
   }
 
@@ -27,7 +31,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
       </div>
     </header>
     <section class="public-invites-layout">
-      <form class="form public-invite-form">
+      <form class="form public-invite-form"${canCreateInvites || canEditInvites ? '' : ' hidden'}>
         <h2 data-role="form-title">Novo convite</h2>
         <label>
           Nome do convite
@@ -119,6 +123,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
   const bandaMemberInput = form.elements.allow_banda_member;
   const shareCifrasInput = form.elements.share_cifras;
   const shareLetrasInput = form.elements.share_letras;
+  const permissions = {
+    canCreate: canCreateInvites,
+    canEdit: canEditInvites,
+    canDelete: canDeleteInvites,
+  };
   let repertorios = [];
   let editingInvite = null;
 
@@ -170,11 +179,18 @@ export async function ConvitesPublicosPage({ session } = {}) {
     listSlot.replaceChildren(createInvitesList(data || [], {
       onChange: loadInvites,
       onEdit: startEditInvite,
+      permissions,
     }));
   }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if ((editingInvite && !canEditInvites) || (!editingInvite && !canCreateInvites)) {
+      message.className = 'form-message error field-full';
+      message.textContent = 'Voce nao tem permissao para esta acao.';
+      return;
+    }
+
     const payload = readInviteForm(form, session);
 
     if (payload.moduleKey === 'banda_coral' && !payload.allowAcervo && !payload.repertorioIds.length) {
@@ -245,8 +261,11 @@ export async function ConvitesPublicosPage({ session } = {}) {
   }
 
   function startEditInvite(invite) {
+    if (!canEditInvites) return;
+
     const metadata = getInviteMetadata(invite);
     editingInvite = invite;
+    form.hidden = false;
 
     formTitle.textContent = 'Editar convite';
     submitButton.textContent = 'Salvar alteracoes';
@@ -284,6 +303,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
     letrasRepertoriosSearch.value = '';
     letrasRepertoriosSlot.hidden = true;
     updateModuleFields(form, { bandaPermissions, letrasPermissions });
+    form.hidden = !(canCreateInvites || canEditInvites);
   }
 
   function filterBandaRepertorios() {
@@ -309,7 +329,7 @@ export async function ConvitesPublicosPage({ session } = {}) {
   }
 }
 
-function createInvitesList(invites, { onChange, onEdit }) {
+function createInvitesList(invites, { onChange, onEdit, permissions = {} }) {
   if (!invites.length) {
     const empty = document.createElement('p');
     empty.className = 'page-status';
@@ -338,9 +358,9 @@ function createInvitesList(invites, { onChange, onEdit }) {
       <div class="public-invite-actions">
         <a class="button-link secondary" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" data-action="execute">Executar</a>
         <button class="button-link secondary" type="button" data-action="copy">Copiar link</button>
-        <button class="button-link secondary" type="button" data-action="edit">Editar</button>
-        ${status.key === 'is-active' ? '<button class="button-link danger" type="button" data-action="revoke">Revogar</button>' : ''}
-        <button class="button-link danger" type="button" data-action="delete">Excluir</button>
+        ${permissions.canEdit ? '<button class="button-link secondary" type="button" data-action="edit">Editar</button>' : ''}
+        ${status.key === 'is-active' && permissions.canDelete ? '<button class="button-link danger" type="button" data-action="revoke">Revogar</button>' : ''}
+        ${permissions.canDelete ? '<button class="button-link danger" type="button" data-action="delete">Excluir</button>' : ''}
       </div>
     `;
 
@@ -352,7 +372,7 @@ function createInvitesList(invites, { onChange, onEdit }) {
       }, 1600);
     });
 
-    item.querySelector('[data-action="edit"]').addEventListener('click', () => {
+    item.querySelector('[data-action="edit"]')?.addEventListener('click', () => {
       onEdit(invite);
     });
 
@@ -369,7 +389,7 @@ function createInvitesList(invites, { onChange, onEdit }) {
       await onChange();
     });
 
-    item.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+    item.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
       const confirmed = window.confirm(`Excluir definitivamente o convite "${invite.title}"? Esta acao remove o link da lista.`);
       if (!confirmed) return;
 

@@ -193,11 +193,7 @@ export function canViewModule(session, moduleKey) {
 }
 
 export function getFirstVisibleMenuRoute(session) {
-  const role = normalizeRole(session?.profile?.papel);
-  const route = MENU_ROUTE_ORDER.find((item) => (
-    (!item.adminOnly || role === USER_ROLES.ADMIN)
-    && canViewModule(session, item.moduleKey)
-  ));
+  const route = MENU_ROUTE_ORDER.find((item) => canViewModule(session, item.moduleKey));
 
   return route?.href || '/minha-conta';
 }
