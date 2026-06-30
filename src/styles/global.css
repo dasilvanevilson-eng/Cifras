@@ -199,7 +199,7 @@ a {
   height: 42px;
   place-items: center;
   border: 1px solid #cfc7b8;
-  border-radius: 999px;
+  border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 6px 18px rgba(52, 45, 36, 0.08);
   cursor: pointer;
@@ -4350,14 +4350,14 @@ a {
 }
 
 .has-auto-toolbar.is-toolbar-collapsed > .toolbar-hamburger-toggle {
-  width: 45.6px;
-  height: 45.6px;
-  gap: 4.8px;
+  width: 43.7px;
+  height: 43.7px;
+  gap: 4.6px;
 }
 
 .has-auto-toolbar.is-toolbar-collapsed > .toolbar-hamburger-toggle span {
-  width: 19.2px;
-  height: 2.4px;
+  width: 18.4px;
+  height: 2.3px;
 }
 
 .has-auto-toolbar > .performance-toolbar,
