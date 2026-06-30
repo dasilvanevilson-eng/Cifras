@@ -402,7 +402,11 @@ export function createPerformanceViewV2({
         <p class="repertorio-stage-current" data-role="stage-current-song"></p>
       </div>
       <div class="repertorio-stage-summary" aria-label="Progresso do repertorio">
-        <span><strong data-role="stage-song-position">0/0</strong> musica atual</span>
+        <span data-role="stage-song-picker">
+          <strong data-role="stage-song-position">0/0</strong>
+          musica atual
+          <small>visualizar</small>
+        </span>
       </div>
     </header>
     ${createPerformanceToolbar({
@@ -504,6 +508,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   let saveTomQueue = Promise.resolve();
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
   const stageSongPosition = wrapper.querySelector('[data-role="stage-song-position"]');
+  const stageSongPicker = wrapper.querySelector('[data-role="stage-song-picker"]');
   const songPickerMenu = createSongPickerMenu(songs);
   let songPickerAnchor = null;
 
@@ -629,7 +634,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
     wrapper.append(songPickerMenu);
     setupSongPickerAnchor(songPosition);
-    setupSongPickerAnchor(stageSongPosition);
+    setupSongPickerAnchor(stageSongPicker);
 
     songPickerMenu.addEventListener('click', (event) => {
       const option = event.target.closest('[data-song-index]');
@@ -641,7 +646,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
 
     document.addEventListener('click', (event) => {
       if (songPickerMenu.hidden) return;
-      if (event.target.closest('.repertorio-song-picker-menu, [data-role="song-position"], [data-role="stage-song-position"]')) return;
+      if (event.target.closest('.repertorio-song-picker-menu, [data-role="song-position"], [data-role="stage-song-picker"]')) return;
 
       closeSongPicker();
     });
@@ -693,14 +698,14 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
     updateSongPickerActive();
     positionSongPicker(anchor);
     songPosition?.setAttribute('aria-expanded', String(anchor === songPosition));
-    stageSongPosition?.setAttribute('aria-expanded', String(anchor === stageSongPosition));
+    stageSongPicker?.setAttribute('aria-expanded', String(anchor === stageSongPicker));
   }
 
   function closeSongPicker() {
     songPickerMenu.hidden = true;
     songPickerAnchor = null;
     songPosition?.setAttribute('aria-expanded', 'false');
-    stageSongPosition?.setAttribute('aria-expanded', 'false');
+    stageSongPicker?.setAttribute('aria-expanded', 'false');
   }
 
   function positionSongPicker(anchor) {

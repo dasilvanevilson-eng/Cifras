@@ -10034,6 +10034,12 @@ body.has-touch-nav .app-layout {
   text-align: center;
 }
 
+.repertorio-stage-summary small {
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+}
+
 .repertorio-stage-summary strong {
   color: #305bb8;
   font-size: 20px;
