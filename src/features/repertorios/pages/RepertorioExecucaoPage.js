@@ -387,6 +387,7 @@ export function createPerformanceViewV2({
   initialRepertorioMusicaId,
   initialSongIndex,
   onSongChange,
+  disableSongPicker = false,
 }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view repertorio-set-stage';
@@ -402,10 +403,10 @@ export function createPerformanceViewV2({
         <p class="repertorio-stage-current" data-role="stage-current-song"></p>
       </div>
       <div class="repertorio-stage-summary" aria-label="Progresso do repertorio">
-        <span data-role="stage-song-picker">
+        <span${disableSongPicker ? '' : ' data-role="stage-song-picker"'}>
           <strong data-role="stage-song-position">0/0</strong>
           musica atual
-          <small>visualizar</small>
+          ${disableSongPicker ? '' : '<small>visualizar</small>'}
         </span>
       </div>
     </header>
@@ -430,6 +431,7 @@ export function createPerformanceViewV2({
       initialRepertorioMusicaId,
       initialSongIndex,
       onSongChange,
+      disableSongPicker,
     });
     return wrapper;
   }
@@ -443,6 +445,7 @@ export function createPerformanceViewV2({
     initialRepertorioMusicaId,
     initialSongIndex,
     onSongChange,
+    disableSongPicker,
   });
   return wrapper;
 }
@@ -509,7 +512,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
   const stageSongPosition = wrapper.querySelector('[data-role="stage-song-position"]');
   const stageSongPicker = wrapper.querySelector('[data-role="stage-song-picker"]');
-  const songPickerMenu = createSongPickerMenu(songs);
+  const songPickerMenu = options.disableSongPicker ? null : createSongPickerMenu(songs);
   let songPickerAnchor = null;
 
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';

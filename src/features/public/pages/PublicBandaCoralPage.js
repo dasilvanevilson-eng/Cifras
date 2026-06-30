@@ -271,7 +271,11 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     if (activeCascade) hideCascade(activeCascade);
     stopPublicAutoscroll();
     currentTempExecutionType = null;
-    executionContent.replaceChildren(createMusicaPerformanceView({ musica, returnTo }));
+    executionContent.replaceChildren(createMusicaPerformanceView({
+      musica,
+      returnTo,
+      disableSongSearch: isMemberConnectedToLeader(),
+    }));
     refreshExecutionControlsForMode();
     resetMemberLeaderLockedControls();
     openExecutionLayer();
@@ -304,6 +308,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         ? options.state.current_song_index
         : options.currentSongIndex,
       onSongChange: handleRepertorioSongChange,
+      disableSongPicker: isMemberConnectedToLeader(),
     }));
     refreshExecutionControlsForMode();
     resetMemberLeaderLockedControls();
@@ -376,6 +381,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       musicasAssociadas: orderedMusicasAssociadas,
       returnTo,
       onSongChange: handleRepertorioSongChange,
+      disableSongPicker: isMemberConnectedToLeader(),
     }));
     refreshExecutionControlsForMode();
     openExecutionLayer();
@@ -523,6 +529,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const isMemberMode = currentMode === 'integrante';
 
     wrapper.classList.toggle('is-member-following', isMemberMode && memberFollowingLeader);
+  }
+
+  function isMemberConnectedToLeader() {
+    return currentMode === 'integrante' && memberFollowingLeader;
   }
 
   async function toggleMemberLeaderConnection() {

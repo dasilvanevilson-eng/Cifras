@@ -55,7 +55,13 @@ export async function MusicaExecucaoPage() {
   return page;
 }
 
-export function createPerformanceView({ musica, musicasAcervo = [], returnTo, initiallyExpandedToolbar = false }) {
+export function createPerformanceView({
+  musica,
+  musicasAcervo = [],
+  returnTo,
+  initiallyExpandedToolbar = false,
+  disableSongSearch = false,
+}) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view music-performance-stage';
   const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
@@ -75,7 +81,7 @@ export function createPerformanceView({ musica, musicasAcervo = [], returnTo, in
           <div class="performance-title-voice-legend" data-role="performance-title-voice-legend">${voiceLegendHtml}</div>
         </div>
         <div class="performance-title-actions">
-          ${musicasAcervo.length ? `
+          ${musicasAcervo.length && !disableSongSearch ? `
             <button class="nav-button icon-button performance-song-search-button music-title-search-button" type="button" data-action="song-search" aria-label="Buscar musica" title="Buscar musica">
               <span class="search-icon" aria-hidden="true"></span>
             </button>
