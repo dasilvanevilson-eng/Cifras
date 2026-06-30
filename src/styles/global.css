@@ -7632,6 +7632,43 @@ input.dashboard-select-song {
   font-weight: 700;
 }
 
+.repertorio-title-area {
+  min-width: 0;
+}
+
+.repertorio-title-edit {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.repertorio-title-edit input {
+  width: min(100%, 680px);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #243b34;
+  font: inherit;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+  padding: 0.1rem 0.2rem;
+}
+
+.repertorio-title-edit input:hover,
+.repertorio-title-edit input:focus {
+  border-color: #d8d0c2;
+  background: #fffdf8;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(122, 93, 45, 0.12);
+}
+
+.repertorio-title-message {
+  margin: 0.35rem 0 0;
+}
+
 .repertorio-inline-actions {
   display: flex;
   flex-wrap: wrap;

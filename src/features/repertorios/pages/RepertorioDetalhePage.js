@@ -10,6 +10,7 @@ import {
   removeMusicaDoRepertorio,
   updateObservacaoMusicaRepertorio,
   updateOrdemMusicaRepertorio,
+  updateRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
@@ -90,8 +91,14 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
 
   wrapper.innerHTML = `
     <header class="song-header repertorio-header">
-      <div>
-        <h1>${escapeHtml(nome)}</h1>
+      <div class="repertorio-title-area">
+        ${canEdit
+          ? `<label class="repertorio-title-edit">
+              <span>Nome do repertorio</span>
+              <input name="repertorio_nome" type="text" required value="${escapeHtml(nome)}" aria-label="Nome do repertorio">
+            </label>
+            <p class="form-message repertorio-title-message" aria-live="polite"></p>`
+          : `<h1>${escapeHtml(nome)}</h1>`}
         <p>${escapeHtml(formatCreator(repertorio))}</p>
       </div>
       <div class="repertorio-detail-summary">
@@ -131,6 +138,7 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
   const historySlot = wrapper.querySelector('.history-slot');
 
   if (canEdit) {
+    setupRepertorioTitleInput(wrapper.querySelector('[name="repertorio_nome"]'), wrapper.querySelector('.repertorio-title-message'), repertorio);
     actions.append(createEditLink(repertorio.id));
     actions.append(createDuplicateButton(repertorio, musicasAssociadas));
     actions.append(createHistoryButton(wrapper));
@@ -149,6 +157,58 @@ function createRepertorioView({ repertorio, musicasAssociadas, musicas, historic
   historySlot.append(createHistoryList(historico));
 
   return wrapper;
+}
+
+function setupRepertorioTitleInput(input, message, repertorio) {
+  if (!input) return;
+
+  let lastSavedValue = input.value.trim();
+
+  async function saveTitle() {
+    const nextValue = input.value.trim();
+
+    if (!nextValue) {
+      input.value = lastSavedValue;
+      message.className = 'form-message repertorio-title-message error';
+      message.textContent = 'Informe o nome do repertorio.';
+      return;
+    }
+
+    if (nextValue === lastSavedValue) return;
+
+    input.disabled = true;
+    message.className = 'form-message repertorio-title-message';
+    message.textContent = 'Salvando nome...';
+
+    const { error } = await updateRepertorio(repertorio.id, {
+      nome: nextValue,
+      data: repertorio.data || null,
+      visibilidade: repertorio.visibilidade || 'publico',
+      permite_edicao_compartilhada: Boolean(repertorio.permite_edicao_compartilhada),
+    });
+
+    input.disabled = false;
+
+    if (error) {
+      input.value = lastSavedValue;
+      message.className = 'form-message repertorio-title-message error';
+      message.textContent = error.message || 'Nao foi possivel salvar o nome.';
+      return;
+    }
+
+    lastSavedValue = nextValue;
+    repertorio.nome = nextValue;
+    message.className = 'form-message repertorio-title-message success';
+    message.textContent = 'Nome atualizado.';
+  }
+
+  input.addEventListener('change', saveTitle);
+  input.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+
+    event.preventDefault();
+    input.blur();
+  });
 }
 
 function createHistoryButton(wrapper) {
