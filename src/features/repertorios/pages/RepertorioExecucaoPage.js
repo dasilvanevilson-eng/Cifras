@@ -503,6 +503,9 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   const songSemitones = songs.map(() => 0);
   let saveTomQueue = Promise.resolve();
   const songPosition = wrapper.querySelector('[data-role="song-position"]');
+  const stageSongPosition = wrapper.querySelector('[data-role="stage-song-position"]');
+  const songPickerMenu = createSongPickerMenu(songs);
+  let songPickerAnchor = null;
 
   let theme = window.localStorage.getItem('masterCifras.performanceTheme') || 'light';
   let fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
@@ -518,6 +521,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   renderCurrentSong();
   window.requestAnimationFrame(renderCurrentSong);
   window.setTimeout(renderCurrentSong, 0);
+  setupSongPicker();
 
   themeButton.addEventListener('click', () => {
     theme = wrapper.classList.contains('is-dark') ? 'light' : 'dark';
@@ -607,14 +611,117 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
   window.addEventListener('resize', renderCurrentSong);
 
   function goToSong(direction) {
-    const nextSongIndex = Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction));
-    if (nextSongIndex === currentSongIndex) return;
+    selectSong(Math.min(songs.length - 1, Math.max(0, currentSongIndex + direction)));
+  }
+
+  function selectSong(nextSongIndex) {
+    if (nextSongIndex === currentSongIndex || nextSongIndex < 0 || nextSongIndex >= songs.length) return;
 
     currentSongIndex = nextSongIndex;
     fontSize = Number(window.localStorage.getItem('masterCifras.performanceFontSize') || 32);
     fitFontToMobileWidth = true;
     renderCurrentSong();
     notifySongChange();
+  }
+
+  function setupSongPicker() {
+    if (!songs.length || !songPickerMenu) return;
+
+    wrapper.append(songPickerMenu);
+    setupSongPickerAnchor(songPosition);
+    setupSongPickerAnchor(stageSongPosition);
+
+    songPickerMenu.addEventListener('click', (event) => {
+      const option = event.target.closest('[data-song-index]');
+      if (!option) return;
+
+      selectSong(Number(option.dataset.songIndex));
+      closeSongPicker();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (songPickerMenu.hidden) return;
+      if (event.target.closest('.repertorio-song-picker-menu, [data-role="song-position"], [data-role="stage-song-position"]')) return;
+
+      closeSongPicker();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || songPickerMenu.hidden) return;
+
+      closeSongPicker();
+      songPickerAnchor?.focus?.();
+    });
+  }
+
+  function setupSongPickerAnchor(anchor) {
+    if (!anchor) return;
+
+    anchor.classList.add('repertorio-song-picker-anchor');
+    anchor.setAttribute('role', 'button');
+    anchor.setAttribute('tabindex', '0');
+    anchor.setAttribute('aria-haspopup', 'menu');
+    anchor.setAttribute('aria-expanded', 'false');
+    anchor.title = 'Escolher musica do repertorio';
+
+    anchor.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleSongPicker(anchor);
+    });
+
+    anchor.addEventListener('keydown', (event) => {
+      if (!['Enter', ' ', 'ArrowDown'].includes(event.key)) return;
+
+      event.preventDefault();
+      toggleSongPicker(anchor);
+    });
+  }
+
+  function toggleSongPicker(anchor) {
+    if (songPickerAnchor === anchor && !songPickerMenu.hidden) {
+      closeSongPicker();
+      return;
+    }
+
+    openSongPicker(anchor);
+  }
+
+  function openSongPicker(anchor) {
+    songPickerAnchor = anchor;
+    songPickerMenu.hidden = false;
+    updateSongPickerActive();
+    positionSongPicker(anchor);
+    songPosition?.setAttribute('aria-expanded', String(anchor === songPosition));
+    stageSongPosition?.setAttribute('aria-expanded', String(anchor === stageSongPosition));
+  }
+
+  function closeSongPicker() {
+    songPickerMenu.hidden = true;
+    songPickerAnchor = null;
+    songPosition?.setAttribute('aria-expanded', 'false');
+    stageSongPosition?.setAttribute('aria-expanded', 'false');
+  }
+
+  function positionSongPicker(anchor) {
+    const rect = anchor.getBoundingClientRect();
+    const menuWidth = Math.min(300, Math.max(220, window.innerWidth - 24));
+    const left = Math.min(window.innerWidth - menuWidth - 12, Math.max(12, rect.left + (rect.width / 2) - (menuWidth / 2)));
+    const top = Math.min(window.innerHeight - 80, rect.bottom + 8);
+
+    songPickerMenu.style.width = `${menuWidth}px`;
+    songPickerMenu.style.left = `${left}px`;
+    songPickerMenu.style.top = `${top}px`;
+  }
+
+  function updateSongPickerActive() {
+    if (!songPickerMenu) return;
+
+    songPickerMenu.querySelectorAll('[data-song-index]').forEach((option) => {
+      const isCurrent = Number(option.dataset.songIndex) === currentSongIndex;
+      option.classList.toggle('is-current', isCurrent);
+      option.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+    });
   }
 
   function togglePerformanceFullscreen() {
@@ -636,6 +743,7 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
       nextSongButton,
       linkButton,
     });
+    updateSongPickerActive();
   }
 
   function notifySongChange() {
@@ -671,6 +779,35 @@ function setupPerformanceControlsV2(wrapper, options = {}) {
         window.alert(error.message || 'Nao foi possivel salvar o tom desta musica no repertorio.');
       });
   }
+}
+
+function createSongPickerMenu(songs = []) {
+  if (!songs.length) return null;
+
+  const menu = document.createElement('div');
+  menu.className = 'repertorio-song-picker-menu';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Musicas do repertorio');
+  menu.hidden = true;
+
+  songs.forEach((song, index) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'repertorio-song-picker-option';
+    option.dataset.songIndex = String(index);
+    option.setAttribute('role', 'menuitem');
+    option.innerHTML = `
+      <span>${index + 1}</span>
+      <strong>${escapeHtml(getSongTitle(song))}</strong>
+    `;
+    menu.append(option);
+  });
+
+  return menu;
+}
+
+function getSongTitle(song) {
+  return song?.querySelector('.repertorio-current-song-title')?.textContent?.trim() || 'Musica sem titulo';
 }
 
 function getInitialSongIndex(songs, options = {}) {

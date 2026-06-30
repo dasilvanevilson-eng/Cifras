@@ -4825,6 +4825,75 @@ a {
   font-size: 13px;
 }
 
+.repertorio-song-picker-anchor {
+  cursor: pointer;
+}
+
+.repertorio-song-picker-anchor:hover,
+.repertorio-song-picker-anchor:focus {
+  outline: 2px solid rgba(29, 79, 69, 0.28);
+  outline-offset: 2px;
+}
+
+.repertorio-song-picker-menu {
+  position: fixed;
+  z-index: 220;
+  display: grid;
+  gap: 4px;
+  max-height: min(420px, calc(100svh - 96px));
+  overflow: auto;
+  border: 1px solid #d8d0c2;
+  border-radius: 8px;
+  padding: 6px;
+  background: #fffdf8;
+  box-shadow: 0 18px 46px rgba(32, 33, 31, 0.2);
+}
+
+.repertorio-song-picker-menu[hidden] {
+  display: none;
+}
+
+.repertorio-song-picker-option {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px;
+  background: transparent;
+  color: #243b34;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.repertorio-song-picker-option:hover,
+.repertorio-song-picker-option:focus,
+.repertorio-song-picker-option.is-current {
+  background: #eef4ef;
+  outline: 0;
+}
+
+.repertorio-song-picker-option span {
+  display: inline-grid;
+  place-items: center;
+  min-height: 1.6rem;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #5f594f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.repertorio-song-picker-option strong {
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .repertorio-performance-view .performance-toolbar input[type="range"] {
   width: 82px;
 }
