@@ -763,13 +763,19 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       leaderUser = data?.user || await getCurrentUser();
       if (leaderLoginAction === 'reset') {
         await resetLeaderRole();
+        const claimed = await claimLeaderRole();
+        if (!claimed) {
+          throw new Error('Lider resetado, mas nao foi possivel assumir a lideranca deste convite.');
+        }
+
+        rememberPublicBandaLeaderAuth(token, leaderUser);
+        leaderAuthenticatedForRoom = true;
         closeLeaderLogin();
-        await setMode('integrante', {
-          followLeader: false,
-          skipRelease: true,
+        await setMode('lider', {
+          skipClaim: true,
           skipCredentialPrompt: true,
         });
-        showLeaderStatus('Lider resetado.');
+        showLeaderStatus('Lider resetado. Voce e o lider.');
         return;
       }
 
