@@ -58,15 +58,19 @@ function isVoiceMarkableLine(line) {
 
 export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelection, onScroll }) {
   let syncing = false;
+  const columnRuler = createColumnRuler(parent);
   const view = new EditorView({
     parent,
     state: EditorState.create({ doc: text, extensions: [lineNumbers(), history(), keymap.of([...defaultKeymap, ...historyKeymap]), voiceMarks, EditorView.lineWrapping, EditorView.updateListener.of((update) => {
       if (update.selectionSet && !syncing) onSelection?.(update.state.selection.main);
+      if (update.docChanged) updateColumnRuler(columnRuler, update.view);
       if (update.docChanged && !syncing) onChange(update.state.doc.toString(), update.state.selection.main);
     })] }),
   });
   view.dispatch({ effects: setVoiceMarks.of(marks) });
+  updateColumnRuler(columnRuler, view);
   view.scrollDOM.addEventListener('scroll', () => {
+    syncColumnRulerScroll(columnRuler, view);
     onScroll?.({
       top: view.scrollDOM.scrollTop,
       left: view.scrollDOM.scrollLeft,
@@ -96,7 +100,61 @@ export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelecti
         ...(selectionChanged ? { selection: nextSelection } : {}),
         effects: setVoiceMarks.of(nextMarks),
       });
+      updateColumnRuler(columnRuler, view);
       syncing = false;
     },
   };
+}
+
+function createColumnRuler(parent) {
+  const ruler = document.createElement('div');
+  ruler.className = 'cifra-column-ruler';
+  ruler.setAttribute('aria-hidden', 'true');
+  ruler.innerHTML = '<span class="cifra-column-ruler-gutter"></span><span class="cifra-column-ruler-viewport"><span class="cifra-column-ruler-track"></span></span>';
+  parent.append(ruler);
+
+  return {
+    root: ruler,
+    gutter: ruler.querySelector('.cifra-column-ruler-gutter'),
+    track: ruler.querySelector('.cifra-column-ruler-track'),
+    columnCount: 0,
+  };
+}
+
+function updateColumnRuler(ruler, view) {
+  if (!ruler?.track || !view) return;
+
+  const text = view.state.doc.toString();
+  const columnCount = Math.max(80, ...text.split('\n').map((line) => line.length), 0) + 8;
+
+  if (columnCount !== ruler.columnCount) {
+    ruler.track.textContent = createColumnRulerText(columnCount);
+    ruler.columnCount = columnCount;
+  }
+
+  window.requestAnimationFrame(() => {
+    const gutterWidth = view.dom.querySelector('.cm-gutters')?.offsetWidth || 0;
+    ruler.gutter.style.width = `${gutterWidth}px`;
+    syncColumnRulerScroll(ruler, view);
+  });
+}
+
+function syncColumnRulerScroll(ruler, view) {
+  if (!ruler?.track || !view) return;
+  ruler.track.style.transform = `translateX(${-view.scrollDOM.scrollLeft}px)`;
+}
+
+function createColumnRulerText(columnCount) {
+  const chars = Array.from({ length: columnCount }, (_, index) => ((index + 1) % 5 === 0 ? '|' : ' '));
+
+  for (let column = 10; column <= columnCount; column += 10) {
+    const label = String(column);
+    const start = Math.max(0, column - label.length);
+    for (let index = 0; index < label.length && start + index < chars.length; index += 1) {
+      chars[start + index] = label[index];
+    }
+  }
+
+  if (chars.length) chars[0] = '1';
+  return chars.join('');
 }

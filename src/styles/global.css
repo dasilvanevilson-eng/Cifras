@@ -12881,7 +12881,52 @@ html[data-interface-density="compact"] .account-password-panel {
 }
 
 .musica-form .cifra-original-codemirror .cm-editor {
+  height: auto;
+  min-height: 0;
   font: 600 15px/24px var(--chords-execution-font);
+}
+
+.musica-form .cifra-original-codemirror {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
+
+.musica-form .cifra-column-ruler {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #cfc7b8;
+  border-bottom: 0;
+  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+  background: #fafafa;
+  color: var(--color-text-muted);
+  font: 600 11px/22px var(--chords-execution-font);
+  user-select: none;
+}
+
+.musica-form .cifra-column-ruler-gutter {
+  display: block;
+  min-width: 0;
+  border-right: 1px solid var(--color-border);
+}
+
+.musica-form .cifra-column-ruler-viewport {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.musica-form .cifra-column-ruler-track {
+  display: block;
+  padding: 0 12px;
+  white-space: pre;
+  will-change: transform;
+}
+
+.musica-form .cifra-column-ruler + .cm-editor {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .musica-form .cifra-original-codemirror .cm-gutters {

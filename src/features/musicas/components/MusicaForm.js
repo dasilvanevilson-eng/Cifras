@@ -1,7 +1,6 @@
 import {
   createChordProFromCifraEditorState,
   createCifraEditorStateFromRecord,
-  convertToChordPro,
   getDefaultVoiceLabels,
   getVoiceLabels,
   isCifraOriginalChordLine,
@@ -21,7 +20,7 @@ export function MusicaForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
   const initialEditorState = createCifraEditorStateFromRecord(initialValues);
-  const initialChordPro = createChordProFromCifraEditorState(initialEditorState);
+  const initialChordPro = getInitialChordPro(initialValues);
   const hideTitleField = Boolean(options.hideTitleField);
   const titleValue = initialValues.titulo || '';
   form.className = `form musica-form${hideTitleField ? ' is-title-unified' : ''}`;
@@ -173,6 +172,7 @@ export function MusicaForm(options = {}) {
     semitones: 0,
   };
   let editorState = normalizeCifraEditorState(initialEditorState);
+  let convertedSourceSignature = chordProTextarea?.value ? getEditorStateSignature(editorState) : '';
   let pendingOriginalEditorInput = null;
   const voiceCodeMirror = createVoiceCodeMirror({
     parent: originalCodeMirrorHost,
@@ -377,6 +377,7 @@ export function MusicaForm(options = {}) {
       form,
       convertChordPro: true,
     });
+    convertedSourceSignature = getEditorStateSignature(editorState);
     message.className = 'form-message success';
     message.textContent = 'ChordPro convertido. Revise antes de salvar.';
   });
@@ -449,6 +450,9 @@ export function MusicaForm(options = {}) {
       previewPanel,
       form,
     });
+    if (chordProTextarea.value) {
+      convertedSourceSignature = getEditorStateSignature(editorState);
+    }
     updateFormTransposeStatus(formTransposeStatus, formTransposeState, -1);
   });
 
@@ -465,10 +469,20 @@ export function MusicaForm(options = {}) {
       previewPanel,
       form,
     });
+    if (chordProTextarea.value) {
+      convertedSourceSignature = getEditorStateSignature(editorState);
+    }
     updateFormTransposeStatus(formTransposeStatus, formTransposeState, 1);
   });
 
   previewToggle.addEventListener('click', () => {
+    const previewValidation = getChordProPreviewValidation(chordProTextarea.value, editorState, convertedSourceSignature);
+    if (!previewValidation.valid) {
+      message.className = 'form-message error';
+      message.textContent = previewValidation.message;
+      return;
+    }
+
     openPreview(form, previewPanel, previewToggle, editorState);
   });
 
@@ -482,6 +496,14 @@ export function MusicaForm(options = {}) {
 
   form.addEventListener('input', () => {
     if (!previewPanel.hidden) {
+      const previewValidation = getChordProPreviewValidation(chordProTextarea.value, editorState, convertedSourceSignature);
+      if (!previewValidation.valid) {
+        closePreview(form, previewPanel, previewToggle);
+        message.className = 'form-message error';
+        message.textContent = previewValidation.message;
+        return;
+      }
+
       updatePreview(form, previewPanel, editorState);
     }
   });
@@ -499,6 +521,10 @@ export function MusicaForm(options = {}) {
       const values = getFormValues(form, editorState);
       if (!values.titulo) {
         throw new Error('Digite o titulo da cifra no campo de busca acima.');
+      }
+      const previewValidation = getChordProPreviewValidation(values.cifra_chordpro, editorState, convertedSourceSignature);
+      if (!previewValidation.valid) {
+        throw new Error(previewValidation.message);
       }
 
       await options.onSubmit(values);
@@ -1276,7 +1302,7 @@ function getFormValues(form, editorState = null) {
   const normalizedChordPro = normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '')).trim();
   const cifraExibicao = normalizedChordPro
     ? renderChordProForDisplay(normalizedChordPro, { keepVoiceDirectives: true })
-    : normalizedEditorState.text.trim();
+    : '';
 
   return {
     titulo: String(formData.get('titulo') || '').trim(),
@@ -1297,7 +1323,7 @@ function getInitialChordPro(initialValues) {
   return normalizeChordProLyrics(initialValues.cifra_chordpro
     || initialValues.chordpro
     || initialValues.conteudo_chordpro
-    || convertToChordPro(initialValues.cifra_original || ''));
+    || '');
 }
 
 function updatePreview(form, previewPanel, editorState = null) {
@@ -1318,14 +1344,44 @@ function updatePreview(form, previewPanel, editorState = null) {
 
 function getPreviewMusica(form, editorState = null) {
   const values = getFormValues(form, editorState);
-  const renderedCifra = values.cifra_exibicao
-    || 'A conversao ChordPro aparecera aqui.';
+  const renderedCifra = values.cifra_exibicao;
 
   return {
-    ...values,
     titulo: values.titulo || 'Musica sem titulo',
+    artista: values.artista,
+    tom: values.tom,
+    cifra_original: renderedCifra,
+    cifra_chordpro: '',
     cifra_exibicao: renderedCifra,
+    cifra_editor_state: {},
   };
+}
+
+function getChordProPreviewValidation(chordProValue, editorState = null, convertedSourceSignature = '') {
+  if (!String(chordProValue || '').trim()) {
+    return {
+      valid: false,
+      message: 'Você precisa converter o texto para chordpro para poder visualizar',
+    };
+  }
+
+  if (getEditorStateSignature(editorState) !== convertedSourceSignature) {
+    return {
+      valid: false,
+      message: 'Existem alterações na cifra original não convertidas para Chordpro',
+    };
+  }
+
+  return { valid: true, message: '' };
+}
+
+function getEditorStateSignature(editorState = null) {
+  const normalizedState = normalizeCifraEditorState(editorState || {});
+  return JSON.stringify({
+    text: normalizedState.text,
+    voiceMarks: normalizedState.voiceMarks,
+    voiceLabels: normalizedState.voiceLabels,
+  });
 }
 
 function formatTransposeStatus(semitones) {
