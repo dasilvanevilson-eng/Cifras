@@ -709,9 +709,7 @@ function getSourceIndexForVisiblePosition(value, visiblePosition) {
 
 function renderChordProLineForDisplay(line) {
   if (isChordOnlyChordProLine(line)) {
-    return [...line.matchAll(/\[([^\]]+)\]/g)]
-      .map((match) => match[1])
-      .join('  ');
+    return renderChordOnlyChordProLine(line);
   }
 
   const chordLine = [];
@@ -753,6 +751,12 @@ function renderChordProLineForDisplay(line) {
   if (!lyrics) return chords;
 
   return `${chords}\n${lyrics}`;
+}
+
+function renderChordOnlyChordProLine(line) {
+  return String(line || '')
+    .replace(/\[([^\]]+)\]/g, (match, chord) => chord)
+    .trimEnd();
 }
 
 function isChordOnlyChordProLine(line) {

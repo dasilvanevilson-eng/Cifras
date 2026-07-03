@@ -123,7 +123,12 @@ assert.equal(
 
 assert.equal(
   renderChordProForDisplay('[*Solo:]\n[G] [D] [Em] [C]'),
-  ['*Solo:', 'G  D  Em  C'].join('\n'),
+  ['*Solo:', 'G D Em C'].join('\n'),
+);
+
+assert.equal(
+  renderChordProForDisplay('[G]    [D]      [Em]    [C]'),
+  'G    D      Em    C',
 );
 
 assert.equal(
