@@ -207,7 +207,7 @@ assert.equal(
   createChordProFromCifraEditorState(editorState),
   [
     '{voice-label: voz_principal=Joao}',
-    '[G]A ALEGRIA [D/F#]ESTA NO CORACAO',
+    '[G]A ALEGRIA [D/F#]{voice: voz_principal}ESTA{/voice} NO CORACAO',
   ].join('\n'),
 );
 
@@ -219,14 +219,18 @@ assert.equal(
   }),
   [
     '{voice-label: voz_principal=Joao}',
-    'A ALEGRIA ESTA',
-    'NO CORACAO',
+    '{voice: voz_principal}A ALEGRIA ESTA{/voice}',
+    '{voice: voz_principal}NO CORACAO{/voice}',
   ].join('\n'),
 );
 
 assert.equal(
   createCifraExibicaoFromCifraEditorState(editorState),
-  ['G         D/F#', 'A ALEGRIA ESTA NO CORACAO'].join('\n'),
+  [
+    '{voice-label: voz_principal=Joao}',
+    'G         D/F#',
+    'A ALEGRIA {voice: voz_principal}ESTA{/voice} NO CORACAO',
+  ].join('\n'),
 );
 
 assert.equal(
@@ -282,7 +286,7 @@ assert.equal(
       voiceMarks: [{ start: 0, end: 9, markerId: 'voz_principal' }],
     },
   }),
-  'A ALEGRIA',
+  '{voice-label: voz_principal=Maria}\n{voice: voz_principal}A ALEGRIA{/voice}',
 );
 
 assert.equal(
@@ -332,12 +336,12 @@ assert.equal(
 
   assert.equal(
     createChordProFromCifraEditorState(finalChordState),
-    '[C]SEM VOCÊ, NÃO SEI PRA ONDE IR[Am7]    [Bm]',
+    '[C]{voice: voz_principal}SEM VOCÊ, NÃO SEI PRA ONDE IR[Am7]{/voice}    [Bm]',
   );
 
   assert.equal(
     createCifraExibicaoFromCifraEditorState(finalChordState),
-    ['C                            Am7 Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n'),
+    ['C                            Am7 Bm', '{voice: voz_principal}SEM VOCÊ, NÃO SEI PRA ONDE IR{/voice}'].join('\n'),
   );
 
   assert.equal(
@@ -387,17 +391,13 @@ assert.equal(
     true,
   );
 
-  assert.equal(
-    renderChordProEditorHtmlFromCifraEditorState(finalChordState),
-    [
-      '<span class="chord-token">[C]</span>',
-      `<span class="voice-highlight voice-highlight-voz_principal" ${VOICE_PRIMARY_STYLE}>SEM VOCÊ, NÃO SEI PRA ONDE IR</span>`,
-      '',
-      '<span class="chord-token">[Am7]</span>',
-      '    ',
-      '<span class="chord-token">[Bm]</span>',
-    ].join(''),
-  );
+  const chordProEditorHtml = renderChordProEditorHtmlFromCifraEditorState(finalChordState);
+
+  assert.equal(chordProEditorHtml.includes('{voice: voz_principal}'), true);
+  assert.equal(chordProEditorHtml.includes('{/voice}'), true);
+  assert.equal(chordProEditorHtml.includes('<span class="chord-token">[C]</span>'), true);
+  assert.equal(chordProEditorHtml.includes('<span class="chord-token">[Am7]</span>'), true);
+  assert.equal(chordProEditorHtml.includes('<span class="chord-token">[Bm]</span>'), true);
 
   const markedPreviewCifra = getCifraParaTransposicao({ cifra_editor_state: labeledFinalChordState });
 

@@ -273,9 +273,16 @@ export function normalizeCifraEditorState(state = {}) {
 
 export function createChordProFromCifraEditorState(state = {}) {
   const normalizedState = normalizeCifraEditorState(state);
+  const chordPro = convertToChordPro(normalizedState.text);
+  const chordProVoiceMarks = mapVoiceRangesToChordProText(
+    normalizedState.text,
+    chordPro,
+    normalizedState.voiceMarks,
+  );
+  const markedChordPro = applyVoiceRangesToText(chordPro, chordProVoiceMarks);
 
   return applyVoiceLabelsToChordPro(
-    convertToChordPro(normalizedState.text),
+    markedChordPro,
     normalizedState.voiceLabels,
   );
 }
@@ -283,7 +290,7 @@ export function createChordProFromCifraEditorState(state = {}) {
 export function createCifraExibicaoFromCifraEditorState(state = {}) {
   const normalizedState = normalizeCifraEditorState(state);
 
-  return renderChordProForDisplay(convertToChordPro(normalizedState.text), {
+  return renderChordProForDisplay(createChordProFromCifraEditorState(normalizedState), {
     keepVoiceDirectives: true,
   });
 }
@@ -390,13 +397,8 @@ function removeVoiceLabelDirectiveLines(value) {
 export function renderChordProEditorHtmlFromCifraEditorState(state = {}) {
   const normalizedState = normalizeCifraEditorState(state);
   const chordPro = createChordProFromCifraEditorState(normalizedState);
-  const chordProVoiceMarks = mapVoiceRangesToChordProText(
-    normalizedState.text,
-    chordPro,
-    normalizedState.voiceMarks,
-  );
 
-  return renderChordProSourceHtml(chordPro, chordProVoiceMarks);
+  return renderChordProSourceHtml(chordPro);
 }
 
 export function transposeCifraOriginal(input, semitones) {
