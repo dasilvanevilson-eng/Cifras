@@ -485,6 +485,7 @@ export function MusicaForm(options = {}) {
       return;
     }
 
+    closeVoiceMarkerOptions(voiceMarkerOptions, voiceMarkerToggle);
     openPreview(form, previewPanel, previewToggle, editorState);
   });
 
@@ -714,6 +715,13 @@ function updateVoiceLabelVisibility(form, editorState = null) {
   if (labelGrid) {
     labelGrid.hidden = usedVoiceIds.size === 0;
   }
+}
+
+function closeVoiceMarkerOptions(options, toggle) {
+  if (!options || options.hidden) return;
+
+  options.hidden = true;
+  toggle?.setAttribute('aria-expanded', 'false');
 }
 
 function getVoiceLabelValues(form) {
