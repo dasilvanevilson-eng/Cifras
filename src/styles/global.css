@@ -13908,13 +13908,16 @@ html[data-interface-density="compact"] .account-password-panel {
 /* Ajustes finais de usabilidade mobile da barra ChordPro. */
 .musica-form .voice-marker-options[hidden],
 .musica-form .voice-label-grid-inline[hidden],
+.musica-form .voice-label-grid-inline label[hidden],
 .page > section:has(.musica-form) .voice-marker-options[hidden],
 .page > section:has(.musica-form) .voice-label-grid-inline[hidden],
+.page > section:has(.musica-form) .voice-label-grid-inline label[hidden],
 .musicas-page.can-edit-music .music-editor-stage .voice-marker-options[hidden] {
   display: none !important;
 }
 
-.musicas-page.can-edit-music .music-editor-stage .voice-label-grid-inline[hidden] {
+.musicas-page.can-edit-music .music-editor-stage .voice-label-grid-inline[hidden],
+.musicas-page.can-edit-music .music-editor-stage .voice-label-grid-inline label[hidden] {
   display: none !important;
 }
 
