@@ -14065,3 +14065,59 @@ html[data-interface-density="compact"] .account-password-panel {
     font-size: 12px;
   }
 }
+
+/* Ajuste somente visual: Cifra original mais legivel horizontalmente no mobile. */
+@media (max-width: 640px) {
+  .page > section:has(.musica-form) .cifra-editor-grid label,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid label {
+    padding: 8px;
+  }
+
+  .page > section:has(.musica-form) .cifra-original-codemirror .cm-editor,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-codemirror .cm-editor {
+    font: 600 11px/18px var(--chords-execution-font);
+  }
+
+  .page > section:has(.musica-form) .cifra-original-codemirror .cm-scroller,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-codemirror .cm-scroller {
+    overflow: auto;
+  }
+
+  .page > section:has(.musica-form) .cifra-original-codemirror .cm-content,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-codemirror .cm-content {
+    min-width: max-content;
+    padding: 8px 10px;
+  }
+
+  .page > section:has(.musica-form) .cifra-original-codemirror .cm-line,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-codemirror .cm-line {
+    white-space: pre !important;
+  }
+
+  .page > section:has(.musica-form) .cifra-column-ruler,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-column-ruler {
+    font: 600 9px/18px var(--chords-execution-font);
+  }
+
+  .page > section:has(.musica-form) .cifra-column-ruler-track,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-column-ruler-track {
+    padding: 0 10px;
+  }
+
+  .page > section:has(.musica-form) .cifra-original-codemirror .cm-gutters,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-codemirror .cm-gutters {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .page > section:has(.musica-form) .cifra-original-codemirror .cm-editor,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-codemirror .cm-editor {
+    font: 600 10px/17px var(--chords-execution-font);
+  }
+
+  .page > section:has(.musica-form) .cifra-column-ruler,
+  .musicas-page.can-edit-music .music-editor-stage .cifra-column-ruler {
+    font: 600 8px/17px var(--chords-execution-font);
+  }
+}
