@@ -548,4 +548,24 @@ assert.equal(
   ['A ALEGRIA ESTA NO CORACAO', 'DE QUEM CANTA'].join('\n'),
 );
 
+assert.equal(
+  convertToChordPro(['D          G       Bm      A', 'De onde vem o meu socorro?'].join('\n')),
+  '[D]DE ONDE VEM[G] O MEU S[Bm]OCORRO? [A]',
+);
+
+assert.equal(
+  renderChordProForDisplay(convertToChordPro(['D          G       Bm      A', 'De onde vem o meu socorro?'].join('\n'))),
+  ['D          G       Bm      A', 'DE ONDE VEM O MEU SOCORRO?'].join('\n'),
+);
+
+assert.equal(
+  renderChordProForDisplay(convertToChordPro(['C                            Am7     Bm', 'SEM VOCÊ, NÃO SEI PRA ONDE IR'].join('\n'))).includes('Am7Bm'),
+  false,
+);
+
+assert.equal(
+  transposeChordPro('[Bbº]GRAND[F#m7(b5)]E [C7M(9)]ES [G4/7]TU [A/C#]HOJE', 2),
+  '[Cº]GRAND[G#m7(b5)]E [D7M(9)]ES [A4/7]TU [B/D#]HOJE',
+);
+
 console.log('chordpro tests passed');

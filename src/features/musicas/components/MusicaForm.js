@@ -1,9 +1,6 @@
 import {
-  applyVoiceLabelsToChordPro,
   createChordProFromCifraEditorState,
-  createCifraEditorStateFromChordPro,
   createCifraEditorStateFromRecord,
-  createCifraExibicaoFromCifraEditorState,
   convertToChordPro,
   getDefaultVoiceLabels,
   getVoiceLabels,
@@ -12,8 +9,8 @@ import {
   normalizeChordProLyrics,
   renderCifraOriginalForDisplayHtml,
   renderChordProForDisplay,
-  renderChordProEditorHtmlFromCifraEditorState,
   renderVoiceLegendHtml,
+  transposeCifraOriginal,
   transposeChordPro,
   transposeKey,
 } from '../../../utils/chordpro.js';
@@ -81,6 +78,7 @@ export function MusicaForm(options = {}) {
     <div class="music-form-actions">
       <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
       <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
+      <button class="button-link secondary chordpro-convert-button" type="button" data-action="convert-chordpro">Converter para ChordPro</button>
       ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
       <div class="music-form-control-row">
         <span class="inline-transpose-controls" aria-label="Transposicao de tom">
@@ -90,31 +88,29 @@ export function MusicaForm(options = {}) {
         </span>
         <div class="voice-marker-toolbar" aria-label="Marcacoes de vozes">
           <button class="voice-marker-toggle" type="button" data-action="toggle-voice-markers" aria-expanded="false">
-            Destacar texto
+            Divisao de vozes
           </button>
           <div class="voice-marker-options" data-role="voice-marker-options" hidden>
             ${VOICE_MARKERS.map((marker) => `
-              <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}">
-                ${escapeHtml(marker.label)}
+              <button class="voice-marker-button ${escapeHtml(marker.className)}" type="button" data-voice-marker="${escapeHtml(marker.id)}" aria-label="${escapeHtml(marker.label)}" title="${escapeHtml(marker.label)}">
+                <span aria-hidden="true"></span>
               </button>
             `).join('')}
-            <button class="voice-marker-button" type="button" data-action="unmark-voice">Desmarcar linha</button>
-            <button class="voice-marker-button" type="button" data-action="clear-voice-markers">Limpar destaques</button>
-            <details class="voice-label-settings">
-              <summary>Nomes da legenda</summary>
-              <div class="voice-label-grid">
-                ${VOICE_MARKERS.map((marker) => `
-                  <label>
-                    ${escapeHtml(marker.label)}
-                    <input name="voice_label_${escapeHtml(marker.id)}" type="text" value="${escapeHtml(getInitialVoiceLabels(initialChordPro)[marker.id] || marker.label)}">
-                  </label>
-                `).join('')}
-              </div>
-            </details>
+            <button class="voice-marker-button voice-marker-clear" type="button" data-action="unmark-voice">Limpar selecao</button>
+            <button class="voice-marker-button voice-marker-clear" type="button" data-action="clear-voice-markers">Limpar tudo</button>
           </div>
         </div>
         <button class="button" type="submit">${options.submitLabel || 'Salvar musica'}</button>
       </div>
+    </div>
+
+    <div class="voice-label-grid voice-label-grid-inline" data-role="voice-label-grid">
+      ${VOICE_MARKERS.map((marker) => `
+        <label data-voice-label="${escapeHtml(marker.id)}" hidden>
+          <span class="voice-label-swatch ${escapeHtml(marker.className)}" aria-hidden="true"></span>
+          <input name="voice_label_${escapeHtml(marker.id)}" type="text" value="${escapeHtml(getInitialVoiceLabels(initialChordPro)[marker.id] || marker.label)}" aria-label="${escapeHtml(marker.label)}">
+        </label>
+      `).join('')}
     </div>
 
     <div class="cifra-editor-grid">
@@ -129,10 +125,13 @@ export function MusicaForm(options = {}) {
       </label>
 
       <label>
-        ChordPro interno
+        <span class="chordpro-generated-header">
+          ChordPro gerado
+          <button class="button-link secondary chordpro-copy-button" type="button" data-action="copy-chordpro">Copiar</button>
+        </span>
         <textarea class="chordpro-source" name="cifra_chordpro">${escapeHtml(initialChordPro)}</textarea>
         <textarea class="cifra-editor-state-source" name="cifra_editor_state" hidden>${escapeHtml(JSON.stringify(initialEditorState))}</textarea>
-        <div class="chordpro-editor" contenteditable="true" role="textbox" aria-label="ChordPro interno" spellcheck="false"></div>
+        <pre class="chordpro-editor" aria-label="ChordPro gerado"></pre>
         <div class="voice-editor-legend" data-role="chordpro-voice-legend"></div>
       </label>
     </div>
@@ -146,6 +145,8 @@ export function MusicaForm(options = {}) {
   const button = form.querySelector('button[type="submit"]');
   const clearButton = form.querySelector('[data-action="clear"]');
   const deleteButton = form.querySelector('[data-action="delete"]');
+  const convertChordProButton = form.querySelector('[data-action="convert-chordpro"]');
+  const copyChordProButton = form.querySelector('[data-action="copy-chordpro"]');
   const transposeFormDownButton = form.querySelector('[data-action="transpose-form-down"]');
   const transposeFormUpButton = form.querySelector('[data-action="transpose-form-up"]');
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
@@ -189,9 +190,10 @@ export function MusicaForm(options = {}) {
 
   updateLinkAction(linkInput, linkAction);
   syncVoiceMarkerButtonLabels(form);
-  renderChordProEditor(chordProEditor, chordProTextarea.value, editorState);
+  renderChordProEditor(chordProEditor, chordProTextarea.value);
   renderOriginalEditor(originalEditor, chordProTextarea.value);
   updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
+  updateVoiceLabelVisibility(form, editorState);
   setupResponsiveCifraEditor(cifraEditorGrid);
 
   voiceMarkerToggle.addEventListener('click', () => {
@@ -251,6 +253,7 @@ export function MusicaForm(options = {}) {
       previewPanel,
       form,
       restoreSelection: selectionOffsets,
+      convertChordPro: false,
     });
   });
 
@@ -280,6 +283,7 @@ export function MusicaForm(options = {}) {
         chordProEditor,
         previewPanel,
         form,
+        convertChordPro: false,
       });
       syncVoiceMarkerButtonLabels(form);
 
@@ -306,6 +310,7 @@ export function MusicaForm(options = {}) {
         mode: 'selection',
         previewPanel,
         form,
+        convertChordPro: false,
       });
       editorState = normalizeCifraEditorState(JSON.parse(editorStateTextarea.value || '{}'));
 
@@ -329,6 +334,7 @@ export function MusicaForm(options = {}) {
       mode: 'line',
       previewPanel,
       form,
+      convertChordPro: false,
     });
     editorState = normalizeCifraEditorState(JSON.parse(editorStateTextarea.value || '{}'));
     originalTextarea.focus();
@@ -349,40 +355,48 @@ export function MusicaForm(options = {}) {
       chordProEditor,
       previewPanel,
       form,
+      convertChordPro: false,
     });
     originalTextarea.focus();
   });
 
-  chordProEditor.addEventListener('focus', () => {
-    chordProEditor.textContent = chordProTextarea.value;
+  convertChordProButton.addEventListener('click', () => {
+    editorState = normalizeCifraEditorState({
+      ...editorState,
+      text: originalTextarea.value,
+      voiceLabels: getVoiceLabelValues(form),
+    });
+    syncEditorStateOutputs({
+      editorState,
+      originalTextarea,
+      originalEditor,
+      chordProTextarea,
+      editorStateTextarea,
+      chordProEditor,
+      previewPanel,
+      form,
+      convertChordPro: true,
+    });
+    message.className = 'form-message success';
+    message.textContent = 'ChordPro convertido. Revise antes de salvar.';
   });
 
-  chordProEditor.addEventListener('input', () => {
-    chordProTextarea.value = getEditableText(chordProEditor);
-    editorState = normalizeCifraEditorState(createCifraEditorStateFromChordPro(chordProTextarea.value));
-    originalTextarea.value = editorState.text;
-    editorStateTextarea.value = JSON.stringify(editorState);
-    voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
-    renderOriginalEditor(originalEditor, chordProTextarea.value);
-    syncVoiceLabelInputs(form, chordProTextarea.value);
-    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
+  copyChordProButton.addEventListener('click', async () => {
+    const value = chordProTextarea.value || '';
+    if (!value) return;
 
-    if (!previewPanel.hidden) {
-      updatePreview(form, previewPanel, editorState);
+    try {
+      await navigator.clipboard?.writeText(value);
+      message.className = 'form-message success';
+      message.textContent = 'ChordPro copiado.';
+    } catch (_error) {
+      chordProTextarea.style.display = 'block';
+      chordProTextarea.select();
+      document.execCommand?.('copy');
+      chordProTextarea.style.display = '';
+      message.className = 'form-message success';
+      message.textContent = 'ChordPro copiado.';
     }
-  });
-
-  chordProEditor.addEventListener('blur', () => {
-    const normalizedChordPro = normalizeChordProLyrics(chordProTextarea.value);
-    editorState = normalizeCifraEditorState(createCifraEditorStateFromChordPro(normalizedChordPro));
-    const nextChordPro = createChordProFromCifraEditorState(editorState);
-    setChordProValue(chordProTextarea, chordProEditor, nextChordPro, editorState);
-    originalTextarea.value = editorState.text;
-    editorStateTextarea.value = JSON.stringify(editorState);
-    voiceCodeMirror.sync(editorState.text, editorState.voiceMarks);
-    renderOriginalEditor(originalEditor, nextChordPro);
-    syncVoiceLabelInputs(form, nextChordPro);
-    updateVoiceLegends(form, voiceLegendSlots, chordProTextarea.value, editorState);
   });
 
   linkInput.addEventListener('input', () => {
@@ -510,46 +524,6 @@ export function MusicaForm(options = {}) {
   return form;
 }
 
-function syncChordProFromOriginal({
-  originalTextarea,
-  originalEditor,
-  chordProTextarea,
-  chordProEditor,
-  previewPanel,
-  form,
-  previousOriginal = '',
-  restoreSelection = null,
-}) {
-  const previousMarkedText = normalizeVoiceBlocksToInline(renderChordProForDisplay(chordProTextarea.value, {
-    keepVoiceDirectives: true,
-  }));
-  const previousRanges = getVoiceRangesFromMarkedText(previousMarkedText);
-  const nextRanges = transformVoiceRangesForTextChange(previousOriginal, originalTextarea.value, previousRanges)
-    .filter((range) => range.start < range.end);
-  const markedOriginal = applyVoiceRangesToText(originalTextarea.value, nextRanges);
-  const nextAutoChordPro = applyVoiceLabelsToChordPro(
-    convertToChordPro(markedOriginal),
-    getVoiceLabelValues(form),
-  );
-  setChordProValue(chordProTextarea, chordProEditor, nextAutoChordPro, normalizeCifraEditorState({
-    text: originalTextarea.value,
-    voiceLabels: getVoiceLabelValues(form),
-    voiceMarks: nextRanges,
-  }));
-  renderOriginalEditor(originalEditor, nextAutoChordPro, {
-    restoreSelection,
-  });
-  updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextAutoChordPro, normalizeCifraEditorState({
-    text: originalTextarea.value,
-    voiceLabels: getVoiceLabelValues(form),
-    voiceMarks: nextRanges,
-  }));
-
-  if (!previewPanel.hidden) {
-    updatePreview(form, previewPanel);
-  }
-}
-
 function renderOriginalEditor(editor, chordProValue, options = {}) {
   if (!editor) return;
 
@@ -595,6 +569,7 @@ function updateVoiceMarkedChordPro({
   mode,
   previewPanel,
   form,
+  convertChordPro = false,
 }) {
   if (!originalEditor || !originalTextarea) return;
 
@@ -622,6 +597,7 @@ function updateVoiceMarkedChordPro({
     chordProEditor,
     previewPanel,
     form,
+    convertChordPro,
   });
 }
 
@@ -635,15 +611,19 @@ function syncEditorStateOutputs({
   previewPanel,
   form,
   restoreSelection = null,
+  convertChordPro = false,
+  chordProValue = null,
 }) {
   const normalizedState = normalizeCifraEditorState(editorState);
-  const nextChordPro = createChordProFromCifraEditorState(normalizedState);
+  const nextChordPro = convertChordPro
+    ? createChordProFromCifraEditorState(normalizedState)
+    : chordProValue ?? chordProTextarea.value;
 
   originalTextarea.value = normalizedState.text;
   if (editorStateTextarea) {
     editorStateTextarea.value = JSON.stringify(normalizedState);
   }
-  setChordProValue(chordProTextarea, chordProEditor, nextChordPro, normalizedState);
+  setChordProValue(chordProTextarea, chordProEditor, nextChordPro);
   const codeMirror = originalEditor?.closest('.musica-form')?.querySelector('.cifra-original-codemirror')?.voiceCodeMirror;
   codeMirror?.sync(normalizedState.text, normalizedState.voiceMarks, restoreSelection ? { anchor: restoreSelection.start, head: restoreSelection.end } : null);
   renderOriginalEditor(originalEditor, nextChordPro, {
@@ -654,6 +634,7 @@ function syncEditorStateOutputs({
     restoreEditorSelection(originalTextarea, restoreSelection);
   }
   updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextChordPro, normalizedState);
+  updateVoiceLabelVisibility(form, normalizedState);
 
   if (!previewPanel.hidden) {
     updatePreview(form, previewPanel, normalizedState);
@@ -671,8 +652,26 @@ function updateVoiceLegends(form, slots, chordProValue, editorState = null) {
   });
 
   slots.forEach((slot) => {
+    if (slot.dataset.role === 'original-voice-legend') {
+      slot.innerHTML = '';
+      slot.hidden = true;
+      return;
+    }
+
     slot.innerHTML = legendHtml;
     slot.hidden = !legendHtml;
+  });
+}
+
+function updateVoiceLabelVisibility(form, editorState = null) {
+  const normalizedState = normalizeCifraEditorState(editorState || {});
+  const usedVoiceIds = new Set(normalizedState.voiceMarks.map((mark) => mark.markerId).filter(Boolean));
+
+  VOICE_MARKERS.forEach((marker) => {
+    const field = form.querySelector(`[data-voice-label="${marker.id}"]`);
+    if (field) {
+      field.hidden = !usedVoiceIds.has(marker.id);
+    }
   });
 }
 
@@ -695,7 +694,6 @@ function syncVoiceMarkerButtonLabels(form) {
     const label = String(input?.value || '').trim() || marker.label;
 
     if (button) {
-      button.textContent = label;
       button.title = marker.label === label ? marker.label : `${marker.label}: ${label}`;
       button.setAttribute('aria-label', `Marcar ${label}`);
     }
@@ -707,17 +705,6 @@ function getInitialVoiceLabels(chordProValue) {
     ...getDefaultVoiceLabels(),
     ...getVoiceLabels(chordProValue),
   };
-}
-
-function syncVoiceLabelInputs(form, chordProValue) {
-  const labels = getInitialVoiceLabels(chordProValue);
-
-  VOICE_MARKERS.forEach((marker) => {
-    const input = form.querySelector(`[name="voice_label_${marker.id}"]`);
-    if (input && document.activeElement !== input) {
-      input.value = labels[marker.id] || marker.label;
-    }
-  });
 }
 
 function getEditorSelectionOffsets(editor) {
@@ -1170,11 +1157,14 @@ function clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, 
   form.querySelectorAll('input, textarea').forEach((field) => {
     field.value = '';
   });
+  const emptyState = normalizeCifraEditorState();
   if (editorStateTextarea) {
-    editorStateTextarea.value = JSON.stringify(normalizeCifraEditorState());
+    editorStateTextarea.value = JSON.stringify(emptyState);
   }
   setChordProValue(chordProTextarea, chordProEditor, '');
   renderOriginalEditor(form.querySelector('.cifra-original-editor'), '');
+  form.querySelector('.cifra-original-codemirror')?.voiceCodeMirror?.sync('', []);
+  updateVoiceLabelVisibility(form, emptyState);
   const formTransposeStatus = form.querySelector('[data-role="form-transpose-status"]');
   if (formTransposeStatus) {
     if (formTransposeState) {
@@ -1200,10 +1190,17 @@ function transposeFormFields({
   previewPanel,
   form,
 }) {
-  const transposedChordPro = transposeChordPro(chordProTextarea.value, semitones);
+  const previousText = editorState.text || originalTextarea.value || '';
+  const transposedText = transposeCifraOriginal(previousText, semitones);
+  const transposedChordPro = chordProTextarea.value
+    ? transposeChordPro(chordProTextarea.value, semitones)
+    : '';
   const nextEditorState = normalizeCifraEditorState({
-    ...createCifraEditorStateFromChordPro(transposedChordPro),
+    ...editorState,
+    text: transposedText,
     voiceLabels: getVoiceLabelValues(form),
+    voiceMarks: transformVoiceRangesForTextChange(previousText, transposedText, editorState.voiceMarks)
+      .filter((range) => range.start < range.end),
   });
 
   const currentTom = String(tomInput.value || '').trim();
@@ -1220,6 +1217,8 @@ function transposeFormFields({
     chordProEditor,
     previewPanel,
     form,
+    chordProValue: transposedChordPro,
+    convertChordPro: false,
   });
 
   return nextEditorState;
@@ -1274,7 +1273,10 @@ function setupResponsiveCifraEditor(container) {
 function getFormValues(form, editorState = null) {
   const formData = new FormData(form);
   const normalizedEditorState = normalizeCifraEditorState(editorState || formData.get('cifra_editor_state'));
-  const normalizedChordPro = createChordProFromCifraEditorState(normalizedEditorState).trim();
+  const normalizedChordPro = normalizeChordProLyrics(String(formData.get('cifra_chordpro') || '')).trim();
+  const cifraExibicao = normalizedChordPro
+    ? renderChordProForDisplay(normalizedChordPro, { keepVoiceDirectives: true })
+    : normalizedEditorState.text.trim();
 
   return {
     titulo: String(formData.get('titulo') || '').trim(),
@@ -1287,7 +1289,7 @@ function getFormValues(form, editorState = null) {
     cifra_editor_state: normalizedEditorState,
     cifra_original: normalizedEditorState.text.trim(),
     cifra_chordpro: normalizedChordPro,
-    cifra_exibicao: createCifraExibicaoFromCifraEditorState(normalizedEditorState),
+    cifra_exibicao: cifraExibicao,
   };
 }
 
@@ -1296,14 +1298,6 @@ function getInitialChordPro(initialValues) {
     || initialValues.chordpro
     || initialValues.conteudo_chordpro
     || convertToChordPro(initialValues.cifra_original || ''));
-}
-
-function getInitialOriginalText(initialValues, initialChordPro) {
-  if (initialChordPro) {
-    return renderChordProForDisplay(initialChordPro);
-  }
-
-  return renderChordProForDisplay(convertToChordPro(initialValues.cifra_original || ''));
 }
 
 function updatePreview(form, previewPanel, editorState = null) {
@@ -1324,7 +1318,7 @@ function updatePreview(form, previewPanel, editorState = null) {
 
 function getPreviewMusica(form, editorState = null) {
   const values = getFormValues(form, editorState);
-  const renderedCifra = createCifraExibicaoFromCifraEditorState(values.cifra_editor_state)
+  const renderedCifra = values.cifra_exibicao
     || 'A conversao ChordPro aparecera aqui.';
 
   return {
@@ -1340,19 +1334,12 @@ function formatTransposeStatus(semitones) {
   return `${semitones > 0 ? '+' : ''}${semitones}`;
 }
 
-function setChordProValue(source, editor, value, editorState = null) {
+function setChordProValue(source, editor, value) {
   source.value = value;
-  renderChordProEditor(editor, value, editorState);
+  renderChordProEditor(editor, value);
 }
 
-function renderChordProEditor(editor, value, editorState = null) {
-  const normalizedState = normalizeCifraEditorState(editorState || {});
-
-  if (normalizedState.text && normalizedState.voiceMarks.length) {
-    editor.innerHTML = renderChordProEditorHtmlFromCifraEditorState(normalizedState);
-    return;
-  }
-
+function renderChordProEditor(editor, value) {
   editor.innerHTML = escapeHtml(value || '')
     .replace(/\[([^\]]+)\]/g, (match, chord) => (
       isChordToken(chord) ? `<span class="chord-token">${match}</span>` : match

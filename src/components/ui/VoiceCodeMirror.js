@@ -1,5 +1,5 @@
 import { EditorState, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
-import { EditorView, Decoration, keymap } from '@codemirror/view';
+import { EditorView, Decoration, keymap, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { isCifraOriginalChordLine } from '../../utils/chordpro.js';
 
@@ -60,7 +60,7 @@ export function createVoiceCodeMirror({ parent, text, marks, onChange, onSelecti
   let syncing = false;
   const view = new EditorView({
     parent,
-    state: EditorState.create({ doc: text, extensions: [history(), keymap.of([...defaultKeymap, ...historyKeymap]), voiceMarks, EditorView.lineWrapping, EditorView.updateListener.of((update) => {
+    state: EditorState.create({ doc: text, extensions: [lineNumbers(), history(), keymap.of([...defaultKeymap, ...historyKeymap]), voiceMarks, EditorView.lineWrapping, EditorView.updateListener.of((update) => {
       if (update.selectionSet && !syncing) onSelection?.(update.state.selection.main);
       if (update.docChanged && !syncing) onChange(update.state.doc.toString(), update.state.selection.main);
     })] }),

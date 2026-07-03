@@ -12825,3 +12825,150 @@ html[data-interface-density="compact"] .account-password-panel {
   color: #c2410c !important;
   -webkit-text-fill-color: #c2410c !important;
 }
+
+/* Editor ChordPro: fluxo novo de conversao explicita na tela de cifras. */
+.musica-form .chordpro-convert-button {
+  border-color: color-mix(in srgb, var(--color-primary) 46%, var(--color-border-strong));
+  color: var(--color-primary-strong);
+}
+
+.musica-form .voice-label-grid-inline {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  min-height: 0;
+}
+
+.musica-form .voice-label-grid-inline label {
+  display: inline-grid;
+  grid-template-columns: auto minmax(96px, 150px);
+  gap: 6px;
+  align-items: center;
+}
+
+.musica-form .voice-label-grid-inline label[hidden] {
+  display: none;
+}
+
+.musica-form .voice-label-grid-inline input {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.musica-form .voice-label-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.musica-form .voice-marker-options .voice-marker-button:not(.voice-marker-clear) {
+  display: grid;
+  width: 34px;
+  min-width: 34px;
+  height: 28px;
+  min-height: 28px;
+  place-items: center;
+  padding: 0;
+}
+
+.musica-form .voice-marker-clear {
+  min-height: 28px;
+  padding: 6px 8px;
+  background: var(--color-surface);
+}
+
+.musica-form .cifra-original-codemirror .cm-editor {
+  font: 600 15px/24px var(--chords-execution-font);
+}
+
+.musica-form .cifra-original-codemirror .cm-gutters {
+  border-right: 1px solid var(--color-border);
+  background: #fafafa;
+  color: var(--color-text-muted);
+}
+
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight {
+  border-radius: 3px;
+  background: transparent;
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+  font-weight: 700;
+}
+
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-voz_principal { background-color: rgba(83, 190, 104, .26) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-segunda_voz { background-color: rgba(83, 166, 230, .26) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-terca_voz { background-color: rgba(151, 105, 224, .24) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-todos { background-color: rgba(237, 93, 145, .22) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-solo { background-color: rgba(232, 196, 78, .32) !important; }
+
+.musica-form .chord-token,
+.musica-form .chord-line {
+  color: var(--chord-color);
+}
+
+.musica-form .cifra-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, .42fr);
+  gap: 0;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.musica-form .cifra-editor-grid.can-show-side-by-side {
+  display: grid;
+}
+
+.musica-form .cifra-editor-grid label {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+}
+
+.musica-form .cifra-editor-grid label + label {
+  border-left: 1px solid var(--color-border);
+}
+
+.musica-form .cifra-editor-grid .cifra-original-editor-shell,
+.musica-form .chordpro-editor {
+  height: min(68vh, 680px);
+  min-height: 460px;
+  max-height: 760px;
+}
+
+.musica-form .chordpro-editor {
+  margin: 0;
+  white-space: pre;
+}
+
+.musica-form .chordpro-generated-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.musica-form .chordpro-copy-button {
+  min-height: 28px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .musica-form .cifra-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .musica-form .cifra-editor-grid label + label {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+}
