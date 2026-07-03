@@ -13512,3 +13512,395 @@ html[data-interface-density="compact"] .account-password-panel {
     grid-column: 1 / -1;
   }
 }
+
+/* A mesma arte final aplicada ao cadastro/edicao dentro da pagina Cifras. */
+.musicas-page.can-edit-music {
+  width: min(100%, 1480px);
+  max-width: 1480px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.page.musicas-page.can-edit-music {
+  width: min(100%, 1480px);
+  max-width: 1480px;
+}
+
+.musicas-page.can-edit-music .musicas-hero,
+.musicas-page.can-edit-music .music-search-panel,
+.musicas-page.can-edit-music .music-editor-stage {
+  border-radius: 8px;
+}
+
+.musicas-page.can-edit-music .musicas-hero {
+  padding: 14px 16px;
+}
+
+.musicas-page.can-edit-music .musicas-hero p,
+.musicas-page.can-edit-music .music-library-heading p {
+  display: none;
+}
+
+.musicas-page.can-edit-music .music-search-panel {
+  padding: 12px;
+}
+
+.musicas-page.can-edit-music .music-library-heading {
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.musicas-page.can-edit-music .music-library-heading h2 {
+  font-size: 16px;
+}
+
+.musicas-page.can-edit-music .music-library-mode {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.musicas-page.can-edit-music .music-library-search input {
+  min-height: 36px;
+  border-radius: 6px;
+}
+
+.musicas-page.can-edit-music .music-editor-stage {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .form-slot {
+  min-width: 0;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .musica-form {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 10px 12px;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata,
+.musicas-page.can-edit-music .music-editor-stage .music-form-actions,
+.musicas-page.can-edit-music .music-editor-stage .voice-label-grid-inline,
+.musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid,
+.musicas-page.can-edit-music .music-editor-stage .song-preview,
+.musicas-page.can-edit-music .music-editor-stage .form-message {
+  grid-column: 1 / -1;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.05fr) minmax(78px, .38fr) minmax(280px, 1.58fr);
+  gap: 9px 12px;
+  align-items: end;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--color-surface-raised);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, .06);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-form-pair {
+  display: contents;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata label,
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata input {
+  width: 100%;
+  min-height: 36px;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title {
+  min-height: 36px;
+  align-content: center;
+  border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--color-surface);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-title,
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title {
+  grid-column: 1;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-artist {
+  grid-column: 2;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-tom {
+  grid-column: 3;
+  max-width: none;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-link {
+  grid-column: 4;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-tags {
+  grid-column: 1;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-collaborator {
+  grid-column: 2 / span 2;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-reviewer {
+  grid-column: 4;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-form-actions {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  border-radius: 8px;
+  padding: 8px;
+  background: color-mix(in srgb, var(--color-surface-raised) 96%, white);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-form-actions > .button-link,
+.musicas-page.can-edit-music .music-editor-stage .music-form-actions > .danger-button,
+.musicas-page.can-edit-music .music-editor-stage .music-form-control-row .button,
+.musicas-page.can-edit-music .music-editor-stage .music-form-control-row .nav-button,
+.musicas-page.can-edit-music .music-editor-stage .voice-marker-toggle,
+.musicas-page.can-edit-music .music-editor-stage .voice-marker-button {
+  min-height: 34px;
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-form-actions > .button-link,
+.musicas-page.can-edit-music .music-editor-stage .music-form-actions > .danger-button {
+  flex: 0 0 auto;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-form-control-row {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .inline-transpose-controls {
+  order: 1;
+  display: inline-flex;
+  overflow: hidden;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .inline-transpose-controls .nav-button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .inline-transpose-controls [data-role="form-transpose-status"] {
+  min-width: 44px;
+  padding: 0 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .voice-marker-toolbar {
+  position: relative;
+  order: 2;
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .music-form-control-row .button {
+  order: 3;
+  background: var(--color-primary);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .voice-marker-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 35;
+  display: flex;
+  width: max-content;
+  max-width: min(520px, calc(100vw - 32px));
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--color-surface-raised);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, .16);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .voice-marker-options[hidden] {
+  display: none;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .voice-label-grid-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  min-height: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .voice-label-grid-inline label {
+  display: inline-grid;
+  grid-template-columns: auto minmax(118px, 170px);
+  gap: 7px;
+  align-items: center;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(310px, .86fr);
+  gap: 0;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, .09);
+}
+
+.musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid.can-show-side-by-side {
+  display: grid;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid label {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: 8px;
+  min-width: 0;
+  width: auto;
+  padding: 12px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid label + label {
+  border-left: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface-raised) 54%, var(--color-surface));
+}
+
+.musicas-page.can-edit-music .music-editor-stage .cifra-original-editor-shell,
+.musicas-page.can-edit-music .music-editor-stage .chordpro-editor {
+  height: min(66vh, 700px);
+  min-height: 520px;
+  max-height: 780px;
+}
+
+@media (max-width: 1180px) {
+  .musicas-page.can-edit-music .music-editor-stage .music-form-actions,
+  .musicas-page.can-edit-music .music-editor-stage .music-form-control-row {
+    flex-wrap: wrap;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .music-form-control-row {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 1040px) {
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-title,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-artist,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-tags,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-tom,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-link,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-collaborator,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-reviewer {
+    grid-column: auto;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .music-form-actions {
+    position: static;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid label + label {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .musicas-page.can-edit-music .music-library-heading,
+  .musicas-page.can-edit-music .music-form-actions,
+  .musicas-page.can-edit-music .music-form-control-row {
+    align-items: stretch;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata {
+    grid-template-columns: 1fr;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .music-form-actions > .button-link,
+  .musicas-page.can-edit-music .music-editor-stage .music-form-actions > .danger-button,
+  .musicas-page.can-edit-music .music-editor-stage .music-form-control-row > *,
+  .musicas-page.can-edit-music .music-editor-stage .music-form-control-row .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .musicas-page.can-edit-music .music-editor-stage .cifra-original-editor-shell,
+  .musicas-page.can-edit-music .music-editor-stage .chordpro-editor {
+    height: 58vh;
+    min-height: 380px;
+  }
+}
