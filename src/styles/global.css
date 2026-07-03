@@ -5856,6 +5856,38 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   padding-top: 16px;
 }
 
+.musica-form > .song-preview:not([hidden]) {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  place-items: center;
+  border-top: 0;
+  padding: max(18px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: rgba(16, 25, 22, 0.52);
+  backdrop-filter: blur(2px);
+}
+
+.musica-form > .song-preview:not([hidden]) > .repertorio-performance-view {
+  width: min(1120px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+}
+
+.musica-form > .song-preview:not([hidden]) .performance-song {
+  max-height: calc(100dvh - 112px);
+  overflow: auto;
+}
+
+.musica-form > .song-preview:not([hidden]) .chordpro-view {
+  min-height: min(62dvh, 620px);
+  margin: 0;
+}
+
 .musicas-page:has(.musica-form.is-previewing) {
   max-width: none;
   padding: 0;

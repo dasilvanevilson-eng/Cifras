@@ -487,6 +487,11 @@ export function MusicaForm(options = {}) {
   });
 
   previewPanel.addEventListener('click', (event) => {
+    if (event.target === previewPanel) {
+      closePreview(form, previewPanel, previewToggle);
+      return;
+    }
+
     const backAction = event.target.closest('.song-toolbar-back');
     if (!backAction) return;
 
@@ -1263,17 +1268,14 @@ function renderFormTransposeStatus(status, semitones) {
 
 function openPreview(form, previewPanel, previewToggle, editorState = null) {
   previewPanel.hidden = false;
-  form.classList.add('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
   updatePreview(form, previewPanel, editorState);
-  previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  previewPanel.querySelector('.repertorio-performance-view')?.focus?.();
 }
 
 function closePreview(form, previewPanel, previewToggle) {
   previewPanel.hidden = true;
-  form.classList.remove('is-previewing');
   previewToggle.textContent = 'Pre-visualizacao';
-  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function setupResponsiveCifraEditor(container) {
