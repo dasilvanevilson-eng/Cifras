@@ -14005,3 +14005,63 @@ html[data-interface-density="compact"] .account-password-panel {
     font-size: 11px;
   }
 }
+
+/* Metadados em duas colunas no mobile para economizar altura da tela. */
+@media (max-width: 640px) {
+  .page > section:has(.musica-form) .music-editor-metadata,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 10px;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-title,
+  .page > section:has(.musica-form) .music-editor-metadata .musica-current-title,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-title,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title {
+    grid-column: 1 / -1;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-artist,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-artist {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-tom,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-tom {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: none;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-tags,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-tags {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-link,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-link {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-collaborator,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-collaborator {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata .field-reviewer,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-reviewer {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .page > section:has(.musica-form) .music-editor-metadata input,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata input {
+    min-height: 34px;
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+}
