@@ -698,7 +698,11 @@ function updateVoiceLegends(form, slots, chordProValue, editorState = null) {
 
 function updateVoiceLabelVisibility(form, editorState = null) {
   const normalizedState = normalizeCifraEditorState(editorState || {});
-  const usedVoiceIds = new Set(normalizedState.voiceMarks.map((mark) => mark.markerId).filter(Boolean));
+  const textLength = normalizedState.text.length;
+  const usedVoiceIds = new Set(normalizedState.voiceMarks
+    .filter((mark) => mark.markerId && mark.start < mark.end && mark.start < textLength && mark.end > 0)
+    .map((mark) => mark.markerId));
+  const labelGrid = form.querySelector('[data-role="voice-label-grid"]');
 
   VOICE_MARKERS.forEach((marker) => {
     const field = form.querySelector(`[data-voice-label="${marker.id}"]`);
@@ -706,6 +710,10 @@ function updateVoiceLabelVisibility(form, editorState = null) {
       field.hidden = !usedVoiceIds.has(marker.id);
     }
   });
+
+  if (labelGrid) {
+    labelGrid.hidden = usedVoiceIds.size === 0;
+  }
 }
 
 function getVoiceLabelValues(form) {
