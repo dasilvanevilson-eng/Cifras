@@ -12802,15 +12802,17 @@ html[data-interface-density="compact"] .account-password-panel {
   }
 }
 
-/* Voice marks are visual text color only. Keep this at the end so preview,
-   performance, dark mode and PDF rules cannot reset marked lyric colors. */
+/* Voice marks are visual text highlights only. Keep this at the end so preview,
+   performance, dark mode and PDF rules cannot reset marked lyric backgrounds. */
 .chordpro-view .voice-highlight,
 .song-preview .voice-highlight,
 .repertorio-performance-view .voice-highlight,
 .music-performance-stage .voice-highlight,
 .pdf-song .voice-highlight {
-  background: transparent !important;
-  font-weight: 700;
+  border-radius: 3px;
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+  font-weight: inherit;
 }
 
 .chordpro-view .voice-highlight-voz_principal,
@@ -12818,8 +12820,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-voz_principal,
 .music-performance-stage .voice-highlight-voz_principal,
 .pdf-song .voice-highlight-voz_principal {
-  color: #0f5fbd !important;
-  -webkit-text-fill-color: #0f5fbd !important;
+  background-color: rgba(15, 95, 189, 0.22) !important;
 }
 
 .chordpro-view .voice-highlight-segunda_voz,
@@ -12827,8 +12828,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-segunda_voz,
 .music-performance-stage .voice-highlight-segunda_voz,
 .pdf-song .voice-highlight-segunda_voz {
-  color: #087a3f !important;
-  -webkit-text-fill-color: #087a3f !important;
+  background-color: rgba(8, 122, 63, 0.22) !important;
 }
 
 .chordpro-view .voice-highlight-terca_voz,
@@ -12836,8 +12836,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-terca_voz,
 .music-performance-stage .voice-highlight-terca_voz,
 .pdf-song .voice-highlight-terca_voz {
-  color: #8a5a00 !important;
-  -webkit-text-fill-color: #8a5a00 !important;
+  background-color: rgba(138, 90, 0, 0.22) !important;
 }
 
 .chordpro-view .voice-highlight-todos,
@@ -12845,8 +12844,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-todos,
 .music-performance-stage .voice-highlight-todos,
 .pdf-song .voice-highlight-todos {
-  color: #7c3aed !important;
-  -webkit-text-fill-color: #7c3aed !important;
+  background-color: rgba(124, 58, 237, 0.20) !important;
 }
 
 .chordpro-view .voice-highlight-solo,
@@ -12854,8 +12852,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-solo,
 .music-performance-stage .voice-highlight-solo,
 .pdf-song .voice-highlight-solo {
-  color: #c2410c !important;
-  -webkit-text-fill-color: #c2410c !important;
+  background-color: rgba(194, 65, 12, 0.20) !important;
 }
 
 /* Editor ChordPro: fluxo novo de conversao explicita na tela de cifras. */

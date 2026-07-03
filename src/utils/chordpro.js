@@ -1379,7 +1379,7 @@ function renderVoiceTextSegment(text, voiceId) {
 
 function getVoiceHighlightInlineStyle(voiceId) {
   const color = VOICE_COLORS[voiceId] || VOICE_COLORS.voz_principal;
-  return `color: ${color}; -webkit-text-fill-color: ${color}; background: transparent; font-weight: 700;`;
+  return `color: inherit; -webkit-text-fill-color: inherit; background: ${hexToRgba(color, 0.22)}; font-weight: inherit;`;
 }
 
 function parseVoiceDirective(line) {
@@ -1510,4 +1510,12 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function hexToRgba(color, alpha) {
+  const match = String(color || '').trim().match(/^#([0-9a-f]{6})$/i);
+  if (!match) return color;
+
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(match[1].slice(offset, offset + 2), 16));
+  return `rgba(${channels.join(', ')}, ${alpha})`;
 }
