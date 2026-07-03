@@ -12820,7 +12820,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-voz_principal,
 .music-performance-stage .voice-highlight-voz_principal,
 .pdf-song .voice-highlight-voz_principal {
-  background-color: rgba(15, 95, 189, 0.22) !important;
+  background-color: rgba(255, 224, 138, 0.68) !important;
 }
 
 .chordpro-view .voice-highlight-segunda_voz,
@@ -12828,7 +12828,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-segunda_voz,
 .music-performance-stage .voice-highlight-segunda_voz,
 .pdf-song .voice-highlight-segunda_voz {
-  background-color: rgba(8, 122, 63, 0.22) !important;
+  background-color: rgba(167, 216, 255, 0.62) !important;
 }
 
 .chordpro-view .voice-highlight-terca_voz,
@@ -12836,7 +12836,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-terca_voz,
 .music-performance-stage .voice-highlight-terca_voz,
 .pdf-song .voice-highlight-terca_voz {
-  background-color: rgba(138, 90, 0, 0.22) !important;
+  background-color: rgba(184, 242, 200, 0.64) !important;
 }
 
 .chordpro-view .voice-highlight-todos,
@@ -12844,7 +12844,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-todos,
 .music-performance-stage .voice-highlight-todos,
 .pdf-song .voice-highlight-todos {
-  background-color: rgba(124, 58, 237, 0.20) !important;
+  background-color: rgba(233, 213, 255, 0.68) !important;
 }
 
 .chordpro-view .voice-highlight-solo,
@@ -12852,7 +12852,7 @@ html[data-interface-density="compact"] .account-password-panel {
 .repertorio-performance-view .voice-highlight-solo,
 .music-performance-stage .voice-highlight-solo,
 .pdf-song .voice-highlight-solo {
-  background-color: rgba(194, 65, 12, 0.20) !important;
+  background-color: rgba(255, 196, 196, 0.68) !important;
 }
 
 /* Editor ChordPro: fluxo novo de conversao explicita na tela de cifras. */
@@ -12972,11 +12972,11 @@ html[data-interface-density="compact"] .account-password-panel {
   font-weight: 700;
 }
 
-.musica-form .cifra-original-codemirror .cm-content .voice-highlight-voz_principal { background-color: rgba(83, 190, 104, .26) !important; }
-.musica-form .cifra-original-codemirror .cm-content .voice-highlight-segunda_voz { background-color: rgba(83, 166, 230, .26) !important; }
-.musica-form .cifra-original-codemirror .cm-content .voice-highlight-terca_voz { background-color: rgba(151, 105, 224, .24) !important; }
-.musica-form .cifra-original-codemirror .cm-content .voice-highlight-todos { background-color: rgba(237, 93, 145, .22) !important; }
-.musica-form .cifra-original-codemirror .cm-content .voice-highlight-solo { background-color: rgba(232, 196, 78, .32) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-voz_principal { background-color: rgba(255, 224, 138, .68) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-segunda_voz { background-color: rgba(167, 216, 255, .62) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-terca_voz { background-color: rgba(184, 242, 200, .64) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-todos { background-color: rgba(233, 213, 255, .68) !important; }
+.musica-form .cifra-original-codemirror .cm-content .voice-highlight-solo { background-color: rgba(255, 196, 196, .68) !important; }
 
 .musica-form .chord-token,
 .musica-form .chord-line {

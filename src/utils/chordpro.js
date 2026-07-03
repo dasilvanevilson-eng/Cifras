@@ -1488,11 +1488,11 @@ const VOICE_LABELS = {
   solo: 'Solo',
 };
 const VOICE_COLORS = {
-  voz_principal: '#0f5fbd',
-  segunda_voz: '#087a3f',
-  terca_voz: '#8a5a00',
+  voz_principal: '#ffe08a',
+  segunda_voz: '#a7d8ff',
+  terca_voz: '#b8f2c8',
   todos: '#7c3aed',
-  solo: '#c2410c',
+  solo: '#ffc4c4',
 };
 
 function mod(value, size) {

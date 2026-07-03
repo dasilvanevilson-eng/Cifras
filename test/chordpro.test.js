@@ -26,8 +26,8 @@ import {
   transposeKey,
 } from '../src/utils/chordpro.js';
 
-const VOICE_PRIMARY_STYLE = 'style="color: inherit; -webkit-text-fill-color: inherit; background: rgba(15, 95, 189, 0.22); font-weight: inherit;"';
-const VOICE_SECONDARY_STYLE = 'style="color: inherit; -webkit-text-fill-color: inherit; background: rgba(8, 122, 63, 0.22); font-weight: inherit;"';
+const VOICE_PRIMARY_STYLE = 'style="color: inherit; -webkit-text-fill-color: inherit; background: rgba(255, 224, 138, 0.22); font-weight: inherit;"';
+const VOICE_SECONDARY_STYLE = 'style="color: inherit; -webkit-text-fill-color: inherit; background: rgba(167, 216, 255, 0.22); font-weight: inherit;"';
 
 const cifraOriginal = [
   'G  D/F#  Em7  C9',

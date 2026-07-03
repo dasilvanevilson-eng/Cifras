@@ -1347,6 +1347,7 @@ function updatePreview(form, previewPanel, editorState = null) {
 function getPreviewMusica(form, editorState = null) {
   const values = getFormValues(form, editorState);
   const renderedCifra = values.cifra_exibicao;
+  const normalizedState = normalizeCifraEditorState(editorState || {});
 
   return {
     titulo: values.titulo || 'Musica sem titulo',
@@ -1355,7 +1356,12 @@ function getPreviewMusica(form, editorState = null) {
     cifra_original: renderedCifra,
     cifra_chordpro: '',
     cifra_exibicao: renderedCifra,
-    cifra_editor_state: {},
+    cifra_editor_state: {
+      version: 1,
+      text: '',
+      voiceMarks: [],
+      voiceLabels: normalizedState.voiceLabels,
+    },
   };
 }
 
