@@ -1512,11 +1512,8 @@ function renderSelectedMusicasList(slot, items) {
 
 function formatDate(value) {
   if (!value) return '-';
-  try {
-    return new Intl.DateTimeFormat('pt-BR').format(new Date(value));
-  } catch (_error) {
-    return String(value);
-  }
+  const [year, month, day] = String(value).split('-');
+  return day && month && year ? `${day}/${month}/${year}` : String(value);
 }
 
 function formatRepertorioSearchLabel(repertorio) {
