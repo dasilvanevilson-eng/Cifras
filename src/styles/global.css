@@ -786,6 +786,10 @@ a {
   box-shadow: 0 10px 24px rgba(32, 33, 31, 0.04);
 }
 
+.music-search-panel:focus-within {
+  z-index: 70;
+}
+
 .music-search-panel h2 {
   margin-bottom: 12px;
 }
