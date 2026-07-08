@@ -5,6 +5,7 @@ import { MusicaDetalhePage } from '../features/musicas/pages/MusicaDetalhePage.j
 import { MusicaEditarPage } from '../features/musicas/pages/MusicaEditarPage.js';
 import { MusicaExecucaoPage } from '../features/musicas/pages/MusicaExecucaoPage.js';
 import { MusicasSelecaoExecucaoPage } from '../features/musicas/pages/MusicasSelecaoExecucaoPage.js';
+import { BuscaAlternativaPage } from '../features/musicas/pages/BuscaAlternativaPage.js';
 import { MusicaLetraDetalhePage } from '../features/musicas/pages/MusicaLetraDetalhePage.js';
 import { MusicasPage } from '../features/musicas/pages/MusicasPage.js';
 import { MusicasLetrasPage } from '../features/musicas/pages/MusicasLetrasPage.js';
@@ -55,6 +56,7 @@ const routes = {
   '/musicas/editar': MusicaEditarPage,
   '/musicas/execucao': MusicaExecucaoPage,
   '/musicas/selecao-execucao': MusicasSelecaoExecucaoPage,
+  '/busca-alternativa': BuscaAlternativaPage,
   '/musicas-letras': MusicasLetrasPage,
   '/musicas-letras/detalhe': MusicaLetraDetalhePage,
   '/repertorios': RepertoriosPage,
@@ -95,6 +97,7 @@ const protectedRoutes = {
   '/personalizacao': (session) => canManageUsers(session.profile?.papel),
   '/convites-publicos': (session) => canViewModule(session, 'convites_publicos'),
   '/links-imagem': (session) => canManageUsers(session.profile?.papel),
+  '/busca-alternativa': (session) => canViewModule(session, 'musicas'),
 };
 
 export function createRouter() {

@@ -113,6 +113,7 @@ function getVisibleLinks(options = {}) {
     { href: '/banda-coral', label: 'Modo Banda/Coral', group: 'Uso', moduleKey: 'banda_coral', match: ['/banda-coral'] },
     { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
+    { href: '/busca-alternativa', label: 'Busca alternativa', group: 'Acervo', moduleKey: 'musicas', match: ['/busca-alternativa'] },
     { href: '/acordes', label: 'Dicionario de acordes', group: 'Acervo', moduleKey: 'acordes', match: ['/acordes'] },
     { href: '/afinador', label: 'Afinador', group: 'Acervo', moduleKey: 'afinador', match: ['/afinador'] },
     { href: '/musicas-letras', label: 'Letras', group: 'Acervo', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
