@@ -1,3 +1,4 @@
+import { assertSupabaseConfig, supabase } from '../../../lib/supabase/client.js';
 import { createPerformanceView } from './MusicaExecucaoPage.js';
 
 export function BuscaAlternativaPage() {
@@ -70,12 +71,22 @@ export function BuscaAlternativaPage() {
 async function fetchHtml(link) {
   assertValidHttpUrl(link);
 
-  const response = await fetch(link);
-  if (!response.ok) {
-    throw new Error(`O site respondeu com erro ${response.status}.`);
+  assertSupabaseConfig();
+
+  const result = await supabase.functions.invoke('fetch-cifra-link', {
+    body: { link },
+  });
+
+  if (result.error) {
+    const parsedError = await parseFunctionError(result.error);
+    throw new Error(parsedError || 'Nao foi possivel buscar o link pelo servidor.');
   }
 
-  return response.text();
+  if (!result.data?.html) {
+    throw new Error('A busca nao retornou conteudo para analisar.');
+  }
+
+  return result.data.html;
 }
 
 function parseMusicaFromHtml(html, link) {
@@ -165,4 +176,17 @@ function setStatus(status, message, type) {
   status.hidden = false;
   status.className = `page-status${type ? ` ${type}` : ''}`;
   status.textContent = message;
+}
+
+async function parseFunctionError(error) {
+  const context = error?.context;
+
+  if (!context?.json) return '';
+
+  try {
+    const body = await context.json();
+    return body?.error || '';
+  } catch (_error) {
+    return '';
+  }
 }
