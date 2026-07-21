@@ -365,7 +365,7 @@ function createInvitesList(invites, { onChange, onEdit, permissions = {} }) {
     `;
 
     item.querySelector('[data-action="copy"]').addEventListener('click', async () => {
-      await copyText(createInviteShareText(invite.title, url));
+      await copyText(createInviteShareText(url));
       item.querySelector('[data-action="copy"]').textContent = 'Copiado';
       window.setTimeout(() => {
         item.querySelector('[data-action="copy"]').textContent = 'Copiar';
@@ -545,8 +545,8 @@ async function copyText(text) {
   }
 }
 
-function createInviteShareText(title, url) {
-  return `Convite: *${String(title || 'Link publico')}*\n${url}`;
+function createInviteShareText(url) {
+  return url;
 }
 
 function formatModule(moduleKey) {
