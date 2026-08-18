@@ -72,6 +72,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   let leaderAuthenticatedForRoom = hasPublicBandaLeaderAuth(token, leaderUser);
   let leaderLoginAction = 'claim';
   let hasObservedLeaderPresence = false;
+  let leaderMirrorPaused = false;
 
   wrapper.className = 'public-banda-shell';
   wrapper.innerHTML = `
@@ -84,6 +85,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         <button class="nav-button" type="button" data-mode="lider">Lider</button>
         <button class="nav-button" type="button" data-mode="integrante">Integrante</button>
         <button class="nav-button" type="button" data-action="reset-leader">Resetar Lider</button>
+        <button class="nav-button public-banda-mirror-toggle" type="button" data-action="toggle-leader-mirror" aria-pressed="false" hidden>Pausar espelhamento</button>
       </div>
       <p class="public-banda-leader-inline-status" data-role="leader-inline-status">Lider desconectado</p>
     </header>
@@ -166,6 +168,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   const leaderLoginSubmitButton = wrapper.querySelector('.public-banda-login-form button[type="submit"]');
   const leaderLoginTitle = wrapper.querySelector('#public-banda-login-title');
   const resetLeaderButton = wrapper.querySelector('[data-action="reset-leader"]');
+  const leaderMirrorToggle = wrapper.querySelector('[data-action="toggle-leader-mirror"]');
   const executeSelectedRepertorioButton = wrapper.querySelector('[data-action="execute-selected-repertorio"]');
   let activeCascade = null;
   let currentExecutionState = null;
@@ -206,6 +209,10 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     const wasLeaderMode = currentMode === 'lider';
     if (wasLeaderMode && mode !== 'lider' && !options.skipRelease) {
       await releaseLeaderRole();
+    }
+
+    if (mode !== 'lider') {
+      leaderMirrorPaused = false;
     }
 
     currentMode = mode;
@@ -252,6 +259,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
   resetLeaderButton?.addEventListener('click', () => {
     openLeaderLogin({ action: 'reset' });
   });
+  leaderMirrorToggle?.addEventListener('click', toggleLeaderMirrorPause);
   wrapper.querySelector('[data-action="close-leader-login"]')?.addEventListener('click', closeLeaderLogin);
   leaderLoginModal?.addEventListener('click', (event) => {
     if (event.target === leaderLoginModal) {
@@ -468,7 +476,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       clearCurrentTempExecution();
       document.body.classList.remove('has-banda-stage-open');
 
-      if (shouldClearLeaderState || currentMode === 'lider') {
+      if (shouldClearLeaderState || (currentMode === 'lider' && !leaderMirrorPaused)) {
         await clearLeaderState();
       }
 
@@ -655,12 +663,63 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     }
   });
 
-  async function publishLeaderState(state) {
+  async function publishLeaderState(state, options = {}) {
+    if (leaderMirrorPaused && options.force !== true) {
+      return true;
+    }
+
     const { data, error } = await updatePublicBandaCoralState(token, state);
 
     if (error || !data?.valid) {
       window.alert(error?.message || 'Nao foi possivel espelhar a execucao para os integrantes.');
+      return false;
     }
+
+    return true;
+  }
+
+  async function toggleLeaderMirrorPause() {
+    if (currentMode !== 'lider' || !isCurrentLeader() || !leaderMirrorToggle) return;
+
+    if (!leaderMirrorPaused) {
+      leaderMirrorPaused = true;
+      updateLeaderMirrorUi();
+      showLeaderStatus('Espelhamento pausado. A banda continua na ultima musica compartilhada.');
+      return;
+    }
+
+    leaderMirrorToggle.disabled = true;
+
+    try {
+      if (currentExecutionState) {
+        const resumed = await publishLeaderState(currentExecutionState, { force: true });
+        if (!resumed) return;
+      }
+
+      leaderMirrorPaused = false;
+      updateLeaderMirrorUi();
+      showLeaderStatus(currentExecutionState
+        ? 'Espelhamento retomado com a musica atual.'
+        : 'Espelhamento retomado.');
+    } finally {
+      leaderMirrorToggle.disabled = false;
+    }
+  }
+
+  function updateLeaderMirrorUi() {
+    if (!leaderMirrorToggle) return;
+
+    const visibleToCurrentLeader = currentMode === 'lider' && isCurrentLeader();
+    leaderMirrorToggle.hidden = !visibleToCurrentLeader;
+    leaderMirrorToggle.classList.toggle('is-paused', leaderMirrorPaused);
+    leaderMirrorToggle.textContent = leaderMirrorPaused
+      ? 'Retomar espelhamento'
+      : 'Pausar espelhamento';
+    leaderMirrorToggle.title = leaderMirrorPaused
+      ? 'Compartilhar a musica atual e retomar as atualizacoes automaticas'
+      : 'Buscar outra musica sem alterar a visualizacao da banda';
+    leaderMirrorToggle.setAttribute('aria-label', leaderMirrorToggle.title);
+    leaderMirrorToggle.setAttribute('aria-pressed', String(leaderMirrorPaused));
   }
 
   async function clearLeaderState() {
@@ -706,6 +765,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
 
   async function releaseLeaderRole() {
     await releasePublicBandaCoralLeader(token, clientId);
+    leaderMirrorPaused = false;
     forgetPublicBandaLeaderAuth(token);
     leaderAuthenticatedForRoom = false;
     leaderPresence = { active: false, client_id: null, user_id: null, name: '' };
@@ -721,6 +781,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
     forgetPublicBandaLeaderAuth(token);
     leaderAuthenticatedForRoom = false;
     leaderPresence = normalizeLeaderPresence(data.leader);
+    leaderMirrorPaused = false;
     memberFollowingLeader = false;
     lastMirroredStateKey = '';
     stopMemberMirror();
@@ -948,6 +1009,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         ? `Lider conectado: ${formatLeaderName(leaderPresence)}`
         : 'Lider desconectado';
     }
+    updateLeaderMirrorUi();
   }
 
   function isCurrentLeader() {

@@ -7397,6 +7397,29 @@ input.dashboard-select-song {
   justify-content: flex-end;
 }
 
+.public-banda-mirror-toggle.is-paused {
+  border-color: #a85b00;
+  background: #fff2dc;
+  color: #7a4000;
+  font-weight: 700;
+}
+
+.has-banda-stage-open .public-banda-mirror-toggle:not([hidden]) {
+  position: fixed;
+  z-index: 95;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  border-color: #1d4f45;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(29, 79, 69, 0.2);
+}
+
+.has-banda-stage-open .public-banda-mirror-toggle.is-paused:not([hidden]) {
+  border-color: #a85b00;
+  background: #fff2dc;
+  color: #7a4000;
+}
+
 .public-banda-leader-inline-status {
   margin: -6px 0 0;
   color: #6f6a60;
