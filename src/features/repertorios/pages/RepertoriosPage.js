@@ -301,13 +301,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
     filtered.forEach((musica) => {
       const item = document.createElement('button');
-      const key = getField(musica, ['tom', 'key']);
-      const keyLine = key && key !== '-' ? `<span>Tom: ${escapeHtml(key)}</span>` : '';
       item.type = 'button';
       item.className = 'song-search-item';
       item.innerHTML = `
         <strong>${escapeHtml(formatMusicaName(musica))}</strong>
-        ${keyLine}
       `;
 
       item.addEventListener('click', () => {
@@ -320,8 +317,8 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         message.className = 'form-message';
         renderSelected();
         renderResults();
-        resultsSlot.hidden = false;
-        searchInput.focus();
+        isPointerInsideResults = false;
+        resultsSlot.hidden = true;
         updateSubmitState();
       });
 
