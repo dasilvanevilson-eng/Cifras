@@ -127,11 +127,13 @@ function createSugestaoForm(session, musicas, onSaved) {
 
     filtered.forEach((musica) => {
       const item = document.createElement('button');
+      const key = getField(musica, ['tom', 'key']);
+      const keyLine = key && key !== '-' ? `<span>Tom: ${escapeHtml(key)}</span>` : '';
       item.type = 'button';
       item.className = 'song-search-item';
       item.innerHTML = `
         <strong>${escapeHtml(formatMusicaName(musica))}</strong>
-        <span>Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}</span>
+        ${keyLine}
       `;
 
       item.addEventListener('click', () => {

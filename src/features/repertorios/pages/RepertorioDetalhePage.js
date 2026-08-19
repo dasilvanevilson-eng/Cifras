@@ -443,12 +443,14 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
     filtered.forEach((musica) => {
       const item = document.createElement('button');
       const isAdded = musicasAdicionadas.has(musica.id);
+      const key = getField(musica, ['tom', 'key']);
+      const keyLine = key && key !== '-' ? `<span>Tom: ${escapeHtml(key)}</span>` : '';
       item.type = 'button';
       item.className = 'song-search-item';
       item.disabled = isAdded;
       item.innerHTML = `
         <strong>${escapeHtml(formatMusicaName(musica))}</strong>
-        <span>${isAdded ? 'Ja esta neste repertorio' : `Tom: ${escapeHtml(getField(musica, ['tom', 'key']))}`}</span>
+        ${isAdded ? '<span>Ja esta neste repertorio</span>' : keyLine}
       `;
 
       item.addEventListener('click', () => {
