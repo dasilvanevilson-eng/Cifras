@@ -34,7 +34,7 @@ export function MainNav(options = {}) {
   const links = getVisibleLinks(options);
 
   if (options.user) {
-    linksArea.innerHTML = createGroupedNavLinks(links);
+    linksArea.innerHTML = createFlatNavLinks(links);
     nav.insertAdjacentHTML('beforeend', createMobileQuickNav(links));
 
     drawerUser.textContent = getFirstName(options.profile?.nome) || options.user.email;
@@ -126,7 +126,9 @@ function getVisibleLinks(options = {}) {
     { href: '/convites-publicos', label: 'Convites publicos', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
   ];
 
-  return links.filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey));
+  return links
+    .filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey))
+    .sort((first, second) => first.label.localeCompare(second.label, 'pt-BR', { sensitivity: 'base' }));
 }
 
 function createNavLink(link) {
@@ -138,27 +140,8 @@ function createNavLink(link) {
   return `<a${classes ? ` class="${classes}"` : ''} href="${link.href}">${link.label}</a>`;
 }
 
-function createGroupedNavLinks(links) {
-  const groups = [];
-
-  links.forEach((link) => {
-    const groupLabel = link.group || 'Menu';
-    let group = groups.find((item) => item.label === groupLabel);
-
-    if (!group) {
-      group = { label: groupLabel, links: [] };
-      groups.push(group);
-    }
-
-    group.links.push(link);
-  });
-
-  return groups.map((group) => `
-    <section class="main-menu-section" aria-label="${group.label}">
-      <span class="main-menu-section-title">${group.label}</span>
-      ${group.links.map(createNavLink).join('')}
-    </section>
-  `).join('');
+function createFlatNavLinks(links) {
+  return links.map(createNavLink).join('');
 }
 
 function createMobileQuickNav(links) {
