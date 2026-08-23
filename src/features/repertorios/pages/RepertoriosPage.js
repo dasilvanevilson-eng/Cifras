@@ -899,7 +899,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser repertorios-browser';
   const editableHint = options.canEdit
-    ? 'Digite um nome para buscar. Se nenhum repertorio existir com esse nome, ele sera preparado como novo repertorio.'
+    ? 'Digite um nome para buscar. Se nenhum repertorio existir com esse nome, ele sera preparado como novo repertorio. Se pelo menos uma musica for acrescentada ao repertorio, o repertorio sera salvo automaticamente.'
     : 'Digite um nome ou data para buscar repertorios.';
   wrapper.innerHTML = `
     <div class="list-toolbar">
