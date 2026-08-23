@@ -10,7 +10,6 @@ import {
   updateMusica,
   MUSICA_VISIBILITY,
 } from '../../../services/musicasService.js';
-import { listOrganizations } from '../../../services/organizationsService.js';
 import { listShareableProfiles } from '../../../services/profilesService.js';
 import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasService.js';
 import { canEditContent } from '../../auth/roles.js';
@@ -20,13 +19,11 @@ const LIBRARY_SCOPES = [
   { key: 'community', label: 'Comunidade', visibility: MUSICA_VISIBILITY.PUBLICA },
   { key: 'mine', label: 'Minhas cifras', visibility: MUSICA_VISIBILITY.PRIVADA },
   { key: 'shared', label: 'Compartilhadas', visibility: MUSICA_VISIBILITY.COMPARTILHADA },
-  { key: 'organization', label: 'Organizacao', visibility: MUSICA_VISIBILITY.ORGANIZACAO },
 ];
 
 export async function MusicasPage({ session } = {}) {
   const canManageGlobalMusic = canEditContent(session?.profile?.papel) && hasPermission(session, 'musicas', 'can_edit');
   const canCreateMusic = Boolean(session?.user);
-  const activeOrganization = session?.activeOrganization || null;
   const page = document.createElement('section');
   page.className = `page musicas-page${canCreateMusic ? ' can-edit-music' : ' read-only-music'}`;
   page.innerHTML = `
@@ -59,26 +56,22 @@ export async function MusicasPage({ session } = {}) {
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
   const musicasCount = page.querySelector('[data-count="musicas"]');
-  let currentScope = activeOrganization ? 'community' : 'community';
+  let currentScope = 'community';
   let musicas = [];
   let users = [];
-  let organizations = [];
   let pendingNewMusicaTitle = '';
 
   try {
-    const [musicasResult, usersResult, organizationsResult] = await Promise.all([
+    const [musicasResult, usersResult] = await Promise.all([
       loadMusicasForScope(currentScope),
       listShareableProfiles(),
-      listOrganizations(),
     ]);
 
     if (musicasResult.error) throw musicasResult.error;
     if (usersResult.error) throw usersResult.error;
-    if (organizationsResult.error) throw organizationsResult.error;
 
     musicas = musicasResult.data || [];
     users = usersResult.data || [];
-    organizations = organizationsResult.data || [];
     musicasCount.textContent = String(musicas.length);
 
     const pendingSugestao = canManageGlobalMusic ? readPendingSugestaoMusica() : null;
@@ -92,9 +85,7 @@ export async function MusicasPage({ session } = {}) {
         pendingSugestao,
         session,
         users,
-        organizations,
         scope: currentScope,
-        activeOrganization,
         canManageGlobalMusic,
         hideTitleField: true,
         onAfterSave: handleSavedMusica,
@@ -133,7 +124,6 @@ export async function MusicasPage({ session } = {}) {
       query,
       limit: 120,
       userId: session?.user?.id,
-      organizationId: activeOrganization?.id,
     });
   }
 
@@ -143,7 +133,6 @@ export async function MusicasPage({ session } = {}) {
       canCreate: canCreateMusic,
       canManageGlobalMusic,
       currentScope,
-      activeOrganization,
       onScopeChange: setScope,
       onCreateDraft: (title) => {
         pendingNewMusicaTitle = title.trim();
@@ -152,9 +141,7 @@ export async function MusicasPage({ session } = {}) {
           initialTitle: pendingNewMusicaTitle,
           session,
           users,
-          organizations,
           scope: currentScope,
-          activeOrganization,
           canManageGlobalMusic,
           hideTitleField: true,
           onAfterSave: handleSavedMusica,
@@ -169,9 +156,7 @@ export async function MusicasPage({ session } = {}) {
           selectedMusica: musica,
           session,
           users,
-          organizations,
           scope: currentScope,
-          activeOrganization,
           canManageGlobalMusic,
           hideTitleField: true,
           onAfterSave: handleSavedMusica,
@@ -200,9 +185,7 @@ export async function MusicasPage({ session } = {}) {
       selectedMusica: data,
       session,
       users,
-      organizations,
       scope: 'mine',
-      activeOrganization,
       canManageGlobalMusic,
       hideTitleField: true,
       onAfterSave: handleSavedMusica,
@@ -212,8 +195,8 @@ export async function MusicasPage({ session } = {}) {
   }
 
   async function shareMusica(musica) {
-    const dialog = createShareDialog(musica, users, organizations, async ({ userShares, groupShares }) => {
-      const { error } = await replaceMusicaCompartilhamentos(musica.id, userShares, groupShares);
+    const dialog = createShareDialog(musica, users, async ({ userShares }) => {
+      const { error } = await replaceMusicaCompartilhamentos(musica.id, userShares, []);
 
       if (error) {
         throw error;
@@ -228,7 +211,7 @@ export async function MusicasPage({ session } = {}) {
     const existingIndex = musicas.findIndex((item) => item.id === savedMusica.id);
     if (existingIndex >= 0) {
       musicas[existingIndex] = savedMusica;
-    } else if (isMusicaInScope(savedMusica, currentScope, session, activeOrganization)) {
+    } else if (isMusicaInScope(savedMusica, currentScope, session)) {
       musicas.push(savedMusica);
     }
 
@@ -238,9 +221,7 @@ export async function MusicasPage({ session } = {}) {
       selectedMusica: savedMusica || previousMusica,
       session,
       users,
-      organizations,
       scope: currentScope,
-      activeOrganization,
       canManageGlobalMusic,
       hideTitleField: true,
       onAfterSave: handleSavedMusica,
@@ -265,9 +246,7 @@ function renderForm(formSlot, {
   initialTitle = '',
   session = {},
   users = [],
-  organizations = [],
   scope = 'community',
-  activeOrganization = null,
   canManageGlobalMusic = false,
   hideTitleField = false,
   onAfterSave = null,
@@ -295,9 +274,7 @@ function renderForm(formSlot, {
           selectedMusica: data,
           session,
           users,
-          organizations,
           scope: 'mine',
-          activeOrganization,
           canManageGlobalMusic,
           hideTitleField,
           onAfterSave,
@@ -313,7 +290,6 @@ function renderForm(formSlot, {
     scope,
     selectedMusica,
     users,
-    organizations,
     content: MusicaForm({
       initialValues: {
         titulo: initialValues.titulo || initialTitle || '',
@@ -333,7 +309,7 @@ function renderForm(formSlot, {
       hideTitleField,
       onClear: () => {
         clearPendingSugestaoMusica();
-        renderForm(formSlot, { session, users, organizations, scope, activeOrganization, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete });
+        renderForm(formSlot, { session, users, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete });
       },
       onDelete: selectedMusica
         ? async () => {
@@ -343,13 +319,13 @@ function renderForm(formSlot, {
             return false;
           }
 
-          renderForm(formSlot, { session, users, organizations, scope, activeOrganization, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete });
+          renderForm(formSlot, { session, users, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete });
           onAfterDelete?.(selectedMusica);
           return true;
         }
         : null,
       onSubmit: async (musica) => {
-        const ownershipValues = getOwnershipValues(formSlot, scope, activeOrganization);
+        const ownershipValues = getOwnershipValues(formSlot, scope);
         const payload = {
           ...musica,
           ...ownershipValues,
@@ -381,7 +357,7 @@ function renderForm(formSlot, {
   }));
 }
 
-function createMusicaOwnershipShell({ scope, selectedMusica, users, organizations, content }) {
+function createMusicaOwnershipShell({ scope, selectedMusica, users, content }) {
   const wrapper = document.createElement('div');
   wrapper.className = 'musica-ownership-shell';
   const currentVisibility = selectedMusica?.visibility || getDefaultVisibilityForScope(scope);
@@ -392,14 +368,6 @@ function createMusicaOwnershipShell({ scope, selectedMusica, users, organization
         <select data-role="music-visibility">
           <option value="publica"${currentVisibility === 'publica' ? ' selected' : ''}>Comunidade publica</option>
           <option value="privada"${currentVisibility === 'privada' ? ' selected' : ''}>Meu acervo privado</option>
-          <option value="organizacao"${currentVisibility === 'organizacao' ? ' selected' : ''}>Organizacao</option>
-        </select>
-      </label>
-      <label data-role="music-organization-field">
-        Organizacao
-        <select data-role="music-organization">
-          <option value="">Sem organizacao</option>
-          ${organizations.map((organization) => `<option value="${escapeHtml(organization.id)}"${selectedMusica?.organization_id === organization.id ? ' selected' : ''}>${escapeHtml(organization.nome)}</option>`).join('')}
         </select>
       </label>
       <span class="music-scope-hint">${escapeHtml(getVisibilityHint(currentVisibility))}</span>
@@ -408,11 +376,9 @@ function createMusicaOwnershipShell({ scope, selectedMusica, users, organization
   wrapper.append(content);
 
   const visibilitySelect = wrapper.querySelector('[data-role="music-visibility"]');
-  const organizationField = wrapper.querySelector('[data-role="music-organization-field"]');
   const hint = wrapper.querySelector('.music-scope-hint');
 
   function syncOwnershipUi() {
-    organizationField.hidden = visibilitySelect.value !== 'organizacao';
     hint.textContent = getVisibilityHint(visibilitySelect.value);
   }
 
@@ -422,13 +388,12 @@ function createMusicaOwnershipShell({ scope, selectedMusica, users, organization
   return wrapper;
 }
 
-function getOwnershipValues(formSlot, scope, activeOrganization) {
+function getOwnershipValues(formSlot, scope) {
   const visibility = formSlot.querySelector('[data-role="music-visibility"]')?.value || getDefaultVisibilityForScope(scope);
-  const organizationId = formSlot.querySelector('[data-role="music-organization"]')?.value || activeOrganization?.id || null;
 
   return {
     visibility,
-    organization_id: visibility === 'organizacao' ? organizationId : null,
+    organization_id: null,
   };
 }
 
@@ -654,7 +619,7 @@ function createLockedMusicaPanel(musica, options = {}) {
   return panel;
 }
 
-function createShareDialog(musica, users, organizations, onSave) {
+function createShareDialog(musica, users, onSave) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-backdrop music-share-backdrop';
   overlay.innerHTML = `
@@ -671,17 +636,6 @@ function createShareDialog(musica, users, organizations, onSave) {
       <label class="checkbox-field">
         <input name="user_can_edit" type="checkbox">
         Usuario pode editar
-      </label>
-      <label>
-        Grupo/organizacao
-        <select name="organization_id">
-          <option value="">Nao compartilhar com grupo</option>
-          ${organizations.map((organization) => `<option value="${escapeHtml(organization.id)}">${escapeHtml(organization.nome)}</option>`).join('')}
-        </select>
-      </label>
-      <label class="checkbox-field">
-        <input name="group_can_edit" type="checkbox">
-        Grupo pode editar
       </label>
       <p class="form-message" aria-live="polite"></p>
       <div class="modal-actions">
@@ -700,15 +654,13 @@ function createShareDialog(musica, users, organizations, onSave) {
     event.preventDefault();
     const formData = new FormData(form);
     const userId = String(formData.get('user_id') || '');
-    const organizationId = String(formData.get('organization_id') || '');
     const userShares = userId ? [{ user_id: userId, can_edit: formData.has('user_can_edit') }] : [];
-    const groupShares = organizationId ? [{ organization_id: organizationId, can_edit: formData.has('group_can_edit') }] : [];
 
     message.className = 'form-message';
     message.textContent = 'Salvando...';
 
     try {
-      await onSave({ userShares, groupShares });
+      await onSave({ userShares });
       message.className = 'form-message success';
       message.textContent = 'Compartilhamento salvo.';
       window.setTimeout(() => overlay.remove(), 600);
@@ -882,13 +834,11 @@ function getDefaultVisibilityForScope(scope) {
 
 function getVisibilityHint(visibility) {
   if (visibility === MUSICA_VISIBILITY.PRIVADA) return 'Somente voce acessa esta versao.';
-  if (visibility === MUSICA_VISIBILITY.ORGANIZACAO) return 'Membros da organizacao acessam conforme permissao.';
   return 'Todos os usuarios autenticados podem acessar esta cifra.';
 }
 
 function getMusicaScopeLabel(musica) {
   if (musica.visibility === MUSICA_VISIBILITY.PRIVADA) return 'Minha';
-  if (musica.visibility === MUSICA_VISIBILITY.ORGANIZACAO) return 'Organizacao';
   if (musica.visibility === MUSICA_VISIBILITY.COMPARTILHADA) return 'Compartilhada';
   return 'Comunidade';
 }
@@ -904,10 +854,9 @@ function canEditMusicaRecord(musica, session = {}, canManageGlobalMusic = false)
   return Boolean(canManageGlobalMusic || isOwnedByCurrentUser(musica, session));
 }
 
-function isMusicaInScope(musica, scope, session = {}, activeOrganization = null) {
+function isMusicaInScope(musica, scope, session = {}) {
   if (scope === 'community') return musica.visibility === MUSICA_VISIBILITY.PUBLICA;
   if (scope === 'mine') return isOwnedByCurrentUser(musica, session);
-  if (scope === 'organization') return musica.organization_id === activeOrganization?.id;
   if (scope === 'shared') return musica.visibility === MUSICA_VISIBILITY.COMPARTILHADA;
   return true;
 }

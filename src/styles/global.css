@@ -9602,7 +9602,7 @@ body.has-touch-nav .app-layout {
 
 .musica-ownership-bar {
   display: grid;
-  grid-template-columns: minmax(180px, .7fr) minmax(180px, .8fr) minmax(160px, 1fr);
+  grid-template-columns: minmax(180px, .7fr) minmax(160px, 1fr);
   gap: 10px;
   align-items: end;
   border: 1px solid rgba(184, 199, 189, .72);

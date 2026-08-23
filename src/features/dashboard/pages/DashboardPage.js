@@ -138,20 +138,6 @@ function createDashboardQuickActions(publicMode = false) {
       href: '/repertorios',
       tone: 'secondary',
     },
-    {
-      label: 'Banda/Coral',
-      description: 'Abrir a area de palco compartilhado.',
-      icon: '◉',
-      href: '/banda-coral',
-      tone: 'accent',
-    },
-    {
-      label: 'Letras',
-      description: 'Consultar letras sem foco em cifra.',
-      icon: 'Aa',
-      href: '/musicas-letras',
-      tone: 'neutral',
-    },
   ];
 
   return `
