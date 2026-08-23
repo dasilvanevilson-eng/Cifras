@@ -41,6 +41,8 @@ export async function createRepertorio(repertorio) {
   const repertorioData = {
     id: crypto.randomUUID(),
     ...repertorio,
+    visibilidade: 'privado',
+    permite_edicao_compartilhada: false,
     criado_por: user.id,
     criado_por_nome: repertorio.criado_por_nome || profile?.nome || user.email || 'Usuario',
   };
@@ -81,14 +83,16 @@ export async function createRepertorioComMusicas(repertorio, musicas = [], compa
     return { data: null, error: associacoesError };
   }
 
-  const { error: compartilhamentoError } = await replaceRepertorioCompartilhamentos(
-    novoRepertorio.id,
-    repertorio.visibilidade === 'seletivo' ? compartilhadoCom : [],
-  );
+  if (repertorio.visibilidade === 'seletivo' && compartilhadoCom.length) {
+    const { error: compartilhamentoError } = await replaceRepertorioCompartilhamentos(
+      novoRepertorio.id,
+      compartilhadoCom,
+    );
 
-  if (compartilhamentoError) {
-    await deleteRepertorio(novoRepertorio.id);
-    return { data: null, error: compartilhamentoError };
+    if (compartilhamentoError) {
+      await deleteRepertorio(novoRepertorio.id);
+      return { data: null, error: compartilhamentoError };
+    }
   }
 
   return { data: novoRepertorio, error: null };
@@ -153,6 +157,8 @@ export async function duplicateRepertorio(repertorio, musicasAssociadas = []) {
   const { data: novoRepertorio, error: repertorioError } = await createRepertorio({
     nome: `${repertorio.nome || 'Repertorio'} - copia`,
     data: repertorio.data || null,
+    visibilidade: 'privado',
+    permite_edicao_compartilhada: false,
   });
 
   if (repertorioError) {

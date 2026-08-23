@@ -1,5 +1,3 @@
-import { RepertorioPrivacyFields, getRepertorioPrivacyValues } from './RepertorioPrivacyFields.js';
-
 export function RepertorioForm(options = {}) {
   const form = document.createElement('form');
   const initialValues = options.initialValues || {};
@@ -19,13 +17,6 @@ export function RepertorioForm(options = {}) {
     <p class="form-message" aria-live="polite"></p>
   `;
 
-  if (options.showPrivacyFields !== false) {
-    form.querySelector('button').before(RepertorioPrivacyFields({
-      users: options.users || [],
-      initialValues,
-    }));
-  }
-
   const message = form.querySelector('.form-message');
   const button = form.querySelector('button');
 
@@ -40,16 +31,12 @@ export function RepertorioForm(options = {}) {
 
     try {
       const formData = new FormData(form);
-      const privacyValues = getRepertorioPrivacyValues(form);
-      if (privacyValues.repertorio.visibilidade === 'seletivo' && !privacyValues.compartilhadoCom.length) {
-        throw new Error('Selecione pelo menos um usuario para o compartilhamento seletivo.');
-      }
 
       await options.onSubmit({
         nome: String(formData.get('nome') || '').trim(),
         data: String(formData.get('data') || '') || null,
-        ...privacyValues.repertorio,
-        compartilhadoCom: privacyValues.compartilhadoCom,
+        visibilidade: 'privado',
+        permite_edicao_compartilhada: false,
       });
 
       if (!options.keepValuesAfterSubmit) {

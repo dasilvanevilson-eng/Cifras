@@ -5,7 +5,6 @@ import {
   duplicateRepertorio,
   getRepertorioById,
   listMusicasDoRepertorio,
-  listRepertorioCompartilhamentos,
   listRepertorioHistorico,
   removeMusicaDoRepertorio,
   updateObservacaoMusicaRepertorio,
@@ -36,19 +35,16 @@ export async function RepertorioDetalhePage({ session } = {}) {
       { data: repertorio, error: repertorioError },
       musicasAssociadas,
       { data: musicas, error: musicasError },
-      { data: compartilhamentos, error: compartilhamentosError },
       { data: historico, error: historicoError },
     ] = await Promise.all([
       getRepertorioById(id),
       loadMusicasDoRepertorio(id),
       listMusicas(),
-      listRepertorioCompartilhamentos(id),
       listRepertorioHistorico(id),
     ]);
 
     if (repertorioError) throw repertorioError;
     if (musicasError) throw musicasError;
-    if (compartilhamentosError) throw compartilhamentosError;
     if (historicoError) throw historicoError;
 
     addRecentItem({
@@ -63,7 +59,7 @@ export async function RepertorioDetalhePage({ session } = {}) {
       musicasAssociadas,
       musicas: musicas || [],
       historico: historico || [],
-      canEdit: canEditRepertorio(repertorio, compartilhamentos || [], session),
+      canEdit: canEditRepertorio(repertorio, session),
       returnTo,
     }));
   } catch (error) {
@@ -183,8 +179,8 @@ function setupRepertorioTitleInput(input, message, repertorio) {
     const { error } = await updateRepertorio(repertorio.id, {
       nome: nextValue,
       data: repertorio.data || null,
-      visibilidade: repertorio.visibilidade || 'publico',
-      permite_edicao_compartilhada: Boolean(repertorio.permite_edicao_compartilhada),
+      visibilidade: 'privado',
+      permite_edicao_compartilhada: false,
     });
 
     input.disabled = false;
@@ -289,7 +285,6 @@ function formatHistoryDetails(details) {
     details.musica,
     details.usuario,
     details.nome_novo && details.nome_anterior !== details.nome_novo ? `Nome: ${details.nome_novo}` : '',
-    details.visibilidade_nova && details.visibilidade_anterior !== details.visibilidade_nova ? `Privacidade: ${details.visibilidade_nova}` : '',
     details.ordem_nova && details.ordem_anterior !== details.ordem_nova ? `Ordem: ${details.ordem_nova}` : '',
     details.tom_novo && details.tom_anterior !== details.tom_novo ? `Tom: ${details.tom_novo}` : '',
     details.observacao_nova && details.observacao_anterior !== details.observacao_nova ? `Momento: ${details.observacao_nova}` : '',
@@ -298,7 +293,7 @@ function formatHistoryDetails(details) {
   return values.join(' | ');
 }
 
-function canEditRepertorio(repertorio, compartilhamentos, session = {}) {
+function canEditRepertorio(repertorio, session = {}) {
   if (!canEditContent(session?.profile?.papel)) {
     return false;
   }
@@ -309,18 +304,6 @@ function canEditRepertorio(repertorio, compartilhamentos, session = {}) {
 
   if (repertorio?.criado_por && repertorio.criado_por === session?.user?.id) {
     return true;
-  }
-
-  if (!repertorio?.permite_edicao_compartilhada) {
-    return false;
-  }
-
-  if (repertorio.visibilidade === 'publico') {
-    return true;
-  }
-
-  if (repertorio.visibilidade === 'seletivo') {
-    return compartilhamentos.some((item) => item.user_id === session?.user?.id);
   }
 
   return false;
