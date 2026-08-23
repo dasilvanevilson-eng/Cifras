@@ -35,6 +35,7 @@ export function MainNav(options = {}) {
 
   if (options.user) {
     linksArea.innerHTML = createGroupedNavLinks(links);
+    nav.insertAdjacentHTML('beforeend', createMobileQuickNav(links));
 
     drawerUser.textContent = getFirstName(options.profile?.nome) || options.user.email;
 
@@ -158,6 +159,25 @@ function createGroupedNavLinks(links) {
       ${group.links.map(createNavLink).join('')}
     </section>
   `).join('');
+}
+
+function createMobileQuickNav(links) {
+  const quickLinks = [
+    { href: '/dashboard', label: 'Painel' },
+    { href: '/repertorios', label: 'Repertorios' },
+    { href: '/musicas', label: 'Cifras' },
+    { href: '/banda-coral', label: 'Banda' },
+  ]
+    .map((item) => links.find((link) => link.href === item.href) || null)
+    .filter(Boolean);
+
+  if (!quickLinks.length) return '';
+
+  return `
+    <div class="mobile-quick-nav" aria-label="Navegacao rapida">
+      ${quickLinks.map((link) => `<a class="${isActiveNavLink(link.match) ? 'is-active' : ''}" href="${link.href}">${link.label}</a>`).join('')}
+    </div>
+  `;
 }
 
 function isActiveNavLink(paths = []) {

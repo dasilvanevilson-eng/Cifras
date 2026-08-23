@@ -54,8 +54,34 @@ export async function RepertoriosPage({ session } = {}) {
   const status = page.querySelector('.page-status');
   const repertoriosCount = page.querySelector('[data-count="repertorios"]');
   let loadedRepertorios = [];
+  let musicasCache = null;
+  let usersCache = null;
   let pendingNewRepertorioName = '';
   const restoredDraft = readRepertorioDraftFromUrl();
+
+  async function loadMusicasOnce() {
+    if (musicasCache) {
+      return { data: musicasCache, error: null };
+    }
+
+    const result = await listMusicas();
+    if (!result.error) {
+      musicasCache = result.data || [];
+    }
+    return result;
+  }
+
+  async function loadUsersOnce() {
+    if (usersCache) {
+      return { data: usersCache, error: null };
+    }
+
+    const result = await listShareableProfiles();
+    if (!result.error) {
+      usersCache = result.data || [];
+    }
+    return result;
+  }
 
   async function renderForm(selectedRepertorio = null, options = {}) {
     if (!canEdit) return;
@@ -66,6 +92,8 @@ export async function RepertoriosPage({ session } = {}) {
       selectedRepertorio,
       initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
       draft: options.draft || null,
+      loadMusicas: loadMusicasOnce,
+      loadUsers: loadUsersOnce,
       onNew: () => {
         pendingNewRepertorioName = '';
         clearCurrentRepertorioDraft();
@@ -127,7 +155,15 @@ export async function RepertoriosPage({ session } = {}) {
   return page;
 }
 
-async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedRepertorio = null, initialName = '', draft = null, onNew } = {}) {
+async function createRepertorioUnifiedForm({
+  existingRepertorios = [],
+  selectedRepertorio = null,
+  initialName = '',
+  draft = null,
+  loadMusicas = listMusicas,
+  loadUsers = listShareableProfiles,
+  onNew,
+} = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'new-repertorio-panel';
   wrapper.innerHTML = '<p class="page-status">Carregando musicas...</p>';
@@ -139,8 +175,8 @@ async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedR
     { data: compartilhamentos, error: compartilhamentosError },
     { data: historico, error: historicoError },
   ] = await Promise.all([
-    listMusicas(),
-    listShareableProfiles(),
+    loadMusicas(),
+    loadUsers(),
     ...(selectedRepertorio ? [
       listMusicasDoRepertorio(selectedRepertorio.id),
       listRepertorioCompartilhamentos(selectedRepertorio.id),
