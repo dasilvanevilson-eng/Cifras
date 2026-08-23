@@ -111,7 +111,6 @@ function getVisibleLinks(options = {}) {
     { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
     { href: '/modo-offline', label: 'Modo Offline', group: 'Uso', moduleKey: 'modo_offline', match: ['/modo-offline'] },
     { href: '/agenda', label: 'Agenda', group: 'Uso', moduleKey: 'agenda', match: ['/agenda'] },
-    { href: '/banda-coral', label: 'Modo Banda/Coral', group: 'Uso', moduleKey: 'banda_coral', match: ['/banda-coral'] },
     { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
     { href: '/acordes', label: 'Dicionario de acordes', group: 'Acervo', moduleKey: 'acordes', match: ['/acordes'] },
@@ -149,7 +148,6 @@ function createMobileQuickNav(links) {
     { href: '/dashboard', label: 'Painel' },
     { href: '/repertorios', label: 'Repertorios' },
     { href: '/musicas', label: 'Cifras' },
-    { href: '/banda-coral', label: 'Banda' },
   ]
     .map((item) => links.find((link) => link.href === item.href) || null)
     .filter(Boolean);
