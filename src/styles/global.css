@@ -9409,6 +9409,24 @@ body.has-touch-nav .app-layout {
   gap: 10px;
 }
 
+.music-scope-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.music-scope-tabs .nav-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+}
+
+.music-scope-tabs .nav-button.is-active {
+  border-color: rgba(22, 117, 101, 0.38);
+  background: var(--color-primary);
+  color: #fff;
+}
+
 .music-library-search {
   display: grid;
   gap: 6px;
@@ -9578,6 +9596,136 @@ body.has-touch-nav .app-layout {
   grid-template-columns: 1fr;
 }
 
+.musica-ownership-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.musica-ownership-bar {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(180px, .8fr) minmax(160px, 1fr);
+  gap: 10px;
+  align-items: end;
+  border: 1px solid rgba(184, 199, 189, .72);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-bg-soft);
+}
+
+.musica-ownership-bar label {
+  display: grid;
+  gap: 5px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.musica-ownership-bar select {
+  min-height: 42px;
+  width: 100%;
+}
+
+.music-scope-hint {
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.musica-locked-panel {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.musica-locked-panel p {
+  margin: 4px 0 0;
+}
+
+.music-share-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(8, 20, 15, .56);
+}
+
+.music-share-dialog {
+  display: grid;
+  gap: 12px;
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.music-share-dialog h2,
+.music-share-dialog p {
+  margin: 0;
+}
+
+.music-share-dialog label {
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.music-share-dialog select {
+  min-height: 44px;
+  width: 100%;
+}
+
+.music-share-dialog .checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text);
+}
+
+.music-share-dialog .checkbox-field input {
+  width: 18px;
+  height: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.song-search-scope,
+.selected-repertorio-song-scope {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid rgba(22, 117, 101, .18);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.song-search-item {
+  gap: 6px;
+}
+
+.selected-repertorio-song > div {
+  display: grid;
+  gap: 5px;
+}
+
 @media (max-width: 760px) {
   .musicas-hero,
   .music-library-panel,
@@ -9604,6 +9752,18 @@ body.has-touch-nav .app-layout {
 
   .music-library-mode {
     width: fit-content;
+  }
+
+  .music-scope-tabs {
+    margin-inline: -2px;
+  }
+
+  .musica-ownership-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .musica-locked-panel {
+    display: grid;
   }
 
   .musicas-results-list {

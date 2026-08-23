@@ -249,7 +249,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       </div>
       <label class="repertorio-song-search-field">
         Buscar musica
-        <input class="song-search-input" type="search" placeholder="Buscar por musica ou artista" autocomplete="off">
+        <input class="song-search-input" type="search" placeholder="Buscar pelo titulo da musica" autocomplete="off">
       </label>
       <div class="song-search-results" hidden></div>
       <div class="selected-repertorio-songs"></div>
@@ -345,6 +345,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       item.className = 'song-search-item';
       item.innerHTML = `
         <strong>${escapeHtml(formatMusicaName(musica))}</strong>
+        <span class="song-search-scope">${escapeHtml(getMusicaScopeLabel(musica))}</span>
       `;
 
       item.addEventListener('click', () => {
@@ -389,6 +390,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         <button class="danger-button selected-repertorio-remove" type="button" aria-label="Remover musica">X</button>
         <div>
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
+          <span class="selected-repertorio-song-scope">${escapeHtml(getMusicaScopeLabel(musica))}</span>
         </div>
         <a class="nav-button icon-button selected-repertorio-play" href="${escapeHtml(getMusicaExecucaoUrl(musica))}" aria-label="Executar ${escapeHtml(formatMusicaName(musica))}" title="Executar musica">&#9654;</a>
         <label class="selected-repertorio-song-moment">
@@ -910,17 +912,20 @@ function sortMusicasByName(musicas) {
 function matchesMusicaSearch(musica, query) {
   if (!query) return true;
 
-  return normalizeText([
-    getField(musica, ['titulo', 'nome', 'title']),
-    getField(musica, ['artista', 'autor', 'artist']),
-    getField(musica, ['tags']),
-  ].join(' ')).includes(query);
+  return normalizeText(getField(musica, ['titulo', 'nome', 'title'])).includes(query);
 }
 
 function formatMusicaName(musica) {
   const titulo = getField(musica, ['titulo', 'nome', 'title']);
   const artista = getField(musica, ['artista', 'autor', 'artist']);
   return artista && artista !== '-' ? `${titulo} - ${artista}` : titulo;
+}
+
+function getMusicaScopeLabel(musica) {
+  if (musica?.visibility === 'privada') return 'Minha cifra';
+  if (musica?.visibility === 'organizacao') return 'Organizacao';
+  if (musica?.visibility === 'compartilhada') return 'Compartilhada';
+  return 'Comunidade';
 }
 
 function normalizeText(value) {

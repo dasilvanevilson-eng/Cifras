@@ -7,6 +7,7 @@ import { getPublicSystemSettings } from '../services/settingsService.js';
 import { canEditContent } from '../features/auth/roles.js';
 import { resolvePermissions } from '../features/auth/permissions.js';
 import { listCurrentUserPermissionOverrides } from '../services/permissionsService.js';
+import { listCurrentUserOrganizations } from '../services/organizationsService.js';
 import { installYoutubeFloatingPlayer } from '../utils/youtubePlayer.js';
 import { applySystemSettings } from '../utils/systemSettings.js';
 
@@ -73,8 +74,10 @@ async function loadSession() {
     }
 
     const profile = await loadProfile(user);
+    const organizations = await loadOrganizations(user.id);
+    const activeOrganization = organizations[0]?.organizations || organizations[0] || null;
     const permissions = await loadPermissions(user.id, profile);
-    return { user, profile, permissions };
+    return { user, profile, permissions, organizations, activeOrganization };
   } catch (error) {
     return { user: null, profile: null };
   }
@@ -100,5 +103,19 @@ async function loadPermissions(userId, profile) {
     return resolvePermissions(profile?.papel, data || []);
   } catch (_error) {
     return resolvePermissions(profile?.papel);
+  }
+}
+
+async function loadOrganizations(userId) {
+  try {
+    const { data, error } = await listCurrentUserOrganizations(userId);
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (_error) {
+    return [];
   }
 }
