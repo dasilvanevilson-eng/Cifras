@@ -26,7 +26,7 @@ export async function MusicasPage({ session } = {}) {
       <div class="music-library-heading">
         <div>
           <h2>Buscar ou criar cifra</h2>
-          <p data-section-info>${canEdit ? 'Pesquise pelo titulo para encontrar uma cifra existente e edita-la. Quando nao houver resultado, o mesmo fluxo permite iniciar um novo cadastro no acervo.' : 'Pesquise por titulo, artista, tag ou trecho da letra para localizar e executar as cifras liberadas para o seu acesso.'}</p>
+          <p data-section-info>${canEdit ? 'Pesquise pelo titulo para encontrar uma cifra existente e edita-la. Quando nao houver resultado, o mesmo fluxo permite iniciar um novo cadastro no acervo.' : 'Pesquise pelo titulo para localizar e executar as cifras liberadas para o seu acesso.'}</p>
         </div>
         <span class="music-library-mode">${canEdit ? 'Modo edicao consulta alteracao exclusao' : 'Modo execucao'}</span>
       </div>
@@ -343,7 +343,7 @@ function createMusicasBrowser(musicas, options = {}) {
     <div class="list-toolbar">
       <label class="music-library-search">
         <span>${options.canEdit ? 'Titulo da cifra' : 'Buscar no acervo'}</span>
-        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Digite o titulo da cifra' : 'Titulo, artista ou trecho da cifra'}">
+        <input class="search-input" type="search" placeholder="Digite o titulo da cifra">
       </label>
     </div>
     <div class="table-slot search-results" hidden></div>
@@ -541,16 +541,9 @@ function getReadOnlyMusicaUrl(id) {
 function matchesSearch(musica, query) {
   if (!query) return true;
 
-  const searchableText = [
-    getField(musica, ['titulo', 'nome', 'title']),
-    getField(musica, ['artista', 'autor', 'artist']),
-    getField(musica, ['tags']),
-    getField(musica, ['musica_link']),
-    getField(musica, ['cifra_original']),
-    getField(musica, ['cifra_chordpro', 'chordpro', 'conteudo_chordpro']),
-  ].join(' ');
+  const title = getField(musica, ['titulo', 'nome', 'title']);
 
-  return normalizeText(searchableText).includes(query);
+  return normalizeText(title).includes(query);
 }
 
 function formatTags(value) {
