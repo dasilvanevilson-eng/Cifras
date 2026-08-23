@@ -46,6 +46,7 @@ export async function MusicasPage({ session } = {}) {
   const status = page.querySelector('.page-status');
   const musicasCount = page.querySelector('[data-count="musicas"]');
   let pendingNewMusicaTitle = '';
+  let musicas = [];
 
   try {
     const { data, error } = await listMusicas();
@@ -54,7 +55,7 @@ export async function MusicasPage({ session } = {}) {
       throw error;
     }
 
-    const musicas = data || [];
+    musicas = data || [];
     musicasCount.textContent = String(musicas.length);
     const pendingSugestao = canEdit ? readPendingSugestaoMusica() : null;
     const pendingSugestaoMusica = pendingSugestao?.tipo_sugestao === 'ajuste'
@@ -68,6 +69,8 @@ export async function MusicasPage({ session } = {}) {
         pendingSugestao,
         session,
         hideTitleField: true,
+        onAfterSave: handleSavedMusica,
+        onAfterDelete: handleDeletedMusica,
       });
     } else {
       formSlot.append(createReadOnlyNotice(
@@ -85,6 +88,16 @@ export async function MusicasPage({ session } = {}) {
       return page;
     }
 
+    renderBrowser();
+  } catch (error) {
+    status.className = 'page-status error';
+    status.textContent = error.message || 'Nao foi possivel carregar as musicas.';
+  }
+
+  return page;
+
+  function renderBrowser() {
+    musicasCount.textContent = String(musicas.length);
     listSlot.replaceChildren(createMusicasBrowser(musicas, {
       canEdit,
       onCreateDraft: (title) => {
@@ -95,24 +108,56 @@ export async function MusicasPage({ session } = {}) {
           initialTitle: pendingNewMusicaTitle,
           session,
           hideTitleField: true,
+          onAfterSave: handleSavedMusica,
+          onAfterDelete: handleDeletedMusica,
         });
+        window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
       },
       onSelect: (musica) => {
         pendingNewMusicaTitle = '';
         clearPendingSugestaoMusica();
-        renderForm(formSlot, { musicas, selectedMusica: musica, session, hideTitleField: true });
+        renderForm(formSlot, {
+          musicas,
+          selectedMusica: musica,
+          session,
+          hideTitleField: true,
+          onAfterSave: handleSavedMusica,
+          onAfterDelete: handleDeletedMusica,
+        });
         window.scrollTo({ top: formSlot.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
       },
     }));
-  } catch (error) {
-    status.className = 'page-status error';
-    status.textContent = error.message || 'Nao foi possivel carregar as musicas.';
   }
 
-  return page;
+  function handleSavedMusica(savedMusica, previousMusica = null) {
+    if (!savedMusica?.id) return;
+
+    const existingIndex = musicas.findIndex((item) => item.id === savedMusica.id);
+    if (existingIndex >= 0) {
+      musicas[existingIndex] = savedMusica;
+    } else {
+      musicas.push(savedMusica);
+    }
+
+    pendingNewMusicaTitle = '';
+    renderBrowser();
+    renderForm(formSlot, {
+      musicas,
+      selectedMusica: savedMusica || previousMusica,
+      session,
+      hideTitleField: true,
+      onAfterSave: handleSavedMusica,
+      onAfterDelete: handleDeletedMusica,
+    });
+  }
+
+  function handleDeletedMusica() {
+    pendingNewMusicaTitle = '';
+    renderBrowser();
+  }
 }
 
-function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, initialTitle = '', session = {}, hideTitleField = false }) {
+function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao = null, initialTitle = '', session = {}, hideTitleField = false, onAfterSave = null, onAfterDelete = null }) {
   const initialValues = pendingSugestao || selectedMusica || {};
   const reviewerName = getReviewerName(session);
 
@@ -147,6 +192,7 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
 
         removeMusicaFromList(musicas, selectedMusica.id);
         renderForm(formSlot, { musicas, session, hideTitleField });
+        onAfterDelete?.(selectedMusica);
         return true;
       }
       : null,
@@ -172,8 +218,7 @@ function renderForm(formSlot, { musicas, selectedMusica = null, pendingSugestao 
         clearPendingSugestaoMusica();
       }
 
-      window.location.href = '/musicas';
-      return;
+      onAfterSave?.(result.data, selectedMusica);
     },
   }));
 }
@@ -308,8 +353,6 @@ function createMusicasBrowser(musicas, options = {}) {
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
   let currentResults = [];
-  let createDraftTimer = null;
-  let lastDraftTitle = '';
 
   function getSearchValue() {
     return searchInput.value.trim();
@@ -322,42 +365,21 @@ function createMusicasBrowser(musicas, options = {}) {
     return musicas.find((musica) => normalizeText(getField(musica, ['titulo', 'nome', 'title'])) === query) || null;
   }
 
-  function scheduleCreateDraft() {
-    if (!options.onCreateDraft) return;
-
-    window.clearTimeout(createDraftTimer);
-    createDraftTimer = window.setTimeout(() => {
-      const value = getSearchValue();
-      const exactMatch = findExactMusica(value);
-
-      if (!value || exactMatch || normalizeText(value) === normalizeText(lastDraftTitle)) return;
-
-      lastDraftTitle = value;
-      options.onCreateDraft(value);
-    }, 220);
-  }
-
   function render() {
-    const query = normalizeText(searchInput.value);
+    const value = getSearchValue();
+    const query = normalizeText(value);
     currentResults = musicas
       .filter((musica) => matchesSearch(musica, query))
       .sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
 
     if (!currentResults.length) {
-      const empty = document.createElement('p');
-      empty.className = 'page-status';
-      empty.textContent = options.canEdit
-        ? 'Nenhuma cifra encontrada. O formulario abaixo sera preparado para incluir este titulo.'
-        : 'Nenhuma musica encontrada para esta busca.';
-      tableSlot.replaceChildren(empty);
+      tableSlot.replaceChildren(createEmptySearchResult(value, options));
       return;
     }
 
     tableSlot.replaceChildren(createMusicasTable(currentResults, {
       ...options,
       onSelect: (musica) => {
-        window.clearTimeout(createDraftTimer);
-        lastDraftTitle = '';
         searchInput.value = getField(musica, ['titulo', 'nome', 'title']);
         tableSlot.hidden = true;
 
@@ -371,7 +393,6 @@ function createMusicasBrowser(musicas, options = {}) {
   searchInput.addEventListener('input', () => {
     render();
     tableSlot.hidden = false;
-    scheduleCreateDraft();
   });
   searchInput.addEventListener('focus', () => {
     render();
@@ -403,8 +424,6 @@ function createMusicasBrowser(musicas, options = {}) {
     if (currentResults.length) {
       const exactMatch = findExactMusica(getSearchValue());
       const selectedMusica = exactMatch || currentResults[0];
-      window.clearTimeout(createDraftTimer);
-      lastDraftTitle = '';
       searchInput.value = getField(selectedMusica, ['titulo', 'nome', 'title']);
       tableSlot.hidden = true;
       options.onSelect?.(selectedMusica);
@@ -412,8 +431,6 @@ function createMusicasBrowser(musicas, options = {}) {
     }
 
     if (options.onCreateDraft && getSearchValue()) {
-      window.clearTimeout(createDraftTimer);
-      lastDraftTitle = getSearchValue();
       options.onCreateDraft(getSearchValue());
       tableSlot.hidden = true;
     }
@@ -421,6 +438,32 @@ function createMusicasBrowser(musicas, options = {}) {
   render();
 
   return wrapper;
+}
+
+function createEmptySearchResult(searchValue, options = {}) {
+  const empty = document.createElement('div');
+  empty.className = 'music-empty-result page-status';
+
+  if (!options.canEdit || !searchValue) {
+    empty.textContent = searchValue
+      ? 'Nenhuma musica encontrada para esta busca.'
+      : 'Digite para consultar o acervo.';
+    return empty;
+  }
+
+  empty.innerHTML = `
+    <div>
+      <strong>Nenhuma cifra encontrada.</strong>
+      <span>Voce pode revisar o titulo digitado ou iniciar um novo cadastro com esse nome.</span>
+    </div>
+    <button class="button" type="button" data-action="create-music">Cadastrar "${escapeHtml(searchValue)}"</button>
+  `;
+
+  empty.querySelector('[data-action="create-music"]')?.addEventListener('click', () => {
+    options.onCreateDraft?.(searchValue);
+  });
+
+  return empty;
 }
 
 function createMusicasTable(musicas, options = {}) {

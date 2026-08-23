@@ -9447,6 +9447,35 @@ body.has-touch-nav .app-layout {
   padding-right: 3px;
 }
 
+.music-empty-result {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.music-empty-result div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.music-empty-result strong {
+  color: var(--color-text);
+}
+
+.music-empty-result span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.music-empty-result .button {
+  flex: 0 0 auto;
+  max-width: 100%;
+  white-space: normal;
+}
+
 .musica-result-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(120px, 0.3fr) auto;
@@ -9584,6 +9613,14 @@ body.has-touch-nav .app-layout {
 
   .musicas-results-list {
     max-height: 62vh;
+  }
+
+  .music-empty-result {
+    display: grid;
+  }
+
+  .music-empty-result .button {
+    width: 100%;
   }
 
   .musica-result-card {
