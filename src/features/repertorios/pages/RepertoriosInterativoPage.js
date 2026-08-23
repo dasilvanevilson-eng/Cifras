@@ -5,10 +5,7 @@ import {
 } from '../../../services/repertoriosService.js';
 import {
   getCifraParaTransposicao,
-  getTransposeSemitones,
   renderCifraOriginalForDisplayHtml,
-  transposeCifraOriginal,
-  transposeKey,
 } from '../../../utils/chordpro.js';
 
 export async function RepertoriosInterativoPage() {
@@ -18,7 +15,7 @@ export async function RepertoriosInterativoPage() {
     <header class="dashboard-header">
       <div>
         <h1>Repert Interativo</h1>
-        <p data-page-info>Gere um arquivo HTML com indice clicavel e ajuste de tom para execucao.</p>
+        <p data-page-info>Gere um arquivo HTML com indice clicavel para execucao.</p>
       </div>
     </header>
     <section class="music-search-panel">
@@ -162,11 +159,8 @@ function createInteractiveHtml({ repertorio, musicasAssociadas }) {
     .topbar strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .topbar a, button { border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); min-height: 36px; padding: 0 12px; font: inherit; text-decoration: none; cursor: pointer; }
     .topbar a { display: inline-flex; align-items: center; }
-    button.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
     main { max-width: 980px; margin: 0 auto; padding: 28px 16px 80px; }
-    header.cover { min-height: 88vh; display: grid; align-content: center; gap: 20px; border-bottom: 1px solid var(--line); }
-    .kicker { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .08em; }
-    h1 { margin: 0; font-size: clamp(34px, 7vw, 72px); line-height: 1; }
+    h1 { margin: 0; font-size: 32px; line-height: 1.1; }
     .meta { color: var(--muted); }
     .summary { padding: 34px 0; border-bottom: 1px solid var(--line); }
     .summary h2 { margin: 0 0 16px; font-size: 26px; }
@@ -178,13 +172,11 @@ function createInteractiveHtml({ repertorio, musicasAssociadas }) {
     .song-number { color: var(--accent); font-weight: 700; }
     .song h2 { margin: 0; font-size: clamp(26px, 5vw, 46px); line-height: 1.05; }
     .song-meta { color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .song-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .current-key { font-weight: 700; color: var(--accent); }
     pre { margin: 0; padding: 18px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 21px/1.45 "Courier New", monospace; white-space: pre; }
     .chord-line { color: var(--chord); font-weight: 700; }
     .notice { padding: 14px; background: var(--soft); border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
     @media (max-width: 640px) { main { padding-inline: 12px; } pre { font-size: 17px; padding: 12px; } .topbar { align-items: stretch; } .topbar strong { max-width: 45vw; } }
-    @media print { .topbar, .song-controls { display: none; } header.cover, .song { min-height: auto; page-break-after: always; } pre { white-space: pre-wrap; } }
+    @media print { .topbar { display: none; } .song { min-height: auto; page-break-after: always; } pre { white-space: pre-wrap; } }
   </style>
 </head>
 <body>
@@ -196,15 +188,9 @@ function createInteractiveHtml({ repertorio, musicasAssociadas }) {
     </span>
   </nav>
   <main>
-    <header class="cover">
-      <div>
-        <p class="kicker">Repert Interativo</p>
-        <h1>${escapeHtml(nome)}</h1>
-        <p class="meta">${escapeHtml(data !== '-' ? data : 'Sequencia musical')} - ${musicasAssociadas.length} musica${musicasAssociadas.length === 1 ? '' : 's'} - Gerado em ${escapeHtml(generatedAt)}</p>
-      </div>
-    </header>
     <section class="summary" id="indice">
-      <h2>Indice</h2>
+      <h1>Indice</h1>
+      <p class="meta">${escapeHtml(data !== '-' ? data : 'Sequencia musical')} - ${musicasAssociadas.length} musica${musicasAssociadas.length === 1 ? '' : 's'} - Gerado em ${escapeHtml(generatedAt)}</p>
       <ol>
         ${musicasAssociadas.map((item, index) => createSummaryItem(item, index + 1)).join('')}
       </ol>
@@ -213,9 +199,6 @@ function createInteractiveHtml({ repertorio, musicasAssociadas }) {
       ? musicasAssociadas.map((item, index) => createSongSection(item, index + 1)).join('')
       : '<p class="notice">Nenhuma musica adicionada a este repertorio.</p>'}
   </main>
-  <script>
-${createInteractiveScript()}
-  </script>
 </body>
 </html>`;
 }
@@ -235,101 +218,27 @@ function createSummaryItem(item, number) {
 function createSongSection(item, number) {
   const deleted = isMusicaExcluida(item);
   const musica = item.musicas || {};
-  const originalKey = deleted ? getField(item, ['musica_tom_original']) : getField(musica, ['tom', 'key']);
-  const repertorioKey = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : originalKey;
-  const baseSemitones = getTransposeSemitones(originalKey, repertorioKey);
   const cifraOriginal = deleted ? '' : getCifraParaTransposicao(musica);
-  const displayedCifra = deleted ? '' : transposeCifraOriginal(cifraOriginal, baseSemitones);
   const momento = getSongMoment(item);
 
   return `
-    <section class="song${deleted ? ' deleted-repertorio-song' : ''}" id="musica-${number}" data-base-semitones="${baseSemitones}" data-semitones="0">
+    <section class="song${deleted ? ' deleted-repertorio-song' : ''}" id="musica-${number}">
       <header>
         <span class="song-number">${number}</span>
         <div>
           <h2>${escapeHtml(deleted ? `${getSongTitle(item)} (excluida)` : getSongTitle(item))}</h2>
           <p class="song-meta">
             <span>${escapeHtml(getSongArtist(item))}</span>
-            <span>Tom: <span class="current-key" data-original-key="${escapeHtml(originalKey)}">${escapeHtml(transposeKey(originalKey, baseSemitones))}</span></span>
             ${momento ? `<span>${escapeHtml(momento)}</span>` : ''}
             <a href="#indice">Voltar ao indice</a>
           </p>
         </div>
-        ${deleted ? '' : `<div class="song-controls" role="group" aria-label="Ajuste de tom">
-          <button type="button" data-action="down">-1/2</button>
-          <span data-role="status">Tom salvo</span>
-          <button class="primary" type="button" data-action="up">+1/2</button>
-        </div>`}
       </header>
       ${deleted
         ? '<p class="notice">Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.</p>'
-        : `<pre class="chordpro-view" data-original-cifra="${escapeHtml(cifraOriginal)}">${renderCifraOriginalForDisplayHtml(displayedCifra)}</pre>`}
+        : `<pre class="chordpro-view">${renderCifraOriginalForDisplayHtml(cifraOriginal)}</pre>`}
     </section>
   `;
-}
-
-function createInteractiveScript() {
-  return String.raw`const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const FLATS = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' };
-const CHORD_PATTERN = /(?<![A-Za-zÀ-ÿ])(?:[A-G](?:#|b)?(?:(?:m(?![a-z])|maj|min|dim|aug|sus|add|M|º|°|ø|Δ|\+|-|[#b]?\d{1,2}|\([^)]*\)))*(?:\/(?:[A-G](?:#|b)?|[#b]?\d{1,2}))*)(?![A-Za-zÀ-ÿ])/g;
-const NOTE_PATTERN = /[A-G](?:#|b)?/g;
-
-document.querySelectorAll('.song').forEach((song) => {
-  song.querySelector('[data-action="down"]')?.addEventListener('click', () => transposeSong(song, -1));
-  song.querySelector('[data-action="up"]')?.addEventListener('click', () => transposeSong(song, 1));
-});
-
-function transposeSong(song, direction) {
-  const next = Number(song.dataset.semitones || 0) + direction;
-  song.dataset.semitones = String(next);
-  renderSong(song);
-}
-
-function renderSong(song) {
-  const base = Number(song.dataset.baseSemitones || 0);
-  const semitones = Number(song.dataset.semitones || 0);
-  const total = base + semitones;
-  const view = song.querySelector('.chordpro-view');
-  const key = song.querySelector('.current-key');
-  const status = song.querySelector('[data-role="status"]');
-
-  if (view) view.innerHTML = renderCifra(transposeCifra(view.dataset.originalCifra || '', total));
-  if (key) key.textContent = transposeKey(key.dataset.originalKey || '-', total);
-  if (status) status.textContent = semitones === 0 ? 'Tom salvo' : (semitones > 0 ? '+' : '') + semitones;
-}
-
-function transposeCifra(input, semitones) {
-  if (!Number(semitones)) return input || '';
-  return String(input || '').split('\n').map((line) => isChordLine(line) ? line.replace(CHORD_PATTERN, (chord) => transposeChord(chord, semitones)) : line).join('\n');
-}
-
-function transposeKey(key, semitones) {
-  if (!key || key === '-' || !Number(semitones)) return key || '-';
-  return transposeChord(key, semitones);
-}
-
-function transposeChord(chord, semitones) {
-  return String(chord).replace(NOTE_PATTERN, (note) => {
-    const normalized = FLATS[note] || note;
-    const index = NOTES.indexOf(normalized);
-    return index < 0 ? note : NOTES[((index + Number(semitones)) % NOTES.length + NOTES.length) % NOTES.length];
-  });
-}
-
-function isChordLine(line) {
-  const text = String(line || '').trim();
-  if (!text) return false;
-  const withoutChords = text.replace(CHORD_PATTERN, '').replace(/[|:.,;()[\]{}-]/g, '').trim();
-  return !withoutChords;
-}
-
-function renderCifra(input) {
-  return escapeHtml(input).split('\n').map((line) => isChordLine(line) ? '<span class="chord-line">' + line + '</span>' : line).join('\n');
-}
-
-function escapeHtml(value) {
-  return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
-}`;
 }
 
 function downloadTextFile(filename, content, type) {
