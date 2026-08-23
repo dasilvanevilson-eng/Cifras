@@ -223,7 +223,6 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     </section>
 
     <div class="repertorio-save-bar">
-      <button class="button" type="submit" disabled>${isEditing ? 'Salvar alteracoes' : 'Salvar repertorio'}</button>
       <p class="form-message" aria-live="polite"></p>
     </div>
     <section class="repertorio-history-panel" hidden>
@@ -253,7 +252,6 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   const searchInput = form.querySelector('.song-search-input');
   const resultsSlot = form.querySelector('.song-search-results');
   const selectedSlot = form.querySelector('.selected-repertorio-songs');
-  const submitButton = form.querySelector('button[type="submit"]');
   const message = form.querySelector('.form-message');
   const selectedMusicas = draft?.musicas?.length
     ? draft.musicas.map((musica) => ({ ...musica }))
@@ -281,7 +279,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   renderInlineActions();
 
   function updateSubmitState() {
-    submitButton.disabled = !nomeInput.value.trim();
+    form.classList.toggle('can-autosave', Boolean(nomeInput.value.trim() && selectedMusicas.length));
   }
 
   function renderResults() {
@@ -678,7 +676,6 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     }
 
     isAutosaving = true;
-    submitButton.disabled = true;
     message.className = 'form-message';
     message.textContent = 'Salvando...';
 
