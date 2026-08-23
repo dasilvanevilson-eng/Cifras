@@ -13049,7 +13049,7 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .musica-form .cifra-editor-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, .42fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   width: 100%;
   overflow: hidden;
@@ -13073,6 +13073,10 @@ html[data-interface-density="compact"] .account-password-panel {
 
 .musica-form .cifra-editor-grid label + label {
   border-left: 1px solid var(--color-border);
+}
+
+.musica-form .chordpro-technical-field[hidden] {
+  display: none !important;
 }
 
 .musica-form .cifra-editor-grid .cifra-original-editor-shell,
@@ -14241,4 +14245,14 @@ html[data-interface-density="compact"] .account-password-panel {
     grid-column: 3;
     grid-row: 3;
   }
+}
+
+.page > section:has(.musica-form) .cifra-editor-grid,
+.musicas-page.can-edit-music .music-editor-stage .cifra-editor-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page > section:has(.musica-form) .chordpro-technical-field[hidden],
+.musicas-page.can-edit-music .music-editor-stage .chordpro-technical-field[hidden] {
+  display: none !important;
 }

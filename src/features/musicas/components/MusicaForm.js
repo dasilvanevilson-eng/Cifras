@@ -79,7 +79,6 @@ export function MusicaForm(options = {}) {
     <div class="music-form-actions">
       <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
       <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
-      <button class="button-link secondary chordpro-convert-button" type="button" data-action="convert-chordpro">Converter para ChordPro</button>
       ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
       <div class="music-form-control-row">
         <span class="inline-transpose-controls" aria-label="Transposicao de tom">
@@ -125,7 +124,7 @@ export function MusicaForm(options = {}) {
         </div>
       </label>
 
-      <label>
+      <label class="chordpro-technical-field" hidden aria-hidden="true">
         <span class="chordpro-generated-header">
           ChordPro gerado
           <button class="button-link secondary chordpro-copy-button" type="button" data-action="copy-chordpro">Copiar</button>
@@ -146,7 +145,6 @@ export function MusicaForm(options = {}) {
   const button = form.querySelector('button[type="submit"]');
   const clearButton = form.querySelector('[data-action="clear"]');
   const deleteButton = form.querySelector('[data-action="delete"]');
-  const convertChordProButton = form.querySelector('[data-action="convert-chordpro"]');
   const copyChordProButton = form.querySelector('[data-action="copy-chordpro"]');
   const transposeFormDownButton = form.querySelector('[data-action="transpose-form-down"]');
   const transposeFormUpButton = form.querySelector('[data-action="transpose-form-up"]');
@@ -362,7 +360,7 @@ export function MusicaForm(options = {}) {
     originalTextarea.focus();
   });
 
-  convertChordProButton.addEventListener('click', () => {
+  function updateGeneratedChordPro() {
     editorState = normalizeCifraEditorState({
       ...editorState,
       text: originalTextarea.value,
@@ -380,11 +378,9 @@ export function MusicaForm(options = {}) {
       convertChordPro: true,
     });
     convertedSourceSignature = getEditorStateSignature(editorState);
-    message.className = 'form-message success';
-    message.textContent = 'ChordPro convertido. Revise antes de salvar.';
-  });
+  }
 
-  copyChordProButton.addEventListener('click', async () => {
+  copyChordProButton?.addEventListener('click', async () => {
     const value = chordProTextarea.value || '';
     if (!value) return;
 
@@ -478,6 +474,7 @@ export function MusicaForm(options = {}) {
   });
 
   previewToggle.addEventListener('click', () => {
+    updateGeneratedChordPro();
     const previewValidation = getChordProPreviewValidation(chordProTextarea.value, editorState, convertedSourceSignature);
     if (!previewValidation.valid) {
       message.className = 'form-message error';
@@ -504,6 +501,7 @@ export function MusicaForm(options = {}) {
 
   form.addEventListener('input', () => {
     if (!previewPanel.hidden) {
+      updateGeneratedChordPro();
       const previewValidation = getChordProPreviewValidation(chordProTextarea.value, editorState, convertedSourceSignature);
       if (!previewValidation.valid) {
         closePreview(form, previewPanel, previewToggle);
@@ -526,6 +524,7 @@ export function MusicaForm(options = {}) {
     message.textContent = 'Salvando...';
 
     try {
+      updateGeneratedChordPro();
       const values = getFormValues(form, editorState);
       if (!values.titulo) {
         throw new Error('Digite o titulo da cifra no campo de busca acima.');
@@ -1387,14 +1386,14 @@ function getChordProPreviewValidation(chordProValue, editorState = null, convert
   if (!String(chordProValue || '').trim()) {
     return {
       valid: false,
-      message: 'Você precisa converter o texto para chordpro para poder visualizar',
+      message: 'Informe a cifra antes de visualizar ou salvar.',
     };
   }
 
   if (getEditorStateSignature(editorState) !== convertedSourceSignature) {
     return {
       valid: false,
-      message: 'Existem alterações na cifra original não convertidas para Chordpro',
+      message: 'Existem alteracoes recentes na cifra. Tente salvar novamente.',
     };
   }
 
