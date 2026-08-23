@@ -13,7 +13,6 @@ import {
   transposeChordPro,
   transposeKey,
 } from '../../../utils/chordpro.js';
-import { createPerformanceView } from '../pages/MusicaExecucaoPage.js';
 import { createVoiceCodeMirror } from '../../../components/ui/VoiceCodeMirror.js';
 
 export function MusicaForm(options = {}) {
@@ -77,7 +76,6 @@ export function MusicaForm(options = {}) {
     </section>
 
     <div class="music-form-actions">
-      <button class="button-link secondary preview-toggle" type="button">Pre-visualizacao</button>
       <button class="button-link secondary" type="button" data-action="clear">Limpar tela</button>
       ${options.canDelete ? '<button class="danger-button" type="button" data-action="delete">Excluir</button>' : ''}
       <div class="music-form-control-row">
@@ -136,8 +134,6 @@ export function MusicaForm(options = {}) {
       </label>
     </div>
 
-    <section class="song-preview song-view" hidden></section>
-
     <p class="form-message" aria-live="polite"></p>
   `;
 
@@ -161,8 +157,7 @@ export function MusicaForm(options = {}) {
   const cifraEditorGrid = form.querySelector('.cifra-editor-grid');
   const linkInput = form.querySelector('[name="musica_link"]');
   const linkAction = form.querySelector('.field-action-link');
-  const previewToggle = form.querySelector('.preview-toggle');
-  const previewPanel = form.querySelector('.song-preview');
+  const previewPanel = null;
   const voiceMarkerToggle = form.querySelector('[data-action="toggle-voice-markers"]');
   const voiceMarkerOptions = form.querySelector('[data-role="voice-marker-options"]');
   const voiceMarkerButtons = form.querySelectorAll('[data-voice-marker]');
@@ -287,9 +282,6 @@ export function MusicaForm(options = {}) {
       });
       syncVoiceMarkerButtonLabels(form);
 
-      if (!previewPanel.hidden) {
-        updatePreview(form, previewPanel, editorState);
-      }
     });
   });
 
@@ -409,7 +401,7 @@ export function MusicaForm(options = {}) {
     }
 
     editorState = normalizeCifraEditorState();
-    clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
+    clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, formTransposeState);
   });
 
   if (deleteButton) {
@@ -473,47 +465,6 @@ export function MusicaForm(options = {}) {
     updateFormTransposeStatus(formTransposeStatus, formTransposeState, 1);
   });
 
-  previewToggle.addEventListener('click', () => {
-    updateGeneratedChordPro();
-    const previewValidation = getChordProPreviewValidation(chordProTextarea.value, editorState, convertedSourceSignature);
-    if (!previewValidation.valid) {
-      message.className = 'form-message error';
-      message.textContent = previewValidation.message;
-      return;
-    }
-
-    closeVoiceMarkerOptions(voiceMarkerOptions, voiceMarkerToggle);
-    openPreview(form, previewPanel, previewToggle, editorState);
-  });
-
-  previewPanel.addEventListener('click', (event) => {
-    if (event.target === previewPanel) {
-      closePreview(form, previewPanel, previewToggle);
-      return;
-    }
-
-    const backAction = event.target.closest('.song-toolbar-back');
-    if (!backAction) return;
-
-    event.preventDefault();
-    closePreview(form, previewPanel, previewToggle);
-  });
-
-  form.addEventListener('input', () => {
-    if (!previewPanel.hidden) {
-      updateGeneratedChordPro();
-      const previewValidation = getChordProPreviewValidation(chordProTextarea.value, editorState, convertedSourceSignature);
-      if (!previewValidation.valid) {
-        closePreview(form, previewPanel, previewToggle);
-        message.className = 'form-message error';
-        message.textContent = previewValidation.message;
-        return;
-      }
-
-      updatePreview(form, previewPanel, editorState);
-    }
-  });
-
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -538,7 +489,7 @@ export function MusicaForm(options = {}) {
 
       if (!options.keepValuesAfterSubmit) {
         editorState = normalizeCifraEditorState();
-        clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState);
+        clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, formTransposeState);
       }
       message.className = 'form-message success';
       message.textContent = 'Musica salva com sucesso.';
@@ -669,9 +620,6 @@ function syncEditorStateOutputs({
   updateVoiceLegends(form, form.querySelectorAll('.voice-editor-legend'), nextChordPro, normalizedState);
   updateVoiceLabelVisibility(form, normalizedState);
 
-  if (!previewPanel.hidden) {
-    updatePreview(form, previewPanel, normalizedState);
-  }
 }
 
 function updateVoiceLegends(form, slots, chordProValue, editorState = null) {
@@ -1201,7 +1149,7 @@ function getVoiceRangeLineFragments(value, start, end, markerId) {
   return fragments;
 }
 
-function clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, previewPanel, previewToggle, formTransposeState = null) {
+function clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, formTransposeState = null) {
   form.querySelectorAll('input, textarea').forEach((field) => {
     field.value = '';
   });
@@ -1220,9 +1168,7 @@ function clearForm(form, chordProTextarea, editorStateTextarea, chordProEditor, 
     }
     renderFormTransposeStatus(formTransposeStatus, 0);
   }
-  previewPanel.hidden = true;
   form.classList.remove('is-previewing');
-  previewToggle.textContent = 'Pre-visualizacao';
   updateLinkAction(form.querySelector('[name="musica_link"]'), form.querySelector('.field-action-link'));
 }
 
@@ -1283,18 +1229,6 @@ function renderFormTransposeStatus(status, semitones) {
     : formatTransposeStatus(semitones);
 }
 
-function openPreview(form, previewPanel, previewToggle, editorState = null) {
-  previewPanel.hidden = false;
-  previewToggle.textContent = 'Pre-visualizacao';
-  updatePreview(form, previewPanel, editorState);
-  previewPanel.querySelector('.repertorio-performance-view')?.focus?.();
-}
-
-function closePreview(form, previewPanel, previewToggle) {
-  previewPanel.hidden = true;
-  previewToggle.textContent = 'Pre-visualizacao';
-}
-
 function setupResponsiveCifraEditor(container) {
   if (!container) return;
 
@@ -1343,43 +1277,6 @@ function getInitialChordPro(initialValues) {
     || initialValues.chordpro
     || initialValues.conteudo_chordpro
     || '');
-}
-
-function updatePreview(form, previewPanel, editorState = null) {
-  const musica = getPreviewMusica(form, editorState);
-  const performanceView = previewPanel.querySelector('.repertorio-performance-view');
-
-  if (performanceView) {
-    performanceView.updatePerformanceMusica?.(musica);
-    return;
-  }
-
-  previewPanel.replaceChildren(createPerformanceView({
-    musica,
-    returnTo: '#',
-    initiallyExpandedToolbar: true,
-  }));
-}
-
-function getPreviewMusica(form, editorState = null) {
-  const values = getFormValues(form, editorState);
-  const renderedCifra = values.cifra_exibicao;
-  const normalizedState = normalizeCifraEditorState(editorState || {});
-
-  return {
-    titulo: values.titulo || 'Musica sem titulo',
-    artista: values.artista,
-    tom: values.tom,
-    cifra_original: renderedCifra,
-    cifra_chordpro: '',
-    cifra_exibicao: renderedCifra,
-    cifra_editor_state: {
-      version: 1,
-      text: '',
-      voiceMarks: [],
-      voiceLabels: normalizedState.voiceLabels,
-    },
-  };
 }
 
 function getChordProPreviewValidation(chordProValue, editorState = null, convertedSourceSignature = '') {

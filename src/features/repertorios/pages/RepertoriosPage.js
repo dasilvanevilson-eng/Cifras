@@ -187,6 +187,7 @@ async function createRepertorioUnifiedForm({ existingRepertorios = [], selectedR
 
 function createNewRepertorioComposer(musicas, users, existingRepertorios = [], options = {}) {
   const selectedRepertorio = options.selectedRepertorio || null;
+  let currentRepertorio = selectedRepertorio ? { ...selectedRepertorio } : null;
   const isEditing = Boolean(selectedRepertorio?.id);
   const draft = options.draft || null;
   const initialName = draft?.nome || selectedRepertorio?.nome || options.initialName || '';
@@ -237,6 +238,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   `;
 
   const nomeInput = form.querySelector('[name="nome"]');
+  const dataInput = form.querySelector('[name="data"]');
   const currentName = form.querySelector('.repertorio-current-name');
   form.querySelector('.repertorio-title-date-grid').append(RepertorioPrivacyFields({
     users,
@@ -271,6 +273,10 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   let draggedMusicaIndex = null;
   let dragAutoScrollFrame = null;
   let dragAutoScrollClientY = 0;
+  let autosaveTimer = null;
+  let isAutosaving = false;
+  let hasPendingAutosave = false;
+  let lastSavedSignature = createRepertorioSignature();
 
   renderInlineActions();
 
@@ -320,6 +326,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         isPointerInsideResults = false;
         resultsSlot.hidden = true;
         updateSubmitState();
+        scheduleAutosave();
       });
 
       list.append(item);
@@ -390,6 +397,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         selectedMusicas.splice(index, 0, draggedMusica);
         draggedMusicaIndex = null;
         renderSelected();
+        scheduleAutosave();
       });
 
       row.querySelector('.selected-repertorio-remove').addEventListener('click', () => {
@@ -397,6 +405,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
         renderSelected();
         renderResults();
         updateSubmitState();
+        scheduleAutosave();
       });
       row.querySelector('.selected-repertorio-play').addEventListener('click', (event) => {
         event.preventDefault();
@@ -408,6 +417,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       });
       row.querySelector('.selected-repertorio-song-moment input').addEventListener('input', (event) => {
         selectedMusicas[index].observacao = event.target.value.trim();
+        scheduleAutosave(650);
       });
       row.querySelector('.selected-repertorio-song-moment input').addEventListener('pointerdown', (event) => {
         event.stopPropagation();
@@ -480,7 +490,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
 
     try {
       window.sessionStorage.setItem(`${REPERTORIO_DRAFT_PREFIX}${draftKey}`, JSON.stringify({
-        selectedRepertorioId: selectedRepertorio?.id || null,
+        selectedRepertorioId: currentRepertorio?.id || null,
         nome: String(formData.get('nome') || '').trim(),
         data: String(formData.get('data') || '') || null,
         privacy: privacyValues.repertorio,
@@ -499,6 +509,15 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
     const value = nomeInput.value.trim();
     currentName.textContent = value ? `Nome: ${value}` : 'Informe o nome do repertorio.';
     updateSubmitState();
+    scheduleAutosave(650);
+  });
+
+  dataInput.addEventListener('change', () => {
+    scheduleAutosave();
+  });
+
+  form.querySelector('.repertorio-privacy-wrapper')?.addEventListener('change', () => {
+    scheduleAutosave();
   });
 
   searchInput.addEventListener('input', () => {
@@ -535,97 +554,7 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    if (!nomeInput.value.trim()) {
-      message.className = 'form-message error';
-      message.textContent = 'Informe o nome do repertorio.';
-      nomeInput.focus();
-      return;
-    }
-
-    if (existingNames.has(normalizeText(nomeInput.value))) {
-      message.className = 'form-message error';
-      message.textContent = 'Ja existe um repertorio cadastrado com esse nome.';
-      nomeInput.focus();
-      return;
-    }
-
-    if (!selectedMusicas.length) {
-      message.className = 'form-message error';
-      message.textContent = 'Inclua pelo menos uma musica antes de salvar o repertorio.';
-      selectedSlot.innerHTML = '<p class="page-status error">Inclua pelo menos uma musica antes de salvar.</p>';
-      searchInput.focus();
-      return;
-    }
-
-    submitButton.disabled = true;
-    message.className = 'form-message';
-    message.textContent = 'Salvando...';
-
-    const formData = new FormData(form);
-    const privacyValues = getRepertorioPrivacyValues(form);
-    if (privacyValues.repertorio.visibilidade === 'seletivo' && !privacyValues.compartilhadoCom.length) {
-      message.className = 'form-message error';
-      message.textContent = 'Selecione pelo menos um usuario para o compartilhamento seletivo.';
-      updateSubmitState();
-      return;
-    }
-
-    if (isEditing) {
-      const { error: updateError } = await updateRepertorio(selectedRepertorio.id, {
-        nome: String(formData.get('nome') || '').trim(),
-        data: String(formData.get('data') || '') || null,
-        ...privacyValues.repertorio,
-      });
-
-      if (updateError) {
-        message.className = 'form-message error';
-        message.textContent = updateError.message || 'Nao foi possivel salvar o repertorio.';
-        updateSubmitState();
-        return;
-      }
-
-      const { error: musicasError } = await replaceMusicasDoRepertorio(selectedRepertorio.id, selectedMusicas);
-
-      if (musicasError) {
-        message.className = 'form-message error';
-        message.textContent = musicasError.message || 'Nao foi possivel salvar as musicas do repertorio.';
-        updateSubmitState();
-        return;
-      }
-
-      const { error: compartilhamentoError } = await replaceRepertorioCompartilhamentos(selectedRepertorio.id, privacyValues.compartilhadoCom);
-
-      if (compartilhamentoError) {
-        message.className = 'form-message error';
-        message.textContent = compartilhamentoError.message || 'Nao foi possivel salvar o compartilhamento.';
-        updateSubmitState();
-        return;
-      }
-
-      message.className = 'form-message success';
-      message.textContent = 'Repertorio atualizado com sucesso.';
-      clearCurrentRepertorioDraft();
-      window.location.href = '/repertorios';
-      return;
-    }
-
-    const { error: saveError } = await createRepertorioComMusicas({
-      nome: String(formData.get('nome') || '').trim(),
-      data: String(formData.get('data') || '') || null,
-      ...privacyValues.repertorio,
-    }, selectedMusicas, privacyValues.compartilhadoCom);
-
-    if (saveError) {
-      message.className = 'form-message error';
-      message.textContent = saveError.message || 'Nao foi possivel salvar o repertorio.';
-      updateSubmitState();
-      return;
-    }
-
-    message.className = 'form-message success';
-    message.textContent = 'Repertorio salvo com sucesso.';
-    clearCurrentRepertorioDraft();
-    window.location.href = '/repertorios';
+    await saveRepertorio({ focusOnError: true });
   });
 
   renderSelected();
@@ -708,6 +637,177 @@ function createNewRepertorioComposer(musicas, users, existingRepertorios = [], o
       panel.hidden = true;
       actions.querySelector('[data-action="history"]').textContent = 'Historico';
     }
+  }
+
+  function scheduleAutosave(delay = 260) {
+    window.clearTimeout(autosaveTimer);
+
+    autosaveTimer = window.setTimeout(() => {
+      saveRepertorio({ autosave: true });
+    }, delay);
+  }
+
+  async function saveRepertorio({ autosave = false, focusOnError = false } = {}) {
+    const validation = validateRepertorioForSave();
+
+    if (!validation.valid) {
+      if (!autosave || validation.showDuringAutosave) {
+        message.className = 'form-message error';
+        message.textContent = validation.message;
+        if (!autosave || focusOnError) {
+          validation.focusTarget?.focus?.();
+        }
+      }
+      updateSubmitState();
+      return false;
+    }
+
+    const signature = createRepertorioSignature();
+    if (signature === lastSavedSignature) {
+      if (!autosave) {
+        message.className = 'form-message success';
+        message.textContent = 'Repertório salvo';
+      }
+      updateSubmitState();
+      return true;
+    }
+
+    if (isAutosaving) {
+      hasPendingAutosave = true;
+      return false;
+    }
+
+    isAutosaving = true;
+    submitButton.disabled = true;
+    message.className = 'form-message';
+    message.textContent = 'Salvando...';
+
+    try {
+      const formData = new FormData(form);
+      const privacyValues = getRepertorioPrivacyValues(form);
+      const musicasSnapshot = selectedMusicas.map((musica) => ({ ...musica }));
+      const repertorioPayload = {
+        nome: String(formData.get('nome') || '').trim(),
+        data: String(formData.get('data') || '') || null,
+        ...privacyValues.repertorio,
+      };
+
+      if (currentRepertorio?.id) {
+        const { data: updatedRepertorio, error: updateError } = await updateRepertorio(currentRepertorio.id, repertorioPayload);
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        const { error: musicasError } = await replaceMusicasDoRepertorio(currentRepertorio.id, musicasSnapshot);
+
+        if (musicasError) {
+          throw musicasError;
+        }
+
+        const { error: compartilhamentoError } = await replaceRepertorioCompartilhamentos(currentRepertorio.id, privacyValues.compartilhadoCom);
+
+        if (compartilhamentoError) {
+          throw compartilhamentoError;
+        }
+
+        currentRepertorio = updatedRepertorio || { ...currentRepertorio, ...repertorioPayload };
+      } else {
+        const { data: novoRepertorio, error: saveError } = await createRepertorioComMusicas(
+          repertorioPayload,
+          musicasSnapshot,
+          privacyValues.compartilhadoCom,
+        );
+
+        if (saveError) {
+          throw saveError;
+        }
+
+        currentRepertorio = novoRepertorio;
+      }
+
+      lastSavedSignature = signature;
+      clearCurrentRepertorioDraft();
+      message.className = 'form-message success';
+      message.textContent = 'Repertório salvo';
+      return true;
+    } catch (error) {
+      message.className = 'form-message error';
+      message.textContent = error.message || 'Nao foi possivel salvar o repertorio.';
+
+      if (focusOnError) {
+        searchInput.focus();
+      }
+
+      return false;
+    } finally {
+      isAutosaving = false;
+      updateSubmitState();
+
+      if (hasPendingAutosave) {
+        hasPendingAutosave = false;
+        scheduleAutosave();
+      }
+    }
+  }
+
+  function validateRepertorioForSave() {
+    if (!nomeInput.value.trim()) {
+      return {
+        valid: false,
+        message: 'Informe o nome do repertorio.',
+        focusTarget: nomeInput,
+        showDuringAutosave: false,
+      };
+    }
+
+    if (!currentRepertorio?.id && existingNames.has(normalizeText(nomeInput.value))) {
+      return {
+        valid: false,
+        message: 'Ja existe um repertorio cadastrado com esse nome.',
+        focusTarget: nomeInput,
+        showDuringAutosave: true,
+      };
+    }
+
+    if (!selectedMusicas.length) {
+      return {
+        valid: false,
+        message: 'Inclua pelo menos uma musica antes de salvar o repertorio.',
+        focusTarget: searchInput,
+        showDuringAutosave: false,
+      };
+    }
+
+    const privacyValues = getRepertorioPrivacyValues(form);
+    if (privacyValues.repertorio.visibilidade === 'seletivo' && !privacyValues.compartilhadoCom.length) {
+      return {
+        valid: false,
+        message: 'Selecione pelo menos um usuario para o compartilhamento seletivo.',
+        focusTarget: null,
+        showDuringAutosave: true,
+      };
+    }
+
+    return { valid: true };
+  }
+
+  function createRepertorioSignature() {
+    const formData = new FormData(form);
+    const privacyValues = getRepertorioPrivacyValues(form);
+
+    return JSON.stringify({
+      nome: String(formData.get('nome') || '').trim(),
+      data: String(formData.get('data') || '') || null,
+      privacy: privacyValues.repertorio,
+      compartilhadoCom: [...privacyValues.compartilhadoCom].sort(),
+      musicas: selectedMusicas.map((musica, index) => ({
+        id: musica.id,
+        ordem: index + 1,
+        tom: musica.tom || null,
+        observacao: musica.observacao || null,
+      })),
+    });
   }
 }
 
