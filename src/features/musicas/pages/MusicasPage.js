@@ -6,11 +6,10 @@ import {
   duplicateMusicaToPrivate,
   listMusicas,
   listRepertoriosComMusica,
-  replaceMusicaCompartilhamentos,
+  publishPrivateMusicaToCommunity,
   updateMusica,
   MUSICA_VISIBILITY,
 } from '../../../services/musicasService.js';
-import { listShareableProfiles } from '../../../services/profilesService.js';
 import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { hasPermission } from '../../auth/permissions.js';
@@ -18,7 +17,6 @@ import { hasPermission } from '../../auth/permissions.js';
 const LIBRARY_SCOPES = [
   { key: 'community', label: 'Comunidade', visibility: MUSICA_VISIBILITY.PUBLICA },
   { key: 'mine', label: 'Minhas cifras', visibility: MUSICA_VISIBILITY.PRIVADA },
-  { key: 'shared', label: 'Compartilhadas', visibility: MUSICA_VISIBILITY.COMPARTILHADA },
 ];
 
 export async function MusicasPage({ session } = {}) {
@@ -30,14 +28,14 @@ export async function MusicasPage({ session } = {}) {
     <header class="musicas-header musicas-hero">
       <div class="musicas-hero-copy">
         <h1>Cifras <span class="musicas-summary" data-page-info-accessory aria-live="polite"><span><strong data-count="musicas">0</strong> cifras</span></span></h1>
-        <p data-page-info>Consulte a comunidade, personalize cifras no seu acervo e compartilhe com usuarios ou grupos.</p>
+        <p data-page-info>Consulte a comunidade e organize suas cifras no acervo privado.</p>
       </div>
     </header>
     <section class="music-search-panel music-library-panel">
       <div class="music-library-heading">
         <div>
           <h2>Biblioteca de cifras</h2>
-          <p data-section-info>Busque somente pelo titulo. Se nao encontrar, cadastre no escopo selecionado ou personalize uma cifra publica para o seu acervo.</p>
+          <p data-section-info>Busque somente pelo titulo. Cifras novas ficam em Minhas cifras e podem ser publicadas depois na Comunidade.</p>
         </div>
         <span class="music-library-mode">Multiusuario</span>
       </div>
@@ -58,20 +56,14 @@ export async function MusicasPage({ session } = {}) {
   const musicasCount = page.querySelector('[data-count="musicas"]');
   let currentScope = 'community';
   let musicas = [];
-  let users = [];
   let pendingNewMusicaTitle = '';
 
   try {
-    const [musicasResult, usersResult] = await Promise.all([
-      loadMusicasForScope(currentScope),
-      listShareableProfiles(),
-    ]);
+    const musicasResult = await loadMusicasForScope(currentScope);
 
     if (musicasResult.error) throw musicasResult.error;
-    if (usersResult.error) throw usersResult.error;
 
     musicas = musicasResult.data || [];
-    users = usersResult.data || [];
     musicasCount.textContent = String(musicas.length);
 
     const pendingSugestao = canManageGlobalMusic ? readPendingSugestaoMusica() : null;
@@ -84,15 +76,15 @@ export async function MusicasPage({ session } = {}) {
         selectedMusica: pendingSugestaoMusica || null,
         pendingSugestao,
         session,
-        users,
-        scope: currentScope,
+        scope: pendingSugestaoMusica ? currentScope : 'mine',
         canManageGlobalMusic,
         hideTitleField: true,
         onAfterSave: handleSavedMusica,
         onAfterDelete: handleDeletedMusica,
+        onAfterPublish: handlePublishedMusica,
       });
     } else {
-      formSlot.append(createReadOnlyNotice('Entre no sistema para personalizar e compartilhar cifras.', []));
+      formSlot.append(createReadOnlyNotice('Entre no sistema para personalizar cifras no seu acervo.', []));
     }
 
     renderBrowser();
@@ -134,18 +126,21 @@ export async function MusicasPage({ session } = {}) {
       canManageGlobalMusic,
       currentScope,
       onScopeChange: setScope,
-      onCreateDraft: (title) => {
+      onCreateDraft: async (title) => {
         pendingNewMusicaTitle = title.trim();
         clearPendingSugestaoMusica();
+        if (currentScope !== 'mine') {
+          await setScope('mine');
+        }
         renderForm(formSlot, {
           initialTitle: pendingNewMusicaTitle,
           session,
-          users,
-          scope: currentScope,
+          scope: 'mine',
           canManageGlobalMusic,
           hideTitleField: true,
           onAfterSave: handleSavedMusica,
           onAfterDelete: handleDeletedMusica,
+          onAfterPublish: handlePublishedMusica,
         });
         scrollToForm();
       },
@@ -155,24 +150,23 @@ export async function MusicasPage({ session } = {}) {
         renderForm(formSlot, {
           selectedMusica: musica,
           session,
-          users,
           scope: currentScope,
           canManageGlobalMusic,
           hideTitleField: true,
           onAfterSave: handleSavedMusica,
           onAfterDelete: handleDeletedMusica,
+          onAfterPublish: handlePublishedMusica,
         });
         scrollToForm();
       },
       onPersonalize: personalizeMusica,
-      onShare: shareMusica,
       session,
     }));
   }
 
   async function personalizeMusica(musica) {
-    const { data, error } = await duplicateMusicaToPrivate(musica.id, {
-      titulo: `${getField(musica, ['titulo', 'nome', 'title'])} - minha versao`,
+    const { data, error } = await duplicateMusicaToPrivate(getRootCommunityMusicaId(musica), {
+      titulo: getField(musica, ['titulo', 'nome', 'title']),
     });
 
     if (error) {
@@ -184,29 +178,39 @@ export async function MusicasPage({ session } = {}) {
     renderForm(formSlot, {
       selectedMusica: data,
       session,
-      users,
       scope: 'mine',
       canManageGlobalMusic,
       hideTitleField: true,
       onAfterSave: handleSavedMusica,
       onAfterDelete: handleDeletedMusica,
+      onAfterPublish: handlePublishedMusica,
     });
     scrollToForm();
   }
 
-  async function shareMusica(musica) {
-    const dialog = createShareDialog(musica, users, async ({ userShares }) => {
-      const { error } = await replaceMusicaCompartilhamentos(musica.id, userShares, []);
+  async function handlePublishedMusica(publishedMusica) {
+    if (!publishedMusica?.id) return;
 
-      if (error) {
-        throw error;
-      }
+    await setScope('community');
+    renderForm(formSlot, {
+      selectedMusica: publishedMusica,
+      session,
+      scope: 'community',
+      canManageGlobalMusic,
+      hideTitleField: true,
+      onAfterSave: handleSavedMusica,
+      onAfterDelete: handleDeletedMusica,
+      onAfterPublish: handlePublishedMusica,
     });
-    document.body.append(dialog);
+    scrollToForm();
   }
 
-  function handleSavedMusica(savedMusica, previousMusica = null) {
+  async function handleSavedMusica(savedMusica, previousMusica = null) {
     if (!savedMusica?.id) return;
+
+    if (savedMusica.visibility === MUSICA_VISIBILITY.PRIVADA && currentScope !== 'mine') {
+      await setScope('mine');
+    }
 
     const existingIndex = musicas.findIndex((item) => item.id === savedMusica.id);
     if (existingIndex >= 0) {
@@ -215,17 +219,18 @@ export async function MusicasPage({ session } = {}) {
       musicas.push(savedMusica);
     }
 
+    const nextScope = savedMusica.visibility === MUSICA_VISIBILITY.PRIVADA ? 'mine' : currentScope;
     pendingNewMusicaTitle = '';
     renderBrowser();
     renderForm(formSlot, {
       selectedMusica: savedMusica || previousMusica,
       session,
-      users,
-      scope: currentScope,
+      scope: nextScope,
       canManageGlobalMusic,
       hideTitleField: true,
       onAfterSave: handleSavedMusica,
       onAfterDelete: handleDeletedMusica,
+      onAfterPublish: handlePublishedMusica,
     });
   }
 
@@ -245,12 +250,12 @@ function renderForm(formSlot, {
   pendingSugestao = null,
   initialTitle = '',
   session = {},
-  users = [],
   scope = 'community',
   canManageGlobalMusic = false,
   hideTitleField = false,
   onAfterSave = null,
   onAfterDelete = null,
+  onAfterPublish = null,
 }) {
   const initialValues = pendingSugestao || selectedMusica || {};
   const reviewerName = getReviewerName(session);
@@ -261,8 +266,8 @@ function renderForm(formSlot, {
   if (selectedMusica && !canEditSelected) {
     formSlot.replaceChildren(createLockedMusicaPanel(selectedMusica, {
       onPersonalize: async () => {
-        const { data, error } = await duplicateMusicaToPrivate(selectedMusica.id, {
-          titulo: `${getField(selectedMusica, ['titulo', 'nome', 'title'])} - minha versao`,
+        const { data, error } = await duplicateMusicaToPrivate(getRootCommunityMusicaId(selectedMusica), {
+          titulo: getField(selectedMusica, ['titulo', 'nome', 'title']),
         });
 
         if (error) {
@@ -273,12 +278,12 @@ function renderForm(formSlot, {
         renderForm(formSlot, {
           selectedMusica: data,
           session,
-          users,
           scope: 'mine',
           canManageGlobalMusic,
           hideTitleField,
           onAfterSave,
           onAfterDelete,
+          onAfterPublish,
         });
         onAfterSave?.(data, selectedMusica);
       },
@@ -289,7 +294,28 @@ function renderForm(formSlot, {
   formSlot.replaceChildren(createMusicaOwnershipShell({
     scope,
     selectedMusica,
-    users,
+    session,
+    onPublish: async () => {
+      const confirmed = window.confirm(getPublishConfirmationMessage(selectedMusica));
+
+      if (!confirmed) {
+        return;
+      }
+
+      const { data, error } = await publishPrivateMusicaToCommunity(selectedMusica.id, {
+        id: session?.user?.id,
+        nome: session?.profile?.nome,
+        email: session?.user?.email,
+      });
+
+      if (error) {
+        window.alert(error.message || 'Nao foi possivel publicar a cifra na Comunidade.');
+        return;
+      }
+
+      window.alert(getPublishSuccessMessage(selectedMusica));
+      onAfterPublish?.(data);
+    },
     content: MusicaForm({
       initialValues: {
         titulo: initialValues.titulo || initialTitle || '',
@@ -309,7 +335,7 @@ function renderForm(formSlot, {
       hideTitleField,
       onClear: () => {
         clearPendingSugestaoMusica();
-        renderForm(formSlot, { session, users, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete });
+        renderForm(formSlot, { session, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete, onAfterPublish });
       },
       onDelete: selectedMusica
         ? async () => {
@@ -319,7 +345,7 @@ function renderForm(formSlot, {
             return false;
           }
 
-          renderForm(formSlot, { session, users, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete });
+          renderForm(formSlot, { session, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete, onAfterPublish });
           onAfterDelete?.(selectedMusica);
           return true;
         }
@@ -357,42 +383,31 @@ function renderForm(formSlot, {
   }));
 }
 
-function createMusicaOwnershipShell({ scope, selectedMusica, users, content }) {
+function createMusicaOwnershipShell({ scope, selectedMusica, session, onPublish, content }) {
   const wrapper = document.createElement('div');
   wrapper.className = 'musica-ownership-shell';
   const currentVisibility = selectedMusica?.visibility || getDefaultVisibilityForScope(scope);
+  const publishActionLabel = getPublishActionLabel(selectedMusica);
   wrapper.innerHTML = `
     <div class="musica-ownership-bar">
-      <label>
-        Acervo
-        <select data-role="music-visibility">
-          <option value="publica"${currentVisibility === 'publica' ? ' selected' : ''}>Comunidade publica</option>
-          <option value="privada"${currentVisibility === 'privada' ? ' selected' : ''}>Meu acervo privado</option>
-        </select>
-      </label>
+      <div>
+        <strong>Acervo</strong>
+        <span>${escapeHtml(getVisibilityLabel(currentVisibility))}</span>
+      </div>
       <span class="music-scope-hint">${escapeHtml(getVisibilityHint(currentVisibility))}</span>
+      ${publishActionLabel && session?.user ? `<button class="button" type="button" data-action="publish-community">${escapeHtml(publishActionLabel)}</button>` : ''}
     </div>
   `;
   wrapper.append(content);
 
-  const visibilitySelect = wrapper.querySelector('[data-role="music-visibility"]');
-  const hint = wrapper.querySelector('.music-scope-hint');
-
-  function syncOwnershipUi() {
-    hint.textContent = getVisibilityHint(visibilitySelect.value);
-  }
-
-  visibilitySelect.addEventListener('change', syncOwnershipUi);
-  syncOwnershipUi();
+  wrapper.querySelector('[data-action="publish-community"]')?.addEventListener('click', () => onPublish?.());
 
   return wrapper;
 }
 
 function getOwnershipValues(formSlot, scope) {
-  const visibility = formSlot.querySelector('[data-role="music-visibility"]')?.value || getDefaultVisibilityForScope(scope);
-
   return {
-    visibility,
+    visibility: getDefaultVisibilityForScope(scope),
     organization_id: null,
   };
 }
@@ -525,7 +540,7 @@ function createEmptySearchResult(searchValue, options = {}) {
   empty.innerHTML = `
     <div>
       <strong>Nenhuma cifra encontrada.</strong>
-      <span>Voce pode iniciar uma nova cifra no acervo selecionado.</span>
+      <span>Voce pode iniciar uma nova cifra em Minhas cifras.</span>
     </div>
     <button class="button" type="button" data-action="create-music">Cadastrar "${escapeHtml(searchValue)}"</button>
   `;
@@ -543,13 +558,13 @@ function createMusicasTable(musicas, options = {}) {
 
   musicas.forEach((musica) => {
     const id = getField(musica, ['id']);
-    const title = getField(musica, ['titulo', 'nome', 'title']);
+    const title = getDisplayTitle(musica);
     const artist = getField(musica, ['artista', 'autor', 'artist']);
     const key = getField(musica, ['tom', 'key']);
     const tags = formatTags(getField(musica, ['tags']));
     const readOnlyUrl = getReadOnlyMusicaUrl(id);
     const canEdit = canEditMusicaRecord(musica, options.session, options.canManageGlobalMusic);
-    const canPersonalize = Boolean(options.canCreate && !isOwnedByCurrentUser(musica, options.session));
+    const canPersonalize = Boolean(options.canCreate && musica.visibility === MUSICA_VISIBILITY.PUBLICA);
     const card = document.createElement('article');
     card.tabIndex = 0;
     card.className = 'musica-result-card';
@@ -567,8 +582,7 @@ function createMusicasTable(musicas, options = {}) {
       <div class="musica-result-actions">
         <a class="button-link secondary" href="${escapeHtml(readOnlyUrl)}">Executar</a>
         ${canEdit ? '<button class="nav-button" type="button" data-action="select-music">Editar</button>' : ''}
-        ${canPersonalize ? '<button class="nav-button" type="button" data-action="personalize-music">Personalizar</button>' : ''}
-        ${canEdit ? '<button class="nav-button" type="button" data-action="share-music">Compartilhar</button>' : ''}
+        ${canPersonalize ? '<button class="nav-button" type="button" data-action="personalize-music">Acrescentar as Minhas cifras</button>' : ''}
       </div>
     `;
     card.addEventListener('click', (event) => {
@@ -595,7 +609,6 @@ function createMusicasTable(musicas, options = {}) {
     });
     card.querySelector('[data-action="select-music"]')?.addEventListener('click', () => options.onSelect?.(musica));
     card.querySelector('[data-action="personalize-music"]')?.addEventListener('click', () => options.onPersonalize?.(musica));
-    card.querySelector('[data-action="share-music"]')?.addEventListener('click', () => options.onShare?.(musica));
     list.append(card);
   });
 
@@ -617,59 +630,6 @@ function createLockedMusicaPanel(musica, options = {}) {
   `;
   panel.querySelector('[data-action="personalize-music"]').addEventListener('click', () => options.onPersonalize?.());
   return panel;
-}
-
-function createShareDialog(musica, users, onSave) {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-backdrop music-share-backdrop';
-  overlay.innerHTML = `
-    <form class="modal-dialog music-share-dialog">
-      <h2>Compartilhar cifra</h2>
-      <p>${escapeHtml(getField(musica, ['titulo', 'nome', 'title']))}</p>
-      <label>
-        Usuario
-        <select name="user_id">
-          <option value="">Nao compartilhar com usuario</option>
-          ${users.map((user) => `<option value="${escapeHtml(user.id)}">${escapeHtml(user.nome || user.id)}</option>`).join('')}
-        </select>
-      </label>
-      <label class="checkbox-field">
-        <input name="user_can_edit" type="checkbox">
-        Usuario pode editar
-      </label>
-      <p class="form-message" aria-live="polite"></p>
-      <div class="modal-actions">
-        <button class="button-link secondary" type="button" data-action="cancel">Cancelar</button>
-        <button class="button" type="submit">Salvar compartilhamento</button>
-      </div>
-    </form>
-  `;
-  const form = overlay.querySelector('form');
-  const message = overlay.querySelector('.form-message');
-  overlay.querySelector('[data-action="cancel"]').addEventListener('click', () => overlay.remove());
-  overlay.addEventListener('click', (event) => {
-    if (event.target === overlay) overlay.remove();
-  });
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const userId = String(formData.get('user_id') || '');
-    const userShares = userId ? [{ user_id: userId, can_edit: formData.has('user_can_edit') }] : [];
-
-    message.className = 'form-message';
-    message.textContent = 'Salvando...';
-
-    try {
-      await onSave({ userShares });
-      message.className = 'form-message success';
-      message.textContent = 'Compartilhamento salvo.';
-      window.setTimeout(() => overlay.remove(), 600);
-    } catch (error) {
-      message.className = 'form-message error';
-      message.textContent = error.message || 'Nao foi possivel compartilhar a cifra.';
-    }
-  });
-  return overlay;
 }
 
 function getReviewerName(session = {}) {
@@ -791,6 +751,10 @@ function getReadOnlyMusicaUrl(id) {
   return `/musicas/execucao?${params.toString()}`;
 }
 
+function getRootCommunityMusicaId(musica) {
+  return musica?.source_musica_id || musica?.id;
+}
+
 function matchesSearch(musica, query) {
   if (!query) return true;
 
@@ -829,7 +793,12 @@ function formatDate(value) {
 }
 
 function getDefaultVisibilityForScope(scope) {
-  return LIBRARY_SCOPES.find((item) => item.key === scope)?.visibility || MUSICA_VISIBILITY.PUBLICA;
+  return LIBRARY_SCOPES.find((item) => item.key === scope)?.visibility || MUSICA_VISIBILITY.PRIVADA;
+}
+
+function getVisibilityLabel(visibility) {
+  if (visibility === MUSICA_VISIBILITY.PRIVADA) return 'Minhas cifras';
+  return 'Comunidade publica';
 }
 
 function getVisibilityHint(visibility) {
@@ -837,10 +806,46 @@ function getVisibilityHint(visibility) {
   return 'Todos os usuarios autenticados podem acessar esta cifra.';
 }
 
+function getPublishActionLabel(musica) {
+  if (!musica || musica.visibility !== MUSICA_VISIBILITY.PRIVADA) return '';
+  if (musica.source_musica_id) return 'Publicar ajuste na Comunidade';
+  return 'Publicar na Comunidade';
+}
+
+function getPublishConfirmationMessage(musica) {
+  if (musica?.source_musica_id) {
+    return 'Esta acao publicara seu ajuste na Comunidade. Se voce for o autor original, a versao publica sera atualizada. Caso contrario, sera criada uma nova versao publica desta cifra.';
+  }
+
+  return 'Esta cifra ficara visivel para todos os usuarios autenticados na Comunidade.';
+}
+
+function getPublishSuccessMessage(musica) {
+  if (musica?.source_musica_id) {
+    return 'Ajuste publicado na Comunidade.';
+  }
+
+  return 'Cifra publicada na Comunidade.';
+}
+
 function getMusicaScopeLabel(musica) {
   if (musica.visibility === MUSICA_VISIBILITY.PRIVADA) return 'Minha';
-  if (musica.visibility === MUSICA_VISIBILITY.COMPARTILHADA) return 'Compartilhada';
   return 'Comunidade';
+}
+
+function getDisplayTitle(musica) {
+  const title = getField(musica, ['titulo', 'nome', 'title']);
+  const versionName = getVersionName(musica);
+
+  return versionName ? `${title} - Versao ${versionName}` : title;
+}
+
+function getVersionName(musica) {
+  if (musica?.visibility !== MUSICA_VISIBILITY.PUBLICA || !musica.source_musica_id) {
+    return '';
+  }
+
+  return musica.colaborador_nome || 'Usuario';
 }
 
 function isOwnedByCurrentUser(musica, session = {}) {
@@ -856,8 +861,7 @@ function canEditMusicaRecord(musica, session = {}, canManageGlobalMusic = false)
 
 function isMusicaInScope(musica, scope, session = {}) {
   if (scope === 'community') return musica.visibility === MUSICA_VISIBILITY.PUBLICA;
-  if (scope === 'mine') return isOwnedByCurrentUser(musica, session);
-  if (scope === 'shared') return musica.visibility === MUSICA_VISIBILITY.COMPARTILHADA;
+  if (scope === 'mine') return musica.visibility === MUSICA_VISIBILITY.PRIVADA && isOwnedByCurrentUser(musica, session);
   return true;
 }
 

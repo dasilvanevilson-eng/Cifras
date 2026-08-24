@@ -11,6 +11,7 @@ const MUSICA_LIST_COLUMNS = `
   organization_id,
   source_musica_id,
   created_by,
+  colaborador_nome,
   updated_at
 `;
 
@@ -54,14 +55,22 @@ export async function listMusicas(options = {}) {
   if (scope === 'community') {
     request = request.eq('visibility', MUSICA_VISIBILITY.PUBLICA);
   } else if (scope === 'mine' && userId) {
-    request = request.or(`owner_id.eq.${userId},created_by.eq.${userId}`);
+    request = request
+      .eq('visibility', MUSICA_VISIBILITY.PRIVADA)
+      .or(`owner_id.eq.${userId},created_by.eq.${userId}`);
   } else if (scope === 'organization' && organizationId) {
     request = request
       .eq('visibility', MUSICA_VISIBILITY.ORGANIZACAO)
       .eq('organization_id', organizationId);
   }
 
-  return request;
+  const result = await request;
+
+  if (result.error || scope !== 'community') {
+    return result;
+  }
+
+  return enrichMusicasWithVersionNames(result);
 }
 
 async function listSharedMusicas({ query = '', limit = 120, userId = null, organizationId = null } = {}) {
@@ -139,6 +148,88 @@ export async function updateMusica(id, musica) {
   assertSupabaseConfig();
   const payload = normalizeMusicaPayload(musica);
   return supabase.from('musicas').update(payload).eq('id', id).select().single();
+}
+
+export async function publishPrivateMusicaToCommunity(musicaId, sessionProfile = {}) {
+  assertSupabaseConfig();
+  const { data: musica, error: musicaError } = await getMusicaById(musicaId);
+
+  if (musicaError) {
+    return { data: null, error: musicaError };
+  }
+
+  if (musica.source_musica_id) {
+    const { data: source, error: sourceError } = await getMusicaById(musica.source_musica_id);
+
+    if (sourceError) {
+      return { data: null, error: sourceError };
+    }
+
+    if (source.created_by && source.created_by === sessionProfile?.id) {
+      return updateSourceCommunityMusicaFromPrivate(musicaId);
+    }
+
+    return publishPrivateMusicaAsCommunityVersion(musicaId, sessionProfile);
+  }
+
+  const payload = normalizeMusicaPayload({
+    ...pickMusicaContent(musica),
+    colaborador_nome: musica.colaborador_nome || getProfileDisplayName(sessionProfile),
+    revisado_por_nome: musica.revisado_por_nome || getProfileDisplayName(sessionProfile),
+    visibility: MUSICA_VISIBILITY.PUBLICA,
+    source_musica_id: null,
+  });
+
+  return supabase.from('musicas').update(payload).eq('id', musica.id).select().single();
+}
+
+export async function publishPrivateMusicaAsCommunityVersion(musicaId, sessionProfile = {}) {
+  assertSupabaseConfig();
+  const { data: musica, error: musicaError } = await getMusicaById(musicaId);
+
+  if (musicaError) {
+    return { data: null, error: musicaError };
+  }
+
+  const sourceId = musica.source_musica_id || musica.id;
+  const payload = normalizeMusicaPayload({
+    ...pickMusicaContent(musica),
+    colaborador_nome: getProfileDisplayName(sessionProfile) || musica.colaborador_nome,
+    revisado_por_nome: musica.revisado_por_nome || getProfileDisplayName(sessionProfile),
+    visibility: MUSICA_VISIBILITY.PUBLICA,
+    source_musica_id: sourceId,
+  });
+
+  return supabase.from('musicas').insert(payload).select().single();
+}
+
+export async function updateSourceCommunityMusicaFromPrivate(musicaId) {
+  assertSupabaseConfig();
+  const { data: musica, error: musicaError } = await getMusicaById(musicaId);
+
+  if (musicaError) {
+    return { data: null, error: musicaError };
+  }
+
+  if (!musica.source_musica_id) {
+    return publishPrivateMusicaToCommunity(musicaId);
+  }
+
+  const { data: source, error: sourceError } = await getMusicaById(musica.source_musica_id);
+
+  if (sourceError) {
+    return { data: null, error: sourceError };
+  }
+
+  const payload = normalizeMusicaPayload({
+    ...pickMusicaContent(musica),
+    colaborador_nome: source.colaborador_nome,
+    revisado_por_nome: musica.revisado_por_nome,
+    visibility: MUSICA_VISIBILITY.PUBLICA,
+    source_musica_id: source.source_musica_id || null,
+  });
+
+  return supabase.from('musicas').update(payload).eq('id', source.id).select().single();
 }
 
 export async function duplicateMusicaToPrivate(musicaId, overrides = {}) {
@@ -281,6 +372,56 @@ function normalizeMusicaPayload(musica = {}) {
   }
 
   return payload;
+}
+
+function pickMusicaContent(musica = {}) {
+  return {
+    titulo: musica.titulo,
+    artista: musica.artista,
+    tom: musica.tom,
+    tags: musica.tags,
+    musica_link: musica.musica_link,
+    colaborador_nome: musica.colaborador_nome,
+    revisado_por_nome: musica.revisado_por_nome,
+    cifra_original: musica.cifra_original,
+    cifra_chordpro: musica.cifra_chordpro,
+    cifra_exibicao: musica.cifra_exibicao,
+    cifra_editor_state: musica.cifra_editor_state,
+  };
+}
+
+async function enrichMusicasWithVersionNames(result) {
+  const musicas = result.data || [];
+  const missingNameUserIds = [...new Set(musicas
+    .filter((musica) => musica.source_musica_id && !musica.colaborador_nome && musica.created_by)
+    .map((musica) => musica.created_by))];
+
+  if (!missingNameUserIds.length) {
+    return result;
+  }
+
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('id, nome')
+    .in('id', missingNameUserIds);
+
+  if (error) {
+    return result;
+  }
+
+  const namesById = new Map((profiles || []).map((profile) => [profile.id, profile.nome]));
+
+  return {
+    ...result,
+    data: musicas.map((musica) => ({
+      ...musica,
+      colaborador_nome: musica.colaborador_nome || namesById.get(musica.created_by) || null,
+    })),
+  };
+}
+
+function getProfileDisplayName(profile = {}) {
+  return profile?.nome || profile?.email || 'Usuario';
 }
 
 function dedupeShares(shares = [], key) {
