@@ -12,8 +12,7 @@ import {
   MUSICA_VISIBILITY,
 } from '../../../services/musicasService.js';
 import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasService.js';
-import { canEditContent } from '../../auth/roles.js';
-import { hasPermission } from '../../auth/permissions.js';
+import { USER_ROLES } from '../../auth/roles.js';
 
 const LIBRARY_SCOPES = [
   { key: 'community', label: 'Comunidade', visibility: MUSICA_VISIBILITY.PUBLICA },
@@ -21,7 +20,7 @@ const LIBRARY_SCOPES = [
 ];
 
 export async function MusicasPage({ session } = {}) {
-  const canManageGlobalMusic = canEditContent(session?.profile?.papel) && hasPermission(session, 'musicas', 'can_edit');
+  const canManageGlobalMusic = isAdmin(session);
   const canCreateMusic = Boolean(session?.user);
   const page = document.createElement('section');
   page.className = `page musicas-page${canCreateMusic ? ' can-edit-music' : ' read-only-music'}`;
@@ -863,7 +862,7 @@ function getDisplayTitle(musica) {
 }
 
 function getVersionName(musica) {
-  if (musica?.visibility !== MUSICA_VISIBILITY.PUBLICA || !musica.source_musica_id) {
+  if (musica?.visibility !== MUSICA_VISIBILITY.PUBLICA) {
     return '';
   }
 
@@ -879,6 +878,10 @@ function isOwnedByCurrentUser(musica, session = {}) {
 
 function canEditMusicaRecord(musica, session = {}, canManageGlobalMusic = false) {
   return Boolean(canManageGlobalMusic || isOwnedByCurrentUser(musica, session));
+}
+
+function isAdmin(session = {}) {
+  return String(session?.profile?.papel || '').trim().toLowerCase() === USER_ROLES.ADMIN;
 }
 
 function isMusicaInScope(musica, scope, session = {}) {

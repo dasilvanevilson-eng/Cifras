@@ -5,7 +5,7 @@ import {
   listRepertoriosComMusica,
 } from '../../../services/musicasService.js';
 import { updateTomMusicaRepertorio } from '../../../services/repertoriosService.js';
-import { canEditContent } from '../../auth/roles.js';
+import { USER_ROLES } from '../../auth/roles.js';
 import { setupAutoHideToolbar } from '../../../utils/autoHideToolbar.js';
 import { convertCifraOriginalToNumbers, getCifraExibicao, getTransposeSemitones, getVoiceLabelsFromMusica, renderCifraOriginalForDisplayHtml, renderMusicaCifraForDisplayHtml, transposeCifraOriginal, transposeKey } from '../../../utils/chordpro.js';
 import { fitPreformattedTextToWidth } from '../../../utils/performanceFontFit.js';
@@ -47,7 +47,7 @@ export async function MusicaDetalhePage({ session } = {}) {
     });
 
     page.replaceChildren(createMusicaView(musica, {
-      canEdit: canEditContent(session?.profile?.papel) && !associationId,
+      canEdit: canEditMusicaRecord(musica, session) && !associationId,
       returnTo,
       associationId,
       repertorioTom,
@@ -437,6 +437,21 @@ function getDeleteErrorMessage(error) {
 function getField(record, names) {
   const fieldName = names.find((name) => record[name]);
   return fieldName ? String(record[fieldName]) : '-';
+}
+
+function isOwnedByCurrentUser(musica, session = {}) {
+  return Boolean(session?.user?.id && (
+    musica.owner_id === session.user.id
+    || musica.created_by === session.user.id
+  ));
+}
+
+function canEditMusicaRecord(musica, session = {}) {
+  return isAdmin(session) || isOwnedByCurrentUser(musica, session);
+}
+
+function isAdmin(session = {}) {
+  return String(session?.profile?.papel || '').trim().toLowerCase() === USER_ROLES.ADMIN;
 }
 
 function formatDate(value) {

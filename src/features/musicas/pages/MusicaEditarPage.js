@@ -1,6 +1,6 @@
 import { MusicaForm } from '../components/MusicaForm.js';
 import { getMusicaById, updateMusica } from '../../../services/musicasService.js';
-import { canEditContent } from '../../auth/roles.js';
+import { USER_ROLES } from '../../auth/roles.js';
 
 export async function MusicaEditarPage({ session } = {}) {
   const page = document.createElement('section');
@@ -16,17 +16,17 @@ export async function MusicaEditarPage({ session } = {}) {
     return page;
   }
 
-  if (!canEditContent(session?.profile?.papel)) {
-    status.className = 'page-status error';
-    status.textContent = 'Seu perfil nao tem permissao para editar musicas.';
-    return page;
-  }
-
   try {
     const { data: musica, error } = await getMusicaById(id);
 
     if (error) {
       throw error;
+    }
+
+    if (!canEditMusicaRecord(musica, session)) {
+      status.className = 'page-status error';
+      status.textContent = 'Voce pode editar apenas cifras criadas por voce.';
+      return page;
     }
 
     page.replaceChildren(createEditView(id, musica, session));
@@ -78,4 +78,19 @@ function createEditView(id, musica, session = {}) {
 
 function getReviewerName(session = {}) {
   return session?.profile?.nome || session?.user?.email || 'Usuario';
+}
+
+function isOwnedByCurrentUser(musica, session = {}) {
+  return Boolean(session?.user?.id && (
+    musica.owner_id === session.user.id
+    || musica.created_by === session.user.id
+  ));
+}
+
+function canEditMusicaRecord(musica, session = {}) {
+  return isAdmin(session) || isOwnedByCurrentUser(musica, session);
+}
+
+function isAdmin(session = {}) {
+  return String(session?.profile?.papel || '').trim().toLowerCase() === USER_ROLES.ADMIN;
 }

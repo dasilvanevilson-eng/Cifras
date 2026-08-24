@@ -320,7 +320,7 @@ function getMusicaContentError(musica = {}) {
 async function enrichMusicasWithVersionNames(result) {
   const musicas = result.data || [];
   const missingNameUserIds = [...new Set(musicas
-    .filter((musica) => musica.source_musica_id && !musica.colaborador_nome && musica.created_by)
+    .filter((musica) => !musica.colaborador_nome && musica.created_by)
     .map((musica) => musica.created_by))];
 
   if (!missingNameUserIds.length) {
