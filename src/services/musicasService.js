@@ -67,7 +67,7 @@ export async function listMusicas(options = {}) {
 
   const result = await request;
 
-  if (result.error || scope !== 'community') {
+  if (result.error) {
     return result;
   }
 

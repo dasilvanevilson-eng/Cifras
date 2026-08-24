@@ -796,7 +796,10 @@ function formatRepertorioMusicaTitle(item) {
 function formatMusicaName(musica) {
   const titulo = getField(musica, ['titulo', 'nome', 'title']);
   const artista = getField(musica, ['artista', 'autor', 'artist']);
-  return artista && artista !== '-' ? `${titulo} - ${artista}` : titulo;
+  const versionName = getMusicaVersionName(musica);
+  const displayTitle = versionName ? `${titulo} - Versao ${versionName}` : titulo;
+
+  return artista && artista !== '-' ? `${displayTitle} - ${artista}` : displayTitle;
 }
 
 function getMusicaExecucaoUrl(item) {
@@ -825,8 +828,17 @@ function matchesMusicaSearch(musica, query) {
   return normalizeText([
     getField(musica, ['titulo', 'nome', 'title']),
     getField(musica, ['artista', 'autor', 'artist']),
+    getMusicaVersionName(musica),
     getField(musica, ['tags']),
   ].join(' ')).includes(query);
+}
+
+function getMusicaVersionName(musica) {
+  if (!musica?.colaborador_nome || musica.colaborador_nome === '-') {
+    return '';
+  }
+
+  return musica.colaborador_nome;
 }
 
 function normalizeText(value) {
