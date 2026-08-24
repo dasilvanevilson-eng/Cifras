@@ -167,7 +167,7 @@ export async function MusicasPage({ session } = {}) {
   async function personalizeMusica(musica) {
     const { data, error } = await duplicateMusicaToPrivate(getRootCommunityMusicaId(musica), {
       titulo: getField(musica, ['titulo', 'nome', 'title']),
-    });
+    }, session?.user?.id);
 
     if (error) {
       window.alert(error.message || 'Nao foi possivel personalizar esta cifra.');
@@ -268,7 +268,7 @@ function renderForm(formSlot, {
       onPersonalize: async () => {
         const { data, error } = await duplicateMusicaToPrivate(getRootCommunityMusicaId(selectedMusica), {
           titulo: getField(selectedMusica, ['titulo', 'nome', 'title']),
-        });
+        }, session?.user?.id);
 
         if (error) {
           window.alert(error.message || 'Nao foi possivel personalizar esta cifra.');
@@ -351,7 +351,7 @@ function renderForm(formSlot, {
         }
         : null,
       onSubmit: async (musica) => {
-        const ownershipValues = getOwnershipValues(formSlot, scope);
+        const ownershipValues = getOwnershipValues(scope, session, selectedMusica);
         const payload = {
           ...musica,
           ...ownershipValues,
@@ -405,10 +405,19 @@ function createMusicaOwnershipShell({ scope, selectedMusica, session, onPublish,
   return wrapper;
 }
 
-function getOwnershipValues(formSlot, scope) {
+function getOwnershipValues(scope, session = {}, selectedMusica = null) {
+  const visibility = selectedMusica?.visibility || getDefaultVisibilityForScope(scope);
+  const isNewPrivateMusica = !selectedMusica && visibility === MUSICA_VISIBILITY.PRIVADA;
+
   return {
-    visibility: getDefaultVisibilityForScope(scope),
+    visibility,
     organization_id: null,
+    ...(isNewPrivateMusica && session?.user?.id
+      ? {
+        owner_id: session.user.id,
+        created_by: session.user.id,
+      }
+      : {}),
   };
 }
 

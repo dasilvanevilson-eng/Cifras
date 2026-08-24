@@ -232,7 +232,7 @@ export async function updateSourceCommunityMusicaFromPrivate(musicaId) {
   return supabase.from('musicas').update(payload).eq('id', source.id).select().single();
 }
 
-export async function duplicateMusicaToPrivate(musicaId, overrides = {}) {
+export async function duplicateMusicaToPrivate(musicaId, overrides = {}, ownerId = null) {
   assertSupabaseConfig();
   const { data: source, error: sourceError } = await getMusicaById(musicaId);
 
@@ -254,6 +254,7 @@ export async function duplicateMusicaToPrivate(musicaId, overrides = {}) {
     cifra_editor_state: overrides.cifra_editor_state ?? source.cifra_editor_state,
     visibility: MUSICA_VISIBILITY.PRIVADA,
     source_musica_id: source.id,
+    ...(ownerId ? { owner_id: ownerId, created_by: ownerId } : {}),
   });
 
   return supabase.from('musicas').insert(payload).select().single();
@@ -359,7 +360,7 @@ function normalizeMusicaPayload(musica = {}) {
   const payload = { ...musica };
 
   if (!payload.visibility) {
-    payload.visibility = MUSICA_VISIBILITY.PUBLICA;
+    payload.visibility = MUSICA_VISIBILITY.PRIVADA;
   }
 
   if (payload.visibility === MUSICA_VISIBILITY.PUBLICA) {
