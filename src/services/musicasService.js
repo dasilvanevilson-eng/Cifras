@@ -194,6 +194,15 @@ export async function duplicateMusicaToPrivate(musicaId, overrides = {}, _ownerI
     });
 }
 
+export async function ensurePrivateMusicaForRepertorio(musicaId, overwriteMusicaId = null) {
+  assertSupabaseConfig();
+  return supabase
+    .rpc('ensure_private_musica_for_repertorio', {
+      p_musica_id: musicaId,
+      p_overwrite_musica_id: overwriteMusicaId,
+    });
+}
+
 export async function replaceMusicaCompartilhamentos(musicaId, userShares = [], groupShares = []) {
   assertSupabaseConfig();
 

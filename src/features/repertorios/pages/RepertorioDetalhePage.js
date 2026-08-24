@@ -1,4 +1,8 @@
-import { listMusicas } from '../../../services/musicasService.js';
+import {
+  ensurePrivateMusicaForRepertorio,
+  listMusicas,
+  MUSICA_VISIBILITY,
+} from '../../../services/musicasService.js';
 import {
   addMusicaToRepertorio,
   deleteRepertorio,
@@ -401,10 +405,12 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
   );
   const musicasOrdenadas = sortMusicasByName(musicas);
   let isPointerInsideResults = false;
+  let selectedMusica = null;
 
   function renderResults() {
     const query = normalizeText(searchInput.value);
     musicaIdInput.value = '';
+    selectedMusica = null;
     message.textContent = '';
     message.className = 'form-message';
 
@@ -434,9 +440,21 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
         ${isAdded ? '<span>Ja esta neste repertorio</span>' : ''}
       `;
 
-      item.addEventListener('click', () => {
-        searchInput.value = formatMusicaName(musica);
-        musicaIdInput.value = musica.id;
+      item.addEventListener('click', async () => {
+        item.disabled = true;
+        message.textContent = 'Preparando musica...';
+        message.className = 'form-message';
+
+        const preparedMusica = await prepareMusicaForRepertorio(musica, musicas, message);
+        item.disabled = false;
+
+        if (!preparedMusica) {
+          return;
+        }
+
+        selectedMusica = preparedMusica;
+        searchInput.value = formatMusicaName(preparedMusica);
+        musicaIdInput.value = preparedMusica.id;
         resultsSlot.hidden = true;
         message.textContent = '';
         message.className = 'form-message';
@@ -487,7 +505,9 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
     const formData = new FormData(form);
     const musicaId = String(formData.get('musica_id') || '');
     const observacao = String(formData.get('observacao') || '').trim();
-    const musicaSelecionada = musicas.find((musica) => musica.id === musicaId);
+    const musicaSelecionada = selectedMusica?.id === musicaId
+      ? selectedMusica
+      : musicas.find((musica) => musica.id === musicaId);
     const tom = getField(musicaSelecionada || {}, ['tom', 'key']);
 
     if (!musicaSelecionada) {
@@ -839,6 +859,66 @@ function getMusicaVersionName(musica) {
   }
 
   return musica.colaborador_nome;
+}
+
+async function prepareMusicaForRepertorio(musica, musicas, message = null) {
+  if (!isCommunityMusica(musica)) {
+    return musica;
+  }
+
+  const privateMusica = findPrivateMusicaWithSameTitle(musica, musicas);
+  const shouldOverwrite = privateMusica
+    ? window.confirm('Esse título já existe em seu acervo particular, deseja sobrescrever?')
+    : false;
+
+  try {
+    const { data, error } = await ensurePrivateMusicaForRepertorio(
+      musica.id,
+      shouldOverwrite ? privateMusica.id : null,
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    upsertMusicaInCache(musicas, data);
+    return data;
+  } catch (error) {
+    if (message) {
+      message.className = 'form-message error';
+      message.textContent = error.message || 'Nao foi possivel salvar a cifra em Minhas cifras.';
+    }
+    return null;
+  }
+}
+
+function isCommunityMusica(musica) {
+  return musica?.visibility === MUSICA_VISIBILITY.PUBLICA;
+}
+
+function findPrivateMusicaWithSameTitle(musica, musicas) {
+  const title = normalizeText(getField(musica, ['titulo', 'nome', 'title']));
+
+  if (!title) {
+    return null;
+  }
+
+  return musicas.find((item) => (
+    item?.visibility === MUSICA_VISIBILITY.PRIVADA
+    && normalizeText(getField(item, ['titulo', 'nome', 'title'])) === title
+  )) || null;
+}
+
+function upsertMusicaInCache(musicas, musica) {
+  if (!musica?.id) return;
+
+  const index = musicas.findIndex((item) => item.id === musica.id);
+  if (index >= 0) {
+    musicas[index] = musica;
+    return;
+  }
+
+  musicas.push(musica);
 }
 
 function normalizeText(value) {

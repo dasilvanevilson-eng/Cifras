@@ -1,4 +1,8 @@
-import { listMusicas } from '../../../services/musicasService.js';
+import {
+  ensurePrivateMusicaForRepertorio,
+  listMusicas,
+  MUSICA_VISIBILITY,
+} from '../../../services/musicasService.js';
 import {
   createRepertorioComMusicas,
   deleteRepertorio,
@@ -247,8 +251,12 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   function renderResults() {
     const query = normalizeText(searchInput.value);
     const selectedIds = new Set(selectedMusicas.map((musica) => musica.id));
+    const selectedSourceIds = new Set(selectedMusicas
+      .map((musica) => musica.source_musica_id)
+      .filter(Boolean));
     const filtered = sortedMusicas
       .filter((musica) => !selectedIds.has(musica.id))
+      .filter((musica) => !selectedSourceIds.has(musica.id))
       .filter((musica) => matchesMusicaSearch(musica, query))
       .slice(0, 60);
 
@@ -274,9 +282,20 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         <span class="song-search-scope">${escapeHtml(getMusicaScopeLabel(musica))}</span>
       `;
 
-      item.addEventListener('click', () => {
+      item.addEventListener('click', async () => {
+        item.disabled = true;
+        message.textContent = 'Preparando musica...';
+        message.className = 'form-message';
+
+        const preparedMusica = await prepareMusicaForRepertorio(musica, musicas, message);
+        item.disabled = false;
+
+        if (!preparedMusica) {
+          return;
+        }
+
         selectedMusicas.push({
-          ...musica,
+          ...preparedMusica,
           observacao: '',
         });
         searchInput.value = '';
@@ -756,10 +775,70 @@ function getMusicaVersionName(musica) {
 }
 
 function getMusicaScopeLabel(musica) {
-  if (musica?.visibility === 'privada') return 'Minha cifra';
-  if (musica?.visibility === 'organizacao') return 'Organizacao';
-  if (musica?.visibility === 'compartilhada') return 'Compartilhada';
+  if (musica?.visibility === MUSICA_VISIBILITY.PRIVADA) return 'Minha cifra';
+  if (musica?.visibility === MUSICA_VISIBILITY.ORGANIZACAO) return 'Organizacao';
+  if (musica?.visibility === MUSICA_VISIBILITY.COMPARTILHADA) return 'Compartilhada';
   return 'Comunidade';
+}
+
+async function prepareMusicaForRepertorio(musica, musicas, message = null) {
+  if (!isCommunityMusica(musica)) {
+    return musica;
+  }
+
+  const privateMusica = findPrivateMusicaWithSameTitle(musica, musicas);
+  const shouldOverwrite = privateMusica
+    ? window.confirm('Esse título já existe em seu acervo particular, deseja sobrescrever?')
+    : false;
+
+  try {
+    const { data, error } = await ensurePrivateMusicaForRepertorio(
+      musica.id,
+      shouldOverwrite ? privateMusica.id : null,
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    upsertMusicaInCache(musicas, data);
+    return data;
+  } catch (error) {
+    if (message) {
+      message.className = 'form-message error';
+      message.textContent = error.message || 'Nao foi possivel salvar a cifra em Minhas cifras.';
+    }
+    return null;
+  }
+}
+
+function isCommunityMusica(musica) {
+  return musica?.visibility === MUSICA_VISIBILITY.PUBLICA;
+}
+
+function findPrivateMusicaWithSameTitle(musica, musicas) {
+  const title = normalizeText(getField(musica, ['titulo', 'nome', 'title']));
+
+  if (!title) {
+    return null;
+  }
+
+  return musicas.find((item) => (
+    item?.visibility === MUSICA_VISIBILITY.PRIVADA
+    && normalizeText(getField(item, ['titulo', 'nome', 'title'])) === title
+  )) || null;
+}
+
+function upsertMusicaInCache(musicas, musica) {
+  if (!musica?.id) return;
+
+  const index = musicas.findIndex((item) => item.id === musica.id);
+  if (index >= 0) {
+    musicas[index] = musica;
+    return;
+  }
+
+  musicas.push(musica);
 }
 
 function normalizeText(value) {
