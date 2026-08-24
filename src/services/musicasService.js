@@ -165,84 +165,24 @@ export async function updateMusica(id, musica) {
 
 export async function publishPrivateMusicaToCommunity(musicaId, sessionProfile = {}) {
   assertSupabaseConfig();
-  const { data: musica, error: musicaError } = await getMusicaById(musicaId);
+  const profileName = getProfileDisplayName(sessionProfile);
 
-  if (musicaError) {
-    return { data: null, error: musicaError };
-  }
-
-  if (musica.source_musica_id) {
-    const { data: source, error: sourceError } = await getMusicaById(musica.source_musica_id);
-
-    if (sourceError) {
-      return { data: null, error: sourceError };
-    }
-
-    if (source.created_by && source.created_by === sessionProfile?.id) {
-      return updateSourceCommunityMusicaFromPrivate(musicaId);
-    }
-
-    return publishPrivateMusicaAsCommunityVersion(musicaId, sessionProfile);
-  }
-
-  const payload = normalizeMusicaPayload({
-    ...pickMusicaContent(musica),
-    colaborador_nome: musica.colaborador_nome || getProfileDisplayName(sessionProfile),
-    revisado_por_nome: musica.revisado_por_nome || getProfileDisplayName(sessionProfile),
-    visibility: MUSICA_VISIBILITY.PUBLICA,
-    source_musica_id: null,
-  });
-
-  return supabase.from('musicas').update(payload).eq('id', musica.id).select().single();
+  return supabase
+    .rpc('publish_private_musica_to_community', {
+      p_musica_id: musicaId,
+      p_colaborador_nome: profileName,
+      p_revisado_por_nome: profileName,
+    });
 }
 
 export async function publishPrivateMusicaAsCommunityVersion(musicaId, sessionProfile = {}) {
   assertSupabaseConfig();
-  const { data: musica, error: musicaError } = await getMusicaById(musicaId);
-
-  if (musicaError) {
-    return { data: null, error: musicaError };
-  }
-
-  const sourceId = musica.source_musica_id || musica.id;
-  const payload = normalizeMusicaPayload({
-    ...pickMusicaContent(musica),
-    colaborador_nome: getProfileDisplayName(sessionProfile) || musica.colaborador_nome,
-    revisado_por_nome: musica.revisado_por_nome || getProfileDisplayName(sessionProfile),
-    visibility: MUSICA_VISIBILITY.PUBLICA,
-    source_musica_id: sourceId,
-  });
-
-  return supabase.from('musicas').insert(payload).select().single();
+  return publishPrivateMusicaToCommunity(musicaId, sessionProfile);
 }
 
 export async function updateSourceCommunityMusicaFromPrivate(musicaId) {
   assertSupabaseConfig();
-  const { data: musica, error: musicaError } = await getMusicaById(musicaId);
-
-  if (musicaError) {
-    return { data: null, error: musicaError };
-  }
-
-  if (!musica.source_musica_id) {
-    return publishPrivateMusicaToCommunity(musicaId);
-  }
-
-  const { data: source, error: sourceError } = await getMusicaById(musica.source_musica_id);
-
-  if (sourceError) {
-    return { data: null, error: sourceError };
-  }
-
-  const payload = normalizeMusicaPayload({
-    ...pickMusicaContent(musica),
-    colaborador_nome: source.colaborador_nome,
-    revisado_por_nome: musica.revisado_por_nome,
-    visibility: MUSICA_VISIBILITY.PUBLICA,
-    source_musica_id: source.source_musica_id || null,
-  });
-
-  return supabase.from('musicas').update(payload).eq('id', source.id).select().single();
+  return publishPrivateMusicaToCommunity(musicaId);
 }
 
 export async function duplicateMusicaToPrivate(musicaId, overrides = {}, _ownerId = null) {
@@ -375,22 +315,6 @@ function getMusicaContentError(musica = {}) {
   }
 
   return new Error('Informe a cifra antes de salvar.');
-}
-
-function pickMusicaContent(musica = {}) {
-  return {
-    titulo: musica.titulo,
-    artista: musica.artista,
-    tom: musica.tom,
-    tags: musica.tags,
-    musica_link: musica.musica_link,
-    colaborador_nome: musica.colaborador_nome,
-    revisado_por_nome: musica.revisado_por_nome,
-    cifra_original: musica.cifra_original,
-    cifra_chordpro: musica.cifra_chordpro,
-    cifra_exibicao: musica.cifra_exibicao,
-    cifra_editor_state: musica.cifra_editor_state,
-  };
 }
 
 async function enrichMusicasWithVersionNames(result) {
