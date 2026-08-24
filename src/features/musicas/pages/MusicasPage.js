@@ -307,27 +307,6 @@ function renderForm(formSlot, {
     scope,
     selectedMusica,
     session,
-    onPublish: async () => {
-      const confirmed = window.confirm(getPublishConfirmationMessage(selectedMusica));
-
-      if (!confirmed) {
-        return;
-      }
-
-      const { data, error } = await publishPrivateMusicaToCommunity(selectedMusica.id, {
-        id: session?.user?.id,
-        nome: session?.profile?.nome,
-        email: session?.user?.email,
-      });
-
-      if (error) {
-        window.alert(error.message || 'Nao foi possivel publicar a cifra na Comunidade.');
-        return;
-      }
-
-      window.alert(getPublishSuccessMessage(selectedMusica));
-      onAfterPublish?.(data);
-    },
     content: MusicaForm({
       initialValues: {
         titulo: initialValues.titulo || initialTitle || '',
@@ -344,7 +323,28 @@ function renderForm(formSlot, {
       },
       submitLabel: selectedMusica ? 'Salvar alteracoes' : 'Salvar musica',
       canDelete: Boolean(selectedMusica && canEditSelected),
+      publishActionLabel: getPublishActionLabel(selectedMusica),
       hideTitleField,
+      onPublish: async () => {
+        const confirmed = window.confirm(getPublishConfirmationMessage(selectedMusica));
+
+        if (!confirmed) {
+          return;
+        }
+
+        const { data, error } = await publishPrivateMusicaToCommunity(selectedMusica.id, {
+          id: session?.user?.id,
+          nome: session?.profile?.nome,
+          email: session?.user?.email,
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        window.alert(getPublishSuccessMessage(selectedMusica));
+        onAfterPublish?.(data);
+      },
       onClear: () => {
         clearPendingSugestaoMusica();
         renderForm(formSlot, { session, scope, canManageGlobalMusic, hideTitleField, onAfterSave, onAfterDelete, onAfterPublish });
@@ -395,11 +395,10 @@ function renderForm(formSlot, {
   }));
 }
 
-function createMusicaOwnershipShell({ scope, selectedMusica, session, onPublish, content }) {
+function createMusicaOwnershipShell({ scope, selectedMusica, content }) {
   const wrapper = document.createElement('div');
   wrapper.className = 'musica-ownership-shell';
   const currentVisibility = selectedMusica?.visibility || getDefaultVisibilityForScope(scope);
-  const publishActionLabel = getPublishActionLabel(selectedMusica);
   wrapper.innerHTML = `
     <div class="musica-ownership-bar">
       <div>
@@ -407,12 +406,9 @@ function createMusicaOwnershipShell({ scope, selectedMusica, session, onPublish,
         <span>${escapeHtml(getVisibilityLabel(currentVisibility))}</span>
       </div>
       <span class="music-scope-hint">${escapeHtml(getVisibilityHint(currentVisibility))}</span>
-      ${publishActionLabel && session?.user ? `<button class="button" type="button" data-action="publish-community">${escapeHtml(publishActionLabel)}</button>` : ''}
     </div>
   `;
   wrapper.append(content);
-
-  wrapper.querySelector('[data-action="publish-community"]')?.addEventListener('click', () => onPublish?.());
 
   return wrapper;
 }

@@ -5585,6 +5585,23 @@ body.has-performance-fullscreen:has(.repertorio-performance-view.is-dark) {
   color: #5f594f;
 }
 
+.musica-current-title-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.musica-current-title-row .musica-current-title {
+  margin: 0;
+}
+
+.musica-current-title-row .button {
+  flex: 0 1 auto;
+}
+
 .music-form-actions {
   display: flex;
   flex-wrap: wrap;
@@ -14248,8 +14265,10 @@ html[data-interface-density="compact"] .account-password-panel {
 
   .page > section:has(.musica-form) .music-editor-metadata .field-title,
   .page > section:has(.musica-form) .music-editor-metadata .musica-current-title,
+  .page > section:has(.musica-form) .music-editor-metadata .musica-current-title-row,
   .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-title,
-  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title {
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title-row {
     grid-column: 1 / -1;
   }
 
@@ -14364,8 +14383,10 @@ html[data-interface-density="compact"] .account-password-panel {
 
   .page > section:has(.musica-form) .music-editor-metadata .field-title,
   .page > section:has(.musica-form) .music-editor-metadata .musica-current-title,
+  .page > section:has(.musica-form) .music-editor-metadata .musica-current-title-row,
   .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .field-title,
-  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title {
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title,
+  .musicas-page.can-edit-music .music-editor-stage .music-editor-metadata .musica-current-title-row {
     grid-column: 1 / -1;
     grid-row: 1;
   }

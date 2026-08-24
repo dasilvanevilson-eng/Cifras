@@ -22,12 +22,18 @@ export function MusicaForm(options = {}) {
   const initialChordPro = getInitialChordPro(initialValues);
   const hideTitleField = Boolean(options.hideTitleField);
   const titleValue = initialValues.titulo || '';
+  const publishActionLabel = options.publishActionLabel || '';
   form.className = `form musica-form${hideTitleField ? ' is-title-unified' : ''}`;
   form.innerHTML = `
     <section class="music-editor-metadata" aria-label="Dados da musica">
       ${hideTitleField ? `
         <input name="titulo" type="hidden" required value="${escapeHtml(titleValue)}">
-        ${titleValue ? `<p class="musica-current-title">${escapeHtml(`Titulo: ${titleValue}`)}</p>` : ''}
+        ${titleValue ? `
+          <div class="musica-current-title-row">
+            <p class="musica-current-title">${escapeHtml(`Titulo: ${titleValue}`)}</p>
+            ${publishActionLabel ? `<button class="button" type="button" data-action="publish-community">${escapeHtml(publishActionLabel)}</button>` : ''}
+          </div>
+        ` : ''}
       ` : `
         <label class="field-title">
           Titulo
@@ -141,6 +147,7 @@ export function MusicaForm(options = {}) {
   const button = form.querySelector('button[type="submit"]');
   const clearButton = form.querySelector('[data-action="clear"]');
   const deleteButton = form.querySelector('[data-action="delete"]');
+  const publishButton = form.querySelector('[data-action="publish-community"]');
   const copyChordProButton = form.querySelector('[data-action="copy-chordpro"]');
   const transposeFormDownButton = form.querySelector('[data-action="transpose-form-down"]');
   const transposeFormUpButton = form.querySelector('[data-action="transpose-form-up"]');
@@ -169,6 +176,7 @@ export function MusicaForm(options = {}) {
   let editorState = normalizeCifraEditorState(initialEditorState);
   let convertedSourceSignature = chordProTextarea?.value ? getEditorStateSignature(editorState) : '';
   let pendingOriginalEditorInput = null;
+  let hasUnsavedChanges = false;
   const voiceCodeMirror = createVoiceCodeMirror({
     parent: originalCodeMirrorHost,
     text: editorState.text,
@@ -493,6 +501,8 @@ export function MusicaForm(options = {}) {
       }
       message.className = 'form-message success';
       message.textContent = 'Musica salva com sucesso.';
+      hasUnsavedChanges = false;
+      updatePublishButtonState();
 
       if (options.onSaved) {
         options.onSaved();
@@ -505,7 +515,44 @@ export function MusicaForm(options = {}) {
     }
   });
 
+  form.addEventListener('input', () => {
+    hasUnsavedChanges = true;
+    updatePublishButtonState();
+  });
+
+  publishButton?.addEventListener('click', async () => {
+    if (!options.onPublish || hasUnsavedChanges) return;
+
+    publishButton.disabled = true;
+    message.className = 'form-message';
+    message.textContent = 'Publicando...';
+
+    try {
+      await options.onPublish();
+    } catch (error) {
+      message.className = 'form-message error';
+      message.textContent = error.message || 'Nao foi possivel publicar a cifra na Comunidade.';
+      publishButton.disabled = false;
+      return;
+    }
+
+    if (publishButton.isConnected) {
+      publishButton.disabled = false;
+    }
+  });
+
+  updatePublishButtonState();
+
   return form;
+
+  function updatePublishButtonState() {
+    if (!publishButton) return;
+
+    publishButton.disabled = hasUnsavedChanges;
+    publishButton.title = hasUnsavedChanges
+      ? 'Salve a cifra antes de publicar.'
+      : publishActionLabel;
+  }
 }
 
 function renderOriginalEditor(editor, chordProValue, options = {}) {
