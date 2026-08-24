@@ -4,6 +4,7 @@ import {
   deleteMusica,
   deleteMusicaComVinculos,
   duplicateMusicaToPrivate,
+  getMusicaById,
   listMusicas,
   listRepertoriosComMusica,
   publishPrivateMusicaToCommunity,
@@ -144,24 +145,36 @@ export async function MusicasPage({ session } = {}) {
         });
         scrollToForm();
       },
-      onSelect: (musica) => {
-        pendingNewMusicaTitle = '';
-        clearPendingSugestaoMusica();
-        renderForm(formSlot, {
-          selectedMusica: musica,
-          session,
-          scope: currentScope,
-          canManageGlobalMusic,
-          hideTitleField: true,
-          onAfterSave: handleSavedMusica,
-          onAfterDelete: handleDeletedMusica,
-          onAfterPublish: handlePublishedMusica,
-        });
-        scrollToForm();
-      },
+      onSelect: selectMusica,
       onPersonalize: personalizeMusica,
       session,
     }));
+  }
+
+  async function selectMusica(musica) {
+    if (!musica?.id) return;
+
+    formSlot.innerHTML = '<div class="page-status">Carregando cifra...</div>';
+    const { data, error } = await getMusicaById(musica.id);
+
+    if (error) {
+      formSlot.innerHTML = `<div class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar a cifra.')}</div>`;
+      return;
+    }
+
+    pendingNewMusicaTitle = '';
+    clearPendingSugestaoMusica();
+    renderForm(formSlot, {
+      selectedMusica: data,
+      session,
+      scope: currentScope,
+      canManageGlobalMusic,
+      hideTitleField: true,
+      onAfterSave: handleSavedMusica,
+      onAfterDelete: handleDeletedMusica,
+      onAfterPublish: handlePublishedMusica,
+    });
+    scrollToForm();
   }
 
   async function personalizeMusica(musica) {

@@ -115,7 +115,6 @@ export function MusicaForm(options = {}) {
       <label>
         Cifra original
         <div class="voice-editor-legend" data-role="original-voice-legend"></div>
-        ${initialEditorState.text.trim() ? '' : '<p class="cifra-empty-hint">Esta cifra ainda nao possui letra ou acordes cadastrados.</p>'}
         <div class="cifra-original-editor-shell">
           <div class="cifra-original-codemirror" aria-label="Cifra original"></div>
           <pre class="cifra-original-editor" aria-hidden="true" hidden></pre>

@@ -1,4 +1,5 @@
 import { assertSupabaseConfig, supabase } from '../lib/supabase/client.js';
+import { getCifraExibicao } from '../utils/chordpro.js';
 
 const MUSICA_LIST_COLUMNS = `
   id,
@@ -141,12 +142,24 @@ export async function getMusicaById(id) {
 export async function createMusica(musica) {
   assertSupabaseConfig();
   const payload = normalizeMusicaPayload(musica);
+  const contentError = getMusicaContentError(payload);
+
+  if (contentError) {
+    return { data: null, error: contentError };
+  }
+
   return supabase.from('musicas').insert(payload).select().single();
 }
 
 export async function updateMusica(id, musica) {
   assertSupabaseConfig();
   const payload = normalizeMusicaPayload(musica);
+  const contentError = getMusicaContentError(payload);
+
+  if (contentError) {
+    return { data: null, error: contentError };
+  }
+
   return supabase.from('musicas').update(payload).eq('id', id).select().single();
 }
 
@@ -373,6 +386,14 @@ function normalizeMusicaPayload(musica = {}) {
   }
 
   return payload;
+}
+
+function getMusicaContentError(musica = {}) {
+  if (String(getCifraExibicao(musica) || '').trim()) {
+    return null;
+  }
+
+  return new Error('Informe a cifra antes de salvar.');
 }
 
 function pickMusicaContent(musica = {}) {

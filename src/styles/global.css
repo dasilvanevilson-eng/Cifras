@@ -13322,13 +13322,6 @@ html[data-interface-density="compact"] .account-password-panel {
   grid-column: 1 / -1;
 }
 
-.cifra-empty-hint {
-  margin: 0 0 8px;
-  color: var(--color-text-muted);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
 .page > section:has(.musica-form) .musica-form > label:not(:has(textarea)),
 .page > section:has(.musica-form) .musica-form-pair {
   display: grid;
