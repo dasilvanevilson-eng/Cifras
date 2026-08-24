@@ -245,32 +245,13 @@ export async function updateSourceCommunityMusicaFromPrivate(musicaId) {
   return supabase.from('musicas').update(payload).eq('id', source.id).select().single();
 }
 
-export async function duplicateMusicaToPrivate(musicaId, overrides = {}, ownerId = null) {
+export async function duplicateMusicaToPrivate(musicaId, overrides = {}, _ownerId = null) {
   assertSupabaseConfig();
-  const { data: source, error: sourceError } = await getMusicaById(musicaId);
-
-  if (sourceError) {
-    return { data: null, error: sourceError };
-  }
-
-  const payload = normalizeMusicaPayload({
-    titulo: overrides.titulo || source.titulo,
-    artista: overrides.artista ?? source.artista,
-    tom: overrides.tom ?? source.tom,
-    tags: overrides.tags ?? source.tags,
-    musica_link: overrides.musica_link ?? source.musica_link,
-    colaborador_nome: overrides.colaborador_nome ?? source.colaborador_nome,
-    revisado_por_nome: overrides.revisado_por_nome ?? source.revisado_por_nome,
-    cifra_original: overrides.cifra_original ?? source.cifra_original,
-    cifra_chordpro: overrides.cifra_chordpro ?? source.cifra_chordpro,
-    cifra_exibicao: overrides.cifra_exibicao ?? source.cifra_exibicao,
-    cifra_editor_state: overrides.cifra_editor_state ?? source.cifra_editor_state,
-    visibility: MUSICA_VISIBILITY.PRIVADA,
-    source_musica_id: source.id,
-    ...(ownerId ? { owner_id: ownerId, created_by: ownerId } : {}),
-  });
-
-  return supabase.from('musicas').insert(payload).select().single();
+  return supabase
+    .rpc('duplicate_musica_to_private', {
+      p_musica_id: musicaId,
+      p_titulo: overrides.titulo || null,
+    });
 }
 
 export async function replaceMusicaCompartilhamentos(musicaId, userShares = [], groupShares = []) {
