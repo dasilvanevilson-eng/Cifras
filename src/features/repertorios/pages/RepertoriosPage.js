@@ -542,7 +542,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
     const actions = form.querySelector('.repertorio-inline-actions');
     actions.innerHTML = `
-      <a class="button-link" href="/repertorios/execucao?id=${encodeURIComponent(selectedRepertorio.id)}">Execucao</a>
+      <a class="button-link" href="${escapeHtml(getRepertorioExecucaoUrl(selectedRepertorio))}">Execucao</a>
       <button class="nav-button" type="button" data-action="duplicate">Duplicar</button>
       <button class="danger-button" type="button" data-action="delete">Excluir</button>
     `;
@@ -1078,7 +1078,7 @@ function getRepertorioUrl(repertorio) {
 }
 
 function getRepertorioExecucaoUrl(repertorio) {
-  return `/repertorios/execucao?id=${encodeURIComponent(getField(repertorio, ['id']))}`;
+  return `/repertorios/execucao?id=${encodeURIComponent(getField(repertorio, ['id']))}&returnTo=${encodeURIComponent(getCurrentReturnTo())}`;
 }
 
 function getMusicaExecucaoUrl(musica, draftKey = '') {
@@ -1088,6 +1088,10 @@ function getMusicaExecucaoUrl(musica, draftKey = '') {
   }
   const returnTo = `${window.location.pathname}${returnParams.toString() ? `?${returnParams.toString()}` : ''}`;
   return `/musicas/execucao?id=${encodeURIComponent(getField(musica, ['id']))}&returnTo=${encodeURIComponent(returnTo)}`;
+}
+
+function getCurrentReturnTo() {
+  return `${window.location.pathname}${window.location.search || ''}`;
 }
 
 function readRepertorioDraftFromUrl() {

@@ -363,11 +363,21 @@ function formatDate(value) {
 }
 
 function getBackUrl(returnTo, repertorioId) {
-  if (returnTo === '/dashboard') {
+  if (isAllowedReturnTo(returnTo)) {
     return returnTo;
   }
 
   return `/repertorios/detalhe?id=${encodeURIComponent(repertorioId)}`;
+}
+
+function isAllowedReturnTo(returnTo) {
+  if (!returnTo || !returnTo.startsWith('/')) return false;
+  if (returnTo.startsWith('//')) return false;
+
+  const [path] = returnTo.split('?');
+  return path === '/dashboard'
+    || path === '/repertorios'
+    || path === '/repertorios/detalhe';
 }
 
 function escapeHtml(value) {
