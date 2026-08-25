@@ -565,8 +565,7 @@ function createMusicasTable(musicas, options = {}) {
     const id = getField(musica, ['id']);
     const title = getDisplayTitle(musica);
     const artist = getField(musica, ['artista', 'autor', 'artist']);
-    const key = getField(musica, ['tom', 'key']);
-    const tags = formatTags(getField(musica, ['tags']));
+    const artistLine = artist && artist !== '-' ? `<p>${escapeHtml(artist)}</p>` : '';
     const readOnlyUrl = getReadOnlyMusicaUrl(id);
     const canEdit = canEditMusicaRecord(musica, options.session, options.canManageGlobalMusic);
     const canPersonalize = Boolean(options.canCreate && musica.visibility === MUSICA_VISIBILITY.PUBLICA);
@@ -578,15 +577,10 @@ function createMusicasTable(musicas, options = {}) {
       <div class="musica-result-main">
         <span class="musica-result-type">${escapeHtml(getMusicaScopeLabel(musica))}</span>
         <h3>${escapeHtml(title)}</h3>
-        <p>${escapeHtml(artist)}</p>
-      </div>
-      <div class="musica-result-meta" aria-label="Informacoes da musica">
-        <span>${escapeHtml(key !== '-' ? key : 'Sem tom')}</span>
-        <small>${escapeHtml(tags)}</small>
+        ${artistLine}
       </div>
       <div class="musica-result-actions">
         <a class="button-link secondary" href="${escapeHtml(readOnlyUrl)}">Executar</a>
-        ${canEdit ? '<button class="nav-button" type="button" data-action="select-music">Editar</button>' : ''}
         ${canPersonalize ? '<button class="nav-button" type="button" data-action="personalize-music">Acrescentar as Minhas cifras</button>' : ''}
       </div>
     `;
@@ -612,7 +606,6 @@ function createMusicasTable(musicas, options = {}) {
 
       window.location.href = readOnlyUrl;
     });
-    card.querySelector('[data-action="select-music"]')?.addEventListener('click', () => options.onSelect?.(musica));
     card.querySelector('[data-action="personalize-music"]')?.addEventListener('click', () => options.onPersonalize?.(musica));
     list.append(card);
   });
@@ -766,12 +759,6 @@ function matchesSearch(musica, query) {
   const title = getField(musica, ['titulo', 'nome', 'title']);
 
   return normalizeText(title).includes(query);
-}
-
-function formatTags(value) {
-  if (!value || value === '-') return '-';
-  if (Array.isArray(value)) return value.join(', ');
-  return String(value);
 }
 
 function compareText(a, b) {
