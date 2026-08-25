@@ -84,6 +84,7 @@ export async function RepertoriosPage({ session } = {}) {
         selectedRepertorio,
         initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
         draft: options.draft || null,
+        ignoreLocalDraft: options.ignoreLocalDraft || false,
         loadMusicas: loadMusicasOnce,
         savedMessage: options.savedMessage || '',
         onCreateNew: prepareNewRepertorio,
@@ -148,8 +149,12 @@ export async function RepertoriosPage({ session } = {}) {
     selectedExistingRepertorioId = null;
     syncCreateButtonVisibility();
     repertoriosBrowser?.clearSearch?.();
+    clearRepertorioLocalDraft('new');
     pendingNewRepertorioName = name.trim();
-    await renderForm(null, { initialName: pendingNewRepertorioName });
+    await renderForm(null, {
+      initialName: pendingNewRepertorioName,
+      ignoreLocalDraft: true,
+    });
   }
 
   try {
@@ -232,6 +237,7 @@ async function createRepertorioUnifiedForm({
   selectedRepertorio = null,
   initialName = '',
   draft = null,
+  ignoreLocalDraft = false,
   loadMusicas = listMusicas,
   savedMessage = '',
   onCreateNew = null,
@@ -262,7 +268,7 @@ async function createRepertorioUnifiedForm({
     wrapper.innerHTML = `<p class="page-status error">${escapeHtml(musicasAssociadasError.message || 'Nao foi possivel carregar as musicas do repertorio.')}</p>`;
     return wrapper;
   }
-  const localDraft = readLocalRepertorioDraft(selectedRepertorio?.id || 'new');
+  const localDraft = ignoreLocalDraft ? null : readLocalRepertorioDraft(selectedRepertorio?.id || 'new');
   wrapper.replaceChildren(createNewRepertorioComposer(musicas || [], existingRepertorios, {
     selectedRepertorio,
     musicasAssociadas: musicasAssociadas || [],
@@ -764,11 +770,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   }
 
   function clearLocalRepertorioDraft() {
-    try {
-      window.sessionStorage.removeItem(`${REPERTORIO_LOCAL_DRAFT_PREFIX}${localDraftKey}`);
-    } catch (_error) {
-      // O rascunho local expira com a sessao mesmo quando nao puder ser removido.
-    }
+    clearRepertorioLocalDraft(localDraftKey);
   }
 
   async function saveRepertorio({ focusOnError = false } = {}) {
@@ -1440,6 +1442,14 @@ function readLocalRepertorioDraft(repertorioId = 'new') {
     return stored ? JSON.parse(stored) : null;
   } catch (_error) {
     return null;
+  }
+}
+
+function clearRepertorioLocalDraft(repertorioId = 'new') {
+  try {
+    window.sessionStorage.removeItem(`${REPERTORIO_LOCAL_DRAFT_PREFIX}${repertorioId || 'new'}`);
+  } catch (_error) {
+    // O rascunho local expira com a sessao mesmo quando nao puder ser removido.
   }
 }
 
