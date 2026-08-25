@@ -169,7 +169,7 @@ export async function getMusicaById(id) {
 
 export async function createMusica(musica) {
   assertSupabaseConfig();
-  const payload = normalizeMusicaPayload(musica);
+  const payload = await normalizeMusicaPayload(musica, { includeCurrentUserOwnership: true });
   const contentError = getMusicaContentError(payload);
 
   if (contentError) {
@@ -181,7 +181,7 @@ export async function createMusica(musica) {
 
 export async function updateMusica(id, musica) {
   assertSupabaseConfig();
-  const payload = normalizeMusicaPayload(musica);
+  const payload = await normalizeMusicaPayload(musica);
   const contentError = getMusicaContentError(payload);
 
   if (contentError) {
@@ -327,7 +327,12 @@ export async function deleteMusicaComVinculos(id) {
   return supabase.rpc('delete_musica_com_vinculos', { p_musica_id: id });
 }
 
-function normalizeMusicaPayload(musica = {}) {
+async function getCurrentUserId() {
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id || null;
+}
+
+async function normalizeMusicaPayload(musica = {}, options = {}) {
   const payload = { ...musica };
 
   if (!payload.visibility) {
@@ -341,6 +346,19 @@ function normalizeMusicaPayload(musica = {}) {
 
   if (payload.visibility === MUSICA_VISIBILITY.PRIVADA) {
     payload.organization_id = null;
+  }
+
+  if (
+    options.includeCurrentUserOwnership
+    && payload.visibility === MUSICA_VISIBILITY.PRIVADA
+    && (!payload.owner_id || !payload.created_by)
+  ) {
+    const userId = await getCurrentUserId();
+
+    if (userId) {
+      payload.owner_id = payload.owner_id || userId;
+      payload.created_by = payload.created_by || userId;
+    }
   }
 
   return payload;
