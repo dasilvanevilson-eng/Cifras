@@ -56,13 +56,12 @@ export async function RepertoriosPage({ session } = {}) {
   let musicasCache = null;
   let pendingNewRepertorioName = '';
   let selectedExistingRepertorioId = null;
+  let repertoriosBrowser = null;
   const restoredDraft = readRepertorioDraftFromUrl();
 
   function syncCreateButtonVisibility() {
-    const createButton = listSlot.querySelector('[data-action="create-repertorio"]');
-    if (!createButton) return;
-
-    createButton.hidden = Boolean(selectedExistingRepertorioId);
+    page.dataset.selectedRepertorioId = selectedExistingRepertorioId || '';
+    repertoriosBrowser?.syncCreateButton?.();
   }
 
   async function loadMusicasOnce() {
@@ -123,12 +122,14 @@ export async function RepertoriosPage({ session } = {}) {
 
     loadedRepertorios = data || [];
     repertoriosCount.textContent = String(loadedRepertorios.length);
+    repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
+      getSelectedRepertorioId: () => selectedExistingRepertorioId,
+      onSelect: renderForm,
+      onCreateDraft: prepareNewRepertorio,
+      canEdit,
+    });
 
-    if (!loadedRepertorios.length) {
-      listSlot.replaceChildren(createRepertoriosBrowser([], { getSelectedRepertorioId: () => selectedExistingRepertorioId, onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
-    } else {
-      listSlot.replaceChildren(createRepertoriosBrowser(loadedRepertorios, { getSelectedRepertorioId: () => selectedExistingRepertorioId, onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
-    }
+    listSlot.replaceChildren(repertoriosBrowser);
     syncCreateButtonVisibility();
   } catch (error) {
     status.className = 'page-status error';
@@ -894,13 +895,12 @@ function createRepertoriosBrowser(repertorios, options = {}) {
         <input class="search-input" type="search" placeholder="${options.canEdit ? 'Nome ou data' : 'Nome, data ou tema'}" aria-describedby="repertorio-search-help">
       </label>
       <p class="form-hint" id="repertorio-search-help">${editableHint}</p>
-      ${options.canEdit ? '<button class="button" type="button" data-action="create-repertorio">Criar novo repertorio</button>' : ''}
     </div>
     <div class="table-slot search-results" hidden></div>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
-  const createButton = wrapper.querySelector('[data-action="create-repertorio"]');
+  const toolbar = wrapper.querySelector('.list-toolbar');
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
   let currentResults = [];
@@ -917,9 +917,29 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   }
 
   function updateCreateButtonVisibility() {
-    if (!createButton) return;
+    if (!options.canEdit) return;
 
-    createButton.hidden = Boolean(options.getSelectedRepertorioId?.() || findExactRepertorio(getSearchValue()));
+    const shouldShow = !options.getSelectedRepertorioId?.() && !findExactRepertorio(getSearchValue());
+    const currentButton = toolbar.querySelector('[data-action="create-repertorio"]');
+
+    if (!shouldShow) {
+      currentButton?.remove();
+      return;
+    }
+
+    if (currentButton) return;
+
+    const button = document.createElement('button');
+    button.className = 'button';
+    button.type = 'button';
+    button.dataset.action = 'create-repertorio';
+    button.textContent = 'Criar novo repertorio';
+    button.addEventListener('click', () => {
+      options.onCreateDraft?.(getSearchValue());
+      updateCreateButtonVisibility();
+      tableSlot.hidden = true;
+    });
+    toolbar.append(button);
   }
 
   function selectRepertorio(repertorio) {
@@ -992,12 +1012,6 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
   });
 
-  createButton?.addEventListener('click', () => {
-    options.onCreateDraft?.(getSearchValue());
-    updateCreateButtonVisibility();
-    tableSlot.hidden = true;
-  });
-
   tableSlot.addEventListener('mouseenter', () => {
     isPointerInsideResults = true;
     tableSlot.hidden = false;
@@ -1013,6 +1027,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
   render();
   updateCreateButtonVisibility();
+  wrapper.syncCreateButton = updateCreateButtonVisibility;
   return wrapper;
 }
 
