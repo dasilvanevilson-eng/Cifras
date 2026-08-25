@@ -52,6 +52,8 @@ export async function RepertoriosPage({ session } = {}) {
   let pendingNewRepertorioName = '';
   let selectedExistingRepertorioId = null;
   let repertoriosBrowser = null;
+  let repertorioNavigationGuard = async () => true;
+  let repertorioHasPendingChanges = () => false;
   const restoredDraft = readRepertorioDraftFromUrl();
 
   function syncCreateButtonVisibility() {
@@ -77,7 +79,7 @@ export async function RepertoriosPage({ session } = {}) {
     syncCreateButtonVisibility();
     formSlot.innerHTML = '<p class="page-status">Carregando formulario...</p>';
     try {
-      formSlot.replaceChildren(await createRepertorioUnifiedForm({
+      const repertorioForm = await createRepertorioUnifiedForm({
         existingRepertorios: loadedRepertorios,
         selectedRepertorio,
         initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
@@ -101,8 +103,13 @@ export async function RepertoriosPage({ session } = {}) {
           pendingNewRepertorioName = '';
           renderCreatePrompt();
         },
-      }));
+      });
+      repertorioNavigationGuard = repertorioForm.confirmPendingNavigation || (async () => true);
+      repertorioHasPendingChanges = repertorioForm.hasPendingChanges || (() => false);
+      formSlot.replaceChildren(repertorioForm);
     } catch (error) {
+      repertorioNavigationGuard = async () => true;
+      repertorioHasPendingChanges = () => false;
       formSlot.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar o formulario.')}</p>`;
     } finally {
       syncCreateButtonVisibility();
@@ -111,6 +118,8 @@ export async function RepertoriosPage({ session } = {}) {
 
   function renderCreatePrompt() {
     if (!canEdit) return;
+    repertorioNavigationGuard = async () => true;
+    repertorioHasPendingChanges = () => false;
 
     const prompt = document.createElement('section');
     prompt.className = 'new-repertorio-panel repertorio-create-prompt';
@@ -129,7 +138,13 @@ export async function RepertoriosPage({ session } = {}) {
     formSlot.replaceChildren(prompt);
   }
 
+  async function requestRepertorioNavigation() {
+    return repertorioNavigationGuard();
+  }
+
   async function prepareNewRepertorio(name = '') {
+    if (!(await requestRepertorioNavigation())) return;
+
     selectedExistingRepertorioId = null;
     syncCreateButtonVisibility();
     repertoriosBrowser?.clearSearch?.();
@@ -146,7 +161,10 @@ export async function RepertoriosPage({ session } = {}) {
 
     loadedRepertorios = data || [];
     repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
-      onSelect: renderForm,
+      onSelect: async (repertorio) => {
+        if (!(await requestRepertorioNavigation())) return;
+        await renderForm(repertorio);
+      },
       canEdit,
     });
 
@@ -180,6 +198,31 @@ export async function RepertoriosPage({ session } = {}) {
       ],
     ));
   }
+
+  const handleNavigationClick = async (event) => {
+    if (!page.isConnected) {
+      document.removeEventListener('click', handleNavigationClick, true);
+      return;
+    }
+
+    const anchor = event.target.closest('a[href]');
+    if (!anchor) return;
+    if (anchor.target && anchor.target !== '_self') return;
+    if (anchor.hasAttribute('download')) return;
+    if (anchor.dataset.skipUnsavedCheck === 'true') return;
+
+    const href = anchor.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (!repertorioHasPendingChanges()) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (await requestRepertorioNavigation()) {
+      window.location.href = anchor.href;
+    }
+  };
+
+  document.addEventListener('click', handleNavigationClick, true);
 
   return page;
 }
@@ -230,6 +273,9 @@ async function createRepertorioUnifiedForm({
     onSaved,
     onDiscard,
   }));
+  const composer = wrapper.querySelector('.new-repertorio-form');
+  wrapper.hasPendingChanges = composer?.hasPendingChanges || (() => false);
+  wrapper.confirmPendingNavigation = composer?.confirmPendingNavigation || (async () => true);
   return wrapper;
 }
 
@@ -640,6 +686,9 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     message.textContent = options.savedMessage;
   }
 
+  form.hasPendingChanges = hasPendingChanges;
+  form.confirmPendingNavigation = confirmPendingNavigation;
+
   return form;
 
   function renderInlineActions() {
@@ -660,6 +709,8 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     });
 
     actions.querySelector('[data-action="duplicate"]').addEventListener('click', async () => {
+      if (!(await confirmPendingNavigation())) return;
+
       const confirmed = window.confirm('Duplicar este repertorio com as mesmas musicas e ordem?');
       if (!confirmed) return;
 
@@ -674,6 +725,8 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     });
 
     actions.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+      if (!(await confirmPendingNavigation())) return;
+
       const confirmed = window.confirm(`Excluir o repertorio "${selectedRepertorio.nome}"?`);
       if (!confirmed) return;
 
@@ -865,6 +918,25 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     });
   }
 
+  function hasPendingChanges() {
+    return createRepertorioSignature() !== lastSavedSignature;
+  }
+
+  async function confirmPendingNavigation() {
+    if (!hasPendingChanges()) return true;
+
+    const choice = await showUnsavedRepertorioDialog();
+    if (choice === 'cancel') return false;
+
+    if (choice === 'save') {
+      return saveRepertorio({ focusOnError: true });
+    }
+
+    clearLocalRepertorioDraft();
+    clearCurrentRepertorioDraft();
+    return true;
+  }
+
   function warnBeforeUnloadWithLocalChanges(event) {
     if (!form.isConnected) return;
     if (createRepertorioSignature() === lastSavedSignature) return;
@@ -884,6 +956,47 @@ function createReadOnlyNotice(text, items = []) {
     </ul>
   `;
   return notice;
+}
+
+function showUnsavedRepertorioDialog() {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'pdf-order-modal repertorio-unsaved-modal';
+    modal.innerHTML = `
+      <div class="pdf-order-modal-backdrop" data-action="cancel"></div>
+      <section class="pdf-order-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="repertorio-unsaved-title">
+        <h2 id="repertorio-unsaved-title">Há alterações não salvas</h2>
+        <p>Salvar ou descartar antes de sair?</p>
+        <div class="pdf-order-modal-actions">
+          <button class="button" type="button" data-action="save">Salvar</button>
+          <button class="nav-button" type="button" data-action="discard">Descartar</button>
+          <button class="button-link" type="button" data-action="cancel">Cancelar</button>
+        </div>
+      </section>
+    `;
+
+    const close = (choice) => {
+      document.removeEventListener('keydown', handleKeyDown);
+      modal.remove();
+      resolve(choice);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        close('cancel');
+      }
+    };
+
+    modal.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-action]')?.dataset.action;
+      if (!action) return;
+      close(action);
+    });
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.appendChild(modal);
+    modal.querySelector('[data-action="save"]')?.focus();
+  });
 }
 
 function sortMusicasByName(musicas) {
