@@ -895,6 +895,19 @@ function createRepertoriosBrowser(repertorios, options = {}) {
     return searchInput.value.trim();
   }
 
+  function findExactRepertorio(value) {
+    const query = normalizeText(value);
+    if (!query) return null;
+
+    return repertorios.find((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name'])) === query) || null;
+  }
+
+  function updateCreateButtonVisibility() {
+    if (!createButton) return;
+
+    createButton.hidden = Boolean(findExactRepertorio(getSearchValue()));
+  }
+
   function selectRepertorio(repertorio) {
     if (!options.onSelect) {
       window.location.href = getRepertorioUrl(repertorio);
@@ -932,16 +945,17 @@ function createRepertoriosBrowser(repertorios, options = {}) {
       ...options,
       onSelect: options.onSelect ? selectRepertorio : null,
     }));
+    updateCreateButtonVisibility();
   }
 
   searchInput.addEventListener('input', () => {
-    if (createButton) createButton.hidden = false;
     render();
     tableSlot.hidden = false;
   });
 
   searchInput.addEventListener('focus', () => {
     render();
+    updateCreateButtonVisibility();
     tableSlot.hidden = false;
   });
 
@@ -983,6 +997,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   });
 
   render();
+  updateCreateButtonVisibility();
   return wrapper;
 }
 
