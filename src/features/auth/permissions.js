@@ -41,9 +41,9 @@ export const PERMISSION_MODULES = [
     action('can_execute', 'Executar repertórios', 'Abrir a apresentação sequencial das músicas.'),
     action('can_export', 'Consultar histórico de alterações', 'Visualizar o histórico de mudanças do repertório.'),
   ]),
-  module('pdf_repertorio', 'PDF de repertório', 'Geração de PDFs de cifras ou somente letras.', [
-    action('can_view', 'Acessar PDFs de repertórios', 'Pesquisar repertórios disponíveis para impressão.'),
-    action('can_export', 'Gerar e imprimir PDF de repertório', 'Criar PDFs cifrados ou somente com letras.'),
+  module('pdf_repertorio', 'Repertório Listar', 'Listagem de repertórios para consulta, impressão e geração de PDF.', [
+    action('can_view', 'Acessar Repertório Listar', 'Pesquisar repertórios disponíveis para consulta ou impressão.'),
+    action('can_export', 'Imprime/Salva Repertórios e Músicas', 'Criar PDFs cifrados ou somente com letras.'),
   ]),
   module('minha_conta', 'Minha conta', 'Dados pessoais e senha do próprio usuário.', [
     action('can_view', 'Acessar Minha conta', 'Visualizar os dados do próprio acesso.'),

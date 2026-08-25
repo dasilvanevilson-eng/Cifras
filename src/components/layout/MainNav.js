@@ -109,7 +109,7 @@ function getVisibleLinks(options = {}) {
   const links = [
     { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
     { href: '/agenda', label: 'Agenda', group: 'Uso', moduleKey: 'agenda', match: ['/agenda'] },
-    { href: '/repertorios', label: 'Repertorio Criar', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
+    { href: '/repertorios', label: 'Repertório', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
     { href: '/afinador', label: 'Afinador', group: 'Acervo', moduleKey: 'afinador', match: ['/afinador'] },
     {
@@ -172,7 +172,7 @@ function createFlatNavLinks(links) {
 function createMobileQuickNav(links) {
   const quickLinks = [
     { href: '/dashboard', label: 'Painel' },
-    { href: '/repertorios', label: 'Repertorio Criar' },
+    { href: '/repertorios', label: 'Repertório' },
     { href: '/musicas', label: 'Cifras' },
   ]
     .map((item) => links.find((link) => link.href === item.href) || null)
