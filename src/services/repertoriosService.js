@@ -1,35 +1,71 @@
 import { assertSupabaseConfig, supabase } from '../lib/supabase/client.js';
 
+async function getAuthenticatedUser() {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) {
+    return { user: null, error };
+  }
+
+  if (!data.user?.id) {
+    return { user: null, error: new Error('Usuario autenticado nao encontrado.') };
+  }
+
+  return { user: data.user, error: null };
+}
+
 export async function listRepertorios() {
   assertSupabaseConfig();
-  return supabase.from('repertorios').select('*').order('created_at', { ascending: false });
+  const { user, error } = await getAuthenticatedUser();
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  return supabase
+    .from('repertorios')
+    .select('*')
+    .eq('criado_por', user.id)
+    .order('created_at', { ascending: false });
 }
 
 export async function listRepertoriosComMusicas() {
   assertSupabaseConfig();
+  const { user, error } = await getAuthenticatedUser();
+
+  if (error) {
+    return { data: null, error };
+  }
+
   return supabase
     .from('repertorios')
     .select('*, repertorio_musicas(musica_id, musicas(id,titulo,artista,tags))')
+    .eq('criado_por', user.id)
     .order('created_at', { ascending: false });
 }
 
 export async function getRepertorioById(id) {
   assertSupabaseConfig();
-  return supabase.from('repertorios').select('*').eq('id', id).single();
+  const { user, error } = await getAuthenticatedUser();
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  return supabase
+    .from('repertorios')
+    .select('*')
+    .eq('id', id)
+    .eq('criado_por', user.id)
+    .single();
 }
 
 export async function createRepertorio(repertorio) {
   assertSupabaseConfig();
-  const { data: authData, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
 
   if (authError) {
     return { data: null, error: authError };
-  }
-
-  const user = authData.user;
-
-  if (!user?.id) {
-    return { data: null, error: new Error('Usuario autenticado nao encontrado.') };
   }
 
   const { data: profile } = await supabase
@@ -143,12 +179,34 @@ export async function replaceRepertorioCompartilhamentos(repertorioId, userIds =
 
 export async function updateRepertorio(id, repertorio) {
   assertSupabaseConfig();
-  return supabase.from('repertorios').update(repertorio).eq('id', id).select().single();
+  const { user, error } = await getAuthenticatedUser();
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  return supabase
+    .from('repertorios')
+    .update(repertorio)
+    .eq('id', id)
+    .eq('criado_por', user.id)
+    .select()
+    .single();
 }
 
 export async function deleteRepertorio(id) {
   assertSupabaseConfig();
-  return supabase.from('repertorios').delete().eq('id', id);
+  const { user, error } = await getAuthenticatedUser();
+
+  if (error) {
+    return { error };
+  }
+
+  return supabase
+    .from('repertorios')
+    .delete()
+    .eq('id', id)
+    .eq('criado_por', user.id);
 }
 
 export async function duplicateRepertorio(repertorio, musicasAssociadas = []) {

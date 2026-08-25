@@ -901,6 +901,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
       return;
     }
 
+    if (createButton) createButton.hidden = true;
     options.onSelect(repertorio);
     searchInput.value = getField(repertorio, ['nome', 'titulo', 'name']);
     tableSlot.hidden = true;
@@ -934,6 +935,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   }
 
   searchInput.addEventListener('input', () => {
+    if (createButton) createButton.hidden = false;
     render();
     tableSlot.hidden = false;
   });
