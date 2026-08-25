@@ -1,19 +1,40 @@
 import { assertSupabaseConfig, supabase } from '../lib/supabase/client.js';
 
+async function getAuthenticatedUser() {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) {
+    return { user: null, error };
+  }
+
+  if (!data.user?.id) {
+    return { user: null, error: new Error('Usuario autenticado nao encontrado.') };
+  }
+
+  return { user: data.user, error: null };
+}
+
 export async function listAgendaEventos(from, to) {
   assertSupabaseConfig();
+  const { user, error } = await getAuthenticatedUser();
+
+  if (error) {
+    return { data: null, error };
+  }
+
   return supabase
     .from('agenda_eventos')
     .select('*, agenda_evento_repertorios(repertorio_id, repertorios(id,nome,data))')
+    .eq('created_by', user.id)
     .lt('inicio', to)
     .or(`fim.is.null,fim.gte.${from}`)
     .order('inicio');
 }
 export async function createAgendaEvento(evento, repertorioIds = []) {
   assertSupabaseConfig();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) return { data: null, error: userError || new Error('Usuario nao encontrado.') };
-  const { data, error } = await supabase.from('agenda_eventos').insert({ ...evento, created_by: userData.user.id }).select().single();
+  const { user, error: userError } = await getAuthenticatedUser();
+  if (userError) return { data: null, error: userError };
+  const { data, error } = await supabase.from('agenda_eventos').insert({ ...evento, created_by: user.id }).select().single();
   if (error || !data) return { data: null, error };
   const { error: linkError } = await replaceAgendaEventoRepertorios(data.id, repertorioIds);
   return { data, error: linkError };
@@ -26,12 +47,16 @@ export async function replaceAgendaEventoRepertorios(eventoId, repertorioIds = [
 }
 export async function updateAgendaEvento(eventoId, evento, repertorioIds = []) {
   assertSupabaseConfig();
-  const { data, error } = await supabase.from('agenda_eventos').update(evento).eq('id', eventoId).select().single();
+  const { user, error: userError } = await getAuthenticatedUser();
+  if (userError) return { data: null, error: userError };
+  const { data, error } = await supabase.from('agenda_eventos').update(evento).eq('id', eventoId).eq('created_by', user.id).select().single();
   if (error || !data) return { data: null, error };
   const { error: linkError } = await replaceAgendaEventoRepertorios(eventoId, repertorioIds);
   return { data, error: linkError };
 }
 export async function deleteAgendaEvento(eventoId) {
   assertSupabaseConfig();
-  return supabase.from('agenda_eventos').delete().eq('id', eventoId);
+  const { user, error } = await getAuthenticatedUser();
+  if (error) return { data: null, error };
+  return supabase.from('agenda_eventos').delete().eq('id', eventoId).eq('created_by', user.id);
 }
