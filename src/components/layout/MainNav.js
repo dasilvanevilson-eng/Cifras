@@ -109,7 +109,6 @@ function getVisibleLinks(options = {}) {
   const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
   const links = [
     { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
-    { href: '/modo-offline', label: 'Modo Offline', group: 'Uso', moduleKey: 'modo_offline', match: ['/modo-offline'] },
     { href: '/agenda', label: 'Agenda', group: 'Uso', moduleKey: 'agenda', match: ['/agenda'] },
     { href: '/repertorios', label: 'Repertorio Criar', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
