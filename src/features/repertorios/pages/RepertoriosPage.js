@@ -55,7 +55,15 @@ export async function RepertoriosPage({ session } = {}) {
   let loadedRepertorios = [];
   let musicasCache = null;
   let pendingNewRepertorioName = '';
+  let selectedExistingRepertorioId = null;
   const restoredDraft = readRepertorioDraftFromUrl();
+
+  function syncCreateButtonVisibility() {
+    const createButton = listSlot.querySelector('[data-action="create-repertorio"]');
+    if (!createButton) return;
+
+    createButton.hidden = Boolean(selectedExistingRepertorioId);
+  }
 
   async function loadMusicasOnce() {
     if (musicasCache) {
@@ -72,6 +80,8 @@ export async function RepertoriosPage({ session } = {}) {
   async function renderForm(selectedRepertorio = null, options = {}) {
     if (!canEdit) return;
 
+    selectedExistingRepertorioId = selectedRepertorio?.id || null;
+    syncCreateButtonVisibility();
     formSlot.innerHTML = '<p class="page-status">Carregando formulario...</p>';
     formSlot.replaceChildren(await createRepertorioUnifiedForm({
       existingRepertorios: loadedRepertorios,
@@ -80,6 +90,7 @@ export async function RepertoriosPage({ session } = {}) {
       draft: options.draft || null,
       loadMusicas: loadMusicasOnce,
     }));
+    syncCreateButtonVisibility();
   }
 
   function renderCreatePrompt() {
@@ -97,6 +108,8 @@ export async function RepertoriosPage({ session } = {}) {
   }
 
   async function prepareNewRepertorio(name = '') {
+    selectedExistingRepertorioId = null;
+    syncCreateButtonVisibility();
     pendingNewRepertorioName = name.trim();
     await renderForm(null, { initialName: pendingNewRepertorioName });
   }
@@ -112,10 +125,11 @@ export async function RepertoriosPage({ session } = {}) {
     repertoriosCount.textContent = String(loadedRepertorios.length);
 
     if (!loadedRepertorios.length) {
-      listSlot.replaceChildren(createRepertoriosBrowser([], { onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
+      listSlot.replaceChildren(createRepertoriosBrowser([], { getSelectedRepertorioId: () => selectedExistingRepertorioId, onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
     } else {
-      listSlot.replaceChildren(createRepertoriosBrowser(loadedRepertorios, { onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
+      listSlot.replaceChildren(createRepertoriosBrowser(loadedRepertorios, { getSelectedRepertorioId: () => selectedExistingRepertorioId, onSelect: renderForm, onCreateDraft: prepareNewRepertorio, canEdit }));
     }
+    syncCreateButtonVisibility();
   } catch (error) {
     status.className = 'page-status error';
     status.textContent = error.message || 'Nao foi possivel carregar os repertorios.';
@@ -905,7 +919,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   function updateCreateButtonVisibility() {
     if (!createButton) return;
 
-    createButton.hidden = Boolean(findExactRepertorio(getSearchValue()));
+    createButton.hidden = Boolean(options.getSelectedRepertorioId?.() || findExactRepertorio(getSearchValue()));
   }
 
   function selectRepertorio(repertorio) {
@@ -914,9 +928,9 @@ function createRepertoriosBrowser(repertorios, options = {}) {
       return;
     }
 
-    if (createButton) createButton.hidden = true;
     options.onSelect(repertorio);
     searchInput.value = getField(repertorio, ['nome', 'titulo', 'name']);
+    updateCreateButtonVisibility();
     tableSlot.hidden = true;
   }
 
@@ -980,6 +994,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
   createButton?.addEventListener('click', () => {
     options.onCreateDraft?.(getSearchValue());
+    updateCreateButtonVisibility();
     tableSlot.hidden = true;
   });
 
