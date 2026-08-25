@@ -24,12 +24,8 @@ export async function RepertoriosPage({ session } = {}) {
   page.innerHTML = `
     <header class="repertorios-header repertorios-hero">
       <div class="repertorios-hero-copy">
-        <span class="repertorios-kicker">Central de repertorios</span>
         <h1>Repertorios</h1>
         <p data-page-info>${canEdit ? 'Monte, revise e execute sequencias musicais com mais agilidade.' : 'Consulte e execute os repertorios disponiveis para o seu acesso.'}</p>
-      </div>
-      <div class="repertorios-summary" aria-live="polite">
-        <span><strong data-count="repertorios">0</strong> repertorios</span>
       </div>
     </header>
     <section class="repertorios-search-panel repertorio-library-panel">
@@ -38,7 +34,6 @@ export async function RepertoriosPage({ session } = {}) {
           <h2>Buscar repertorios salvos</h2>
           <p data-section-info>${canEdit ? 'Pesquise por nome ou data para localizar e abrir um repertorio ja salvo.' : 'Pesquise por nome ou data para localizar, abrir e executar os repertorios liberados para o seu acesso.'}</p>
         </div>
-        <span class="repertorio-library-mode">${canEdit ? 'Modo montagem' : 'Modo consulta'}</span>
       </div>
       <div class="list-slot">
         <div class="page-status">Carregando repertorios...</div>
@@ -52,7 +47,6 @@ export async function RepertoriosPage({ session } = {}) {
   const formSlot = page.querySelector('.form-slot');
   const listSlot = page.querySelector('.list-slot');
   const status = page.querySelector('.page-status');
-  const repertoriosCount = page.querySelector('[data-count="repertorios"]');
   let loadedRepertorios = [];
   let musicasCache = null;
   let pendingNewRepertorioName = '';
@@ -111,23 +105,6 @@ export async function RepertoriosPage({ session } = {}) {
     formSlot.replaceChildren(prompt);
   }
 
-  function renderExistingRepertorioPrompt(repertorio) {
-    if (!canEdit) return;
-
-    const nome = getField(repertorio, ['nome', 'titulo', 'name']);
-    const prompt = document.createElement('section');
-    prompt.className = 'new-repertorio-panel repertorio-create-prompt';
-    prompt.innerHTML = `
-      <div class="repertorio-form-heading">
-        <div>
-          <h2>Repertorio selecionado</h2>
-          <p class="repertorio-current-name">${escapeHtml(nome)}</p>
-        </div>
-      </div>
-    `;
-    formSlot.replaceChildren(prompt);
-  }
-
   async function prepareNewRepertorio(name = '') {
     selectedExistingRepertorioId = null;
     syncCreateButtonVisibility();
@@ -143,13 +120,8 @@ export async function RepertoriosPage({ session } = {}) {
     }
 
     loadedRepertorios = data || [];
-    repertoriosCount.textContent = String(loadedRepertorios.length);
     const repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
-      onSelect: (repertorio) => {
-        selectedExistingRepertorioId = repertorio?.id || null;
-        syncCreateButtonVisibility();
-        renderExistingRepertorioPrompt(repertorio);
-      },
+      onSelect: renderForm,
       canEdit,
     });
 

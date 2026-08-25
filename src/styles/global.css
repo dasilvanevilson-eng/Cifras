@@ -7798,34 +7798,6 @@ input.dashboard-select-song {
   line-height: 1.35;
 }
 
-.repertorios-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  grid-column: 2;
-  grid-row: 1;
-  justify-content: flex-end;
-  padding-top: 3px;
-}
-
-.repertorios-summary span {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  border: 1px solid #dcd3c3;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: #fffdf8;
-  color: #61594d;
-  font-size: 12px;
-  line-height: 1;
-}
-
-.repertorios-summary strong {
-  color: #1d4f45;
-  font-size: 14px;
-}
-
 .repertorios-search-panel {
   position: relative;
   z-index: 3;
@@ -8101,23 +8073,6 @@ input.dashboard-select-song {
 
   .repertorios-header p {
     margin-top: 3px;
-    font-size: 12px;
-  }
-
-  .repertorios-summary {
-    flex: 0 0 auto;
-    justify-content: flex-end;
-    margin-left: auto;
-    padding-top: 2px;
-  }
-
-  .repertorios-summary span {
-    padding: 5px 8px;
-    font-size: 11px;
-  }
-
-  .repertorios-summary span {
-    padding: 6px 9px;
     font-size: 12px;
   }
 
@@ -10313,13 +10268,6 @@ body.has-touch-nav .app-layout {
     display: grid;
     grid-template-columns: 1fr;
     align-items: start;
-  }
-
-  .repertorios-page .repertorios-summary {
-    grid-column: auto;
-    grid-row: auto;
-    justify-content: start;
-    margin-left: 0;
   }
 
   .repertorio-library-heading {
@@ -14595,8 +14543,7 @@ html[data-interface-density="compact"] .account-password-panel {
   }
 
   .repertorio-library-mode,
-  .music-library-mode,
-  .repertorios-summary {
+  .music-library-mode {
     justify-self: start;
   }
 
