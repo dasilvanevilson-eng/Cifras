@@ -35,9 +35,8 @@ export async function MusicasPage({ session } = {}) {
       <div class="music-library-heading">
         <div>
           <h2>Biblioteca de cifras</h2>
-          <p data-section-info>Busque somente pelo titulo. Cifras novas ficam em Minhas cifras e podem ser publicadas depois na Comunidade.</p>
+          <p data-section-info>Busque somente pelo titulo. Cifras novas ficam em Minhas cifras e podem ser publicadas depois na Comunidade. Voce tambem pode buscar cifras na Comunidade e trazer para a sua area privada (Minhas cifras) para personalizar do seu jeito.</p>
         </div>
-        <span class="music-library-mode">Multiusuario</span>
       </div>
       <div class="list-slot">
         <div class="page-status">Carregando cifras...</div>
@@ -394,19 +393,9 @@ function renderForm(formSlot, {
   }));
 }
 
-function createMusicaOwnershipShell({ scope, selectedMusica, content }) {
+function createMusicaOwnershipShell({ content }) {
   const wrapper = document.createElement('div');
   wrapper.className = 'musica-ownership-shell';
-  const currentVisibility = selectedMusica?.visibility || getDefaultVisibilityForScope(scope);
-  wrapper.innerHTML = `
-    <div class="musica-ownership-bar">
-      <div>
-        <strong>Acervo</strong>
-        <span>${escapeHtml(getVisibilityLabel(currentVisibility))}</span>
-      </div>
-      <span class="music-scope-hint">${escapeHtml(getVisibilityHint(currentVisibility))}</span>
-    </div>
-  `;
   wrapper.append(content);
 
   return wrapper;

@@ -8427,9 +8427,9 @@ html {
   background: var(--color-surface-raised);
   box-shadow: var(--shadow-md);
   z-index: 230;
-  width: fit-content;
-  min-width: 0;
-  max-width: calc(100vw - 20px);
+  width: max-content;
+  min-width: 260px;
+  max-width: min(92vw, 380px);
 }
 
 .main-menu-header {
@@ -14484,7 +14484,9 @@ html[data-interface-density="compact"] .account-password-panel {
   .main-menu-drawer {
     top: 0;
     right: 0;
-    width: min(390px, 92vw);
+    width: max-content;
+    min-width: 260px;
+    max-width: 92vw;
     height: 100dvh;
     max-height: none;
     border-radius: 0;
