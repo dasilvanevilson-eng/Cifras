@@ -64,6 +64,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
       <legend>Formato do arquivo</legend>
       <label><input type="checkbox" data-file-option="texto"> Gerar arquivo texto</label>
       <label><input type="checkbox" data-file-option="pdf" checked> Gerar arquivo PDF</label>
+      <label><input type="checkbox" data-file-option="indice"> Gerar repertório c/ Índice</label>
     </fieldset>
     <div class="pdf-repertorios-searches">
       <label class="pdf-repertorio-search-field">
@@ -129,6 +130,12 @@ function createRepertoriosBrowser(repertorios, musicas) {
   }
 
   function renderMusicResults() {
+    if (fileType === 'indice') {
+      musicaResults.innerHTML = '<p class="page-status">O repertório com índice está disponível apenas na busca por repertório.</p>';
+      musicaResults.hidden = document.activeElement !== musicSearchInput;
+      return;
+    }
+
     const query = normalizeText(musicSearchInput.value);
     const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
     musicaResults.innerHTML = matches.length ? matches.map((musica) => createPdfSearchResult(getField(musica, ['id']), getField(musica, ['titulo', 'nome', 'title']), contentType, fileType, 'musica')).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
@@ -159,7 +166,7 @@ function getSavedPdfOptions() {
     const saved = JSON.parse(window.localStorage.getItem(PDF_OPTIONS_STORAGE_KEY) || '{}');
     return {
       contentType: saved.contentType === 'letras' ? 'letras' : 'cifras',
-      fileType: saved.fileType === 'texto' ? 'texto' : 'pdf',
+      fileType: ['texto', 'indice'].includes(saved.fileType) ? saved.fileType : 'pdf',
     };
   } catch {
     return { contentType: 'cifras', fileType: 'pdf' };
@@ -177,15 +184,16 @@ function renderPdfSearchResults(slot, repertorios, emptyText, contentType, fileT
 }
 
 function createPdfSearchResult(id, title, contentType, fileType, target = 'repertorio') {
-  const fileLabel = fileType === 'texto' ? 'Gerar texto' : 'Gerar PDF';
+  const isInteractive = fileType === 'indice' && target === 'repertorio';
+  const fileLabel = fileType === 'indice' ? 'Gerar repertório c/ Índice' : fileType === 'texto' ? 'Gerar texto' : 'Gerar PDF';
   const contentLabel = contentType === 'letras' ? 'letras' : 'cifras';
+  const action = isInteractive ? 'generate-interactive' : 'open-pdf';
 
   return `
     <article class="pdf-search-result-card">
-      <button class="pdf-search-result-title" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}" aria-label="Abrir ${escapeHtml(title)}">${escapeHtml(title)}</button>
+      <button class="pdf-search-result-title" type="button" data-action="${action}" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}" aria-label="Abrir ${escapeHtml(title)}">${escapeHtml(title)}</button>
       <div>
-        <button class="button-link secondary" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}">${fileLabel} (${contentLabel})</button>
-        ${target === 'repertorio' ? `<button class="button-link secondary" type="button" data-action="generate-interactive" data-id="${escapeHtml(id)}">Repert Interativo</button>` : ''}
+        <button class="button-link secondary" type="button" data-action="${action}" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}">${fileLabel}${fileType === 'indice' ? '' : ` (${contentLabel})`}</button>
       </div>
     </article>
   `;
