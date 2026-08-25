@@ -83,6 +83,7 @@ export async function RepertoriosPage({ session } = {}) {
         draft: options.draft || null,
         loadMusicas: loadMusicasOnce,
         savedMessage: options.savedMessage || '',
+        onCreateNew: prepareNewRepertorio,
         onSaved: async (savedRepertorio) => {
           if (!savedRepertorio?.id) return;
 
@@ -188,6 +189,7 @@ async function createRepertorioUnifiedForm({
   draft = null,
   loadMusicas = listMusicas,
   savedMessage = '',
+  onCreateNew = null,
   onSaved = null,
   onDiscard = null,
 } = {}) {
@@ -222,6 +224,7 @@ async function createRepertorioUnifiedForm({
     initialName,
     draft: draft || localDraft,
     savedMessage,
+    onCreateNew,
     onSaved,
     onDiscard,
   }));
@@ -317,6 +320,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     form.classList.toggle('has-local-changes', hasLocalChanges);
     saveButton.disabled = isSaving || !hasLocalChanges;
     discardButton.disabled = isSaving || !hasLocalChanges;
+    form.querySelector('[data-action="create-new-from-editor"]')?.toggleAttribute('hidden', hasLocalChanges || isSaving);
 
     if (hasLocalChanges && !message.textContent) {
       message.className = 'form-message';
@@ -641,10 +645,17 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
     const actions = form.querySelector('.repertorio-inline-actions');
     actions.innerHTML = `
+      <button class="button" type="button" data-action="create-new-from-editor">Criar novo repertorio</button>
       <a class="button-link" href="${escapeHtml(getRepertorioExecucaoUrl(selectedRepertorio))}">Execucao</a>
       <button class="nav-button" type="button" data-action="duplicate">Duplicar</button>
       <button class="danger-button" type="button" data-action="delete">Excluir</button>
     `;
+
+    actions.querySelector('[data-action="create-new-from-editor"]').addEventListener('click', async () => {
+      if (typeof options.onCreateNew === 'function') {
+        await options.onCreateNew();
+      }
+    });
 
     actions.querySelector('[data-action="duplicate"]').addEventListener('click', async () => {
       const confirmed = window.confirm('Duplicar este repertorio com as mesmas musicas e ordem?');

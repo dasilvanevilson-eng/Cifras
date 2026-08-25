@@ -7919,6 +7919,10 @@ input.dashboard-select-song {
   justify-content: flex-end;
 }
 
+.repertorio-inline-actions [data-action="create-new-from-editor"] {
+  margin-left: auto;
+}
+
 .repertorio-title-date-grid {
   position: relative;
   z-index: 1;
@@ -14587,15 +14591,10 @@ html[data-interface-density="compact"] .account-password-panel {
   }
 
   .repertorio-save-bar {
-    position: sticky;
-    bottom: calc(64px + env(safe-area-inset-bottom));
-    z-index: 12;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     padding: 8px;
-    background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
-    box-shadow: var(--shadow-xs);
-    backdrop-filter: blur(12px);
+    background: var(--color-surface-raised);
   }
 
   .new-repertorio-form .selected-repertorio-songs {
