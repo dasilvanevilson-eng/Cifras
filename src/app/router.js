@@ -92,6 +92,29 @@ const publicRoutes = new Set([
 ]);
 
 const protectedRoutes = {
+  '/modo-offline': () => false,
+  '/banda-coral': () => false,
+  '/acordes': () => false,
+  '/musicas-letras': () => false,
+  '/musicas-letras/detalhe': () => false,
+  '/sugestoes': () => false,
+  '/sugestoes/enviar': () => false,
+  '/dashboard': (session) => canViewModule(session, 'dashboard'),
+  '/agenda': (session) => canViewModule(session, 'agenda'),
+  '/afinador': (session) => canViewModule(session, 'afinador'),
+  '/musicas': (session) => canViewModule(session, 'musicas'),
+  '/musicas/detalhe': (session) => canViewModule(session, 'musicas'),
+  '/musicas/editar': (session) => canViewModule(session, 'musicas'),
+  '/musicas/execucao': (session) => canViewModule(session, 'musicas'),
+  '/musicas/selecao-execucao': (session) => canViewModule(session, 'musicas'),
+  '/repertorios': (session) => canViewModule(session, 'repertorios'),
+  '/repertorios/detalhe': (session) => canViewModule(session, 'repertorios'),
+  '/repertorios/editar': (session) => canViewModule(session, 'repertorios'),
+  '/repertorios/execucao': (session) => canViewModule(session, 'repertorios'),
+  '/repertorios-interativo': (session) => canViewModule(session, 'pdf_repertorio'),
+  '/repertorios-pdf': (session) => canViewModule(session, 'pdf_repertorio'),
+  '/repertorios-pdf/gerar': (session) => canViewModule(session, 'pdf_repertorio'),
+  '/minha-conta': (session) => canViewModule(session, 'minha_conta'),
   '/usuarios': (session) => canManageUsers(session.profile?.papel),
   '/permissoes': (session) => canManageUsers(session.profile?.papel),
   '/personalizacao': (session) => canManageUsers(session.profile?.papel),
@@ -128,13 +151,6 @@ export function createRouter() {
       const canAccessRoute = protectedRoutes[window.location.pathname];
 
       if (canAccessRoute && !canAccessRoute(session)) {
-        return AccessDeniedPage({ session });
-      }
-
-      if (window.location.pathname === '/modo-offline' && !canViewModule(session, 'modo_offline')) {
-        return AccessDeniedPage({ session });
-      }
-      if (window.location.pathname === '/agenda' && !canViewModule(session, 'agenda')) {
         return AccessDeniedPage({ session });
       }
 
