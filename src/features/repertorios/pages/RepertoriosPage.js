@@ -92,6 +92,7 @@ export async function RepertoriosPage({ session } = {}) {
           if (!savedRepertorio?.id) return;
 
           loadedRepertorios = upsertRepertorioInList(loadedRepertorios, savedRepertorio);
+          repertoriosBrowser?.setRepertorios?.(loadedRepertorios);
           pendingNewRepertorioName = '';
           await renderForm(savedRepertorio, { savedMessage: 'Repertorio salvo' });
         },
@@ -1199,6 +1200,7 @@ function normalizeText(value) {
 function createRepertoriosBrowser(repertorios, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser repertorios-browser';
+  let browserRepertorios = [...repertorios];
   const editableHint = options.canEdit
     ? 'Digite para buscar somente entre os repertorios ja salvos.'
     : 'Digite um nome ou data para buscar repertorios.';
@@ -1235,14 +1237,14 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
   function render() {
     const query = normalizeText(searchInput.value);
-    currentResults = repertorios
+    currentResults = browserRepertorios
       .filter((repertorio) => matchesRepertorioSearch(repertorio, query))
       .sort((a, b) => compareText(
         getField(a, ['nome', 'titulo', 'name']),
         getField(b, ['nome', 'titulo', 'name']),
       ));
 
-    if (!repertorios.length) {
+    if (!browserRepertorios.length) {
       tableSlot.replaceChildren(createStatus('Nenhum repertorio cadastrado ainda.'));
       return;
     }
@@ -1303,6 +1305,11 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   wrapper.clearSearch = () => {
     searchInput.value = '';
     tableSlot.hidden = true;
+    render();
+  };
+
+  wrapper.setRepertorios = (nextRepertorios = []) => {
+    browserRepertorios = [...nextRepertorios];
     render();
   };
 
