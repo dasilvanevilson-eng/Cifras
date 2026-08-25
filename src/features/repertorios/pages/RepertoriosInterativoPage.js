@@ -122,7 +122,7 @@ function createSearchResult(repertorio) {
   `;
 }
 
-async function generateInteractiveHtml(repertorioId) {
+export async function generateInteractiveHtml(repertorioId) {
   const [{ data: repertorio, error: repertorioError }, { data: musicasAssociadas, error: musicasError }] = await Promise.all([
     getRepertorioById(repertorioId),
     listMusicasDoRepertorio(repertorioId),

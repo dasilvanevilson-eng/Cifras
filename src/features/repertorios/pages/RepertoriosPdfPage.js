@@ -1,5 +1,6 @@
 import { listRepertoriosComMusicas } from '../../../services/repertoriosService.js';
 import { listMusicas } from '../../../services/musicasService.js';
+import { generateInteractiveHtml } from './RepertoriosInterativoPage.js';
 
 const PDF_OPTIONS_STORAGE_KEY = 'pdf-repertorio-options';
 
@@ -9,8 +10,8 @@ export async function RepertoriosPdfPage() {
   page.innerHTML = `
     <header class="dashboard-header">
       <div>
-        <h1>PDF Repertorio</h1>
-        <p data-page-info>Gere arquivos do repertorio com cifras ou somente letras.</p>
+        <h1>Repertorio Listar</h1>
+        <p data-page-info>Liste repertorios e gere PDF, texto ou arquivo interativo.</p>
       </div>
     </header>
     <section class="music-search-panel">
@@ -175,8 +176,36 @@ function renderPdfSearchResults(slot, repertorios, emptyText, contentType, fileT
   bindPdfActions(slot);
 }
 
-function createPdfSearchResult(id, title, contentType, fileType, target = 'repertorio') { return `<article class="pdf-search-result-card"><button class="pdf-search-result-title" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}" aria-label="Abrir ${escapeHtml(title)}">${escapeHtml(title)}</button></article>`; }
-function bindPdfActions(container) { container.querySelectorAll('[data-action="open-pdf"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, button.dataset.contentType, button.dataset.target, button.dataset.fileType))); }
+function createPdfSearchResult(id, title, contentType, fileType, target = 'repertorio') {
+  const fileLabel = fileType === 'texto' ? 'Gerar texto' : 'Gerar PDF';
+  const contentLabel = contentType === 'letras' ? 'letras' : 'cifras';
+
+  return `
+    <article class="pdf-search-result-card">
+      <button class="pdf-search-result-title" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}" aria-label="Abrir ${escapeHtml(title)}">${escapeHtml(title)}</button>
+      <div>
+        <button class="button-link secondary" type="button" data-action="open-pdf" data-id="${escapeHtml(id)}" data-content-type="${contentType}" data-file-type="${fileType}" data-target="${target}">${fileLabel} (${contentLabel})</button>
+        ${target === 'repertorio' ? `<button class="button-link secondary" type="button" data-action="generate-interactive" data-id="${escapeHtml(id)}">Repert Interativo</button>` : ''}
+      </div>
+    </article>
+  `;
+}
+
+function bindPdfActions(container) {
+  container.querySelectorAll('[data-action="open-pdf"]').forEach((button) => button.addEventListener('click', () => openPdfPage(button.dataset.id, false, button.dataset.contentType, button.dataset.target, button.dataset.fileType)));
+  container.querySelectorAll('[data-action="generate-interactive"]').forEach((button) => button.addEventListener('click', async () => {
+    button.disabled = true;
+    button.textContent = 'Gerando...';
+    try {
+      await generateInteractiveHtml(button.dataset.id);
+      button.textContent = 'Arquivo gerado';
+    } catch (error) {
+      window.alert(error.message || 'Nao foi possivel gerar o HTML interativo.');
+      button.disabled = false;
+      button.textContent = 'Repert Interativo';
+    }
+  }));
+}
 
 function createRepertoriosTable(repertorios) {
   const table = document.createElement('table');

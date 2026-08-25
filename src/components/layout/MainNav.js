@@ -119,12 +119,7 @@ function getVisibleLinks(options = {}) {
       label: 'Repertorio Listar',
       group: 'Acervo',
       moduleKey: 'pdf_repertorio',
-      match: ['/repertorios-pdf', '/repertorios-pdf/gerar', '/repertorios-interativo', '/musicas-letras', '/musicas-letras/detalhe'],
-      children: [
-        { href: '/repertorios-pdf', label: 'PDF Repertorio', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
-        { href: '/musicas-letras', label: 'Letras', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
-        { href: '/repertorios-interativo', label: 'Repert Interativo', moduleKey: 'pdf_repertorio', match: ['/repertorios-interativo'] },
-      ],
+      match: ['/repertorios-pdf', '/repertorios-pdf/gerar', '/repertorios-interativo'],
     },
     { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
     { href: '/minha-conta', label: 'Minha conta', group: 'Conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
