@@ -1,5 +1,5 @@
 import {
-  ensurePrivateMusicaForRepertorio,
+  duplicateMusicaToPrivate,
   listMusicas,
   MUSICA_VISIBILITY,
 } from '../../../services/musicasService.js';
@@ -879,15 +879,21 @@ async function prepareMusicaForRepertorio(musica, musicas, message = null) {
   }
 
   const privateMusica = findPrivateMusicaWithSameTitle(musica, musicas);
-  const shouldOverwrite = privateMusica
-    ? window.confirm('Esse título já existe em seu acervo particular, deseja sobrescrever?')
-    : false;
+  const communityChoice = privateMusica
+    ? await chooseCommunityMusicaAction(musica, privateMusica)
+    : 'create-private-version';
+
+  if (!communityChoice) {
+    return null;
+  }
+
+  if (communityChoice === 'use-private') {
+    return privateMusica;
+  }
 
   try {
-    const { data, error } = await ensurePrivateMusicaForRepertorio(
-      musica.id,
-      shouldOverwrite ? privateMusica.id : null,
-    );
+    const nextTitle = privateMusica ? getNextPrivateVersionTitle(musica, musicas) : null;
+    const { data, error } = await duplicateMusicaToPrivate(musica.id, { titulo: nextTitle });
 
     if (error) {
       throw error;
@@ -908,8 +914,61 @@ function isCommunityMusica(musica) {
   return musica?.visibility === MUSICA_VISIBILITY.PUBLICA;
 }
 
+function chooseCommunityMusicaAction(communityMusica, privateMusica) {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'pdf-order-modal repertorio-version-modal';
+    modal.innerHTML = `
+      <div class="pdf-order-modal-backdrop" data-choice="cancel"></div>
+      <section class="pdf-order-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="repertorio-version-title">
+        <h2 id="repertorio-version-title">Versao ja encontrada</h2>
+        <p>Existe uma versao desta musica em Minhas cifras.</p>
+        <div class="repertorio-version-options">
+          <article>
+            <span>Minhas cifras</span>
+            <strong>${escapeHtml(formatMusicaName(privateMusica))}</strong>
+          </article>
+          <article>
+            <span>Comunidade</span>
+            <strong>${escapeHtml(formatMusicaName(communityMusica))}</strong>
+          </article>
+        </div>
+        <div class="pdf-order-modal-actions">
+          <button class="button" type="button" data-choice="use-private">Usar minha versao</button>
+          <button class="button secondary" type="button" data-choice="create-private-version">Criar nova versao da Comunidade</button>
+          <button class="button-link" type="button" data-choice="cancel">Cancelar</button>
+        </div>
+      </section>
+    `;
+
+    const close = (choice = null) => {
+      document.removeEventListener('keydown', handleKeyDown);
+      modal.remove();
+      resolve(choice);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        close(null);
+      }
+    };
+
+    modal.addEventListener('click', (event) => {
+      const choiceButton = event.target.closest('[data-choice]');
+      if (!choiceButton) return;
+
+      const choice = choiceButton.dataset.choice;
+      close(choice === 'cancel' ? null : choice);
+    });
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.appendChild(modal);
+    modal.querySelector('[data-choice="use-private"]')?.focus();
+  });
+}
+
 function findPrivateMusicaWithSameTitle(musica, musicas) {
-  const title = normalizeText(getField(musica, ['titulo', 'nome', 'title']));
+  const title = normalizeText(stripVersionSuffix(getField(musica, ['titulo', 'nome', 'title'])));
 
   if (!title) {
     return null;
@@ -917,8 +976,35 @@ function findPrivateMusicaWithSameTitle(musica, musicas) {
 
   return musicas.find((item) => (
     item?.visibility === MUSICA_VISIBILITY.PRIVADA
-    && normalizeText(getField(item, ['titulo', 'nome', 'title'])) === title
+    && normalizeText(stripVersionSuffix(getField(item, ['titulo', 'nome', 'title']))) === title
   )) || null;
+}
+
+function getNextPrivateVersionTitle(musica, musicas) {
+  const originalTitle = getField(musica, ['titulo', 'nome', 'title']);
+  const baseTitle = stripVersionSuffix(originalTitle);
+  const baseTitleKey = normalizeText(baseTitle);
+  const privateTitles = new Set(
+    musicas
+      .filter((item) => item?.visibility === MUSICA_VISIBILITY.PRIVADA)
+      .map((item) => normalizeText(getField(item, ['titulo', 'nome', 'title']))),
+  );
+
+  let version = 2;
+  let nextTitle = `${baseTitle} - versao ${version}`;
+
+  while (privateTitles.has(normalizeText(nextTitle))) {
+    version += 1;
+    nextTitle = `${baseTitle} - versao ${version}`;
+  }
+
+  return baseTitleKey ? nextTitle : originalTitle;
+}
+
+function stripVersionSuffix(title) {
+  return String(title || '')
+    .replace(/\s+-\s+vers[aã]o\s+\d+$/i, '')
+    .trim();
 }
 
 function upsertMusicaInCache(musicas, musica) {
