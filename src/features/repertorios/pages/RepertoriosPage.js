@@ -35,7 +35,7 @@ export async function RepertoriosPage({ session } = {}) {
       <div class="repertorio-library-heading">
         <div>
           <h2>Buscar ou criar repertorio</h2>
-          <p data-section-info>${canEdit ? 'Pesquise pelo nome para localizar um repertorio existente e edita-lo. Caso nao exista, voce pode iniciar um novo repertorio usando o formulario da pagina.' : 'Pesquise por nome ou data para localizar, abrir e executar os repertorios liberados para o seu acesso.'}</p>
+          <p data-section-info>${canEdit ? 'Pesquise para localizar um repertorio existente ou use o botao de criacao para iniciar um novo.' : 'Pesquise por nome ou data para localizar, abrir e executar os repertorios liberados para o seu acesso.'}</p>
         </div>
         <span class="repertorio-library-mode">${canEdit ? 'Modo montagem' : 'Modo consulta'}</span>
       </div>
@@ -82,6 +82,20 @@ export async function RepertoriosPage({ session } = {}) {
     }));
   }
 
+  function renderCreatePrompt() {
+    if (!canEdit) return;
+
+    const prompt = document.createElement('section');
+    prompt.className = 'new-repertorio-panel repertorio-create-prompt';
+    prompt.innerHTML = `
+      <div class="repertorio-form-heading">
+        <h2>Novo repertorio</h2>
+        <p class="repertorio-current-name">Use o botao "Criar novo repertorio" para abrir o formulario de montagem.</p>
+      </div>
+    `;
+    formSlot.replaceChildren(prompt);
+  }
+
   async function prepareNewRepertorio(name = '') {
     pendingNewRepertorioName = name.trim();
     await renderForm(null, { initialName: pendingNewRepertorioName });
@@ -111,7 +125,11 @@ export async function RepertoriosPage({ session } = {}) {
     const draftRepertorio = restoredDraft?.selectedRepertorioId
       ? loadedRepertorios.find((repertorio) => repertorio.id === restoredDraft.selectedRepertorioId) || null
       : null;
-    await renderForm(draftRepertorio, { draft: restoredDraft });
+    if (draftRepertorio || restoredDraft) {
+      await renderForm(draftRepertorio, { draft: restoredDraft });
+    } else {
+      renderCreatePrompt();
+    }
     if (restoredDraft?.scrollY) {
       window.requestAnimationFrame(() => window.scrollTo({ top: restoredDraft.scrollY, left: 0, behavior: 'auto' }));
     }
@@ -853,55 +871,31 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser repertorios-browser';
   const editableHint = options.canEdit
-    ? 'Digite um nome para buscar. Se nenhum repertorio existir com esse nome, ele sera preparado como novo repertorio. Se pelo menos uma musica for acrescentada ao repertorio, o repertorio sera salvo automaticamente.'
+    ? 'Digite para buscar um repertorio existente. Para criar, use o botao abaixo.'
     : 'Digite um nome ou data para buscar repertorios.';
   wrapper.innerHTML = `
     <div class="list-toolbar">
       <label class="repertorio-library-search">
-        <span>${options.canEdit ? 'Nome do repertorio' : 'Buscar na lista'}</span>
-        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Digite o nome do repertorio' : 'Nome, data ou tema'}" aria-describedby="repertorio-search-help">
+        <span>${options.canEdit ? 'Buscar repertorio' : 'Buscar na lista'}</span>
+        <input class="search-input" type="search" placeholder="${options.canEdit ? 'Nome ou data' : 'Nome, data ou tema'}" aria-describedby="repertorio-search-help">
       </label>
       <p class="form-hint" id="repertorio-search-help">${editableHint}</p>
+      ${options.canEdit ? '<button class="button" type="button" data-action="create-repertorio">Criar novo repertorio</button>' : ''}
     </div>
     <div class="table-slot search-results" hidden></div>
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
+  const createButton = wrapper.querySelector('[data-action="create-repertorio"]');
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
   let currentResults = [];
-  let createDraftTimer = null;
-  let lastDraftName = '';
 
   function getSearchValue() {
     return searchInput.value.trim();
   }
 
-  function scheduleCreateDraft() {
-    if (!options.onCreateDraft) return;
-
-    window.clearTimeout(createDraftTimer);
-    createDraftTimer = window.setTimeout(() => {
-      const value = getSearchValue();
-      const exactMatch = findExactRepertorio(value);
-
-      if (!value || exactMatch || normalizeText(value) === normalizeText(lastDraftName)) return;
-
-      lastDraftName = value;
-      options.onCreateDraft(value);
-    }, 220);
-  }
-
-  function findExactRepertorio(value) {
-    const query = normalizeText(value);
-    if (!query) return null;
-
-    return repertorios.find((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name'])) === query) || null;
-  }
-
   function selectRepertorio(repertorio) {
-    window.clearTimeout(createDraftTimer);
-    lastDraftName = '';
     if (!options.onSelect) {
       window.location.href = getRepertorioUrl(repertorio);
       return;
@@ -928,7 +922,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
     if (!currentResults.length) {
       tableSlot.replaceChildren(createStatus(options.canEdit
-        ? 'Nenhum repertorio encontrado. O formulario abaixo sera preparado para incluir este nome.'
+        ? 'Nenhum repertorio encontrado. Use "Criar novo repertorio" para iniciar um novo cadastro.'
         : 'Nenhum repertorio encontrado para esta busca.'));
       return;
     }
@@ -942,7 +936,6 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   searchInput.addEventListener('input', () => {
     render();
     tableSlot.hidden = false;
-    scheduleCreateDraft();
   });
 
   searchInput.addEventListener('focus', () => {
@@ -967,12 +960,11 @@ function createRepertoriosBrowser(repertorios, options = {}) {
       return;
     }
 
-    if (options.onCreateDraft && getSearchValue()) {
-      window.clearTimeout(createDraftTimer);
-      lastDraftName = getSearchValue();
-      options.onCreateDraft(getSearchValue());
-      tableSlot.hidden = true;
-    }
+  });
+
+  createButton?.addEventListener('click', () => {
+    options.onCreateDraft?.(getSearchValue());
+    tableSlot.hidden = true;
   });
 
   tableSlot.addEventListener('mouseenter', () => {
