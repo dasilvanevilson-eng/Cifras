@@ -81,6 +81,23 @@ export async function RepertoriosPage({ session } = {}) {
       initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
       draft: options.draft || null,
       loadMusicas: loadMusicasOnce,
+      savedMessage: options.savedMessage || '',
+      onSaved: async (savedRepertorio) => {
+        if (!savedRepertorio?.id) return;
+
+        loadedRepertorios = upsertRepertorioInList(loadedRepertorios, savedRepertorio);
+        pendingNewRepertorioName = '';
+        await renderForm(savedRepertorio, { savedMessage: 'Repertorio salvo' });
+      },
+      onDiscard: async (savedRepertorio = null) => {
+        if (savedRepertorio?.id) {
+          await renderForm(savedRepertorio, { savedMessage: 'Alteracoes descartadas' });
+          return;
+        }
+
+        pendingNewRepertorioName = '';
+        renderCreatePrompt();
+      },
     }));
     syncCreateButtonVisibility();
   }
@@ -196,6 +213,9 @@ async function createRepertorioUnifiedForm({
     musicasAssociadas: musicasAssociadas || [],
     initialName,
     draft: draft || localDraft,
+    savedMessage: options.savedMessage || '',
+    onSaved: options.onSaved,
+    onDiscard: options.onDiscard,
   }));
   return wrapper;
 }
@@ -579,7 +599,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     await saveRepertorio({ focusOnError: true });
   });
 
-  discardButton.addEventListener('click', () => {
+  discardButton.addEventListener('click', async () => {
     const hasLocalChanges = createRepertorioSignature() !== lastSavedSignature;
     if (!hasLocalChanges) return;
 
@@ -588,6 +608,11 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
     clearLocalRepertorioDraft();
     clearCurrentRepertorioDraft();
+    if (typeof options.onDiscard === 'function') {
+      await options.onDiscard(currentRepertorio);
+      return;
+    }
+
     window.location.href = '/repertorios';
   });
 
@@ -596,6 +621,10 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   renderSelected();
   renderResults();
   updateSubmitState();
+  if (options.savedMessage) {
+    message.className = 'form-message success';
+    message.textContent = options.savedMessage;
+  }
 
   return form;
 
@@ -701,6 +730,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     try {
       const formData = new FormData(form);
       const musicasSnapshot = selectedMusicas.map((musica) => ({ ...musica }));
+      const isCreatingRepertorio = !currentRepertorio?.id;
       const repertorioPayload = {
         nome: String(formData.get('nome') || '').trim(),
         data: String(formData.get('data') || '') || null,
@@ -744,6 +774,9 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
       clearCurrentRepertorioDraft();
       message.className = 'form-message success';
       message.textContent = 'Repertório salvo';
+      if (isCreatingRepertorio && currentRepertorio?.id && typeof options.onSaved === 'function') {
+        await options.onSaved(currentRepertorio);
+      }
       return true;
     } catch (error) {
       message.className = 'form-message error';
@@ -1142,6 +1175,19 @@ function createStatus(text) {
   return status;
 }
 
+function upsertRepertorioInList(repertorios, savedRepertorio) {
+  if (!savedRepertorio?.id) return repertorios;
+
+  const index = repertorios.findIndex((repertorio) => repertorio.id === savedRepertorio.id);
+  if (index < 0) {
+    return [savedRepertorio, ...repertorios];
+  }
+
+  return repertorios.map((repertorio, repertorioIndex) => (
+    repertorioIndex === index ? { ...repertorio, ...savedRepertorio } : repertorio
+  ));
+}
+
 function matchesRepertorioSearch(repertorio, query) {
   if (!query) return true;
 
@@ -1171,15 +1217,14 @@ function createRepertoriosTable(repertorios, options = {}) {
         <p>${escapeHtml(data !== '-' ? data : 'Sem data definida')}</p>
       </div>
       <div class="repertorio-result-meta">
-        <span>${options.onSelect ? 'Montagem' : 'Consulta'}</span>
         <small>${escapeHtml(data !== '-' ? `Data: ${data}` : 'Pronto para organizar')}</small>
       </div>
-      <div class="repertorio-result-actions">
-        <a class="button-link secondary" href="${escapeHtml(execucaoUrl)}">Executar</a>
-        ${options.onSelect
-          ? '<button class="nav-button" type="button" data-action="select-repertorio">Editar</button>'
-          : `<a class="nav-button" href="${escapeHtml(detailUrl)}">Abrir</a>`}
-      </div>
+      ${options.onSelect ? '' : `
+        <div class="repertorio-result-actions">
+          <a class="button-link secondary" href="${escapeHtml(execucaoUrl)}">Executar</a>
+          <a class="nav-button" href="${escapeHtml(detailUrl)}">Abrir</a>
+        </div>
+      `}
     `;
 
     if (options.onSelect) {
