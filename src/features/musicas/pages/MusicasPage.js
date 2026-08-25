@@ -579,7 +579,7 @@ function createMusicasTable(musicas, options = {}) {
         <h3>${escapeHtml(title)}</h3>
         ${artistLine}
       </div>
-      <div class="musica-result-actions">
+      <div class="musica-result-actions${canPersonalize ? ' has-personalize-action' : ''}">
         <a class="button-link secondary" href="${escapeHtml(readOnlyUrl)}">Executar</a>
         ${canPersonalize ? '<button class="nav-button" type="button" data-action="personalize-music">Acrescentar as Minhas cifras</button>' : ''}
       </div>
