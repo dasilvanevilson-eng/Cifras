@@ -51,6 +51,7 @@ export async function RepertoriosPage({ session } = {}) {
   let musicasCache = null;
   let pendingNewRepertorioName = '';
   let selectedExistingRepertorioId = null;
+  let repertoriosBrowser = null;
   const restoredDraft = readRepertorioDraftFromUrl();
 
   function syncCreateButtonVisibility() {
@@ -131,6 +132,7 @@ export async function RepertoriosPage({ session } = {}) {
   async function prepareNewRepertorio(name = '') {
     selectedExistingRepertorioId = null;
     syncCreateButtonVisibility();
+    repertoriosBrowser?.clearSearch?.();
     pendingNewRepertorioName = name.trim();
     await renderForm(null, { initialName: pendingNewRepertorioName });
   }
@@ -143,7 +145,7 @@ export async function RepertoriosPage({ session } = {}) {
     }
 
     loadedRepertorios = data || [];
-    const repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
+    repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
       onSelect: renderForm,
       canEdit,
     });
@@ -243,7 +245,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     <section class="repertorio-form-section repertorio-basic-fields">
       <div class="repertorio-form-heading">
         <h2>${isEditing ? 'Editar repertorio' : 'Novo repertorio'}</h2>
-        <p class="repertorio-current-name">${escapeHtml(initialName ? `Nome: ${initialName}` : 'Digite um nome no campo acima para iniciar.')}</p>
+        <p class="repertorio-current-name">${escapeHtml(initialName ? `Nome: ${initialName}` : '')}</p>
         <div class="repertorio-inline-actions"></div>
       </div>
       <div class="repertorio-title-date-grid">
@@ -565,7 +567,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
   nomeInput.addEventListener('input', () => {
     const value = nomeInput.value.trim();
-    currentName.textContent = value ? `Nome: ${value}` : 'Informe o nome do repertorio.';
+    currentName.textContent = value ? `Nome: ${value}` : '';
     updateSubmitState();
     persistLocalChanges();
   });
@@ -1182,6 +1184,12 @@ function createRepertoriosBrowser(repertorios, options = {}) {
       tableSlot.hidden = true;
     }
   });
+
+  wrapper.clearSearch = () => {
+    searchInput.value = '';
+    tableSlot.hidden = true;
+    render();
+  };
 
   render();
   return wrapper;

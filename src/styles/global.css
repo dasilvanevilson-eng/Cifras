@@ -7919,8 +7919,18 @@ input.dashboard-select-song {
   justify-content: flex-end;
 }
 
+.new-repertorio-form .repertorio-form-heading:has([data-action="create-new-from-editor"]) {
+  align-items: flex-start;
+  padding-right: min(190px, 52%);
+}
+
 .repertorio-inline-actions [data-action="create-new-from-editor"] {
-  margin-left: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(180px, 48%);
+  margin-left: 0;
+  white-space: normal;
 }
 
 .repertorio-title-date-grid {
