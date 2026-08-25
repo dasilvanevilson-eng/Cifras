@@ -112,7 +112,6 @@ const MENU_ROUTE_ORDER = [
   { href: '/musicas', moduleKey: 'musicas' },
   { href: '/acordes', moduleKey: 'acordes' },
   { href: '/afinador', moduleKey: 'afinador' },
-  { href: '/musicas-letras', moduleKey: 'letras' },
   { href: '/repertorios', moduleKey: 'repertorios' },
   { href: '/repertorios-pdf', moduleKey: 'pdf_repertorio' },
   { href: '/sugestoes', moduleKey: 'sugestoes' },
