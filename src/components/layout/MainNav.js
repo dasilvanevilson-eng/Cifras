@@ -111,7 +111,7 @@ function getVisibleLinks(options = {}) {
     { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
     { href: '/modo-offline', label: 'Modo Offline', group: 'Uso', moduleKey: 'modo_offline', match: ['/modo-offline'] },
     { href: '/agenda', label: 'Agenda', group: 'Uso', moduleKey: 'agenda', match: ['/agenda'] },
-    { href: '/repertorios', label: 'Repertorios', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
+    { href: '/repertorios', label: 'Repertorio Criar', group: 'Uso', moduleKey: 'repertorios', match: ['/repertorios', '/repertorios/detalhe', '/repertorios/editar', '/repertorios/execucao'] },
     { href: '/musicas', label: 'Cifras', group: 'Acervo', moduleKey: 'musicas', match: ['/musicas', '/musicas/detalhe', '/musicas/editar', '/musicas/execucao', '/musicas/selecao-execucao'] },
     { href: '/afinador', label: 'Afinador', group: 'Acervo', moduleKey: 'afinador', match: ['/afinador'] },
     {
@@ -120,6 +120,11 @@ function getVisibleLinks(options = {}) {
       group: 'Acervo',
       moduleKey: 'pdf_repertorio',
       match: ['/repertorios-pdf', '/repertorios-pdf/gerar', '/repertorios-interativo', '/musicas-letras', '/musicas-letras/detalhe'],
+      children: [
+        { href: '/repertorios-pdf', label: 'PDF Repertorio', moduleKey: 'pdf_repertorio', match: ['/repertorios-pdf', '/repertorios-pdf/gerar'] },
+        { href: '/musicas-letras', label: 'Letras', moduleKey: 'letras', match: ['/musicas-letras', '/musicas-letras/detalhe'] },
+        { href: '/repertorios-interativo', label: 'Repert Interativo', moduleKey: 'pdf_repertorio', match: ['/repertorios-interativo'] },
+      ],
     },
     { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
     { href: '/minha-conta', label: 'Minha conta', group: 'Conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
@@ -129,8 +134,20 @@ function getVisibleLinks(options = {}) {
     { href: '/convites-publicos', label: 'Convites publicos', group: 'Administracao', moduleKey: 'convites_publicos', match: ['/convites-publicos'] },
   ];
 
+  const session = { profile: options.profile, permissions: options.permissions };
+
   return links
-    .filter((link) => canViewModule({ profile: options.profile, permissions: options.permissions }, link.moduleKey))
+    .map((link) => {
+      const children = link.children?.filter((child) => canViewModule(session, child.moduleKey)) || [];
+      const canViewParent = canViewModule(session, link.moduleKey);
+
+      return {
+        ...link,
+        href: canViewParent ? link.href : children[0]?.href || link.href,
+        children,
+      };
+    })
+    .filter((link) => canViewModule(session, link.moduleKey) || link.children.length)
     .sort((first, second) => first.label.localeCompare(second.label, 'pt-BR', { sensitivity: 'base' }));
 }
 
@@ -140,7 +157,20 @@ function createNavLink(link) {
     isActiveNavLink(link.match) ? 'is-active' : '',
   ].filter(Boolean).join(' ');
 
-  return `<a${classes ? ` class="${classes}"` : ''} href="${link.href}">${link.label}</a>`;
+  const anchor = `<a${classes ? ` class="${classes}"` : ''} href="${link.href}">${link.label}</a>`;
+
+  if (!link.children?.length) {
+    return anchor;
+  }
+
+  return `
+    <div class="main-nav-group">
+      ${anchor}
+      <div class="main-nav-sub-links">
+        ${link.children.map(createNavLink).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function createFlatNavLinks(links) {
@@ -150,7 +180,7 @@ function createFlatNavLinks(links) {
 function createMobileQuickNav(links) {
   const quickLinks = [
     { href: '/dashboard', label: 'Painel' },
-    { href: '/repertorios', label: 'Repertorios' },
+    { href: '/repertorios', label: 'Repertorio Criar' },
     { href: '/musicas', label: 'Cifras' },
   ]
     .map((item) => links.find((link) => link.href === item.href) || null)

@@ -378,6 +378,22 @@ a {
   text-transform: uppercase;
 }
 
+.main-nav-group {
+  display: grid;
+  gap: 3px;
+}
+
+.main-nav-sub-links {
+  display: grid;
+  gap: 3px;
+  padding-left: 14px;
+}
+
+.main-nav-sub-links a {
+  min-height: 34px;
+  font-size: 14px;
+}
+
 .main-nav-links a,
 .main-nav-links .nav-button {
   display: flex;
@@ -8462,6 +8478,22 @@ html {
   color: var(--color-text-muted);
   font-size: 11px;
   letter-spacing: 0.08em;
+}
+
+.main-nav-group {
+  display: grid;
+  gap: 3px;
+}
+
+.main-nav-sub-links {
+  display: grid;
+  gap: 3px;
+  padding-left: 14px;
+}
+
+.main-nav-sub-links a {
+  min-height: 34px;
+  font-size: 14px;
 }
 
 .main-nav-links a,
