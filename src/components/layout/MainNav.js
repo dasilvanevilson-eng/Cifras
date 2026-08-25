@@ -106,7 +106,6 @@ export function MainNav(options = {}) {
 function getVisibleLinks(options = {}) {
   if (!options.user) return [];
 
-  const hasPendingSuggestions = Number(options.pendingSuggestionsCount || 0) > 0;
   const links = [
     { href: '/dashboard', label: 'Painel', group: 'Uso', moduleKey: 'dashboard', match: ['/dashboard'] },
     { href: '/agenda', label: 'Agenda', group: 'Uso', moduleKey: 'agenda', match: ['/agenda'] },
@@ -120,7 +119,6 @@ function getVisibleLinks(options = {}) {
       moduleKey: 'pdf_repertorio',
       match: ['/repertorios-pdf', '/repertorios-pdf/gerar', '/repertorios-interativo'],
     },
-    { href: '/sugestoes', label: 'Sugestao', group: 'Acervo', moduleKey: 'sugestoes', match: ['/sugestoes', '/sugestoes/enviar'], className: hasPendingSuggestions ? 'has-pending' : '' },
     { href: '/minha-conta', label: 'Minha conta', group: 'Conta', moduleKey: 'minha_conta', match: ['/minha-conta'] },
     { href: '/usuarios', label: 'Usuarios', group: 'Administracao', moduleKey: 'usuarios', match: ['/usuarios'] },
     { href: '/permissoes', label: 'Permissoes', group: 'Administracao', moduleKey: 'permissoes', match: ['/permissoes'] },
