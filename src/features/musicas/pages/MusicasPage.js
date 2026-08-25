@@ -114,7 +114,6 @@ export async function MusicasPage({ session } = {}) {
     return listMusicas({
       scope,
       query,
-      limit: 120,
       userId: session?.user?.id,
     });
   }

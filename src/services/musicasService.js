@@ -22,6 +22,8 @@ const MUSICA_DETAIL_COLUMNS = `
   musica_group_shares(organization_id, can_edit)
 `;
 
+const MUSICAS_PAGE_SIZE = 1000;
+
 export const MUSICA_VISIBILITY = {
   PUBLICA: 'publica',
   PRIVADA: 'privada',
@@ -34,7 +36,7 @@ export async function listMusicas(options = {}) {
   const {
     scope = 'visible',
     query = '',
-    limit = 120,
+    limit = null,
     userId = null,
     organizationId = null,
   } = options;
@@ -43,29 +45,31 @@ export async function listMusicas(options = {}) {
     return listSharedMusicas({ query, limit, userId, organizationId });
   }
 
-  let request = supabase
-    .from('musicas')
-    .select(MUSICA_LIST_COLUMNS)
-    .order('titulo', { ascending: true })
-    .limit(limit);
+  const result = await fetchMusicasPages(({ from, to }) => {
+    let request = supabase
+      .from('musicas')
+      .select(MUSICA_LIST_COLUMNS)
+      .order('titulo', { ascending: true })
+      .range(from, to);
 
-  if (query?.trim()) {
-    request = request.ilike('titulo', `%${query.trim()}%`);
-  }
+    if (query?.trim()) {
+      request = request.ilike('titulo', `%${query.trim()}%`);
+    }
 
-  if (scope === 'community') {
-    request = request.eq('visibility', MUSICA_VISIBILITY.PUBLICA);
-  } else if (scope === 'mine' && userId) {
-    request = request
-      .eq('visibility', MUSICA_VISIBILITY.PRIVADA)
-      .or(`owner_id.eq.${userId},created_by.eq.${userId}`);
-  } else if (scope === 'organization' && organizationId) {
-    request = request
-      .eq('visibility', MUSICA_VISIBILITY.ORGANIZACAO)
-      .eq('organization_id', organizationId);
-  }
+    if (scope === 'community') {
+      request = request.eq('visibility', MUSICA_VISIBILITY.PUBLICA);
+    } else if (scope === 'mine' && userId) {
+      request = request
+        .eq('visibility', MUSICA_VISIBILITY.PRIVADA)
+        .or(`owner_id.eq.${userId},created_by.eq.${userId}`);
+    } else if (scope === 'organization' && organizationId) {
+      request = request
+        .eq('visibility', MUSICA_VISIBILITY.ORGANIZACAO)
+        .eq('organization_id', organizationId);
+    }
 
-  const result = await request;
+    return request;
+  }, limit);
 
   if (result.error) {
     return result;
@@ -74,33 +78,33 @@ export async function listMusicas(options = {}) {
   return enrichMusicasWithVersionNames(result);
 }
 
-async function listSharedMusicas({ query = '', limit = 120, userId = null, organizationId = null } = {}) {
+async function listSharedMusicas({ query = '', limit = null, userId = null, organizationId = null } = {}) {
   if (!userId && !organizationId) {
     return { data: [], error: null };
   }
 
   const userRequest = userId
-    ? applyTitleFilter(
+    ? fetchMusicasPages(({ from, to }) => applyTitleFilter(
       supabase
         .from('musicas')
         .select(`${MUSICA_LIST_COLUMNS}, musica_compartilhamentos!inner(user_id)`)
         .eq('musica_compartilhamentos.user_id', userId)
         .order('titulo', { ascending: true })
-        .limit(limit),
+        .range(from, to),
       query,
-    )
+    ), limit)
     : Promise.resolve({ data: [], error: null });
 
   const groupRequest = organizationId
-    ? applyTitleFilter(
+    ? fetchMusicasPages(({ from, to }) => applyTitleFilter(
       supabase
         .from('musicas')
         .select(`${MUSICA_LIST_COLUMNS}, musica_group_shares!inner(organization_id)`)
         .eq('musica_group_shares.organization_id', organizationId)
         .order('titulo', { ascending: true })
-        .limit(limit),
+        .range(from, to),
       query,
-    )
+    ), limit)
     : Promise.resolve({ data: [], error: null });
 
   const [userResult, groupResult] = await Promise.all([userRequest, groupRequest]);
@@ -121,9 +125,33 @@ async function listSharedMusicas({ query = '', limit = 120, userId = null, organ
   return {
     data: [...byId.values()]
       .sort((a, b) => String(a.titulo || '').localeCompare(String(b.titulo || ''), 'pt-BR', { sensitivity: 'base' }))
-      .slice(0, limit),
+      .slice(0, limit || undefined),
     error: null,
   };
+}
+
+async function fetchMusicasPages(createRequest, limit = null) {
+  const allRows = [];
+  const targetLimit = Number.isFinite(limit) && limit > 0 ? Number(limit) : null;
+  const pageSize = targetLimit ? Math.min(targetLimit, MUSICAS_PAGE_SIZE) : MUSICAS_PAGE_SIZE;
+
+  for (let from = 0; ; from += pageSize) {
+    const to = targetLimit
+      ? Math.min(from + pageSize - 1, targetLimit - 1)
+      : from + pageSize - 1;
+    const result = await createRequest({ from, to });
+
+    if (result.error) {
+      return result;
+    }
+
+    const rows = result.data || [];
+    allRows.push(...rows);
+
+    if (rows.length < pageSize || (targetLimit && allRows.length >= targetLimit)) {
+      return { data: targetLimit ? allRows.slice(0, targetLimit) : allRows, error: null };
+    }
+  }
 }
 
 function applyTitleFilter(request, query = '') {
