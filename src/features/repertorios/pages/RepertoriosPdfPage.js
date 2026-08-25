@@ -137,7 +137,7 @@ function createRepertoriosBrowser(repertorios, musicas) {
 
     const query = normalizeText(musicSearchInput.value);
     const matches = musicas.filter((musica) => matchesCatalogMusicSearch(musica, query)).sort((a, b) => compareText(getField(a, ['titulo', 'nome', 'title']), getField(b, ['titulo', 'nome', 'title'])));
-    musicaResults.innerHTML = matches.length ? matches.map((musica) => createPdfSearchResult(getField(musica, ['id']), getField(musica, ['titulo', 'nome', 'title']), contentType, fileType, 'musica')).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
+    musicaResults.innerHTML = matches.length ? matches.map((musica) => createPdfSearchResult(getField(musica, ['id']), formatCatalogMusicTitle(musica), contentType, fileType, 'musica')).join('') : '<p class="page-status">Nenhuma musica encontrada no acervo.</p>';
     musicaResults.hidden = document.activeElement !== musicSearchInput;
     bindPdfActions(musicaResults);
   }
@@ -334,6 +334,8 @@ function matchesCatalogMusicSearch(musica, query) {
   return normalizeText([
     getField(musica, ['titulo', 'nome', 'title']),
     getField(musica, ['artista', 'autor', 'artist']),
+    getMusicaVersionName(musica),
+    getMusicaOriginLabel(musica),
     getField(musica, ['tags']),
   ].join(' ')).includes(query);
 }
@@ -379,6 +381,25 @@ function formatDate(value) {
   if (!value || value === '-') return '-';
   const [year, month, day] = String(value).split('-');
   return day && month && year ? `${day}/${month}/${year}` : value;
+}
+
+function formatCatalogMusicTitle(musica) {
+  const versionName = getMusicaVersionName(musica);
+
+  return [
+    getField(musica, ['titulo', 'nome', 'title']),
+    versionName ? `Versao ${versionName}` : '',
+    getMusicaOriginLabel(musica),
+  ].filter(Boolean).join(' - ');
+}
+
+function getMusicaVersionName(musica) {
+  const versionName = getField(musica, ['colaborador_nome']);
+  return versionName !== '-' ? versionName : '';
+}
+
+function getMusicaOriginLabel(musica) {
+  return musica?.visibility === 'privada' ? 'Minhas cifras' : 'Comunidade';
 }
 
 function escapeHtml(value) {

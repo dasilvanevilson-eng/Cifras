@@ -19,12 +19,12 @@ export async function RepertorioPdfPage() {
   const status = page.querySelector('.page-status');
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
-  const isSingleSong = params.get('alvo') === 'musica';
-  const hideIndex = isSingleSong || params.get('semIndice') === '1';
   const shouldAutoPrint = params.get('autoPrint') === '1';
   const order = params.get('order') === 'alfabetica' ? 'alfabetica' : 'repertorio';
   const contentType = params.get('tipo') === 'letras' ? 'letras' : 'cifras';
   const fileType = params.get('formato') === 'texto' ? 'texto' : 'pdf';
+  const isSingleSong = params.get('alvo') === 'musica';
+  const hideIndex = isSingleSong || fileType === 'texto' || params.get('semIndice') === '1';
 
   if (!id) {
     status.className = 'page-status error';
