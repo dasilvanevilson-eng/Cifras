@@ -7883,6 +7883,10 @@ input.dashboard-select-song {
   z-index: 2;
 }
 
+.repertorio-create-prompt .repertorio-form-heading {
+  align-items: flex-start;
+}
+
 .repertorio-current-name,
 .musica-current-title,
 .form-hint {

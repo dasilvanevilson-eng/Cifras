@@ -35,8 +35,8 @@ export async function RepertoriosPage({ session } = {}) {
     <section class="repertorios-search-panel repertorio-library-panel">
       <div class="repertorio-library-heading">
         <div>
-          <h2>Buscar ou criar repertorio</h2>
-          <p data-section-info>${canEdit ? 'Pesquise para localizar um repertorio existente ou use o botao de criacao para iniciar um novo.' : 'Pesquise por nome ou data para localizar, abrir e executar os repertorios liberados para o seu acesso.'}</p>
+          <h2>Buscar repertorios salvos</h2>
+          <p data-section-info>${canEdit ? 'Pesquise por nome ou data para localizar e abrir um repertorio ja salvo.' : 'Pesquise por nome ou data para localizar, abrir e executar os repertorios liberados para o seu acesso.'}</p>
         </div>
         <span class="repertorio-library-mode">${canEdit ? 'Modo montagem' : 'Modo consulta'}</span>
       </div>
@@ -57,12 +57,10 @@ export async function RepertoriosPage({ session } = {}) {
   let musicasCache = null;
   let pendingNewRepertorioName = '';
   let selectedExistingRepertorioId = null;
-  let repertoriosBrowser = null;
   const restoredDraft = readRepertorioDraftFromUrl();
 
   function syncCreateButtonVisibility() {
     page.dataset.selectedRepertorioId = selectedExistingRepertorioId || '';
-    repertoriosBrowser?.syncCreateButton?.();
   }
 
   async function loadMusicasOnce() {
@@ -100,8 +98,31 @@ export async function RepertoriosPage({ session } = {}) {
     prompt.className = 'new-repertorio-panel repertorio-create-prompt';
     prompt.innerHTML = `
       <div class="repertorio-form-heading">
-        <h2>Novo repertorio</h2>
-        <p class="repertorio-current-name">Use o botao "Criar novo repertorio" para abrir o formulario de montagem.</p>
+        <div>
+          <h2>Novo repertorio</h2>
+          <p class="repertorio-current-name">Use o botao para abrir o formulario de montagem.</p>
+        </div>
+        <button class="button" type="button" data-action="create-repertorio">Criar novo repertorio</button>
+      </div>
+    `;
+    prompt.querySelector('[data-action="create-repertorio"]').addEventListener('click', () => {
+      prepareNewRepertorio();
+    });
+    formSlot.replaceChildren(prompt);
+  }
+
+  function renderExistingRepertorioPrompt(repertorio) {
+    if (!canEdit) return;
+
+    const nome = getField(repertorio, ['nome', 'titulo', 'name']);
+    const prompt = document.createElement('section');
+    prompt.className = 'new-repertorio-panel repertorio-create-prompt';
+    prompt.innerHTML = `
+      <div class="repertorio-form-heading">
+        <div>
+          <h2>Repertorio selecionado</h2>
+          <p class="repertorio-current-name">${escapeHtml(nome)}</p>
+        </div>
       </div>
     `;
     formSlot.replaceChildren(prompt);
@@ -123,10 +144,12 @@ export async function RepertoriosPage({ session } = {}) {
 
     loadedRepertorios = data || [];
     repertoriosCount.textContent = String(loadedRepertorios.length);
-    repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
-      getSelectedRepertorioId: () => selectedExistingRepertorioId,
-      onSelect: renderForm,
-      onCreateDraft: prepareNewRepertorio,
+    const repertoriosBrowser = createRepertoriosBrowser(loadedRepertorios, {
+      onSelect: (repertorio) => {
+        selectedExistingRepertorioId = repertorio?.id || null;
+        syncCreateButtonVisibility();
+        renderExistingRepertorioPrompt(repertorio);
+      },
       canEdit,
     });
 
@@ -950,7 +973,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'list-browser repertorios-browser';
   const editableHint = options.canEdit
-    ? 'Digite para buscar um repertorio existente. Para criar, use o botao abaixo.'
+    ? 'Digite para buscar somente entre os repertorios ja salvos.'
     : 'Digite um nome ou data para buscar repertorios.';
   wrapper.innerHTML = `
     <div class="list-toolbar">
@@ -964,46 +987,12 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   `;
 
   const searchInput = wrapper.querySelector('.search-input');
-  const toolbar = wrapper.querySelector('.list-toolbar');
   const tableSlot = wrapper.querySelector('.table-slot');
   let isPointerInsideResults = false;
   let currentResults = [];
 
   function getSearchValue() {
     return searchInput.value.trim();
-  }
-
-  function findExactRepertorio(value) {
-    const query = normalizeText(value);
-    if (!query) return null;
-
-    return repertorios.find((repertorio) => normalizeText(getField(repertorio, ['nome', 'titulo', 'name'])) === query) || null;
-  }
-
-  function updateCreateButtonVisibility() {
-    if (!options.canEdit) return;
-
-    const shouldShow = !options.getSelectedRepertorioId?.() && !findExactRepertorio(getSearchValue());
-    const currentButton = toolbar.querySelector('[data-action="create-repertorio"]');
-
-    if (!shouldShow) {
-      currentButton?.remove();
-      return;
-    }
-
-    if (currentButton) return;
-
-    const button = document.createElement('button');
-    button.className = 'button';
-    button.type = 'button';
-    button.dataset.action = 'create-repertorio';
-    button.textContent = 'Criar novo repertorio';
-    button.addEventListener('click', () => {
-      options.onCreateDraft?.(getSearchValue());
-      updateCreateButtonVisibility();
-      tableSlot.hidden = true;
-    });
-    toolbar.append(button);
   }
 
   function selectRepertorio(repertorio) {
@@ -1014,7 +1003,6 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
     options.onSelect(repertorio);
     searchInput.value = getField(repertorio, ['nome', 'titulo', 'name']);
-    updateCreateButtonVisibility();
     tableSlot.hidden = true;
   }
 
@@ -1033,9 +1021,7 @@ function createRepertoriosBrowser(repertorios, options = {}) {
     }
 
     if (!currentResults.length) {
-      tableSlot.replaceChildren(createStatus(options.canEdit
-        ? 'Nenhum repertorio encontrado. Use "Criar novo repertorio" para iniciar um novo cadastro.'
-        : 'Nenhum repertorio encontrado para esta busca.'));
+      tableSlot.replaceChildren(createStatus('Nenhum repertorio encontrado para esta busca.'));
       return;
     }
 
@@ -1043,7 +1029,6 @@ function createRepertoriosBrowser(repertorios, options = {}) {
       ...options,
       onSelect: options.onSelect ? selectRepertorio : null,
     }));
-    updateCreateButtonVisibility();
   }
 
   searchInput.addEventListener('input', () => {
@@ -1053,7 +1038,6 @@ function createRepertoriosBrowser(repertorios, options = {}) {
 
   searchInput.addEventListener('focus', () => {
     render();
-    updateCreateButtonVisibility();
     tableSlot.hidden = false;
   });
 
@@ -1090,8 +1074,6 @@ function createRepertoriosBrowser(repertorios, options = {}) {
   });
 
   render();
-  updateCreateButtonVisibility();
-  wrapper.syncCreateButton = updateCreateButtonVisibility;
   return wrapper;
 }
 
