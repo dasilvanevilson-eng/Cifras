@@ -15,6 +15,7 @@ import {
 import { canEditContent } from '../../auth/roles.js';
 
 const REPERTORIO_DRAFT_PREFIX = 'masterCifras.repertorioDraft.';
+const REPERTORIO_LOCAL_DRAFT_PREFIX = 'masterCifras.repertorioLocalDraft.';
 
 export async function RepertoriosPage({ session } = {}) {
   const canEdit = canEditContent(session?.profile?.papel);
@@ -194,11 +195,12 @@ async function createRepertorioUnifiedForm({
     wrapper.innerHTML = `<p class="page-status error">${escapeHtml(musicasAssociadasError.message || 'Nao foi possivel carregar as musicas do repertorio.')}</p>`;
     return wrapper;
   }
+  const localDraft = readLocalRepertorioDraft(selectedRepertorio?.id || 'new');
   wrapper.replaceChildren(createNewRepertorioComposer(musicas || [], existingRepertorios, {
     selectedRepertorio,
     musicasAssociadas: musicasAssociadas || [],
     initialName,
-    draft,
+    draft: draft || localDraft,
   }));
   return wrapper;
 }
@@ -242,6 +244,10 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
     <div class="repertorio-save-bar">
       <p class="form-message" aria-live="polite"></p>
+      <div class="repertorio-save-actions">
+        <button class="button" type="submit" data-action="save-changes">Salvar alterações</button>
+        <button class="nav-button" type="button" data-action="discard-changes">Descartar alterações</button>
+      </div>
     </div>
   `;
 
@@ -252,16 +258,19 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   const resultsSlot = form.querySelector('.song-search-results');
   const selectedSlot = form.querySelector('.selected-repertorio-songs');
   const message = form.querySelector('.form-message');
+  const saveButton = form.querySelector('[data-action="save-changes"]');
+  const discardButton = form.querySelector('[data-action="discard-changes"]');
+  const savedMusicas = (options.musicasAssociadas || [])
+    .filter((item) => item.musica_id && item.musicas)
+    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
+    .map((item) => ({
+      ...item.musicas,
+      tom: item.tom || item.musicas?.tom || '',
+      observacao: item.observacao || '',
+    }));
   const selectedMusicas = draft?.musicas?.length
     ? draft.musicas.map((musica) => ({ ...musica }))
-    : (options.musicasAssociadas || [])
-      .filter((item) => item.musica_id && item.musicas)
-      .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
-      .map((item) => ({
-        ...item.musicas,
-        tom: item.tom || item.musicas?.tom || '',
-        observacao: item.observacao || '',
-      }));
+    : savedMusicas.map((musica) => ({ ...musica }));
   const sortedMusicas = sortMusicasByName(musicas);
   const existingNames = new Set(existingRepertorios
     .filter((repertorio) => !isEditing || repertorio.id !== selectedRepertorio.id)
@@ -270,15 +279,26 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   let draggedMusicaIndex = null;
   let dragAutoScrollFrame = null;
   let dragAutoScrollClientY = 0;
-  let autosaveTimer = null;
-  let isAutosaving = false;
-  let hasPendingAutosave = false;
-  let lastSavedSignature = createRepertorioSignature();
+  let localDraftKey = selectedRepertorio?.id || 'new';
+  let isSaving = false;
+  let lastSavedSignature = createRepertorioSignatureFromData({
+    nome: selectedRepertorio ? getField(selectedRepertorio, ['nome', 'titulo', 'name']) : '',
+    data: selectedRepertorio?.data || '',
+    musicas: savedMusicas,
+  });
 
   renderInlineActions();
 
   function updateSubmitState() {
-    form.classList.toggle('can-autosave', Boolean(nomeInput.value.trim() && selectedMusicas.length));
+    const hasLocalChanges = createRepertorioSignature() !== lastSavedSignature;
+    form.classList.toggle('has-local-changes', hasLocalChanges);
+    saveButton.disabled = isSaving || !hasLocalChanges;
+    discardButton.disabled = isSaving || !hasLocalChanges;
+
+    if (hasLocalChanges && !message.textContent) {
+      message.className = 'form-message';
+      message.textContent = 'Alterações locais não salvas';
+    }
   }
 
   function renderResults() {
@@ -339,7 +359,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         isPointerInsideResults = false;
         resultsSlot.hidden = true;
         updateSubmitState();
-        scheduleAutosave();
+        persistLocalChanges();
       });
 
       list.append(item);
@@ -411,7 +431,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         selectedMusicas.splice(index, 0, draggedMusica);
         draggedMusicaIndex = null;
         renderSelected();
-        scheduleAutosave();
+        persistLocalChanges();
       });
 
       row.querySelector('.selected-repertorio-remove').addEventListener('click', () => {
@@ -419,7 +439,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         renderSelected();
         renderResults();
         updateSubmitState();
-        scheduleAutosave();
+        persistLocalChanges();
       });
       row.querySelector('.selected-repertorio-play').addEventListener('click', (event) => {
         event.preventDefault();
@@ -431,7 +451,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
       });
       row.querySelector('.selected-repertorio-song-moment input').addEventListener('input', (event) => {
         selectedMusicas[index].observacao = event.target.value.trim();
-        scheduleAutosave(650);
+        persistLocalChanges();
       });
       row.querySelector('.selected-repertorio-song-moment input').addEventListener('pointerdown', (event) => {
         event.stopPropagation();
@@ -520,11 +540,11 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     const value = nomeInput.value.trim();
     currentName.textContent = value ? `Nome: ${value}` : 'Informe o nome do repertorio.';
     updateSubmitState();
-    scheduleAutosave(650);
+    persistLocalChanges();
   });
 
   dataInput.addEventListener('change', () => {
-    scheduleAutosave();
+    persistLocalChanges();
   });
 
   searchInput.addEventListener('input', () => {
@@ -563,6 +583,20 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
     await saveRepertorio({ focusOnError: true });
   });
+
+  discardButton.addEventListener('click', () => {
+    const hasLocalChanges = createRepertorioSignature() !== lastSavedSignature;
+    if (!hasLocalChanges) return;
+
+    const confirmed = window.confirm('Descartar as alterações locais e voltar ao último repertório salvo?');
+    if (!confirmed) return;
+
+    clearLocalRepertorioDraft();
+    clearCurrentRepertorioDraft();
+    window.location.href = '/repertorios';
+  });
+
+  window.addEventListener('beforeunload', warnBeforeUnloadWithLocalChanges);
 
   renderSelected();
   renderResults();
@@ -609,24 +643,44 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
     });
   }
 
-  function scheduleAutosave(delay = 260) {
-    window.clearTimeout(autosaveTimer);
-
-    autosaveTimer = window.setTimeout(() => {
-      saveRepertorio({ autosave: true });
-    }, delay);
+  function persistLocalChanges() {
+    persistLocalRepertorioDraft();
+    updateSubmitState();
   }
 
-  async function saveRepertorio({ autosave = false, focusOnError = false } = {}) {
+  function persistLocalRepertorioDraft() {
+    const formData = new FormData(form);
+
+    try {
+      window.sessionStorage.setItem(`${REPERTORIO_LOCAL_DRAFT_PREFIX}${localDraftKey}`, JSON.stringify({
+        selectedRepertorioId: currentRepertorio?.id || null,
+        nome: String(formData.get('nome') || '').trim(),
+        data: String(formData.get('data') || '') || null,
+        musicas: selectedMusicas.map((musica) => ({ ...musica })),
+        scrollY: window.scrollY || 0,
+      }));
+    } catch (_error) {
+      message.className = 'form-message error';
+      message.textContent = 'Não foi possível manter o rascunho local.';
+    }
+  }
+
+  function clearLocalRepertorioDraft() {
+    try {
+      window.sessionStorage.removeItem(`${REPERTORIO_LOCAL_DRAFT_PREFIX}${localDraftKey}`);
+    } catch (_error) {
+      // O rascunho local expira com a sessao mesmo quando nao puder ser removido.
+    }
+  }
+
+  async function saveRepertorio({ focusOnError = false } = {}) {
     const validation = validateRepertorioForSave();
 
     if (!validation.valid) {
-      if (!autosave || validation.showDuringAutosave) {
-        message.className = 'form-message error';
-        message.textContent = validation.message;
-        if (!autosave || focusOnError) {
-          validation.focusTarget?.focus?.();
-        }
+      message.className = 'form-message error';
+      message.textContent = validation.message;
+      if (focusOnError) {
+        validation.focusTarget?.focus?.();
       }
       updateSubmitState();
       return false;
@@ -634,22 +688,20 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
     const signature = createRepertorioSignature();
     if (signature === lastSavedSignature) {
-      if (!autosave) {
-        message.className = 'form-message success';
-        message.textContent = 'Repertório salvo';
-      }
+      message.className = 'form-message success';
+      message.textContent = 'Nenhuma alteração pendente';
       updateSubmitState();
       return true;
     }
 
-    if (isAutosaving) {
-      hasPendingAutosave = true;
+    if (isSaving) {
       return false;
     }
 
-    isAutosaving = true;
+    isSaving = true;
     message.className = 'form-message';
     message.textContent = 'Salvando...';
+    updateSubmitState();
 
     try {
       const formData = new FormData(form);
@@ -690,6 +742,10 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
       }
 
       lastSavedSignature = signature;
+      clearLocalRepertorioDraft();
+      if (currentRepertorio?.id && localDraftKey === 'new') {
+        localDraftKey = currentRepertorio.id;
+      }
       clearCurrentRepertorioDraft();
       message.className = 'form-message success';
       message.textContent = 'Repertório salvo';
@@ -704,13 +760,8 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
       return false;
     } finally {
-      isAutosaving = false;
+      isSaving = false;
       updateSubmitState();
-
-      if (hasPendingAutosave) {
-        hasPendingAutosave = false;
-        scheduleAutosave();
-      }
     }
   }
 
@@ -720,7 +771,6 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         valid: false,
         message: 'Informe o nome do repertorio.',
         focusTarget: nomeInput,
-        showDuringAutosave: false,
       };
     }
 
@@ -729,7 +779,6 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         valid: false,
         message: 'Ja existe um repertorio cadastrado com esse nome.',
         focusTarget: nomeInput,
-        showDuringAutosave: true,
       };
     }
 
@@ -738,7 +787,6 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
         valid: false,
         message: 'Inclua pelo menos uma musica antes de salvar o repertorio.',
         focusTarget: searchInput,
-        showDuringAutosave: false,
       };
     }
 
@@ -748,16 +796,32 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   function createRepertorioSignature() {
     const formData = new FormData(form);
 
-    return JSON.stringify({
+    return createRepertorioSignatureFromData({
       nome: String(formData.get('nome') || '').trim(),
       data: String(formData.get('data') || '') || null,
-      musicas: selectedMusicas.map((musica, index) => ({
+      musicas: selectedMusicas,
+    });
+  }
+
+  function createRepertorioSignatureFromData({ nome = '', data = '', musicas: signatureMusicas = [] } = {}) {
+    return JSON.stringify({
+      nome: String(nome || '').trim(),
+      data: String(data || '') || null,
+      musicas: signatureMusicas.map((musica, index) => ({
         id: musica.id,
         ordem: index + 1,
         tom: musica.tom || null,
         observacao: musica.observacao || null,
       })),
     });
+  }
+
+  function warnBeforeUnloadWithLocalChanges(event) {
+    if (!form.isConnected) return;
+    if (createRepertorioSignature() === lastSavedSignature) return;
+
+    event.preventDefault();
+    event.returnValue = '';
   }
 }
 
@@ -1139,6 +1203,15 @@ function readRepertorioDraftFromUrl() {
 
   try {
     const stored = window.sessionStorage.getItem(`${REPERTORIO_DRAFT_PREFIX}${draftKey}`);
+    return stored ? JSON.parse(stored) : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function readLocalRepertorioDraft(repertorioId = 'new') {
+  try {
+    const stored = window.sessionStorage.getItem(`${REPERTORIO_LOCAL_DRAFT_PREFIX}${repertorioId || 'new'}`);
     return stored ? JSON.parse(stored) : null;
   } catch (_error) {
     return null;

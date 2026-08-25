@@ -8028,12 +8028,19 @@ input.dashboard-select-song {
 .repertorio-save-bar {
   grid-column: 1 / -1;
   display: grid;
+  gap: 10px;
   border-top: 1px solid #eee7da;
   padding-top: 14px;
 }
 
 .repertorio-save-bar .form-message {
   margin: 0;
+}
+
+.repertorio-save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 @media (max-width: 860px) {
