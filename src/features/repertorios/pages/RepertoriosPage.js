@@ -75,31 +75,36 @@ export async function RepertoriosPage({ session } = {}) {
     selectedExistingRepertorioId = selectedRepertorio?.id || null;
     syncCreateButtonVisibility();
     formSlot.innerHTML = '<p class="page-status">Carregando formulario...</p>';
-    formSlot.replaceChildren(await createRepertorioUnifiedForm({
-      existingRepertorios: loadedRepertorios,
-      selectedRepertorio,
-      initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
-      draft: options.draft || null,
-      loadMusicas: loadMusicasOnce,
-      savedMessage: options.savedMessage || '',
-      onSaved: async (savedRepertorio) => {
-        if (!savedRepertorio?.id) return;
+    try {
+      formSlot.replaceChildren(await createRepertorioUnifiedForm({
+        existingRepertorios: loadedRepertorios,
+        selectedRepertorio,
+        initialName: selectedRepertorio ? '' : options.initialName || pendingNewRepertorioName,
+        draft: options.draft || null,
+        loadMusicas: loadMusicasOnce,
+        savedMessage: options.savedMessage || '',
+        onSaved: async (savedRepertorio) => {
+          if (!savedRepertorio?.id) return;
 
-        loadedRepertorios = upsertRepertorioInList(loadedRepertorios, savedRepertorio);
-        pendingNewRepertorioName = '';
-        await renderForm(savedRepertorio, { savedMessage: 'Repertorio salvo' });
-      },
-      onDiscard: async (savedRepertorio = null) => {
-        if (savedRepertorio?.id) {
-          await renderForm(savedRepertorio, { savedMessage: 'Alteracoes descartadas' });
-          return;
-        }
+          loadedRepertorios = upsertRepertorioInList(loadedRepertorios, savedRepertorio);
+          pendingNewRepertorioName = '';
+          await renderForm(savedRepertorio, { savedMessage: 'Repertorio salvo' });
+        },
+        onDiscard: async (savedRepertorio = null) => {
+          if (savedRepertorio?.id) {
+            await renderForm(savedRepertorio, { savedMessage: 'Alteracoes descartadas' });
+            return;
+          }
 
-        pendingNewRepertorioName = '';
-        renderCreatePrompt();
-      },
-    }));
-    syncCreateButtonVisibility();
+          pendingNewRepertorioName = '';
+          renderCreatePrompt();
+        },
+      }));
+    } catch (error) {
+      formSlot.innerHTML = `<p class="page-status error">${escapeHtml(error.message || 'Nao foi possivel carregar o formulario.')}</p>`;
+    } finally {
+      syncCreateButtonVisibility();
+    }
   }
 
   function renderCreatePrompt() {
@@ -182,6 +187,9 @@ async function createRepertorioUnifiedForm({
   initialName = '',
   draft = null,
   loadMusicas = listMusicas,
+  savedMessage = '',
+  onSaved = null,
+  onDiscard = null,
 } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'new-repertorio-panel';
@@ -213,9 +221,9 @@ async function createRepertorioUnifiedForm({
     musicasAssociadas: musicasAssociadas || [],
     initialName,
     draft: draft || localDraft,
-    savedMessage: options.savedMessage || '',
-    onSaved: options.onSaved,
-    onDiscard: options.onDiscard,
+    savedMessage,
+    onSaved,
+    onDiscard,
   }));
   return wrapper;
 }
