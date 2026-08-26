@@ -13,6 +13,7 @@ import {
   updateRepertorio,
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
+import { filterMusicasDisponiveisParaRepertorio } from '../utils/musicasDisponiveis.js';
 
 const REPERTORIO_DRAFT_PREFIX = 'masterCifras.repertorioDraft.';
 const REPERTORIO_LOCAL_DRAFT_PREFIX = 'masterCifras.repertorioLocalDraft.';
@@ -67,7 +68,11 @@ export async function RepertoriosPage({ session } = {}) {
 
     const result = await listMusicas();
     if (!result.error) {
-      musicasCache = result.data || [];
+      musicasCache = filterMusicasDisponiveisParaRepertorio(
+        result.data,
+        session?.user?.id,
+      );
+      return { ...result, data: musicasCache };
     }
     return result;
   }

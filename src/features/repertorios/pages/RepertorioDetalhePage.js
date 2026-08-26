@@ -17,6 +17,7 @@ import {
 } from '../../../services/repertoriosService.js';
 import { canEditContent } from '../../auth/roles.js';
 import { addRecentItem } from '../../../utils/recentItems.js';
+import { filterMusicasDisponiveisParaRepertorio } from '../utils/musicasDisponiveis.js';
 
 export async function RepertorioDetalhePage({ session } = {}) {
   const page = document.createElement('section');
@@ -61,7 +62,7 @@ export async function RepertorioDetalhePage({ session } = {}) {
     page.replaceChildren(createRepertorioView({
       repertorio,
       musicasAssociadas,
-      musicas: musicas || [],
+      musicas: filterMusicasDisponiveisParaRepertorio(musicas, session?.user?.id),
       historico: historico || [],
       canEdit: canEditRepertorio(repertorio, session),
       returnTo,
@@ -437,6 +438,7 @@ function createAddMusicaForm({ repertorioId, musicas, musicasAssociadas, proxima
       item.disabled = isAdded;
       item.innerHTML = `
         <strong>${escapeHtml(formatMusicaName(musica))}</strong>
+        <span class="song-search-scope">${escapeHtml(getMusicaScopeLabel(musica))}</span>
         ${isAdded ? '<span>Ja esta neste repertorio</span>' : ''}
       `;
 
@@ -859,6 +861,13 @@ function getMusicaVersionName(musica) {
   }
 
   return musica.colaborador_nome;
+}
+
+function getMusicaScopeLabel(musica) {
+  if (musica?.visibility === MUSICA_VISIBILITY.PRIVADA) return 'Minha cifra';
+  if (musica?.visibility === MUSICA_VISIBILITY.ORGANIZACAO) return 'Organizacao';
+  if (musica?.visibility === MUSICA_VISIBILITY.COMPARTILHADA) return 'Compartilhada';
+  return 'Comunidade';
 }
 
 async function prepareMusicaForRepertorio(musica, musicas, message = null) {
