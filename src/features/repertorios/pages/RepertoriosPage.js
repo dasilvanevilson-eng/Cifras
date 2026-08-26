@@ -367,6 +367,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
   let dragAutoScrollClientY = 0;
   let localDraftKey = selectedRepertorio?.id || 'new';
   let isSaving = false;
+  let isNavigatingToMusicaPreview = false;
   let lastSavedSignature = createRepertorioSignatureFromData({
     nome: selectedRepertorio ? getField(selectedRepertorio, ['nome', 'titulo', 'name']) : '',
     data: selectedRepertorio?.data || '',
@@ -477,7 +478,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
           <strong>${escapeHtml(formatMusicaName(musica))}</strong>
           <span class="selected-repertorio-song-scope">${escapeHtml(getMusicaScopeLabel(musica))}</span>
         </div>
-        <a class="nav-button icon-button selected-repertorio-play" href="${escapeHtml(getMusicaExecucaoUrl(musica))}" aria-label="Executar ${escapeHtml(formatMusicaName(musica))}" title="Executar musica">&#9654;</a>
+        <a class="nav-button icon-button selected-repertorio-play" href="${escapeHtml(getMusicaExecucaoUrl(musica))}" data-skip-unsaved-check="true" aria-label="Executar ${escapeHtml(formatMusicaName(musica))}" title="Executar musica">&#9654;</a>
         <label class="selected-repertorio-song-moment">
           <input type="text" maxlength="80" value="${escapeHtml(musica.observacao || '')}" placeholder="Entrada, louvor...">
         </label>
@@ -531,6 +532,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
       row.querySelector('.selected-repertorio-play').addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
+        isNavigatingToMusicaPreview = true;
         window.location.href = getMusicaExecucaoUrl(musica, saveRepertorioDraft());
       });
       row.querySelector('.selected-repertorio-play').addEventListener('pointerdown', (event) => {
@@ -947,6 +949,7 @@ function createNewRepertorioComposer(musicas, existingRepertorios = [], options 
 
   function warnBeforeUnloadWithLocalChanges(event) {
     if (!form.isConnected) return;
+    if (isNavigatingToMusicaPreview) return;
     if (createRepertorioSignature() === lastSavedSignature) return;
 
     event.preventDefault();

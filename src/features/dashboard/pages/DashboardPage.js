@@ -76,7 +76,6 @@ export function createDashboardView({
         <div class="dashboard-selected-slot" data-slot="repertorio-musicas"></div>
       </div>
     </section>
-    ${createDashboardQuickActions(publicMode)}
     <footer class="dashboard-test-notice">
       Este sistema esta em fase de teste/implementacao e podem ocorrer instabilidades no uso.
     </footer>
@@ -118,38 +117,6 @@ export function createDashboardView({
   musicasSearchContext.onKeepSearchOpen = musicasSearch.keepResultsOpen;
 
   return wrapper;
-}
-
-function createDashboardQuickActions(publicMode = false) {
-  if (publicMode) return '';
-
-  const actions = [
-    {
-      label: 'Cifras',
-      description: 'Cadastrar, buscar e revisar musicas.',
-      icon: '♪',
-      href: '/musicas',
-      tone: 'primary',
-    },
-    {
-      label: 'Repertorios',
-      description: 'Montar listas para execucao.',
-      icon: '≡',
-      href: '/repertorios',
-      tone: 'secondary',
-    },
-  ];
-
-  return `
-    <section class="dashboard-quick-actions" aria-label="Acoes rapidas">
-      ${actions.map((action) => `
-        <a class="dashboard-action-card dashboard-action-card--${action.tone}" href="${action.href}">
-          <span class="dashboard-action-icon" aria-hidden="true">${action.icon}</span>
-          <span class="dashboard-action-copy"><strong>${action.label}</strong><small>${action.description}</small></span>
-        </a>
-      `).join('')}
-    </section>
-  `;
 }
 
 function setupDashboardSearch({ input, slot, items, render, getUrl, renderContext = {} }) {

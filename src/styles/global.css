@@ -9095,102 +9095,6 @@ body.has-touch-nav .app-layout {
   line-height: 1.35;
 }
 
-.dashboard-quick-actions {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.dashboard-action-card {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  min-width: 0;
-  min-height: 92px;
-  align-content: start;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 13px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  text-decoration: none;
-  box-shadow: var(--shadow-xs);
-  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.dashboard-action-card:hover,
-.dashboard-action-card:focus {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--color-primary) 46%, var(--color-border));
-  box-shadow: var(--shadow-sm);
-  outline: 0;
-}
-
-.dashboard-action-icon {
-  display: grid;
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  border-radius: 10px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-strong);
-  font-size: 17px;
-  font-weight: 850;
-  line-height: 1;
-}
-
-.dashboard-action-copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.dashboard-action-card strong {
-  font-size: 15px;
-  line-height: 1.1;
-}
-
-.dashboard-action-card small {
-  color: var(--color-text-muted);
-  font-size: 12px;
-  line-height: 1.3;
-}
-
-.dashboard-action-card--primary {
-  border-color: color-mix(in srgb, var(--color-primary), var(--color-border) 48%);
-  background: var(--color-surface);
-}
-
-.dashboard-action-card--secondary {
-  border-color: color-mix(in srgb, var(--color-info), var(--color-border) 48%);
-  background: var(--color-surface);
-}
-
-.dashboard-action-card--secondary .dashboard-action-icon {
-  background: color-mix(in srgb, var(--color-info) 13%, var(--color-surface));
-  color: var(--color-info);
-}
-
-.dashboard-action-card--accent {
-  border-color: color-mix(in srgb, var(--color-accent), var(--color-border) 48%);
-  background: var(--color-surface);
-}
-
-.dashboard-action-card--accent .dashboard-action-icon {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
-.dashboard-action-card--neutral .dashboard-action-icon {
-  background: var(--color-bg-soft);
-  color: var(--color-text-muted);
-}
-
-.dashboard-action-card--neutral {
-  background: var(--color-surface);
-}
-
 .dashboard-home-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
@@ -9268,10 +9172,6 @@ body.has-touch-nav .app-layout {
 }
 
 @media (max-width: 920px) {
-  .dashboard-quick-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .dashboard-home-grid {
     grid-template-columns: 1fr;
   }
@@ -9309,20 +9209,6 @@ body.has-touch-nav .app-layout {
     padding-right: 8px;
     padding-left: 8px;
     font-size: 13px;
-  }
-
-  .dashboard-quick-actions {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .dashboard-action-card {
-    min-height: 84px;
-    padding: 11px;
-  }
-
-  .dashboard-action-card small {
-    font-size: 11px;
   }
 
   .dashboard-panel-heading {
@@ -11031,7 +10917,6 @@ body.has-touch-nav .app-layout {
 
 :root[data-theme="dark"] :where(
   .dashboard-list-item,
-  .dashboard-action-card,
   .dashboard-home-item,
   .public-invite-card,
   .permissions-user-item,
@@ -11059,7 +10944,6 @@ body.has-touch-nav .app-layout {
   .music-library-heading p,
   .music-editor-heading p,
   .repertorio-library-heading p,
-  .dashboard-action-card small,
   .dashboard-home-item p,
   .dashboard-list-item p,
   .musica-result-card p,
@@ -11245,7 +11129,6 @@ body.has-touch-nav .app-layout {
 
   :root:not([data-theme="light"]) :where(
     .dashboard-list-item,
-    .dashboard-action-card,
     .dashboard-home-item,
     .public-invite-card,
     .permissions-user-item,
@@ -11273,7 +11156,6 @@ body.has-touch-nav .app-layout {
     .music-library-heading p,
     .music-editor-heading p,
     .repertorio-library-heading p,
-    .dashboard-action-card small,
     .dashboard-home-item p,
     .dashboard-list-item p,
     .musica-result-card p,

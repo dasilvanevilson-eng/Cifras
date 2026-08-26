@@ -564,7 +564,7 @@ function createMusicasTable(musicas, options = {}) {
 
   musicas.forEach((musica) => {
     const id = getField(musica, ['id']);
-    const title = getDisplayTitle(musica);
+    const title = getDisplayTitle(musica, options.session);
     const artist = getField(musica, ['artista', 'autor', 'artist']);
     const artistLine = artist && artist !== '-' ? `<p>${escapeHtml(artist)}</p>` : '';
     const readOnlyUrl = getReadOnlyMusicaUrl(id);
@@ -826,19 +826,27 @@ function getMusicaScopeLabel(musica) {
   return 'Comunidade';
 }
 
-function getDisplayTitle(musica) {
+function getDisplayTitle(musica, session = {}) {
   const title = getField(musica, ['titulo', 'nome', 'title']);
-  const versionName = getVersionName(musica);
+  const versionName = getVersionName(musica, session);
 
   return versionName ? `${title} - Versao ${versionName}` : title;
 }
 
-function getVersionName(musica) {
-  if (musica?.visibility !== MUSICA_VISIBILITY.PUBLICA) {
-    return '';
+function getVersionName(musica, session = {}) {
+  if (musica?.visibility === MUSICA_VISIBILITY.PUBLICA) {
+    return musica.colaborador_nome || getSessionDisplayName(session) || 'Usuario';
   }
 
-  return musica.colaborador_nome || 'Usuario';
+  if (musica?.visibility === MUSICA_VISIBILITY.PRIVADA && musica.source_musica_id) {
+    return getSessionDisplayName(session) || musica.colaborador_nome || 'Usuario';
+  }
+
+  return '';
+}
+
+function getSessionDisplayName(session = {}) {
+  return session?.profile?.nome || session?.user?.email || '';
 }
 
 function isOwnedByCurrentUser(musica, session = {}) {
