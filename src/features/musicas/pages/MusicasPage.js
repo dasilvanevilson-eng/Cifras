@@ -15,6 +15,7 @@ import { markSugestaoMusicaAprovada } from '../../../services/sugestoesMusicasSe
 import { USER_ROLES } from '../../auth/roles.js';
 
 const LIBRARY_SCOPES = [
+  { key: 'general', label: 'Acervo Geral', visibility: null },
   { key: 'community', label: 'Comunidade', visibility: MUSICA_VISIBILITY.PUBLICA },
   { key: 'mine', label: 'Minhas cifras', visibility: MUSICA_VISIBILITY.PRIVADA },
 ];
@@ -856,6 +857,10 @@ function isAdmin(session = {}) {
 }
 
 function isMusicaInScope(musica, scope, session = {}) {
+  if (scope === 'general') {
+    return musica.visibility === MUSICA_VISIBILITY.PUBLICA
+      || (musica.visibility === MUSICA_VISIBILITY.PRIVADA && isOwnedByCurrentUser(musica, session));
+  }
   if (scope === 'community') return musica.visibility === MUSICA_VISIBILITY.PUBLICA;
   if (scope === 'mine') return musica.visibility === MUSICA_VISIBILITY.PRIVADA && isOwnedByCurrentUser(musica, session);
   return true;

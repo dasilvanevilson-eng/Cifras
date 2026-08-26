@@ -58,6 +58,10 @@ export async function listMusicas(options = {}) {
 
     if (scope === 'community') {
       request = request.eq('visibility', MUSICA_VISIBILITY.PUBLICA);
+    } else if (scope === 'general') {
+      request = userId
+        ? request.or(`visibility.eq.${MUSICA_VISIBILITY.PUBLICA},and(visibility.eq.${MUSICA_VISIBILITY.PRIVADA},or(owner_id.eq.${userId},created_by.eq.${userId}))`)
+        : request.eq('visibility', MUSICA_VISIBILITY.PUBLICA);
     } else if (scope === 'mine' && userId) {
       request = request
         .eq('visibility', MUSICA_VISIBILITY.PRIVADA)
