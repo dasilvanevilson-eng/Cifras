@@ -176,6 +176,10 @@ export async function createMusica(musica) {
     return { data: null, error: contentError };
   }
 
+  if (payload.visibility === MUSICA_VISIBILITY.PRIVADA) {
+    return createPrivateMusica(payload);
+  }
+
   return supabase.from('musicas').insert(payload).select().single();
 }
 
@@ -325,6 +329,22 @@ export async function deleteMusica(id) {
 export async function deleteMusicaComVinculos(id) {
   assertSupabaseConfig();
   return supabase.rpc('delete_musica_com_vinculos', { p_musica_id: id });
+}
+
+function createPrivateMusica(payload) {
+  return supabase.rpc('create_private_musica', {
+    p_titulo: payload.titulo,
+    p_artista: payload.artista || null,
+    p_tom: payload.tom || null,
+    p_tags: payload.tags || null,
+    p_musica_link: payload.musica_link || null,
+    p_colaborador_nome: payload.colaborador_nome || null,
+    p_revisado_por_nome: payload.revisado_por_nome || null,
+    p_cifra_original: payload.cifra_original,
+    p_cifra_chordpro: payload.cifra_chordpro,
+    p_cifra_exibicao: payload.cifra_exibicao || null,
+    p_cifra_editor_state: payload.cifra_editor_state || {},
+  });
 }
 
 async function getCurrentUserId() {
