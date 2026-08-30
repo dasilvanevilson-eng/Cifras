@@ -25,6 +25,7 @@ export async function MusicaExecucaoPage() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   const returnTo = params.get('returnTo') || '/musicas';
+  const isPreview = params.get('preview') === '1';
 
   if (!id) {
     status.className = 'page-status error';
@@ -46,6 +47,7 @@ export async function MusicaExecucaoPage() {
       musicasAcervo: musicasAcervo || [],
       returnTo,
       initiallyExpandedToolbar: true,
+      hideToolbarMenu: isPreview,
     }));
   } catch (error) {
     status.className = 'page-status error';
@@ -60,6 +62,7 @@ export function createPerformanceView({
   musicasAcervo = [],
   returnTo,
   initiallyExpandedToolbar = false,
+  hideToolbarMenu = false,
   disableSongSearch = false,
   updateUrlOnSongSelect = true,
   onSongSelect = null,
@@ -101,6 +104,7 @@ export function createPerformanceView({
     musicasAcervo,
     returnTo,
     initiallyExpandedToolbar,
+    hideToolbarMenu,
     updateUrlOnSongSelect,
     onSongSelect,
   });
@@ -112,10 +116,13 @@ function setupPerformanceControls(wrapper, {
   musicasAcervo = [],
   returnTo = '/musicas',
   initiallyExpandedToolbar = false,
+  hideToolbarMenu = false,
   updateUrlOnSongSelect = true,
   onSongSelect = null,
 } = {}) {
-  setupAutoHideToolbar(wrapper, { initiallyExpanded: initiallyExpandedToolbar });
+  if (!hideToolbarMenu) {
+    setupAutoHideToolbar(wrapper, { initiallyExpanded: initiallyExpandedToolbar });
+  }
 
   const themeButton = wrapper.querySelector('[data-action="theme"]');
   const fontDownButton = wrapper.querySelector('[data-action="font-down"]');

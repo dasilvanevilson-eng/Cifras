@@ -202,11 +202,11 @@ export async function MusicasPage({ session } = {}) {
   async function handlePublishedMusica(publishedMusica) {
     if (!publishedMusica?.id) return;
 
-    await setScope('community');
+    await setScope('mine');
     renderForm(formSlot, {
       selectedMusica: publishedMusica,
       session,
-      scope: 'community',
+      scope: 'mine',
       canManageGlobalMusic,
       hideTitleField: true,
       onAfterSave: handleSavedMusica,
@@ -373,6 +373,23 @@ function renderForm(formSlot, {
 
         if (result.error) {
           throw result.error;
+        }
+
+        const shouldMirrorToCommunity = Boolean(
+          selectedMusica?.visibility === MUSICA_VISIBILITY.PRIVADA
+          && selectedMusica.source_musica_id
+        );
+
+        if (shouldMirrorToCommunity) {
+          const mirrorResult = await publishPrivateMusicaToCommunity(selectedMusica.id, {
+            id: session?.user?.id,
+            nome: session?.profile?.nome,
+            email: session?.user?.email,
+          });
+
+          if (mirrorResult.error) {
+            throw mirrorResult.error;
+          }
         }
 
         if (pendingSugestao?.sugestao_id) {
@@ -568,6 +585,7 @@ function createMusicasTable(musicas, options = {}) {
     const artist = getField(musica, ['artista', 'autor', 'artist']);
     const artistLine = artist && artist !== '-' ? `<p>${escapeHtml(artist)}</p>` : '';
     const readOnlyUrl = getReadOnlyMusicaUrl(id);
+    const previewUrl = getPreviewMusicaUrl(id);
     const canEdit = canEditMusicaRecord(musica, options.session, options.canManageGlobalMusic);
     const canPersonalize = Boolean(options.canCreate && musica.visibility === MUSICA_VISIBILITY.PUBLICA);
     const card = document.createElement('article');
@@ -581,6 +599,7 @@ function createMusicasTable(musicas, options = {}) {
         ${artistLine}
       </div>
       <div class="musica-result-actions${canPersonalize ? ' has-personalize-action' : ''}">
+        <a class="button-link secondary" href="${escapeHtml(previewUrl)}" target="_blank" rel="noopener">Pr&eacute;-visualiza&ccedil;&atilde;o</a>
         <a class="button-link secondary" href="${escapeHtml(readOnlyUrl)}">Executar</a>
         ${canPersonalize ? '<button class="nav-button" type="button" data-action="personalize-music">Acrescentar as Minhas cifras</button>' : ''}
       </div>
@@ -623,6 +642,7 @@ function createLockedMusicaPanel(musica, options = {}) {
       <p>Esta cifra esta disponivel para consulta. Para alterar sem afetar o acervo original, personalize e salve no seu acervo privado.</p>
     </div>
     <div class="musica-result-actions">
+      <a class="button-link secondary" href="${escapeHtml(getPreviewMusicaUrl(musica.id))}" target="_blank" rel="noopener">Pr&eacute;-visualiza&ccedil;&atilde;o</a>
       <a class="button-link secondary" href="${escapeHtml(getReadOnlyMusicaUrl(musica.id))}">Executar</a>
       <button class="button" type="button" data-action="personalize-music">Personalizar</button>
     </div>
@@ -750,6 +770,16 @@ function getReadOnlyMusicaUrl(id) {
   return `/musicas/execucao?${params.toString()}`;
 }
 
+function getPreviewMusicaUrl(id) {
+  const params = new URLSearchParams({
+    id: String(id),
+    returnTo: '/musicas',
+    preview: '1',
+  });
+
+  return `/musicas/execucao?${params.toString()}`;
+}
+
 function getRootCommunityMusicaId(musica) {
   return musica?.source_musica_id || musica?.id;
 }
@@ -807,10 +837,10 @@ function getPublishActionLabel(musica) {
 
 function getPublishConfirmationMessage(musica) {
   if (musica?.source_musica_id) {
-    return 'Esta acao publicara seu ajuste na Comunidade. Se voce for o autor original, a versao publica sera atualizada. Caso contrario, sera criada uma nova versao publica desta cifra.';
+    return 'Esta acao atualizara a versao desta cifra na Comunidade.';
   }
 
-  return 'Esta cifra ficara visivel para todos os usuarios autenticados na Comunidade.';
+  return 'Esta cifra continuara em Minhas cifras e uma versao compartilhada ficara visivel para todos os usuarios autenticados na Comunidade.';
 }
 
 function getPublishSuccessMessage(musica) {
@@ -857,7 +887,10 @@ function isOwnedByCurrentUser(musica, session = {}) {
 }
 
 function canEditMusicaRecord(musica, session = {}, canManageGlobalMusic = false) {
-  return Boolean(canManageGlobalMusic || isOwnedByCurrentUser(musica, session));
+  return Boolean(
+    musica?.visibility === MUSICA_VISIBILITY.PRIVADA
+    && (canManageGlobalMusic || isOwnedByCurrentUser(musica, session))
+  );
 }
 
 function isAdmin(session = {}) {
