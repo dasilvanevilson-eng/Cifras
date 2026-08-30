@@ -36,7 +36,7 @@ export async function MusicasPage({ session } = {}) {
       <div class="music-library-heading">
         <div>
           <h2>Biblioteca de cifras</h2>
-          <p data-section-info>Busque somente pelo titulo. Cifras novas ficam em Minhas cifras e podem ser publicadas depois na Comunidade. Voce tambem pode buscar cifras na Comunidade e trazer para a sua area privada (Minhas cifras) para personalizar do seu jeito.</p>
+          <p data-section-info>Busque somente pelo titulo. Cifras novas ficam em Minhas cifras e podem ser publicadas depois na Comunidade. O compartilhamento na Comunidade &eacute; opcional, por&eacute;m todos os ajustes executados em Minhas cifras atualizam automaticamente a vers&atilde;o compartilhada. Voce tambem pode buscar cifras na Comunidade e trazer para a sua area privada (Minhas cifras) para personalizar do seu jeito.</p>
         </div>
       </div>
       <div class="list-slot">
