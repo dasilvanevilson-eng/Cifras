@@ -13,6 +13,7 @@ export function createPerformanceSongBlock({
   repertorioMusicaId = '',
   id = '',
   className = 'performance-song',
+  versionName = '',
   deletedNotice = '',
 } = {}) {
   const block = document.createElement('section');
@@ -33,6 +34,7 @@ export function createPerformanceSongBlock({
   block.innerHTML = `
     <header class="repertorio-song-title-bar">
       <span class="repertorio-current-song-title">${escapeHtml(title)}</span>
+      ${versionName ? `<span class="title-separator" aria-hidden="true">/</span><span class="performance-title-version">Vers&atilde;o ${escapeHtml(versionName)}</span>` : ''}
       ${subtitleParts.filter(Boolean).map((part) => (
         `<span class="title-separator" aria-hidden="true">/</span><span class="${escapeHtml(getSubtitleClassName(part))}">${escapeHtml(getSubtitleText(part))}</span>`
       )).join('')}

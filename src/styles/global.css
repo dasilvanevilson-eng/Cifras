@@ -9836,12 +9836,28 @@ body.has-touch-nav .app-layout {
 }
 
 .music-performance-stage .performance-song h2 {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
   overflow: hidden;
   max-width: 100%;
   color: var(--color-text);
   font-size: 20px;
   line-height: 1.15;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.performance-title-version {
+  flex: 0 0 auto;
+  border: 1px solid rgba(48, 91, 184, 0.2);
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: rgba(48, 91, 184, 0.1);
+  color: #305bb8;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
   white-space: nowrap;
 }
 

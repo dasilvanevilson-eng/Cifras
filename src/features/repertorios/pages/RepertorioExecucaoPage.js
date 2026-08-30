@@ -398,6 +398,7 @@ export function createPerformanceViewV2({
   initialSongIndex,
   onSongChange,
   disableSongPicker = false,
+  showVersionName = false,
 }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view repertorio-set-stage';
@@ -446,7 +447,7 @@ export function createPerformanceViewV2({
   }
 
   musicasAssociadas.forEach((item, index) => {
-    list.append(createSongBlockV2(item, index + 1, nome));
+    list.append(createSongBlockV2(item, index + 1, nome, { showVersionName }));
   });
 
   setupPerformanceControlsV2(wrapper, {
@@ -459,10 +460,11 @@ export function createPerformanceViewV2({
   return wrapper;
 }
 
-function createSongBlockV2(item, number, repertorioTitle = '-') {
+function createSongBlockV2(item, number, repertorioTitle = '-', options = {}) {
   const musica = item.musicas || {};
   const musicaExcluida = isMusicaExcluida(item);
   const title = musicaExcluida ? getField(item, ['musica_titulo']) : getField(musica, ['titulo', 'nome', 'title']);
+  const versionName = !musicaExcluida && options.showVersionName ? getMusicaVersionName(musica) : '';
   const originalKey = musicaExcluida ? getField(item, ['musica_tom_original']) : getField(musica, ['tom', 'key']);
   const repertorioKey = getField(item, ['tom']) !== '-' ? getField(item, ['tom']) : originalKey;
   const baseSemitones = getTransposeSemitones(originalKey, repertorioKey);
@@ -487,10 +489,16 @@ function createSongBlockV2(item, number, repertorioTitle = '-') {
     repertorioMusicaId: item.id || '',
     id: `musica-${number}`,
     className: musicaExcluida ? 'performance-song deleted-repertorio-song' : 'performance-song',
+    versionName,
     deletedNotice: musicaExcluida
       ? 'Esta musica foi excluida do acervo e permanece neste repertorio apenas como referencia.'
       : '',
   });
+}
+
+function getMusicaVersionName(musica = {}) {
+  const versionName = getField(musica, ['colaborador_nome']);
+  return versionName !== '-' ? versionName : '';
 }
 
 function setupPerformanceControlsV2(wrapper, options = {}) {

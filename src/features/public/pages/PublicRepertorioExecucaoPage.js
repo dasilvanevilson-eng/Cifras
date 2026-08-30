@@ -28,6 +28,7 @@ export async function PublicRepertorioExecucaoPage() {
       musicasAssociadas: normalizeOrder(data.musicas || []),
       returnTo: `/publico?token=${encodeURIComponent(token)}`,
       initialMusicaId: musicaId,
+      showVersionName: true,
     }));
   } catch (error) {
     status.className = 'page-status error';

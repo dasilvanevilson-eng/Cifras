@@ -285,6 +285,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       returnTo,
       disableSongSearch: !canUseExecutionAcervoSearch(),
       updateUrlOnSongSelect: false,
+      showVersionName: true,
       onSongSelect: handleExecutionAcervoSongSelect,
     }));
     refreshExecutionControlsForMode();
@@ -320,6 +321,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
         : options.currentSongIndex,
       onSongChange: handleRepertorioSongChange,
       disableSongPicker: isMemberConnectedToLeader(),
+      showVersionName: true,
     }));
     refreshExecutionControlsForMode();
     resetMemberLeaderLockedControls();
@@ -393,6 +395,7 @@ function createPublicBandaView({ token, invite, initialState, musicas, repertori
       returnTo,
       onSongChange: handleRepertorioSongChange,
       disableSongPicker: isMemberConnectedToLeader(),
+      showVersionName: true,
     }));
     refreshExecutionControlsForMode();
     openExecutionLayer();

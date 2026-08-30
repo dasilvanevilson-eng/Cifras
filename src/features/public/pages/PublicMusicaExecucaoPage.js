@@ -30,6 +30,7 @@ export async function PublicMusicaExecucaoPage() {
       musica,
       musicasAcervo: dashboardData?.musicas || [],
       returnTo: `/publico?token=${encodeURIComponent(token)}`,
+      showVersionName: true,
     }));
   } catch (error) {
     status.className = 'page-status error';

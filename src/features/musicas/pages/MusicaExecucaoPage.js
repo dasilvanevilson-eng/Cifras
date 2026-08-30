@@ -65,11 +65,13 @@ export function createPerformanceView({
   hideToolbarMenu = false,
   disableSongSearch = false,
   updateUrlOnSongSelect = true,
+  showVersionName = false,
   onSongSelect = null,
 }) {
   const wrapper = document.createElement('article');
   wrapper.className = 'repertorio-performance-view repertorio-song-view music-performance-stage';
   const { title, key, link, cifraOriginal } = getPerformanceSongData(musica);
+  const versionName = showVersionName ? getMusicaVersionName(musica) : '';
   const voiceLegendHtml = renderPerformanceVoiceLegendHtml(cifraOriginal, musica);
 
   wrapper.innerHTML = `
@@ -82,7 +84,10 @@ export function createPerformanceView({
       <header class="repertorio-song-title-bar">
         <div class="performance-title-copy">
           <span class="performance-kicker">Execucao</span>
-          <h2>${escapeHtml(title)}</h2>
+          <h2>
+            <span data-role="performance-song-title">${escapeHtml(title)}</span>
+            <small class="performance-title-version" data-role="performance-title-version"${versionName ? '' : ' hidden'}>${versionName ? `Vers&atilde;o ${escapeHtml(versionName)}` : ''}</small>
+          </h2>
           <div class="performance-title-voice-legend" data-role="performance-title-voice-legend">${voiceLegendHtml}</div>
         </div>
         <div class="performance-title-actions">
@@ -106,6 +111,7 @@ export function createPerformanceView({
     initiallyExpandedToolbar,
     hideToolbarMenu,
     updateUrlOnSongSelect,
+    showVersionName,
     onSongSelect,
   });
   return wrapper;
@@ -118,6 +124,7 @@ function setupPerformanceControls(wrapper, {
   initiallyExpandedToolbar = false,
   hideToolbarMenu = false,
   updateUrlOnSongSelect = true,
+  showVersionName = false,
   onSongSelect = null,
 } = {}) {
   if (!hideToolbarMenu) {
@@ -230,13 +237,19 @@ function setupPerformanceControls(wrapper, {
 
   wrapper.updatePerformanceMusica = (nextMusica) => {
     const nextData = getPerformanceSongData(nextMusica);
-    const title = wrapper.querySelector('.performance-song h2');
+    const title = wrapper.querySelector('[data-role="performance-song-title"]');
+    const version = wrapper.querySelector('[data-role="performance-title-version"]');
     const key = wrapper.querySelector('.current-key');
     const keyChip = wrapper.querySelector('.performance-key-chip');
     const link = wrapper.querySelector('.toolbar-link');
     const voiceLegend = wrapper.querySelector('[data-role="performance-title-voice-legend"]');
 
     if (title) title.textContent = nextData.title;
+    if (version) {
+      const versionName = showVersionName ? getMusicaVersionName(nextMusica) : '';
+      version.textContent = versionName ? `Vers\u00e3o ${versionName}` : '';
+      version.hidden = !versionName;
+    }
     if (keyChip) keyChip.textContent = nextData.key !== '-' ? nextData.key : 'Sem tom';
     if (key) {
       key.dataset.originalKey = nextData.key;
@@ -419,6 +432,11 @@ function getPerformanceSongData(musica) {
     link: getField(musica, ['musica_link']),
     cifraOriginal: getCifraParaTransposicao(musica),
   };
+}
+
+function getMusicaVersionName(musica = {}) {
+  const versionName = getField(musica, ['colaborador_nome']);
+  return versionName !== '-' ? versionName : '';
 }
 
 function renderPerformanceVoiceLegendHtml(cifra, musica = {}) {
